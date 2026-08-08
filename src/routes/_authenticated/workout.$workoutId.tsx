@@ -3,10 +3,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ExerciseGif } from "@/components/ExerciseGif";
-import { Loader2, Star, Clock, MapPin, Dumbbell, CheckCircle2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import type { WorkoutBlock, WorkoutPlan } from "@/lib/coach-options";
+import { WorkoutDisplay, type WorkoutRow } from "@/components/workout/WorkoutDisplay";
 
 export const Route = createFileRoute("/_authenticated/workout/$workoutId")({
   head: () => ({
@@ -18,85 +17,10 @@ export const Route = createFileRoute("/_authenticated/workout/$workoutId")({
   component: WorkoutPage,
 });
 
-type Workout = {
-  id: string;
-  name: string;
-  category: string;
-  format: string | null;
-  focus: string | null;
-  difficulty_stars: number;
-  duration_min: number;
-  equipment: string[] | null;
-  location: string | null;
-  mood: string | null;
-  description: string | null;
-  instructions: string | null;
-  tips: string[] | null;
-  rationale: string | null;
-  plan: WorkoutPlan;
-  status: string;
-};
-
 const DIFF = ["Too Easy", "Just Right", "Hard", "Very Hard"];
 const FEEL = ["Excellent", "Good", "Normal", "Tired", "Exhausted"];
 const YESNO = ["Yes", "Neutral", "No"];
 const REPEAT = ["Yes", "Maybe", "No"];
-
-function Stars({ n }: { n: number }) {
-  return (
-    <span className="inline-flex items-center gap-0.5">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <Star
-          key={i}
-          className={`h-4 w-4 ${i < n ? "fill-primary text-primary" : "text-muted-foreground/40"}`}
-        />
-      ))}
-    </span>
-  );
-}
-
-function Block({ block }: { block: WorkoutBlock }) {
-  return (
-    <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
-      <div className="mb-1 flex flex-wrap items-center gap-2">
-        <h3 className="text-lg font-bold">{block.title}</h3>
-        {block.format ? (
-          <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-primary">
-            {block.format}
-          </span>
-        ) : null}
-        {block.rounds ? (
-          <span className="text-xs text-muted-foreground">{block.rounds} rounds</span>
-        ) : null}
-      </div>
-      {block.instructions ? (
-        <p className="mb-3 text-sm text-muted-foreground">{block.instructions}</p>
-      ) : null}
-      <ul className="space-y-3">
-        {block.items.map((it, i) => (
-          <li key={i} className="flex gap-3 rounded-xl border border-border/60 p-3">
-            <ExerciseGif path={it.gif_path ?? null} alt={it.name} />
-            <div className="min-w-0 flex-1">
-              <p className="font-semibold">{it.name}</p>
-              <p className="text-sm text-muted-foreground">
-                {[
-                  it.sets ? `${it.sets} sets` : null,
-                  it.reps ? `${it.reps} reps` : null,
-                  it.duration,
-                  it.tempo ? `tempo ${it.tempo}` : null,
-                  it.rest ? `rest ${it.rest}` : null,
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
-              </p>
-              {it.notes ? <p className="mt-1 text-sm text-foreground/80">{it.notes}</p> : null}
-            </div>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
 
 function Choice({
   label,
@@ -134,9 +58,8 @@ function Choice({
 
 function WorkoutPage() {
   const { workoutId } = Route.useParams();
-  const [w, setW] = useState<Workout | null>(null);
+  const [w, setW] = useState<WorkoutRow | null>(null);
   const [loading, setLoading] = useState(true);
-  const [started, setStarted] = useState(false);
   const [done, setDone] = useState(false);
   const [saved, setSaved] = useState(false);
   const [difficulty, setDifficulty] = useState("Just Right");
@@ -148,7 +71,7 @@ function WorkoutPage() {
   useEffect(() => {
     (async () => {
       const { data } = await supabase.from("workouts").select("*").eq("id", workoutId).maybeSingle();
-      const row = (data as unknown as Workout) ?? null;
+      const row = (data as unknown as WorkoutRow) ?? null;
       setW(row);
       if (row?.status === "completed") setDone(true);
       setLoading(false);
@@ -189,6 +112,7 @@ function WorkoutPage() {
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
+
   if (!w)
     return (
       <div className="mx-auto max-w-xl px-4 py-16 text-center">
@@ -199,68 +123,11 @@ function WorkoutPage() {
       </div>
     );
 
-  const blocks = w.plan?.blocks ?? [];
-
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:py-12">
-      <div className="rounded-3xl border border-border bg-card p-5 sm:p-7">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-          {w.category} {w.format ? `· ${w.format}` : ""}
-        </p>
-        <h1 className="mt-1 text-3xl font-black">{w.name}</h1>
-        {w.focus ? <p className="mt-1 text-muted-foreground">{w.focus}</p> : null}
-        <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-          <Stars n={w.difficulty_stars} />
-          <span className="inline-flex items-center gap-1">
-            <Clock className="h-4 w-4" /> {w.duration_min} min
-          </span>
-          {w.location ? (
-            <span className="inline-flex items-center gap-1">
-              <MapPin className="h-4 w-4" /> {w.location}
-            </span>
-          ) : null}
-          <span className="inline-flex items-center gap-1">
-            <Dumbbell className="h-4 w-4" /> {(w.equipment ?? []).join(", ") || "bodyweight"}
-          </span>
-        </div>
-        {w.rationale ? (
-          <div className="mt-5 rounded-2xl bg-primary/10 p-4 text-sm">
-            <p className="font-semibold text-primary">Smarty Coach</p>
-            <p className="mt-1">{w.rationale}</p>
-          </div>
-        ) : null}
-        {w.description ? <p className="mt-4 text-sm">{w.description}</p> : null}
-        {w.instructions ? (
-          <p className="mt-3 text-sm text-muted-foreground">{w.instructions}</p>
-        ) : null}
-
-        {!started && !done ? (
-          <Button size="lg" className="mt-6 w-full" onClick={() => setStarted(true)}>
-            Start workout
-          </Button>
-        ) : null}
-      </div>
-
-      <div className="mt-6 space-y-4">
-        {blocks.map((b, i) => (
-          <Block key={i} block={b} />
-        ))}
-      </div>
-
-      {w.tips?.length ? (
-        <div className="mt-6 rounded-2xl border border-border bg-card p-5">
-          <h3 className="font-bold">Coach tips</h3>
-          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-            {w.tips.map((t, i) => (
-              <li key={i}>{t}</li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-
+    <WorkoutDisplay workout={w} onComplete={complete}>
       {!done ? (
         <Button size="lg" className="mt-6 w-full" onClick={complete}>
-          <CheckCircle2 className="mr-2 h-4 w-4" /> I finished this workout
+          I finished this workout
         </Button>
       ) : saved ? (
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -289,6 +156,6 @@ function WorkoutPage() {
           </Button>
         </div>
       )}
-    </div>
+    </WorkoutDisplay>
   );
 }

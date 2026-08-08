@@ -140,3 +140,33 @@
   .hover-lift { transition: transform 0.3s ease, box-shadow 0.3s ease; }
   .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgb(0 0 0 / 0.12); }
 }
+
+/* ---- Workout HTML rendering ---- */
+.workout-html p.tiptap-paragraph { margin: 0 0 0.5rem; line-height: 1.6; }
+.workout-html ul.tiptap-bullet-list { margin: 0 0 1rem; padding-left: 1.25rem; list-style: disc; }
+.workout-html li.tiptap-list-item { margin-bottom: 0.375rem; }
+.workout-html li.tiptap-list-item > p { margin: 0; }
+.workout-html strong { font-weight: 700; }
+.workout-html u { text-decoration: underline; text-underline-offset: 4px; }
+.workout-html .exercise-ref { display: inline-flex; align-items: baseline; gap: 0.25rem; }
+.workout-html .exercise-eye {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 9999px;
+  background-color: color-mix(in oklab, var(--color-primary) 15%, transparent);
+  font-size: 0.8rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.workout-html .exercise-eye:hover { background-color: color-mix(in oklab, var(--color-primary) 30%, transparent); }
+.workout-html.reader { color: rgb(245 245 245); }
+.workout-html.reader .exercise-eye { background-color: rgb(38 38 38); }
+
+@media print {
+  .sticky, nav, footer { display: none !important; }
+  .workout-html .exercise-eye { display: none !important; }
+}
