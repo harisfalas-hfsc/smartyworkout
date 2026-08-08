@@ -38,6 +38,7 @@ import { Route as Tools1rmCalculatorRouteImport } from './routes/tools.1rm-calcu
 import { Route as ToolsRoundsTrackerRouteImport } from './routes/tools.rounds-tracker'
 import { Route as ToolsWorkoutTimerRouteImport } from './routes/tools.workout-timer'
 import { Route as AuthenticatedWorkoutWorkoutIdRouteImport } from './routes/_authenticated/workout.$workoutId'
+import { Route as ApiPublicHooksDailyRunRouteImport } from './routes/api/public/hooks/daily-run'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -184,6 +185,11 @@ const AuthenticatedWorkoutWorkoutIdRoute =
     path: '/workout/$workoutId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicHooksDailyRunRoute = ApiPublicHooksDailyRunRouteImport.update({
+  id: '/api/public/hooks/daily-run',
+  path: '/api/public/hooks/daily-run',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -214,6 +220,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/workout/$workoutId': typeof AuthenticatedWorkoutWorkoutIdRoute
+  '/api/public/hooks/daily-run': typeof ApiPublicHooksDailyRunRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -244,6 +251,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/tools': typeof ToolsIndexRoute
   '/workout/$workoutId': typeof AuthenticatedWorkoutWorkoutIdRoute
+  '/api/public/hooks/daily-run': typeof ApiPublicHooksDailyRunRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -276,6 +284,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/_authenticated/workout/$workoutId': typeof AuthenticatedWorkoutWorkoutIdRoute
+  '/api/public/hooks/daily-run': typeof ApiPublicHooksDailyRunRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -308,6 +317,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/tools/'
     | '/workout/$workoutId'
+    | '/api/public/hooks/daily-run'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -338,6 +348,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/tools'
     | '/workout/$workoutId'
+    | '/api/public/hooks/daily-run'
   id:
     | '__root__'
     | '/'
@@ -369,6 +380,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/tools/'
     | '/_authenticated/workout/$workoutId'
+    | '/api/public/hooks/daily-run'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -395,6 +407,7 @@ export interface RootRouteChildren {
   ToolsWorkoutTimerRoute: typeof ToolsWorkoutTimerRoute
   AdminIndexRoute: typeof AdminIndexRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
+  ApiPublicHooksDailyRunRoute: typeof ApiPublicHooksDailyRunRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -602,6 +615,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWorkoutWorkoutIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/hooks/daily-run': {
+      id: '/api/public/hooks/daily-run'
+      path: '/api/public/hooks/daily-run'
+      fullPath: '/api/public/hooks/daily-run'
+      preLoaderRoute: typeof ApiPublicHooksDailyRunRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -650,6 +670,7 @@ const rootRouteChildren: RootRouteChildren = {
   ToolsWorkoutTimerRoute: ToolsWorkoutTimerRoute,
   AdminIndexRoute: AdminIndexRoute,
   ToolsIndexRoute: ToolsIndexRoute,
+  ApiPublicHooksDailyRunRoute: ApiPublicHooksDailyRunRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

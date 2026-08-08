@@ -27,9 +27,8 @@ export const Route = createFileRoute("/api/public/hooks/daily-run")({
         const { DAILY_PROFILE_COLUMNS, runMotivationForUser, runWodForUser } = await import(
           "@/lib/daily.server"
         );
-        type DailyProfile = Awaited<ReturnType<typeof import("@/lib/daily.server")>> extends never
-          ? never
-          : import("@/lib/daily.server").DailyProfile;
+        type DailyProfile = import("@/lib/daily.server").DailyProfile;
+
 
         const db = supabaseAdmin as never as import("@supabase/supabase-js").SupabaseClient;
         const { data, error } = await db
