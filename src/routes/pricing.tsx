@@ -98,7 +98,7 @@ function PricingPage() {
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <Button asChild size="lg">
-            <Link to="/auth" search={{ next: "/profile", mode: "signup" }}>Create account</Link>
+            <Link to="/auth" search={{ next: "/checkout", mode: "signup" }}>Subscribe · €9.99 / month</Link>
           </Button>
           <Button asChild size="lg" variant="outline">
             <Link to="/how-it-works">How it works</Link>

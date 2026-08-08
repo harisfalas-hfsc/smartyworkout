@@ -27,6 +27,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as WodRouteImport } from './routes/wod'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
+import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
 import { Route as AuthenticatedCoachRouteImport } from './routes/_authenticated/coach'
 import { Route as AuthenticatedLogbookRouteImport } from './routes/_authenticated/logbook'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
@@ -38,8 +39,10 @@ import { Route as ToolsIndexRouteImport } from './routes/tools.index'
 import { Route as Tools1rmCalculatorRouteImport } from './routes/tools.1rm-calculator'
 import { Route as ToolsRoundsTrackerRouteImport } from './routes/tools.rounds-tracker'
 import { Route as ToolsWorkoutTimerRouteImport } from './routes/tools.workout-timer'
+import { Route as AuthenticatedCheckoutReturnRouteImport } from './routes/_authenticated/checkout.return'
 import { Route as AuthenticatedWorkoutWorkoutIdRouteImport } from './routes/_authenticated/workout.$workoutId'
 import { Route as ApiPublicHooksDailyRunRouteImport } from './routes/api/public/hooks/daily-run'
+import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -130,6 +133,11 @@ const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCheckoutRoute = AuthenticatedCheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedCoachRoute = AuthenticatedCoachRouteImport.update({
   id: '/coach',
   path: '/coach',
@@ -186,6 +194,12 @@ const ToolsWorkoutTimerRoute = ToolsWorkoutTimerRouteImport.update({
   path: '/tools/workout-timer',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedCheckoutReturnRoute =
+  AuthenticatedCheckoutReturnRouteImport.update({
+    id: '/return',
+    path: '/return',
+    getParentRoute: () => AuthenticatedCheckoutRoute,
+  } as any)
 const AuthenticatedWorkoutWorkoutIdRoute =
   AuthenticatedWorkoutWorkoutIdRouteImport.update({
     id: '/workout/$workoutId',
@@ -197,6 +211,12 @@ const ApiPublicHooksDailyRunRoute = ApiPublicHooksDailyRunRouteImport.update({
   path: '/api/public/hooks/daily-run',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPaymentsWebhookRoute =
+  ApiPublicPaymentsWebhookRouteImport.update({
+    id: '/api/public/payments/webhook',
+    path: '/api/public/payments/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -216,6 +236,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/wod': typeof WodRoute
   '/account': typeof AuthenticatedAccountRoute
+  '/checkout': typeof AuthenticatedCheckoutRouteWithChildren
   '/coach': typeof AuthenticatedCoachRoute
   '/logbook': typeof AuthenticatedLogbookRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -227,8 +248,10 @@ export interface FileRoutesByFullPath {
   '/tools/workout-timer': typeof ToolsWorkoutTimerRoute
   '/admin/': typeof AdminIndexRoute
   '/tools/': typeof ToolsIndexRoute
+  '/checkout/return': typeof AuthenticatedCheckoutReturnRoute
   '/workout/$workoutId': typeof AuthenticatedWorkoutWorkoutIdRoute
   '/api/public/hooks/daily-run': typeof ApiPublicHooksDailyRunRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -248,6 +271,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/wod': typeof WodRoute
   '/account': typeof AuthenticatedAccountRoute
+  '/checkout': typeof AuthenticatedCheckoutRouteWithChildren
   '/coach': typeof AuthenticatedCoachRoute
   '/logbook': typeof AuthenticatedLogbookRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -259,8 +283,10 @@ export interface FileRoutesByTo {
   '/tools/workout-timer': typeof ToolsWorkoutTimerRoute
   '/admin': typeof AdminIndexRoute
   '/tools': typeof ToolsIndexRoute
+  '/checkout/return': typeof AuthenticatedCheckoutReturnRoute
   '/workout/$workoutId': typeof AuthenticatedWorkoutWorkoutIdRoute
   '/api/public/hooks/daily-run': typeof ApiPublicHooksDailyRunRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -282,6 +308,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/wod': typeof WodRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
+  '/_authenticated/checkout': typeof AuthenticatedCheckoutRouteWithChildren
   '/_authenticated/coach': typeof AuthenticatedCoachRoute
   '/_authenticated/logbook': typeof AuthenticatedLogbookRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
@@ -293,8 +320,10 @@ export interface FileRoutesById {
   '/tools/workout-timer': typeof ToolsWorkoutTimerRoute
   '/admin/': typeof AdminIndexRoute
   '/tools/': typeof ToolsIndexRoute
+  '/_authenticated/checkout/return': typeof AuthenticatedCheckoutReturnRoute
   '/_authenticated/workout/$workoutId': typeof AuthenticatedWorkoutWorkoutIdRoute
   '/api/public/hooks/daily-run': typeof ApiPublicHooksDailyRunRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -316,6 +345,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/wod'
     | '/account'
+    | '/checkout'
     | '/coach'
     | '/logbook'
     | '/notifications'
@@ -327,8 +357,10 @@ export interface FileRouteTypes {
     | '/tools/workout-timer'
     | '/admin/'
     | '/tools/'
+    | '/checkout/return'
     | '/workout/$workoutId'
     | '/api/public/hooks/daily-run'
+    | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -348,6 +380,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/wod'
     | '/account'
+    | '/checkout'
     | '/coach'
     | '/logbook'
     | '/notifications'
@@ -359,8 +392,10 @@ export interface FileRouteTypes {
     | '/tools/workout-timer'
     | '/admin'
     | '/tools'
+    | '/checkout/return'
     | '/workout/$workoutId'
     | '/api/public/hooks/daily-run'
+    | '/api/public/payments/webhook'
   id:
     | '__root__'
     | '/'
@@ -381,6 +416,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/wod'
     | '/_authenticated/account'
+    | '/_authenticated/checkout'
     | '/_authenticated/coach'
     | '/_authenticated/logbook'
     | '/_authenticated/notifications'
@@ -392,8 +428,10 @@ export interface FileRouteTypes {
     | '/tools/workout-timer'
     | '/admin/'
     | '/tools/'
+    | '/_authenticated/checkout/return'
     | '/_authenticated/workout/$workoutId'
     | '/api/public/hooks/daily-run'
+    | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -421,6 +459,7 @@ export interface RootRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
   ApiPublicHooksDailyRunRoute: typeof ApiPublicHooksDailyRunRoute
+  ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -551,6 +590,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/checkout': {
+      id: '/_authenticated/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof AuthenticatedCheckoutRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/coach': {
       id: '/_authenticated/coach'
       path: '/coach'
@@ -628,6 +674,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsWorkoutTimerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/checkout/return': {
+      id: '/_authenticated/checkout/return'
+      path: '/return'
+      fullPath: '/checkout/return'
+      preLoaderRoute: typeof AuthenticatedCheckoutReturnRouteImport
+      parentRoute: typeof AuthenticatedCheckoutRoute
+    }
     '/_authenticated/workout/$workoutId': {
       id: '/_authenticated/workout/$workoutId'
       path: '/workout/$workoutId'
@@ -642,11 +695,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksDailyRunRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/payments/webhook': {
+      id: '/api/public/payments/webhook'
+      path: '/api/public/payments/webhook'
+      fullPath: '/api/public/payments/webhook'
+      preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface AuthenticatedCheckoutRouteChildren {
+  AuthenticatedCheckoutReturnRoute: typeof AuthenticatedCheckoutReturnRoute
+}
+
+const AuthenticatedCheckoutRouteChildren: AuthenticatedCheckoutRouteChildren = {
+  AuthenticatedCheckoutReturnRoute: AuthenticatedCheckoutReturnRoute,
+}
+
+const AuthenticatedCheckoutRouteWithChildren =
+  AuthenticatedCheckoutRoute._addFileChildren(
+    AuthenticatedCheckoutRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
+  AuthenticatedCheckoutRoute: typeof AuthenticatedCheckoutRouteWithChildren
   AuthenticatedCoachRoute: typeof AuthenticatedCoachRoute
   AuthenticatedLogbookRoute: typeof AuthenticatedLogbookRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
@@ -657,6 +731,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountRoute: AuthenticatedAccountRoute,
+  AuthenticatedCheckoutRoute: AuthenticatedCheckoutRouteWithChildren,
   AuthenticatedCoachRoute: AuthenticatedCoachRoute,
   AuthenticatedLogbookRoute: AuthenticatedLogbookRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
@@ -693,17 +768,8 @@ const rootRouteChildren: RootRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
   ToolsIndexRoute: ToolsIndexRoute,
   ApiPublicHooksDailyRunRoute: ApiPublicHooksDailyRunRoute,
+  ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

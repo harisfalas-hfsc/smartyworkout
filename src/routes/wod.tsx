@@ -289,7 +289,7 @@ function WodPage() {
               Your profile is ready. Activate your €9.99 monthly membership before joining Workout of the Day.
             </p>
             <Button asChild className="mt-3 h-12 w-full rounded-lg font-extrabold">
-              <Link to="/pricing">Become Premium</Link>
+              <Link to="/checkout">Become Premium · €9.99 / month</Link>
             </Button>
           </div>
         )}
