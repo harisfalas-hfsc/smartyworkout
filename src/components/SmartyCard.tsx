@@ -70,6 +70,7 @@ interface SmartyCardProps {
   eyebrow?: string;
   eyebrowIcon?: LucideIcon | string; // Lucide icon component or emoji
   cornerIcon?: LucideIcon | string;
+  align?: "left" | "center";
   title?: ReactNode;
   accent?: ReactNode; // colored trailing word appended to title
   description?: ReactNode;
@@ -107,7 +108,7 @@ export function SmartyCard({
   tone = "cyan",
   eyebrow,
   eyebrowIcon,
-  cornerIcon,
+  align = "left",
   title,
   accent,
   description,
