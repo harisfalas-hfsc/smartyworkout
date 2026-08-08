@@ -172,6 +172,7 @@ export const generateWorkout = createServerFn({ method: "POST" })
           limitations: (prof?.["limitations"] as string[]) ?? null,
           location: String(data.location ?? "anywhere"),
           mood,
+          recent_feedback: feedbackLines,
         },
 
       },
