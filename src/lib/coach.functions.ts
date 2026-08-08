@@ -75,17 +75,45 @@ export const generateWorkout = createServerFn({ method: "POST" })
 
     let category: Category = GOAL_TO_CATEGORY[goal] ?? "STRENGTH";
 
-    const [{ data: profile }, { data: recent }] = await Promise.all([
+    const [{ data: profile }, { data: recent }, { data: feedback }] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
       supabase
         .from("workouts")
         .select("name,category,created_at")
         .order("created_at", { ascending: false })
         .limit(120),
+      supabase
+        .from("workout_feedback")
+        .select("difficulty_rating,feeling,enjoyed,would_repeat,comment,created_at,workouts(name,category)")
+        .order("created_at", { ascending: false })
+        .limit(8),
     ]);
 
     const prof = (profile ?? null) as Record<string, unknown> | null;
     const history = ((recent as { name: string; category: string }[] | null) ?? []);
+    const feedbackLines = (
+      (feedback as
+        | Array<{
+            difficulty_rating: string | null;
+            feeling: string | null;
+            enjoyed: string | null;
+            would_repeat: string | null;
+            comment: string | null;
+            workouts?: { name?: string | null; category?: string | null } | null;
+          }>
+        | null) ?? []
+    ).map((f) => {
+      const w = f.workouts;
+      const bits = [
+        f.difficulty_rating ? `felt ${f.difficulty_rating}` : null,
+        f.feeling ? `energy after: ${f.feeling}` : null,
+        f.enjoyed ? `enjoyed: ${f.enjoyed}` : null,
+        f.would_repeat ? `would repeat: ${f.would_repeat}` : null,
+        f.comment ? `comment: "${f.comment}"` : null,
+      ].filter(Boolean);
+      return `${w?.category ?? "workout"} — ${w?.name ?? "session"}: ${bits.join(", ")}`;
+    });
+
 
     if (data.surprise) {
       // Deterministic per user per day, and never the same category as the last 2 workouts.
