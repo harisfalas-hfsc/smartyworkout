@@ -116,7 +116,7 @@ export const Route = createFileRoute("/faq")({
 
 function FAQ() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:py-12">
+    <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:py-12 lg:max-w-5xl lg:px-8 lg:py-16">
       <PageHeader
         eyebrow="FAQ"
         title={

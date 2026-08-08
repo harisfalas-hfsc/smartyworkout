@@ -70,7 +70,7 @@ function Bullets({ items }: { items: React.ReactNode[] }) {
 
 function CoachProfilePage() {
   return (
-    <main className="mx-auto max-w-4xl px-4 py-8 sm:py-12">
+    <main className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">
       <div className="mb-10 text-center">
         <div className="mx-auto mb-6 h-32 w-32 overflow-hidden rounded-full border-4 border-primary sm:h-40 sm:w-40">
           <img
