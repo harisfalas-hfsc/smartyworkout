@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Info, ListChecks, HelpCircle } from "lucide-react";
+import { SmartyCard } from "@/components/SmartyCard";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import heroTraining from "@/assets/hero-training.jpg";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -104,31 +105,26 @@ function Home() {
 
 
   return (
-    <div className="flex min-h-[calc(100svh-4.5rem)] items-center justify-center px-4 py-4">
-      <section
-        className="relative w-full max-w-2xl overflow-hidden rounded-3xl border-2 border-primary bg-card p-6 text-center shadow-soft sm:p-10"
-        style={{
-          backgroundImage: `linear-gradient(to bottom, rgba(4,10,18,0.82), rgba(4,10,18,0.94)), url(${heroTraining})`,
-          backgroundSize: "cover",
-          backgroundPosition: "65% center",
-        }}
-      >
-        <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary sm:text-[11px]">
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:py-12">
+      <div className="mb-8 text-center">
+        <p className="text-xs font-semibold uppercase tracking-wider text-primary">
           Smarty Workout
         </p>
-
-        <h1 className="mt-3 text-[27px] font-extrabold leading-[1.1] tracking-tight text-[#E8EEF7] sm:text-[42px]">
-          Your personal workout,
-          <br />
-          <span className="text-primary">built in minutes.</span>
+        <h1 className="mt-2 text-3xl font-extrabold uppercase tracking-tight sm:text-4xl">
+          Your personal <span className="text-primary">workout.</span>
         </h1>
+      </div>
 
-        <p className="mx-auto mt-3 max-w-md text-[14px] leading-relaxed text-[rgba(232,238,247,0.82)] sm:mt-4 sm:text-base">
-          Answer a smart questionnaire. Get a full tailor-made workout built
-          around your body, goals, equipment and constraints.
-        </p>
-
-        <div className="mx-auto mt-5 flex max-w-sm flex-col gap-2.5 sm:max-w-md sm:flex-row sm:justify-center">
+      <SmartyCard
+        tone="cyan"
+        align="center"
+        eyebrow="Built in minutes"
+        eyebrowIcon="⚡"
+        title="Your personal workout,"
+        accent="built in minutes."
+        description="Answer a smart questionnaire. Get a full tailor-made workout built around your body, goals, equipment and constraints."
+      >
+        <div className="mx-auto flex max-w-sm flex-col gap-2.5 sm:max-w-md sm:flex-row sm:justify-center">
           <Link
             to={heroCtaTo}
             className="flex h-12 flex-1 items-center justify-center rounded-full bg-primary px-6 text-[15px] font-extrabold text-primary-foreground hover:opacity-95"
@@ -143,23 +139,24 @@ function Home() {
           </Link>
         </div>
 
-        <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-3">
+        <div className="mx-auto mt-6 grid max-w-xl grid-cols-3 gap-3">
           {DISCOVER.map((d) => (
             <Link
               key={d.to}
               to={d.to}
-              className="flex flex-col items-center justify-center gap-1.5 rounded-2xl border border-primary/30 bg-[rgba(4,10,18,0.45)] px-2 py-3 text-center transition hover:border-primary hover:bg-primary/10 sm:py-4"
+              className="flex flex-col items-center gap-1 rounded-2xl border border-sky-200 bg-sky-50 px-3 py-4 text-center transition hover:border-sky-400 dark:border-sky-500/40 dark:bg-sky-500/10"
             >
-              <d.icon className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
-              <span className="text-[11px] font-bold leading-tight text-[#E8EEF7] sm:text-xs">
-                {d.title}
-              </span>
+              <d.icon className={`h-5 w-5 ${d.color}`} />
+              <p className="text-sm font-bold leading-5">{d.title}</p>
+              <p className="hidden text-xs leading-5 text-muted-foreground sm:block">{d.desc}</p>
             </Link>
           ))}
         </div>
-      </section>
+      </SmartyCard>
+
     </div>
   );
 }
+
 
 
