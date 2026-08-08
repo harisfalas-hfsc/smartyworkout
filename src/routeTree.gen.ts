@@ -31,6 +31,7 @@ import { Route as AuthenticatedCoachRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedLogbookRouteImport } from './routes/_authenticated/logbook'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedProgressRouteImport } from './routes/_authenticated/progress'
+import { Route as AuthenticatedWodRouteImport } from './routes/_authenticated/wod'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminExerciseLibraryRouteImport } from './routes/admin.exercise-library'
 import { Route as ToolsIndexRouteImport } from './routes/tools.index'
@@ -149,6 +150,11 @@ const AuthenticatedProgressRoute = AuthenticatedProgressRouteImport.update({
   path: '/progress',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedWodRoute = AuthenticatedWodRouteImport.update({
+  id: '/wod',
+  path: '/wod',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
@@ -213,6 +219,7 @@ export interface FileRoutesByFullPath {
   '/logbook': typeof AuthenticatedLogbookRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/progress': typeof AuthenticatedProgressRoute
+  '/wod': typeof AuthenticatedWodRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
   '/tools/1rm-calculator': typeof Tools1rmCalculatorRoute
   '/tools/rounds-tracker': typeof ToolsRoundsTrackerRoute
@@ -244,6 +251,7 @@ export interface FileRoutesByTo {
   '/logbook': typeof AuthenticatedLogbookRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/progress': typeof AuthenticatedProgressRoute
+  '/wod': typeof AuthenticatedWodRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
   '/tools/1rm-calculator': typeof Tools1rmCalculatorRoute
   '/tools/rounds-tracker': typeof ToolsRoundsTrackerRoute
@@ -277,6 +285,7 @@ export interface FileRoutesById {
   '/_authenticated/logbook': typeof AuthenticatedLogbookRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/progress': typeof AuthenticatedProgressRoute
+  '/_authenticated/wod': typeof AuthenticatedWodRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
   '/tools/1rm-calculator': typeof Tools1rmCalculatorRoute
   '/tools/rounds-tracker': typeof ToolsRoundsTrackerRoute
@@ -310,6 +319,7 @@ export interface FileRouteTypes {
     | '/logbook'
     | '/profile'
     | '/progress'
+    | '/wod'
     | '/admin/exercise-library'
     | '/tools/1rm-calculator'
     | '/tools/rounds-tracker'
@@ -341,6 +351,7 @@ export interface FileRouteTypes {
     | '/logbook'
     | '/profile'
     | '/progress'
+    | '/wod'
     | '/admin/exercise-library'
     | '/tools/1rm-calculator'
     | '/tools/rounds-tracker'
@@ -373,6 +384,7 @@ export interface FileRouteTypes {
     | '/_authenticated/logbook'
     | '/_authenticated/profile'
     | '/_authenticated/progress'
+    | '/_authenticated/wod'
     | '/admin/exercise-library'
     | '/tools/1rm-calculator'
     | '/tools/rounds-tracker'
@@ -566,6 +578,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProgressRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/wod': {
+      id: '/_authenticated/wod'
+      path: '/wod'
+      fullPath: '/wod'
+      preLoaderRoute: typeof AuthenticatedWodRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/admin/': {
       id: '/admin/'
       path: '/admin'
@@ -631,6 +650,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLogbookRoute: typeof AuthenticatedLogbookRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedProgressRoute: typeof AuthenticatedProgressRoute
+  AuthenticatedWodRoute: typeof AuthenticatedWodRoute
   AuthenticatedWorkoutWorkoutIdRoute: typeof AuthenticatedWorkoutWorkoutIdRoute
 }
 
@@ -640,6 +660,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLogbookRoute: AuthenticatedLogbookRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedProgressRoute: AuthenticatedProgressRoute,
+  AuthenticatedWodRoute: AuthenticatedWodRoute,
   AuthenticatedWorkoutWorkoutIdRoute: AuthenticatedWorkoutWorkoutIdRoute,
 }
 
