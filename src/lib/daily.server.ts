@@ -1,5 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { getCycleDay, getDayIn84Cycle, localDateISO, starsForCycleDay } from "@/lib/wod-cycle";
+import {
+  getCycleDay,
+  getDayIn84Cycle,
+  localDateISO,
+  starsForCycleDayWithLevel,
+  type WodLevel,
+} from "@/lib/wod-cycle";
 import { motivationFor } from "@/lib/motivation";
 import { createWorkoutForUser } from "@/lib/workout/create.server";
 
@@ -18,10 +24,11 @@ export type DailyProfile = {
   preferred_equipment: string[] | null;
   preferred_environment: string | null;
   typical_duration_min: number | null;
+  wod_level?: string | null;
 };
 
 export const DAILY_PROFILE_COLUMNS =
-  "id,timezone,notify_motivation,motivation_hour,wod_mode,auto_workout_enabled,auto_workout_hour,last_motivation_on,last_auto_workout_on,preferred_equipment,preferred_environment,typical_duration_min";
+  "id,timezone,notify_motivation,motivation_hour,wod_mode,auto_workout_enabled,auto_workout_hour,last_motivation_on,last_auto_workout_on,preferred_equipment,preferred_environment,typical_duration_min,wod_level";
 
 async function completedStreak(db: DB, userId: string, timeZone: string): Promise<number> {
   const { data } = await db
@@ -87,7 +94,7 @@ export async function runWodForUser(
     equipment: prof?.preferred_equipment?.length ? prof.preferred_equipment : ["bodyweight"],
     wod: {
       category: cycleDay.category,
-      stars: starsForCycleDay(cycleDay),
+      stars: starsForCycleDayWithLevel(cycleDay, (prof?.wod_level as WodLevel) ?? "cycle"),
       focus: cycleDay.strengthFocus ?? null,
       date: today,
       cycleDay: getDayIn84Cycle(today),

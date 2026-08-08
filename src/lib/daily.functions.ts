@@ -1,6 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { getCycleDay, getDayIn84Cycle, localDateISO, starsForCycleDay } from "@/lib/wod-cycle";
+import {
+  difficultyLabelWithLevel,
+  getCycleDay,
+  getDayIn84Cycle,
+  localDateISO,
+  starsForCycleDayWithLevel,
+  type WodLevel,
+} from "@/lib/wod-cycle";
 
 export type DailySettings = {
   timezone: string;
@@ -9,6 +16,7 @@ export type DailySettings = {
   wod_mode: boolean;
   auto_workout_enabled: boolean;
   auto_workout_hour: number;
+  wod_level: WodLevel;
 };
 
 const DEFAULTS: DailySettings = {
@@ -18,6 +26,7 @@ const DEFAULTS: DailySettings = {
   wod_mode: false,
   auto_workout_enabled: false,
   auto_workout_hour: 7,
+  wod_level: "cycle",
 };
 
 function clampHour(h: unknown) {
@@ -33,14 +42,33 @@ export const getDailyHub = createServerFn({ method: "GET" })
     const { data: profile } = await supabase
       .from("profiles")
       .select(
-        "timezone,notify_motivation,motivation_hour,wod_mode,auto_workout_enabled,auto_workout_hour",
+        "timezone,notify_motivation,motivation_hour,wod_mode,auto_workout_enabled,auto_workout_hour,wod_level,wod_renews_at",
       )
       .eq("id", userId)
       .maybeSingle();
 
-    const settings: DailySettings = { ...DEFAULTS, ...((profile as Partial<DailySettings>) ?? {}) };
+    const row = (profile as (Partial<DailySettings> & { wod_renews_at?: string | null }) | null) ?? null;
+    const settings: DailySettings = { ...DEFAULTS, ...(row ?? {}) };
+    settings.wod_level = (settings.wod_level ?? "cycle") as WodLevel;
     const today = localDateISO(new Date(), settings.timezone);
     const cycleDay = getCycleDay(today);
+
+    const shift = (days: number) => {
+      const d = new Date(`${today}T12:00:00Z`);
+      d.setUTCDate(d.getUTCDate() + days);
+      return d.toISOString().slice(0, 10);
+    };
+    const dayInfo = (iso: string) => {
+      const c = getCycleDay(iso);
+      return {
+        date: iso,
+        category: c.category,
+        difficulty: difficultyLabelWithLevel(c, settings.wod_level),
+        stars: starsForCycleDayWithLevel(c, settings.wod_level),
+        focus: c.strengthFocus ?? null,
+        isRecovery: c.category === "RECOVERY",
+      };
+    };
 
     const { data: wod } = await supabase
       .from("workouts")
@@ -55,13 +83,19 @@ export const getDailyHub = createServerFn({ method: "GET" })
     return {
       settings,
       today,
+      renewsAt: row?.wod_renews_at ?? null,
       cycle: {
         dayIn84: getDayIn84Cycle(today),
         category: cycleDay.category,
-        difficulty: cycleDay.difficulty,
-        stars: starsForCycleDay(cycleDay),
+        difficulty: difficultyLabelWithLevel(cycleDay, settings.wod_level),
+        stars: starsForCycleDayWithLevel(cycleDay, settings.wod_level),
         strengthFocus: cycleDay.strengthFocus ?? null,
         isRecovery: cycleDay.category === "RECOVERY",
+      },
+      days: {
+        yesterday: dayInfo(shift(-1)),
+        today: dayInfo(today),
+        tomorrow: dayInfo(shift(1)),
       },
       workout: (wod as {
         id: string;
@@ -88,6 +122,9 @@ export const saveDailySettings = createServerFn({ method: "POST" })
       patch["auto_workout_enabled"] = data.auto_workout_enabled;
     if (data.auto_workout_hour !== undefined)
       patch["auto_workout_hour"] = clampHour(data.auto_workout_hour);
+    if (typeof data.wod_level === "string" &&
+      ["cycle", "beginner", "intermediate", "advanced"].includes(data.wod_level))
+      patch["wod_level"] = data.wod_level;
     if (!Object.keys(patch).length) return { ok: true };
     const { error } = await context.supabase
       .from("profiles")
@@ -136,4 +173,30 @@ export const markNotificationsRead = createServerFn({ method: "POST" })
       .eq("user_id", context.userId)
       .is("read_at", null);
     return { ok: true };
+  });
+
+/** Joins or leaves the Workout of the Day programme. */
+export const setWodSubscription = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { subscribe: boolean; level?: WodLevel }) => input)
+  .handler(async ({ data, context }) => {
+    const now = new Date();
+    const renews = new Date(now);
+    renews.setUTCMonth(renews.getUTCMonth() + 1);
+    const patch: Record<string, unknown> = data.subscribe
+      ? {
+          wod_mode: true,
+          auto_workout_enabled: true,
+          auto_workout_hour: 0,
+          wod_subscribed_at: now.toISOString(),
+          wod_renews_at: renews.toISOString(),
+          wod_level: data.level ?? "cycle",
+        }
+      : { wod_mode: false, auto_workout_enabled: false, wod_renews_at: null };
+    const { error } = await context.supabase
+      .from("profiles")
+      .update(patch as never)
+      .eq("id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true, subscribed: data.subscribe };
   });
