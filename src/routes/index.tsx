@@ -105,106 +105,62 @@ function Home() {
 
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col px-4 pb-8 pt-0 sm:pb-12">
-      {/* MOBILE HERO CARD */}
+    <div className="flex min-h-[calc(100svh-4.5rem)] items-center justify-center px-4 py-4">
       <section
-        className="mt-4 mb-4 overflow-hidden rounded-[15px] border-[1.5px] border-sky-300/70 bg-cover bg-[68%_center] bg-no-repeat p-5 text-center shadow-[0_12px_36px_-28px_rgba(0,0,0,0.8)] sm:hidden"
+        className="relative w-full max-w-2xl overflow-hidden rounded-3xl border-2 border-primary bg-card p-6 text-center shadow-soft sm:p-10"
         style={{
-          backgroundImage: `linear-gradient(to bottom, rgba(4,10,18,0.55), rgba(4,10,18,0.88)), url(${heroTraining})`,
+          backgroundImage: `linear-gradient(to bottom, rgba(4,10,18,0.82), rgba(4,10,18,0.94)), url(${heroTraining})`,
+          backgroundSize: "cover",
+          backgroundPosition: "65% center",
         }}
       >
-        <h1 className="text-[30px] font-black leading-[1.08] tracking-tight text-[#E8EEF7]">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary sm:text-[11px]">
+          Smarty Workout
+        </p>
+
+        <h1 className="mt-3 text-[27px] font-extrabold leading-[1.1] tracking-tight text-[#E8EEF7] sm:text-[42px]">
           Your personal workout,
           <br />
           <span className="text-primary">built in minutes.</span>
         </h1>
-        <p className="mx-auto mt-3 max-w-sm text-[15px] leading-relaxed text-[rgba(232,238,247,0.82)]">
+
+        <p className="mx-auto mt-3 max-w-md text-[14px] leading-relaxed text-[rgba(232,238,247,0.82)] sm:mt-4 sm:text-base">
           Answer a smart questionnaire. Get a full tailor-made workout built
           around your body, goals, equipment and constraints.
         </p>
-        <Link
-          to={heroCtaTo}
-          className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary text-[15px] font-extrabold text-primary-foreground"
-        >
-          {heroCtaLabel}
-        </Link>
-        <Link
-          to="/how-it-works"
-          className="mt-2.5 flex h-[46px] w-full items-center justify-center rounded-full border-2 border-primary bg-[rgba(4,10,18,0.35)] text-[15px] font-extrabold text-primary"
-        >
-          How it works
-        </Link>
-      </section>
 
-      {/* FULL-BLEED HERO — desktop/tablet */}
-      <section className="relative left-1/2 mb-8 hidden w-screen -translate-x-1/2 overflow-hidden sm:mb-14 sm:block">
-        <img
-          src={heroTraining}
-          alt="Athlete training with dumbbells for a personalized workout plan"
-          width={1920}
-          height={1080}
-          fetchPriority="high"
-          decoding="async"
-          className="absolute inset-0 h-full w-full object-cover object-[60%_center]"
-        />
-        <div className="absolute inset-0 bg-black/75" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/25 to-transparent" />
-        <div className="relative mx-auto w-full max-w-6xl px-5 py-16 text-center lg:px-6 lg:py-36">
-          <div className="mx-auto max-w-2xl">
-            <h1 className="text-[34px] font-extrabold leading-[1.05] tracking-tight text-white sm:text-[44px] lg:text-[60px]">
-              Your personal workout,
-              <br />
-              <span className="text-primary">built in minutes.</span>
-            </h1>
-            <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-white/80 lg:mt-6 lg:text-lg">
-              Answer a smart questionnaire. Get a full tailor-made workout built
-              around your body, goals, equipment and constraints.
-            </p>
-            <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-              <Link
-                to={heroCtaTo}
-                className="inline-flex h-12 items-center rounded-full bg-primary px-8 text-base font-bold text-primary-foreground hover:opacity-95"
-              >
-                {heroCtaLabel}
-              </Link>
-              <Link
-                to="/how-it-works"
-                className="inline-flex h-12 items-center rounded-full border-2 border-primary px-8 text-base font-bold text-primary hover:bg-primary/10"
-              >
-                How it works
-              </Link>
-            </div>
-          </div>
+        <div className="mx-auto mt-5 flex max-w-sm flex-col gap-2.5 sm:max-w-md sm:flex-row sm:justify-center">
+          <Link
+            to={heroCtaTo}
+            className="flex h-12 flex-1 items-center justify-center rounded-full bg-primary px-6 text-[15px] font-extrabold text-primary-foreground hover:opacity-95"
+          >
+            {heroCtaLabel}
+          </Link>
+          <Link
+            to="/pricing"
+            className="flex h-12 flex-1 items-center justify-center rounded-full border-2 border-primary px-6 text-[15px] font-extrabold text-primary hover:bg-primary/10"
+          >
+            See pricing
+          </Link>
         </div>
-      </section>
 
-      {/* Discover card — three quick links */}
-      <section className="mx-auto w-full max-w-4xl">
-        <SmartyCard
-          tone="green"
-          eyebrow="Discover"
-          eyebrowIcon="🧭"
-          cornerIcon={Compass}
-          title="Get to know"
-          accent="Smarty Workout."
-          description="Everything you need, one tap away."
-        >
-          <div className="mt-2 grid gap-3 sm:grid-cols-3">
-            {DISCOVER.map((d) => (
-              <Link
-                key={d.to}
-                to={d.to}
-                className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-card/60 px-4 py-6 text-center transition hover:border-primary hover:bg-primary/5"
-              >
-                <d.icon className={`h-7 w-7 ${d.color}`} />
-                <span className="text-sm font-bold">{d.title}</span>
-                <span className="text-xs text-muted-foreground">{d.desc}</span>
-              </Link>
-            ))}
-          </div>
-        </SmartyCard>
+        <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-3">
+          {DISCOVER.map((d) => (
+            <Link
+              key={d.to}
+              to={d.to}
+              className="flex flex-col items-center justify-center gap-1.5 rounded-2xl border border-primary/30 bg-[rgba(4,10,18,0.45)] px-2 py-3 text-center transition hover:border-primary hover:bg-primary/10 sm:py-4"
+            >
+              <d.icon className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
+              <span className="text-[11px] font-bold leading-tight text-[#E8EEF7] sm:text-xs">
+                {d.title}
+              </span>
+            </Link>
+          ))}
+        </div>
       </section>
     </div>
   );
 }
+
 
