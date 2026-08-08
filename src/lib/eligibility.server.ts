@@ -6,7 +6,41 @@ export type AccessState = {
   readinessComplete: boolean;
   premium: boolean;
   missingProfileFields: string[];
+  /** Manual (coach) generations already used today. */
+  generationsUsedToday: number;
+  /** Manual generations included per day with an active membership. */
+  generationsLimit: number;
+  generationsLeftToday: number;
 };
+
+/** Membership includes two coach generations per day (Workout of the Day is extra). */
+export const DAILY_GENERATION_LIMIT = 2;
+
+function startOfLocalDayIso(timezone: string): string {
+  const now = new Date();
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(now);
+  const get = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? 0);
+  const localMs = Date.UTC(
+    get("year"),
+    get("month") - 1,
+    get("day"),
+    get("hour") % 24,
+    get("minute"),
+    get("second"),
+  );
+  const offset = localMs - Math.floor(now.getTime() / 1000) * 1000;
+  const startLocal = Date.UTC(get("year"), get("month") - 1, get("day"), 0, 0, 0);
+  return new Date(startLocal - offset).toISOString();
+}
 
 const REQUIRED_PROFILE_FIELDS = [
   ["age", "age"],
