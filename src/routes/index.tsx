@@ -114,21 +114,22 @@ function Home() {
     if (cta.kind === "has-active")
       return (
         <Button asChild size="lg" className="w-full sm:w-auto">
-          <Link to="/plans">View my workout plans</Link>
+          <Link to="/coach">Open Smarty Coach</Link>
         </Button>
       );
 
     return (
       <Button asChild size="lg" className="w-full sm:w-auto">
-        <Link to="/questionnaire">Get started</Link>
+        <Link to="/coach">Start with Smarty Coach</Link>
       </Button>
     );
   })();
 
 
   const heroCtaLabel =
-    cta.kind === "has-active" ? "View my workout plans" : "Get started";
-  const heroCtaTo = cta.kind === "has-active" ? "/plans" : "/questionnaire";
+    cta.kind === "has-active" ? "Open Smarty Coach" : "Start with Smarty Coach";
+  const heroCtaTo = "/coach";
+
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col px-4 pb-8 pt-0 sm:pb-12">
