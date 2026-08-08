@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import heroTraining from "@/assets/hero-training.jpg";
+import { PageHeader } from "@/components/PageHeader";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -43,38 +44,37 @@ export const Route = createFileRoute("/")({
 function Home() {
   return (
     <div className="mx-auto flex max-w-6xl flex-col px-4 pb-8 pt-0 sm:pb-12">
-      {/* MOBILE HERO CARD */}
-      <section
-        className="mb-4 mt-4 overflow-hidden rounded-[15px] border-[1.5px] border-sky-300/70 bg-cover bg-[68%_center] bg-no-repeat p-5 shadow-[0_12px_36px_-28px_rgba(0,0,0,0.8)] sm:hidden"
-        style={{
-          backgroundImage: `linear-gradient(to bottom, rgba(4,10,18,0.55), rgba(4,10,18,0.88)), url(${heroTraining})`,
-        }}
-      >
-        <h1 className="text-[30px] font-black uppercase leading-[1.08] tracking-tight text-[#E8EEF7]">
-          Your personal workout
-          <br />
-          <span className="text-primary">anytime, anywhere.</span>
-        </h1>
-        <p className="mt-3 text-[15px] leading-relaxed text-[rgba(232,238,247,0.82)]">
-          Answer a smart questionnaire. Get a full tailor-made workout built
-          around your body, goals, equipment and constraints.
-        </p>
-        <Link
-          to="/coach"
-          className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary text-[15px] font-extrabold text-primary-foreground"
-        >
-          Create your workout
-        </Link>
-        <Link
-          to="/pricing"
-          className="mt-2.5 flex h-[46px] w-full items-center justify-center rounded-full border-2 border-primary bg-[rgba(4,10,18,0.35)] text-[15px] font-extrabold text-primary"
-        >
-          See pricing
-        </Link>
-        <p className="mt-3 text-center text-[13px] text-[rgba(232,238,247,0.6)]">
+      {/* MOBILE — consistent with every other page: centered header + CTAs */}
+      <section className="py-8 sm:hidden">
+        <PageHeader
+          title={
+            <>
+              Your personal workout
+              <br />
+              <span className="text-primary">anytime, anywhere.</span>
+            </>
+          }
+          subtitle="Answer a smart questionnaire. Get a full tailor-made workout built around your body, goals, equipment and constraints."
+        />
+        <div className="mx-auto flex max-w-xs flex-col gap-3">
+          <Link
+            to="/coach"
+            className="flex h-12 w-full items-center justify-center rounded-full bg-primary text-[15px] font-extrabold text-primary-foreground"
+          >
+            Create your workout
+          </Link>
+          <Link
+            to="/pricing"
+            className="flex h-12 w-full items-center justify-center rounded-full border-2 border-primary text-[15px] font-extrabold text-primary"
+          >
+            See pricing
+          </Link>
+        </div>
+        <p className="mt-4 text-center text-[13px] text-muted-foreground">
           One membership. Two personalized workouts every day.
         </p>
       </section>
+
 
       {/* FULL-BLEED HERO — desktop/tablet */}
       <section className="relative left-1/2 mb-8 hidden w-screen -translate-x-1/2 overflow-hidden sm:mb-14 sm:block">
