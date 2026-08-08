@@ -5,10 +5,11 @@ import {
   Sparkles,
   Activity,
   Gauge,
-  Salad,
+  Dumbbell,
   Users,
   Compass,
 } from "lucide-react";
+
 import { SmartyCard, SmartyRow, SmartyPill, toneClasses } from "@/components/SmartyCard";
 import { cn } from "@/lib/utils";
 
