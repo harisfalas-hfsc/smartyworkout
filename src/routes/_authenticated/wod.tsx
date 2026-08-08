@@ -180,37 +180,40 @@ function WodPage() {
 
       </section>
 
-      <section className="overflow-hidden rounded-2xl border-2 border-primary/60 bg-card py-4 shadow-sm">
-        <div className="flex items-center justify-center gap-5 text-xs font-medium text-muted-foreground">
-          <ChevronLeft className="h-5 w-5" />
-          <span>Swipe to explore</span>
-          <ChevronRight className="h-5 w-5" />
-        </div>
-        <div
-          ref={trackRef}
-          onScroll={onTrackScroll}
-          className="mt-2 flex snap-x snap-mandatory gap-3 overflow-x-auto px-[16%] pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:px-[27%] [&::-webkit-scrollbar]:hidden"
+      <section className="relative rounded-2xl border-2 border-primary/60 bg-card px-4 py-4 shadow-sm">
+        <SwipeToExplore onPrev={() => api?.scrollPrev()} onNext={() => api?.scrollNext()} />
+
+        <Carousel
+          setApi={setApi}
+          opts={{ align: "center", loop: true, startIndex: 1 }}
+          className="w-full"
         >
+          <CarouselContent className="-ml-3">
+            {daySlides.map((item) => (
+              <CarouselItem key={item.label} className="basis-[75%] pl-3 md:basis-[32%]">
+                <DaySlide day={item.day} label={item.label} />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="-left-4 h-8 w-8 border-border bg-background/80 hover:bg-accent" />
+          <CarouselNext className="-right-4 h-8 w-8 border-border bg-background/80 hover:bg-accent" />
+        </Carousel>
+
+        <div className="mt-3 flex justify-center gap-2">
           {daySlides.map((item, index) => (
-            <DaySlide
+            <button
               key={item.label}
-              day={item.day}
-              label={item.label}
-              active={index === activeDay}
-            />
-          ))}
-        </div>
-        <div className="mt-3 flex justify-center gap-2" aria-hidden="true">
-          {daySlides.map((item, index) => (
-            <span
-              key={item.label}
-              className={`h-2.5 w-2.5 rounded-full border border-primary ${
-                index === activeDay ? "bg-primary" : "bg-transparent"
-              }`}
+              onClick={() => api?.scrollTo(index)}
+              className={cn(
+                "h-1.5 rounded-full transition-all",
+                current === index ? "w-3 bg-primary" : "w-1.5 bg-primary/30 hover:bg-primary/50",
+              )}
+              aria-label={`Go to ${item.label}`}
             />
           ))}
         </div>
       </section>
+
 
 
 
