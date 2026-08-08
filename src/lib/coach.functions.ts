@@ -89,6 +89,7 @@ export const generateWorkout = createServerFn({ method: "POST" })
         category,
         format,
         equipmentMode,
+        selectedEquipment: equipmentIds,
         stars,
         minutes,
         focus: (data.focus as StrengthFocus | undefined) ?? null,
