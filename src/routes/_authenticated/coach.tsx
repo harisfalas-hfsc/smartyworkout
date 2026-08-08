@@ -300,7 +300,7 @@ function CoachPage() {
         </QuestionCard>
 
 
-        <QuestionCard step={3} icon={Clock} title="Time available">
+        <QuestionCard step={4} icon={Clock} title="Time available">
           <Grid>
             {TIMES.map((t) => (
               <Chip key={t} active={minutes === t} onClick={() => setMinutes(t)}>
@@ -310,7 +310,7 @@ function CoachPage() {
           </Grid>
         </QuestionCard>
 
-        <QuestionCard step={4} icon={MapPin} title="Where are you training?">
+        <QuestionCard step={5} icon={MapPin} title="Where are you training?">
           <Grid>
             {LOCATIONS.map((l) => (
               <Chip key={l.id} active={location === l.id} onClick={() => setLocation(l.id)}>
@@ -321,7 +321,7 @@ function CoachPage() {
         </QuestionCard>
 
         <QuestionCard
-          step={5}
+          step={6}
           icon={Dumbbell}
           title="Equipment available"
           hint="Only what you pick will appear in your workout."
@@ -357,7 +357,7 @@ function CoachPage() {
         </QuestionCard>
 
         <QuestionCard
-          step={6}
+          step={7}
           icon={MessageSquare}
           title="Anything else?"
           hint="Optional — Smarty Coach reads this too."
@@ -387,6 +387,33 @@ function CoachPage() {
           {busy ? "Smarty Coach is thinking…" : "Create my workout"}
         </Button>
       </div>
+
+      <AlertDialog open={confirmHard} onOpenChange={setConfirmHard}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Advanced today — are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You told Smarty Coach you're feeling{" "}
+              {MOODS.find((m) => m.id === mood)?.label.toLowerCase() ?? mood}. Advanced means high
+              volume, complex movements and short rest. Training hard on a low-energy day raises
+              injury risk. Smarty Coach can scale it to match how you feel instead.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setLevel("auto");
+                void generate(false);
+              }}
+            >
+              Scale it to my mood
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => void generate(false)}>
+              Yes, go advanced
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
