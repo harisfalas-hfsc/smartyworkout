@@ -16,11 +16,13 @@ export function BottomNav() {
   if (loading || !user) return null;
 
   return (
-    <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur"
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-      aria-label="Primary"
-    >
+    <>
+      <div aria-hidden className="h-[calc(3.5rem+env(safe-area-inset-bottom))]" />
+      <nav
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        aria-label="Primary"
+      >
       <ul className="mx-auto grid max-w-lg grid-cols-4">
         {ITEMS.map(({ to, label, Icon }) => {
           const active = pathname === to || pathname.startsWith(`${to}/`);
