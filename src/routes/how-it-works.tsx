@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
-import { SmartyCard, SmartyRow } from "@/components/SmartyCard";
+import { SmartyCard } from "@/components/SmartyCard";
 
 export const Route = createFileRoute("/how-it-works")({
   head: () => ({
@@ -25,67 +25,71 @@ export const Route = createFileRoute("/how-it-works")({
 
 const STEPS = [
   {
-    icon: "01",
-    tone: "green" as const,
-    title: "YOU ANSWER",
-    text: "Goal • Mood • Time • Location • Equipment",
+    n: "01",
+    color: "text-emerald-500",
+    title: "You answer",
+    desc: "Goal • Mood • Time • Location • Equipment",
   },
   {
-    icon: "02",
-    tone: "purple" as const,
-    title: "SMARTY COACH ANALYZES",
-    text: "Profile • Fitness level • Goals • History",
+    n: "02",
+    color: "text-violet-500",
+    title: "Smarty Coach analyzes",
+    desc: "Profile • Fitness level • Goals • History",
   },
   {
-    icon: "03",
-    tone: "cyan" as const,
-    title: "TRAINING PHILOSOPHY",
-    text: "Sports science • Safety • Health • Performance",
+    n: "03",
+    color: "text-sky-500",
+    title: "Training philosophy",
+    desc: "Sports science • Safety • Health • Performance",
   },
   {
-    icon: "04",
-    tone: "orange" as const,
-    title: "YOUR WORKOUT",
-    text: "The right exercises, built into your session.",
+    n: "04",
+    color: "text-orange-500",
+    title: "Your workout",
+    desc: "The right exercises, built into your session.",
   },
 ];
 
 function HowItWorks() {
   return (
-    <div className="mx-auto w-full max-w-md px-4 py-4">
-      <SmartyCard
-        tone="cyan"
-        eyebrow="How it works"
-        eyebrowIcon="⚡"
-        cornerIcon={Sparkles}
-        className="p-5 sm:p-6"
-      >
-        <h1 className="-mt-7 text-2xl font-extrabold uppercase leading-[1.05] tracking-tight">
-          How it <span className="text-sky-500 dark:text-sky-300">works</span>
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:py-12">
+      <div className="mb-8 text-center">
+        <p className="text-xs font-semibold uppercase tracking-wider text-primary">How it works</p>
+        <h1 className="mt-2 text-3xl font-extrabold uppercase tracking-tight sm:text-4xl">
+          How it <span className="text-primary">works</span>
         </h1>
-        <p className="mt-1.5 text-sm font-bold">You answer. Smarty Coach thinks. You train.</p>
+      </div>
 
-        <ol className="mt-4 space-y-1">
+      <SmartyCard
+        tone="green"
+        eyebrow="Simple & Transparent"
+        eyebrowIcon="✨"
+        cornerIcon={Sparkles}
+        title="You answer. Smarty Coach thinks."
+        accent="You train."
+        description="No fluff. Just four steps."
+      >
+        <div className="mt-2 grid gap-6 sm:grid-cols-4 sm:gap-4">
           {STEPS.map((s) => (
-            <li key={s.icon}>
-              <SmartyRow tone={s.tone} icon={s.icon} title={s.title} subtitle={s.text} />
-            </li>
+            <div key={s.n} className="flex flex-col items-center text-center">
+              <div className={`text-4xl font-black leading-none sm:text-5xl ${s.color}`}>{s.n}</div>
+              <div className="mt-3 text-base font-bold uppercase">{s.title}</div>
+              <div className="mt-1 text-sm text-muted-foreground">{s.desc}</div>
+            </div>
           ))}
-        </ol>
+        </div>
 
-        <p className="mt-4 text-center text-[12px] font-semibold leading-snug text-muted-foreground">
-          Then you train, give feedback, and Smarty Coach makes your next workout{" "}
-          <span className="text-sky-500 dark:text-sky-300">even smarter.</span>
+        <p className="mt-6 text-center text-sm font-semibold leading-snug text-muted-foreground">
+          Then you train, give feedback, and Smarty Coach uses your history to make your next
+          workout <span className="text-primary">even smarter.</span>
         </p>
+      </SmartyCard>
 
-        <Button
-          asChild
-          size="lg"
-          className="mt-4 w-full rounded-full text-sm font-extrabold uppercase"
-        >
+      <div className="mt-8 flex justify-center">
+        <Button asChild size="lg" className="font-extrabold uppercase">
           <Link to="/coach">Create my workout</Link>
         </Button>
-      </SmartyCard>
+      </div>
     </div>
   );
 }
