@@ -25,7 +25,7 @@ type Hub = Awaited<ReturnType<typeof getDailyHub>>;
 type DayInfo = Hub["days"]["today"];
 type WodWorkout = Hub["workouts"][number];
 
-function DaySlide({ day, label }: { day: DayInfo; label: string }) {
+function DaySlide({ day, label, active }: { day: DayInfo; label: string; active: boolean }) {
   const formatted = new Intl.DateTimeFormat("en", {
     weekday: "long",
     month: "long",
@@ -34,7 +34,13 @@ function DaySlide({ day, label }: { day: DayInfo; label: string }) {
   }).format(new Date(`${day.date}T12:00:00Z`));
 
   return (
-    <div className="min-w-0 flex-1 rounded-lg border-2 border-primary bg-primary/10 px-3 py-4 text-center">
+    <div
+      className={`w-[72%] shrink-0 snap-center rounded-lg border-2 px-3 py-4 text-center transition-all sm:w-[46%] ${
+        active
+          ? "border-primary bg-primary/10 opacity-100"
+          : "border-border bg-muted/40 opacity-60"
+      }`}
+    >
       <p className="text-xs font-bold text-primary">{label}</p>
       <p className="mt-1 truncate text-xs font-bold text-primary">{formatted}</p>
       <p className="mt-3 truncate text-sm font-black uppercase">{day.category}</p>
@@ -44,6 +50,7 @@ function DaySlide({ day, label }: { day: DayInfo; label: string }) {
     </div>
   );
 }
+
 
 function WorkoutCard({ workout }: { workout: WodWorkout }) {
   const bodyweight = workout.wod_variant === "bodyweight";
