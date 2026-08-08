@@ -217,17 +217,23 @@ export function WorkoutDisplay({
                 <Plus className="h-4 w-4" />
               </Button>
               <Button
-                variant="ghost"
-                size="icon"
-                className="text-neutral-300"
+                size="sm"
+                className="ml-1 rounded-full bg-white px-3 font-bold text-neutral-900 hover:bg-neutral-200"
                 onClick={() => setReader(false)}
               >
-                <X className="h-5 w-5" />
+                <X className="mr-1 h-4 w-4" /> Close
               </Button>
             </div>
           </div>
           <div className="workout-html reader px-5 py-6" style={{ fontSize }}>
             <ExerciseHTMLContent html={html} onOpenExercise={setOpenExercise} />
+            <Button
+              className="mt-8 w-full rounded-2xl bg-white font-bold text-neutral-900 hover:bg-neutral-200"
+              size="lg"
+              onClick={() => setReader(false)}
+            >
+              Exit reader mode
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
