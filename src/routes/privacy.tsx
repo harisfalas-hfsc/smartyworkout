@@ -137,7 +137,7 @@ function Privacy() {
       </ul>
       <div className="note">
         To exercise these rights, use the controls in your profile settings or email{" "}
-        <a href="mailto:support@smartyworkout.com">support@smartyworkout.com</a>. We respond within 30 days.
+        <a href="mailto:smartyworkout@outlook.com">smartyworkout@outlook.com</a>. We respond within 30 days.
       </div>
 
       <h2>7. Security Measures</h2>
@@ -179,7 +179,7 @@ function Privacy() {
       <h2>12. Contact</h2>
       <p>
         Data Controller: <strong>Smarty Workout</strong> (smartyworkout.com). Contact{" "}
-        <a href="mailto:support@smartyworkout.com">support@smartyworkout.com</a>.
+        <a href="mailto:smartyworkout@outlook.com">smartyworkout@outlook.com</a>.
       </p>
     </LegalLayout>
   );

@@ -202,7 +202,7 @@ function Terms() {
       <h2>16. Contact</h2>
       <p>
         For questions about these Terms, contact <strong>Smarty Workout</strong> at{" "}
-        <a href="mailto:support@smartyworkout.com">support@smartyworkout.com</a>.
+        <a href="mailto:smartyworkout@outlook.com">smartyworkout@outlook.com</a>.
       </p>
     </LegalLayout>
   );
