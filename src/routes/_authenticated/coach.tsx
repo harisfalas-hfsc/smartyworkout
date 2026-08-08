@@ -12,11 +12,30 @@ import {
   MapPin,
   Dumbbell,
   MessageSquare,
+  Flame,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { generateWorkout } from "@/lib/coach.functions";
-import { EQUIPMENT, GOALS, LOCATIONS, MOODS, TIMES } from "@/lib/coach-options";
+import {
+  EQUIPMENT,
+  GOALS,
+  LEVELS,
+  LOCATIONS,
+  LOW_ENERGY_MOODS,
+  MOODS,
+  TIMES,
+} from "@/lib/coach-options";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/coach")({
@@ -106,6 +125,9 @@ function CoachPage() {
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState<string>("");
+  const [level, setLevel] = useState<string>("auto");
+  const [confirmHard, setConfirmHard] = useState(false);
+  const [resuming, setResuming] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -130,6 +152,10 @@ function CoachPage() {
     })();
   }, []);
 
+  useEffect(() => {
+    setResuming(localStorage.getItem("smarty:generating") === "1");
+  }, []);
+
   function toggleEquipment(id: string) {
     setEquipment((prev) => (prev.includes(id) ? prev.filter((e) => e !== id) : [...prev, id]));
   }
@@ -137,6 +163,8 @@ function CoachPage() {
   async function generate(surprise = false) {
     if (busy) return;
     setBusy(true);
+    setResuming(false);
+    localStorage.setItem("smarty:generating", "1");
     try {
       const res = await run({
         data: {
@@ -147,6 +175,7 @@ function CoachPage() {
           equipment: equipment.length ? equipment : ["bodyweight"],
           equipmentOther: equipment.includes("other") ? otherEquipment.trim() : "",
           note: note.trim(),
+          level: surprise ? "auto" : level,
           surprise,
         },
       });
@@ -154,8 +183,17 @@ function CoachPage() {
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Smarty Coach could not build that workout.");
     } finally {
+      localStorage.removeItem("smarty:generating");
       setBusy(false);
     }
+  }
+
+  function requestGenerate(surprise: boolean) {
+    if (!surprise && level === "advanced" && LOW_ENERGY_MOODS.includes(mood)) {
+      setConfirmHard(true);
+      return;
+    }
+    void generate(surprise);
   }
 
   return (
@@ -178,7 +216,7 @@ function CoachPage() {
           size="lg"
           className="mt-3 h-14 w-full rounded-2xl text-base font-extrabold"
           disabled={busy}
-          onClick={() => generate(true)}
+          onClick={() => requestGenerate(true)}
         >
           {busy ? (
             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -290,7 +328,7 @@ function CoachPage() {
           size="lg"
           className="h-16 w-full rounded-2xl text-base font-extrabold shadow-lg"
           disabled={busy}
-          onClick={() => generate(false)}
+          onClick={() => requestGenerate(false)}
         >
           {busy ? (
             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
