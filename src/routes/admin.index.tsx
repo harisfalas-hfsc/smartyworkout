@@ -34,18 +34,13 @@ import {
   Minus,
   Crown,
 } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { isAdminEmail } from "@/lib/admin";
 import {
   adminListUsers,
   adminGrantCredits,
   adminSetRole,
-  adminGetStripeAnalytics,
   type AdminUserRow,
-  type AdminAnalytics,
 } from "@/lib/admin.functions";
-import { getStripeEnvironment } from "@/lib/stripe";
-import type { StripeEnv } from "@/lib/stripe.server";
 
 export const Route = createFileRoute("/admin/")({ component: AdminPage });
 
@@ -97,27 +92,14 @@ function Shell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function safeEnv(): StripeEnv {
-  try {
-    return getStripeEnvironment();
-  } catch {
-    return "sandbox";
-  }
-}
-
 function AdminInner() {
-  const [env, setEnv] = useState<StripeEnv>(safeEnv());
   const listUsers = useServerFn(adminListUsers);
   const grantCredits = useServerFn(adminGrantCredits);
   const setRole = useServerFn(adminSetRole);
-  const getAnalytics = useServerFn(adminGetStripeAnalytics);
 
   const [users, setUsers] = useState<AdminUserRow[]>([]);
   const [usersLoading, setUsersLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [analytics, setAnalytics] = useState<AdminAnalytics | null>(null);
-  const [analyticsLoading, setAnalyticsLoading] = useState(true);
-  const [analyticsError, setAnalyticsError] = useState<string | null>(null);
   const [grantUser, setGrantUser] = useState<AdminUserRow | null>(null);
   const [grantCount, setGrantCount] = useState(1);
   const [busy, setBusy] = useState(false);
@@ -126,32 +108,16 @@ function AdminInner() {
   async function reloadUsers() {
     setUsersLoading(true);
     const r = await listUsers({
-      data: { search: search.trim() || undefined, environment: env },
+      data: { search: search.trim() || undefined },
     });
     if ("error" in r) setMessage(r.error);
     else setUsers(r.users);
     setUsersLoading(false);
   }
-  async function reloadAnalytics() {
-    setAnalyticsLoading(true);
-    setAnalyticsError(null);
-    try {
-      const r = await getAnalytics({ data: { environment: env } });
-      if ("error" in r) {
-        setAnalyticsError(r.error);
-        setAnalytics(null);
-      } else setAnalytics(r);
-    } catch (e) {
-      setAnalyticsError(e instanceof Error ? e.message : "Failed");
-    } finally {
-      setAnalyticsLoading(false);
-    }
-  }
   useEffect(() => {
     void reloadUsers();
-    void reloadAnalytics();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [env]);
+  }, []);
 
   const activeSubs = useMemo(() => users.filter((u) => u.has_active_subscription), [users]);
   const withPurchases = useMemo(() => users.filter((u) => u.purchases > 0), [users]);
