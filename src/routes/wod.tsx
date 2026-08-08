@@ -15,7 +15,7 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { getDailyHub, setWodSubscription } from "@/lib/daily.functions";
-import { getCycleDay, localDateISO } from "@/lib/wod-cycle";
+import { getCycleDay, localDateISO, starsForCycleDay } from "@/lib/wod-cycle";
 import { useAuth } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/wod")({
@@ -161,12 +161,19 @@ function WodPage() {
     );
   }
 
-  const publicDays = ([-1, 0, 1] as const).map((offset) => {
+  const publicDays: DayInfo[] = ([-1, 0, 1] as const).map((offset) => {
     const date = new Date();
     date.setUTCDate(date.getUTCDate() + offset);
     const dateISO = localDateISO(date);
     const cycle = getCycleDay(dateISO);
-    return { date: dateISO, category: cycle.category, difficulty: cycle.difficulty };
+    return {
+      date: dateISO,
+      category: cycle.category,
+      difficulty: cycle.difficulty ?? "Recovery",
+      stars: starsForCycleDay(cycle),
+      focus: cycle.strengthFocus ?? null,
+      isRecovery: cycle.category === "RECOVERY",
+    };
   });
   const days = hub?.days;
   const workouts = hub?.workouts ?? [];
