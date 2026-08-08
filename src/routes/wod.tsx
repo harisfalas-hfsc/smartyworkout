@@ -255,7 +255,7 @@ function WodPage() {
         {user && access?.profileComplete && access.healthAcknowledged && access.premium ? (
           <Button
             variant={subscribed ? "secondary" : "default"}
-            className={`${workouts.length ? "mt-3 " : ""}h-12 w-full rounded-lg text-[15px] font-extrabold lg:mx-auto lg:max-w-sm`}
+            className={`${workouts.length ? "mt-3 " : ""}h-12 w-full rounded-lg text-[15px] font-extrabold lg:w-80`}
             disabled={busy}
             onClick={() => void toggleSub(!subscribed)}
           >
@@ -265,7 +265,7 @@ function WodPage() {
             </span>
           </Button>
         ) : !user ? (
-          <Button asChild className="h-12 w-full rounded-lg text-[15px] font-extrabold lg:mx-auto lg:max-w-sm">
+          <Button asChild className="h-12 w-full rounded-lg text-[15px] font-extrabold lg:w-80">
             <Link to="/auth" search={{ next: "/wod", mode: "signup" }}>
               Create an account
             </Link>
