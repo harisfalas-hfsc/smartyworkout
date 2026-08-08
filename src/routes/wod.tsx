@@ -15,8 +15,10 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { getDailyHub, setWodSubscription } from "@/lib/daily.functions";
+import { getCycleDay, localDateISO, starsForCycleDay } from "@/lib/wod-cycle";
+import { useAuth } from "@/hooks/useAuth";
 
-export const Route = createFileRoute("/_authenticated/wod")({
+export const Route = createFileRoute("/wod")({
   head: () => ({
     meta: [
       { title: "Workout of the Day — Smarty Workout" },
@@ -26,6 +28,13 @@ export const Route = createFileRoute("/_authenticated/wod")({
           "Two Workouts of the Day — one bodyweight, one with equipment — built automatically for your profile every night at midnight.",
       },
       { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Workout of the Day — Smarty Workout" },
+      {
+        property: "og:description",
+        content: "A balanced daily workout programme adapted to your profile by Smarty Coach.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: WodPage,
@@ -91,6 +100,7 @@ function WorkoutCard({ workout }: { workout: WodWorkout }) {
 }
 
 function WodPage() {
+  const { user, loading: authLoading } = useAuth();
   const load = useServerFn(getDailyHub);
   const setSub = useServerFn(setWodSubscription);
   const [hub, setHub] = useState<Hub | null>(null);
@@ -113,10 +123,11 @@ function WodPage() {
   }, [api, onSelect]);
 
   useEffect(() => {
+    if (authLoading || !user) return;
     void load({})
       .then(setHub)
       .catch(() => setHub(null));
-  }, [load]);
+  }, [authLoading, load, user]);
 
 
 
@@ -142,7 +153,7 @@ function WodPage() {
     }
   }
 
-  if (!hub) {
+  if (authLoading || (user && !hub)) {
     return (
       <div className="grid min-h-[50vh] place-items-center">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -150,12 +161,27 @@ function WodPage() {
     );
   }
 
-  const { days, workouts, settings } = hub;
-  const subscribed = settings.wod_mode;
+  const publicDays: DayInfo[] = ([-1, 0, 1] as const).map((offset) => {
+    const date = new Date();
+    date.setUTCDate(date.getUTCDate() + offset);
+    const dateISO = localDateISO(date);
+    const cycle = getCycleDay(dateISO);
+    return {
+      date: dateISO,
+      category: cycle.category,
+      difficulty: cycle.difficulty ?? "Recovery",
+      stars: starsForCycleDay(cycle),
+      focus: cycle.strengthFocus ?? null,
+      isRecovery: cycle.category === "RECOVERY",
+    };
+  });
+  const days = hub?.days;
+  const workouts = hub?.workouts ?? [];
+  const subscribed = hub?.settings.wod_mode ?? false;
   const daySlides = [
-    { day: days.yesterday, label: "Yesterday" },
-    { day: days.today, label: "Today" },
-    { day: days.tomorrow, label: "Tomorrow" },
+    { day: days?.yesterday ?? publicDays[0], label: "Yesterday" },
+    { day: days?.today ?? publicDays[1], label: "Today" },
+    { day: days?.tomorrow ?? publicDays[2], label: "Tomorrow" },
   ];
 
   return (
@@ -226,19 +252,27 @@ function WodPage() {
           </div>
         ) : null}
 
-        <Button
-          variant={subscribed ? "secondary" : "default"}
-          className={`${workouts.length ? "mt-3 " : ""}h-12 w-full rounded-lg text-[15px] font-extrabold`}
-          disabled={busy}
-          onClick={() => void toggleSub(!subscribed)}
-        >
-          {busy ? <Loader2 className="mr-2 h-4 w-4 shrink-0 animate-spin" /> : null}
-          <span className="truncate">
-            {busy ? "Please wait…" : subscribed ? "Unsubscribe" : "Subscribe"}
-          </span>
-        </Button>
+        {user ? (
+          <Button
+            variant={subscribed ? "secondary" : "default"}
+            className={`${workouts.length ? "mt-3 " : ""}h-12 w-full rounded-lg text-[15px] font-extrabold`}
+            disabled={busy}
+            onClick={() => void toggleSub(!subscribed)}
+          >
+            {busy ? <Loader2 className="mr-2 h-4 w-4 shrink-0 animate-spin" /> : null}
+            <span className="truncate">
+              {busy ? "Please wait…" : subscribed ? "Unsubscribe" : "Subscribe"}
+            </span>
+          </Button>
+        ) : (
+          <Button asChild className="h-12 w-full rounded-lg text-[15px] font-extrabold">
+            <Link to="/auth">Sign in to subscribe</Link>
+          </Button>
+        )}
         <p className="mt-2 text-center text-[11px] leading-4 text-muted-foreground">
-          {subscribed
+          {!user
+            ? "Explore the programme above, then sign in to receive your two personalized workouts every day."
+            : subscribed
             ? "Your two daily workouts arrive automatically. You can still open every workout you already have, but manual generation stays paused until you unsubscribe."
             : "Subscribe and today's two workouts are built right away, then every night automatically. Manual generation is paused while subscribed because Smarty Coach already creates your daily pair."}
         </p>

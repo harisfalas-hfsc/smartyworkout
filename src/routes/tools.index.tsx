@@ -11,7 +11,7 @@ export const Route = createFileRoute("/tools/")({
       {
         name: "description",
         content:
-          "Free SmartyWorkout training tools: interval workout timer, big-button rounds tracker and Brzycki 1RM calculator. Part of the AI Training Intelligence Platform.",
+          "Free SmartyWorkout training tools: interval workout timer, big-button rounds tracker and Brzycki 1RM calculator.",
       },
       { property: "og:title", content: "SmartyWorkout Tools — Free training tools" },
       {

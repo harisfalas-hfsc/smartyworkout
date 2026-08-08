@@ -5,13 +5,13 @@ import { SmartyCard } from "@/components/SmartyCard";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About Smarty Workout — Meet Smarty Coach" },
+      { title: "About Smarty Workout — Your AI Fitness Coach" },
       {
         name: "description",
         content:
           "Smarty Workout is not another workout app. Smarty Coach is an AI fitness coach built around the sports science of Haris Falas.",
       },
-      { property: "og:title", content: "About Smarty Workout — Meet Smarty Coach" },
+      { property: "og:title", content: "About Smarty Workout — Your AI Fitness Coach" },
       {
         property: "og:description",
         content: "An intelligent AI fitness coach. Smart, personalized, science-informed, adaptive.",
@@ -38,10 +38,10 @@ function AboutPage() {
       <SmartyCard
         tone="purple"
         align="center"
-        eyebrow="Meet Smarty Coach"
+        eyebrow="Smarty Coach"
         eyebrowIcon="🧠"
-        title="Meet"
-        accent="Smarty Coach."
+        title="Coaching expertise."
+        accent="AI precision."
         description={
           <>
             An intelligent AI fitness coach trained around the sports science and training
@@ -84,7 +84,7 @@ function AboutPage() {
 
       <div className="mt-8 flex justify-center">
         <Button asChild size="lg" className="font-extrabold uppercase">
-          <Link to="/coach">Meet Smarty Coach</Link>
+          <Link to="/coach">Create your workout</Link>
         </Button>
       </div>
     </div>

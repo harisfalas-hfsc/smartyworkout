@@ -97,7 +97,7 @@ function PricingPage() {
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <Button asChild size="lg">
-            <Link to="/coach">Start with Smarty Coach</Link>
+            <Link to="/coach">Create your workout</Link>
           </Button>
           <Button asChild size="lg" variant="outline">
             <Link to="/how-it-works">How it works</Link>

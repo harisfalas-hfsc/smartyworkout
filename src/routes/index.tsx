@@ -100,7 +100,7 @@ function Home() {
 
 
   const heroCtaLabel =
-    cta.kind === "has-active" ? "Open Smarty Coach" : "Start with Smarty Coach";
+    cta.kind === "has-active" ? "Open Smarty Coach" : "Create your workout";
   const heroCtaTo = "/coach";
 
 

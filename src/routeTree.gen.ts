@@ -25,14 +25,13 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
-import { Route as TrainingIntelligenceRouteImport } from './routes/training-intelligence'
+import { Route as WodRouteImport } from './routes/wod'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedCoachRouteImport } from './routes/_authenticated/coach'
 import { Route as AuthenticatedLogbookRouteImport } from './routes/_authenticated/logbook'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedProgressRouteImport } from './routes/_authenticated/progress'
-import { Route as AuthenticatedWodRouteImport } from './routes/_authenticated/wod'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminExerciseLibraryRouteImport } from './routes/admin.exercise-library'
 import { Route as ToolsIndexRouteImport } from './routes/tools.index'
@@ -121,9 +120,9 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TrainingIntelligenceRoute = TrainingIntelligenceRouteImport.update({
-  id: '/training-intelligence',
-  path: '/training-intelligence',
+const WodRoute = WodRouteImport.update({
+  id: '/wod',
+  path: '/wod',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
@@ -155,11 +154,6 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
 const AuthenticatedProgressRoute = AuthenticatedProgressRouteImport.update({
   id: '/progress',
   path: '/progress',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedWodRoute = AuthenticatedWodRouteImport.update({
-  id: '/wod',
-  path: '/wod',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -220,14 +214,13 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
-  '/training-intelligence': typeof TrainingIntelligenceRoute
+  '/wod': typeof WodRoute
   '/account': typeof AuthenticatedAccountRoute
   '/coach': typeof AuthenticatedCoachRoute
   '/logbook': typeof AuthenticatedLogbookRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/progress': typeof AuthenticatedProgressRoute
-  '/wod': typeof AuthenticatedWodRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
   '/tools/1rm-calculator': typeof Tools1rmCalculatorRoute
   '/tools/rounds-tracker': typeof ToolsRoundsTrackerRoute
@@ -253,14 +246,13 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
-  '/training-intelligence': typeof TrainingIntelligenceRoute
+  '/wod': typeof WodRoute
   '/account': typeof AuthenticatedAccountRoute
   '/coach': typeof AuthenticatedCoachRoute
   '/logbook': typeof AuthenticatedLogbookRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/progress': typeof AuthenticatedProgressRoute
-  '/wod': typeof AuthenticatedWodRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
   '/tools/1rm-calculator': typeof Tools1rmCalculatorRoute
   '/tools/rounds-tracker': typeof ToolsRoundsTrackerRoute
@@ -288,14 +280,13 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
-  '/training-intelligence': typeof TrainingIntelligenceRoute
+  '/wod': typeof WodRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/coach': typeof AuthenticatedCoachRoute
   '/_authenticated/logbook': typeof AuthenticatedLogbookRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/progress': typeof AuthenticatedProgressRoute
-  '/_authenticated/wod': typeof AuthenticatedWodRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
   '/tools/1rm-calculator': typeof Tools1rmCalculatorRoute
   '/tools/rounds-tracker': typeof ToolsRoundsTrackerRoute
@@ -323,14 +314,13 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/terms'
-    | '/training-intelligence'
+    | '/wod'
     | '/account'
     | '/coach'
     | '/logbook'
     | '/notifications'
     | '/profile'
     | '/progress'
-    | '/wod'
     | '/admin/exercise-library'
     | '/tools/1rm-calculator'
     | '/tools/rounds-tracker'
@@ -356,14 +346,13 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/terms'
-    | '/training-intelligence'
+    | '/wod'
     | '/account'
     | '/coach'
     | '/logbook'
     | '/notifications'
     | '/profile'
     | '/progress'
-    | '/wod'
     | '/admin/exercise-library'
     | '/tools/1rm-calculator'
     | '/tools/rounds-tracker'
@@ -390,14 +379,13 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/terms'
-    | '/training-intelligence'
+    | '/wod'
     | '/_authenticated/account'
     | '/_authenticated/coach'
     | '/_authenticated/logbook'
     | '/_authenticated/notifications'
     | '/_authenticated/profile'
     | '/_authenticated/progress'
-    | '/_authenticated/wod'
     | '/admin/exercise-library'
     | '/tools/1rm-calculator'
     | '/tools/rounds-tracker'
@@ -425,7 +413,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
-  TrainingIntelligenceRoute: typeof TrainingIntelligenceRoute
+  WodRoute: typeof WodRoute
   AdminExerciseLibraryRoute: typeof AdminExerciseLibraryRoute
   Tools1rmCalculatorRoute: typeof Tools1rmCalculatorRoute
   ToolsRoundsTrackerRoute: typeof ToolsRoundsTrackerRoute
@@ -549,11 +537,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/training-intelligence': {
-      id: '/training-intelligence'
-      path: '/training-intelligence'
-      fullPath: '/training-intelligence'
-      preLoaderRoute: typeof TrainingIntelligenceRouteImport
+    '/wod': {
+      id: '/wod'
+      path: '/wod'
+      fullPath: '/wod'
+      preLoaderRoute: typeof WodRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/account': {
@@ -596,13 +584,6 @@ declare module '@tanstack/react-router' {
       path: '/progress'
       fullPath: '/progress'
       preLoaderRoute: typeof AuthenticatedProgressRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/wod': {
-      id: '/_authenticated/wod'
-      path: '/wod'
-      fullPath: '/wod'
-      preLoaderRoute: typeof AuthenticatedWodRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/admin/': {
@@ -671,7 +652,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedProgressRoute: typeof AuthenticatedProgressRoute
-  AuthenticatedWodRoute: typeof AuthenticatedWodRoute
   AuthenticatedWorkoutWorkoutIdRoute: typeof AuthenticatedWorkoutWorkoutIdRoute
 }
 
@@ -682,7 +662,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedProgressRoute: AuthenticatedProgressRoute,
-  AuthenticatedWodRoute: AuthenticatedWodRoute,
   AuthenticatedWorkoutWorkoutIdRoute: AuthenticatedWorkoutWorkoutIdRoute,
 }
 
@@ -706,7 +685,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
-  TrainingIntelligenceRoute: TrainingIntelligenceRoute,
+  WodRoute: WodRoute,
   AdminExerciseLibraryRoute: AdminExerciseLibraryRoute,
   Tools1rmCalculatorRoute: Tools1rmCalculatorRoute,
   ToolsRoundsTrackerRoute: ToolsRoundsTrackerRoute,
