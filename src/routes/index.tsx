@@ -230,7 +230,7 @@ function Home() {
                 >
                   {s.n}
                 </div>
-                <div className="mt-3 whitespace-nowrap text-base font-bold">
+                <div className="mt-3 text-base font-bold">
                   {s.title}
                 </div>
                 <div className="mt-1 text-sm text-muted-foreground">
