@@ -24,7 +24,6 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TrainingIntelligenceRouteImport } from './routes/training-intelligence'
-import { Route as TrainingScienceRouteImport } from './routes/training-science'
 import { Route as AuthenticatedCoachRouteImport } from './routes/_authenticated/coach'
 import { Route as AuthenticatedLogbookRouteImport } from './routes/_authenticated/logbook'
 import { Route as AuthenticatedPlansRouteImport } from './routes/_authenticated/plans'
@@ -112,11 +111,6 @@ const TermsRoute = TermsRouteImport.update({
 const TrainingIntelligenceRoute = TrainingIntelligenceRouteImport.update({
   id: '/training-intelligence',
   path: '/training-intelligence',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TrainingScienceRoute = TrainingScienceRouteImport.update({
-  id: '/training-science',
-  path: '/training-science',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedCoachRoute = AuthenticatedCoachRouteImport.update({
@@ -208,7 +202,6 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/training-intelligence': typeof TrainingIntelligenceRoute
-  '/training-science': typeof TrainingScienceRoute
   '/coach': typeof AuthenticatedCoachRoute
   '/logbook': typeof AuthenticatedLogbookRoute
   '/plans': typeof AuthenticatedPlansRouteWithChildren
@@ -239,7 +232,6 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/training-intelligence': typeof TrainingIntelligenceRoute
-  '/training-science': typeof TrainingScienceRoute
   '/coach': typeof AuthenticatedCoachRoute
   '/logbook': typeof AuthenticatedLogbookRoute
   '/plans': typeof AuthenticatedPlansRouteWithChildren
@@ -272,7 +264,6 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/training-intelligence': typeof TrainingIntelligenceRoute
-  '/training-science': typeof TrainingScienceRoute
   '/_authenticated/coach': typeof AuthenticatedCoachRoute
   '/_authenticated/logbook': typeof AuthenticatedLogbookRoute
   '/_authenticated/plans': typeof AuthenticatedPlansRouteWithChildren
@@ -305,7 +296,6 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/training-intelligence'
-    | '/training-science'
     | '/coach'
     | '/logbook'
     | '/plans'
@@ -336,7 +326,6 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/training-intelligence'
-    | '/training-science'
     | '/coach'
     | '/logbook'
     | '/plans'
@@ -368,7 +357,6 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/training-intelligence'
-    | '/training-science'
     | '/_authenticated/coach'
     | '/_authenticated/logbook'
     | '/_authenticated/plans'
@@ -401,7 +389,6 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   TrainingIntelligenceRoute: typeof TrainingIntelligenceRoute
-  TrainingScienceRoute: typeof TrainingScienceRoute
   AdminExerciseLibraryRoute: typeof AdminExerciseLibraryRoute
   ToolsBmrCalculatorRoute: typeof ToolsBmrCalculatorRoute
   ToolsCalorieCounterRoute: typeof ToolsCalorieCounterRoute
@@ -515,13 +502,6 @@ declare module '@tanstack/react-router' {
       path: '/training-intelligence'
       fullPath: '/training-intelligence'
       preLoaderRoute: typeof TrainingIntelligenceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/training-science': {
-      id: '/training-science'
-      path: '/training-science'
-      fullPath: '/training-science'
-      preLoaderRoute: typeof TrainingScienceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/coach': {
@@ -675,7 +655,6 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   TrainingIntelligenceRoute: TrainingIntelligenceRoute,
-  TrainingScienceRoute: TrainingScienceRoute,
   AdminExerciseLibraryRoute: AdminExerciseLibraryRoute,
   ToolsBmrCalculatorRoute: ToolsBmrCalculatorRoute,
   ToolsCalorieCounterRoute: ToolsCalorieCounterRoute,

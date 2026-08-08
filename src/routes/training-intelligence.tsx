@@ -244,10 +244,7 @@ function TrainingIntelligencePage() {
           accent="reading"
           description="Keep learning — the science, the terms, and the tools that back the platform."
         >
-          <div className="grid gap-3 sm:grid-cols-3">
-            <Link to="/training-science" className="block">
-              <SmartyRow tone="cyan" icon="🔬" title="The Diet Science" subtitle="Evidence, myths & sources." />
-            </Link>
+          <div className="grid gap-3 sm:grid-cols-2">
             <Link to="/glossary" className="block">
               <SmartyRow tone="cyan" icon="📖" title="Glossary" subtitle="Every metric and concept, defined." />
             </Link>

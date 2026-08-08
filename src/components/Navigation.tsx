@@ -16,6 +16,7 @@ import {
   Sparkles,
   BookOpen,
   ChevronLeft,
+  User,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -152,23 +153,29 @@ export function Navigation() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <>
-              <Link
-                to="/auth"
-                className="inline-flex h-7 shrink-0 items-center justify-center whitespace-nowrap rounded-full px-3 text-xs font-semibold text-foreground/80 no-underline hover:text-primary hover:no-underline"
-                style={{ textDecoration: "none" }}
-              >
-                Sign in
-              </Link>
-              <Link
-                to="/auth"
-                search={{ mode: "signup" } as never}
-                className="inline-flex h-7 shrink-0 items-center justify-center whitespace-nowrap rounded-full border-2 border-primary px-3 text-xs font-semibold text-primary no-underline transition-colors hover:bg-primary hover:text-primary-foreground hover:no-underline"
-                style={{ textDecoration: "none" }}
-              >
-                Sign up
-              </Link>
-            </>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="Account"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-full border-2 border-primary text-primary hover:bg-primary/10"
+                >
+                  <User className="h-4 w-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuLabel>Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/auth">Sign in</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/auth" search={{ mode: "signup" } as never}>
+                    Create account
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
       </div>
@@ -208,7 +215,6 @@ function NavDrawer({ onClose, isAuthed, isAdmin }: { onClose: () => void; isAuth
         { to: "/pricing", label: "Pricing", Icon: Crown },
         { to: "/tools", label: "Tools", Icon: Wrench },
         { to: "/faq", label: "Frequently Asked Questions", Icon: HelpCircle },
-        { to: "/training-science", label: "The Diet Science", Icon: BookOpen },
         { to: "/training-intelligence", label: "Training Intelligence", Icon: Sparkles },
         { to: "/contact", label: "Contact", Icon: Mail },
 
