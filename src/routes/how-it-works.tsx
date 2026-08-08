@@ -1,22 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Sparkles } from "lucide-react";
-import { SmartyCard } from "@/components/SmartyCard";
 
 export const Route = createFileRoute("/how-it-works")({
   head: () => ({
     meta: [
-      { title: "How SmartyWorkout works — from questionnaire to your Smarty Workout Plan™" },
+      { title: "How Smarty Workout works — answer, analyze, train" },
       {
         name: "description",
         content:
-          "Three simple steps: answer, pay once, get your personalized Smarty Workout Plan™.",
+          "You answer. Smarty Coach thinks. You train. Four simple steps from your goal to a personalized workout.",
       },
-      { property: "og:title", content: "How SmartyWorkout works" },
+      { property: "og:title", content: "How Smarty Workout works" },
       {
         property: "og:description",
-        content: "Three simple steps to your personalized Smarty Workout Plan™.",
+        content: "You answer. Smarty Coach thinks. You train.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { property: "og:url", content: "https://smartyworkout.com/how-it-works" },
     ],
     links: [{ rel: "canonical", href: "https://smartyworkout.com/how-it-works" }],
@@ -26,71 +26,74 @@ export const Route = createFileRoute("/how-it-works")({
 
 const STEPS = [
   {
-    n: 1,
-    color: "text-emerald-500",
-    title: "Answer",
-    desc: "A short questionnaire about you.",
+    n: "01",
+    title: "YOU ANSWER",
+    text: "Goal • Mood • Time • Location • Equipment",
+    border: "border-emerald-400",
+    tint: "text-emerald-500 dark:text-emerald-300",
   },
   {
-    n: 2,
-    color: "text-orange-500",
-    title: "Pay once",
-    desc: "Free. No subscription.",
+    n: "02",
+    title: "SMARTY COACH ANALYZES",
+    text: "Your profile • Fitness level • Goals • History",
+    border: "border-violet-400",
+    tint: "text-violet-500 dark:text-violet-300",
   },
   {
-    n: 3,
-    color: "text-sky-500",
-    title: "Get your plan",
-    desc: "Meals, macros & equipment list.",
+    n: "03",
+    title: "TRAINING PHILOSOPHY",
+    text: "Sports science • Safety • Health • Performance",
+    border: "border-sky-400",
+    tint: "text-sky-500 dark:text-sky-300",
+  },
+  {
+    n: "04",
+    title: "YOUR WORKOUT",
+    text: "The right exercises, built into your personalized session.",
+    border: "border-orange-400",
+    tint: "text-orange-500 dark:text-orange-300",
   },
 ];
 
 function HowItWorks() {
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:py-12">
-      <div className="mb-8 text-center">
-        <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-          How it works
-        </p>
-        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
-          Three steps to your <span className="text-primary">Smarty Workout Plan™</span>
+    <div className="mx-auto flex w-full max-w-md flex-col gap-3 px-4 py-4">
+      <header>
+        <h1 className="text-[26px] font-extrabold uppercase leading-[1.05] tracking-tight">
+          How it <span className="text-primary">works</span>
         </h1>
-      </div>
+        <p className="mt-1 text-sm font-semibold text-muted-foreground">
+          You answer. Smarty Coach thinks. You train.
+        </p>
+      </header>
 
-      <SmartyCard
-        tone="green"
-        eyebrow="Simple & Transparent"
-        eyebrowIcon="✨"
-        cornerIcon={Sparkles}
-        title="From questionnaire"
-        accent="to plan."
-        description="No fluff. Just three steps."
-      >
-        <div className="mt-2 grid gap-6 sm:grid-cols-3 sm:gap-4">
-          {STEPS.map((s) => (
+      <ol className="flex flex-col gap-1.5">
+        {STEPS.map((s, i) => (
+          <li key={s.n}>
             <div
-              key={s.n}
-              className="flex flex-col items-center text-center"
+              className={`grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 rounded-2xl border-2 bg-card px-3.5 py-2.5 shadow-soft ${s.border}`}
             >
-              <div className={`text-5xl font-black leading-none ${s.color}`}>
-                {s.n}
-              </div>
-              <div className="mt-3 whitespace-nowrap text-base font-bold">
-                {s.title}
-              </div>
-              <div className="mt-1 whitespace-nowrap text-sm text-muted-foreground">
-                {s.desc}
+              <span className={`text-lg font-extrabold tabular-nums ${s.tint}`}>{s.n}</span>
+              <div className="min-w-0">
+                <p className="text-[11px] font-extrabold uppercase tracking-wide">{s.title}</p>
+                <p className="text-[11px] leading-snug text-muted-foreground">{s.text}</p>
               </div>
             </div>
-          ))}
-        </div>
-      </SmartyCard>
+            {i < STEPS.length - 1 && (
+              <div className="text-center text-[11px] leading-none text-muted-foreground">↓</div>
+            )}
+          </li>
+        ))}
+      </ol>
 
-      <div className="mt-8 flex justify-center">
-        <Button asChild size="lg">
-          <Link to="/questionnaire">Start my plan — free</Link>
-        </Button>
-      </div>
+      <p className="text-center text-[12px] font-semibold leading-snug text-muted-foreground">
+        Then you train, give feedback, and Smarty Coach makes your next workout{" "}
+        <span className="text-primary">even smarter.</span>
+      </p>
+
+      <Button asChild size="lg" className="w-full rounded-full text-sm font-extrabold uppercase">
+        <Link to="/coach">Create my workout</Link>
+      </Button>
     </div>
   );
 }
