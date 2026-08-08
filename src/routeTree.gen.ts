@@ -34,6 +34,9 @@ import { Route as AuthenticatedQuestionnaireRouteImport } from './routes/_authen
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminExerciseLibraryRouteImport } from './routes/admin.exercise-library'
 import { Route as ToolsIndexRouteImport } from './routes/tools.index'
+import { Route as Tools1rmCalculatorRouteImport } from './routes/tools.1rm-calculator'
+import { Route as ToolsRoundsTrackerRouteImport } from './routes/tools.rounds-tracker'
+import { Route as ToolsWorkoutTimerRouteImport } from './routes/tools.workout-timer'
 import { Route as AuthenticatedPlansSessionIdRouteImport } from './routes/_authenticated/plans.$sessionId'
 import { Route as AuthenticatedWorkoutWorkoutIdRouteImport } from './routes/_authenticated/workout.$workoutId'
 
@@ -162,6 +165,21 @@ const ToolsIndexRoute = ToolsIndexRouteImport.update({
   path: '/tools/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Tools1rmCalculatorRoute = Tools1rmCalculatorRouteImport.update({
+  id: '/tools/1rm-calculator',
+  path: '/tools/1rm-calculator',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsRoundsTrackerRoute = ToolsRoundsTrackerRouteImport.update({
+  id: '/tools/rounds-tracker',
+  path: '/tools/rounds-tracker',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsWorkoutTimerRoute = ToolsWorkoutTimerRouteImport.update({
+  id: '/tools/workout-timer',
+  path: '/tools/workout-timer',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedPlansSessionIdRoute =
   AuthenticatedPlansSessionIdRouteImport.update({
     id: '/$sessionId',
@@ -198,6 +216,9 @@ export interface FileRoutesByFullPath {
   '/progress': typeof AuthenticatedProgressRoute
   '/questionnaire': typeof AuthenticatedQuestionnaireRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
+  '/tools/1rm-calculator': typeof Tools1rmCalculatorRoute
+  '/tools/rounds-tracker': typeof ToolsRoundsTrackerRoute
+  '/tools/workout-timer': typeof ToolsWorkoutTimerRoute
   '/admin/': typeof AdminIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/plans/$sessionId': typeof AuthenticatedPlansSessionIdRoute
@@ -226,6 +247,9 @@ export interface FileRoutesByTo {
   '/progress': typeof AuthenticatedProgressRoute
   '/questionnaire': typeof AuthenticatedQuestionnaireRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
+  '/tools/1rm-calculator': typeof Tools1rmCalculatorRoute
+  '/tools/rounds-tracker': typeof ToolsRoundsTrackerRoute
+  '/tools/workout-timer': typeof ToolsWorkoutTimerRoute
   '/admin': typeof AdminIndexRoute
   '/tools': typeof ToolsIndexRoute
   '/plans/$sessionId': typeof AuthenticatedPlansSessionIdRoute
@@ -256,6 +280,9 @@ export interface FileRoutesById {
   '/_authenticated/progress': typeof AuthenticatedProgressRoute
   '/_authenticated/questionnaire': typeof AuthenticatedQuestionnaireRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
+  '/tools/1rm-calculator': typeof Tools1rmCalculatorRoute
+  '/tools/rounds-tracker': typeof ToolsRoundsTrackerRoute
+  '/tools/workout-timer': typeof ToolsWorkoutTimerRoute
   '/admin/': typeof AdminIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/_authenticated/plans/$sessionId': typeof AuthenticatedPlansSessionIdRoute
@@ -286,6 +313,9 @@ export interface FileRouteTypes {
     | '/progress'
     | '/questionnaire'
     | '/admin/exercise-library'
+    | '/tools/1rm-calculator'
+    | '/tools/rounds-tracker'
+    | '/tools/workout-timer'
     | '/admin/'
     | '/tools/'
     | '/plans/$sessionId'
@@ -314,6 +344,9 @@ export interface FileRouteTypes {
     | '/progress'
     | '/questionnaire'
     | '/admin/exercise-library'
+    | '/tools/1rm-calculator'
+    | '/tools/rounds-tracker'
+    | '/tools/workout-timer'
     | '/admin'
     | '/tools'
     | '/plans/$sessionId'
@@ -343,6 +376,9 @@ export interface FileRouteTypes {
     | '/_authenticated/progress'
     | '/_authenticated/questionnaire'
     | '/admin/exercise-library'
+    | '/tools/1rm-calculator'
+    | '/tools/rounds-tracker'
+    | '/tools/workout-timer'
     | '/admin/'
     | '/tools/'
     | '/_authenticated/plans/$sessionId'
@@ -367,6 +403,9 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   TrainingIntelligenceRoute: typeof TrainingIntelligenceRoute
   AdminExerciseLibraryRoute: typeof AdminExerciseLibraryRoute
+  Tools1rmCalculatorRoute: typeof Tools1rmCalculatorRoute
+  ToolsRoundsTrackerRoute: typeof ToolsRoundsTrackerRoute
+  ToolsWorkoutTimerRoute: typeof ToolsWorkoutTimerRoute
   AdminIndexRoute: typeof AdminIndexRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
 }
@@ -548,6 +587,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tools/1rm-calculator': {
+      id: '/tools/1rm-calculator'
+      path: '/tools/1rm-calculator'
+      fullPath: '/tools/1rm-calculator'
+      preLoaderRoute: typeof Tools1rmCalculatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/rounds-tracker': {
+      id: '/tools/rounds-tracker'
+      path: '/tools/rounds-tracker'
+      fullPath: '/tools/rounds-tracker'
+      preLoaderRoute: typeof ToolsRoundsTrackerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/workout-timer': {
+      id: '/tools/workout-timer'
+      path: '/tools/workout-timer'
+      fullPath: '/tools/workout-timer'
+      preLoaderRoute: typeof ToolsWorkoutTimerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/plans/$sessionId': {
       id: '/_authenticated/plans/$sessionId'
       path: '/$sessionId'
@@ -617,19 +677,12 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   TrainingIntelligenceRoute: TrainingIntelligenceRoute,
   AdminExerciseLibraryRoute: AdminExerciseLibraryRoute,
+  Tools1rmCalculatorRoute: Tools1rmCalculatorRoute,
+  ToolsRoundsTrackerRoute: ToolsRoundsTrackerRoute,
+  ToolsWorkoutTimerRoute: ToolsWorkoutTimerRoute,
   AdminIndexRoute: AdminIndexRoute,
   ToolsIndexRoute: ToolsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
