@@ -28,6 +28,7 @@ import { Route as TrainingScienceRouteImport } from './routes/training-science'
 import { Route as AuthenticatedPlansRouteImport } from './routes/_authenticated/plans'
 import { Route as AuthenticatedQuestionnaireRouteImport } from './routes/_authenticated/questionnaire'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminExerciseLibraryRouteImport } from './routes/admin.exercise-library'
 import { Route as ToolsIndexRouteImport } from './routes/tools.index'
 import { Route as ToolsBmrCalculatorRouteImport } from './routes/tools.bmr-calculator'
 import { Route as ToolsCalorieCounterRouteImport } from './routes/tools.calorie-counter'
@@ -129,6 +130,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminExerciseLibraryRoute = AdminExerciseLibraryRouteImport.update({
+  id: '/admin/exercise-library',
+  path: '/admin/exercise-library',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ToolsIndexRoute = ToolsIndexRouteImport.update({
   id: '/tools/',
   path: '/tools/',
@@ -174,6 +180,7 @@ export interface FileRoutesByFullPath {
   '/training-science': typeof TrainingScienceRoute
   '/plans': typeof AuthenticatedPlansRouteWithChildren
   '/questionnaire': typeof AuthenticatedQuestionnaireRoute
+  '/admin/exercise-library': typeof AdminExerciseLibraryRoute
   '/tools/bmr-calculator': typeof ToolsBmrCalculatorRoute
   '/tools/calorie-counter': typeof ToolsCalorieCounterRoute
   '/tools/macro-calculator': typeof ToolsMacroCalculatorRoute
@@ -199,6 +206,7 @@ export interface FileRoutesByTo {
   '/training-science': typeof TrainingScienceRoute
   '/plans': typeof AuthenticatedPlansRouteWithChildren
   '/questionnaire': typeof AuthenticatedQuestionnaireRoute
+  '/admin/exercise-library': typeof AdminExerciseLibraryRoute
   '/tools/bmr-calculator': typeof ToolsBmrCalculatorRoute
   '/tools/calorie-counter': typeof ToolsCalorieCounterRoute
   '/tools/macro-calculator': typeof ToolsMacroCalculatorRoute
@@ -226,6 +234,7 @@ export interface FileRoutesById {
   '/training-science': typeof TrainingScienceRoute
   '/_authenticated/plans': typeof AuthenticatedPlansRouteWithChildren
   '/_authenticated/questionnaire': typeof AuthenticatedQuestionnaireRoute
+  '/admin/exercise-library': typeof AdminExerciseLibraryRoute
   '/tools/bmr-calculator': typeof ToolsBmrCalculatorRoute
   '/tools/calorie-counter': typeof ToolsCalorieCounterRoute
   '/tools/macro-calculator': typeof ToolsMacroCalculatorRoute
@@ -253,6 +262,7 @@ export interface FileRouteTypes {
     | '/training-science'
     | '/plans'
     | '/questionnaire'
+    | '/admin/exercise-library'
     | '/tools/bmr-calculator'
     | '/tools/calorie-counter'
     | '/tools/macro-calculator'
@@ -278,6 +288,7 @@ export interface FileRouteTypes {
     | '/training-science'
     | '/plans'
     | '/questionnaire'
+    | '/admin/exercise-library'
     | '/tools/bmr-calculator'
     | '/tools/calorie-counter'
     | '/tools/macro-calculator'
@@ -304,6 +315,7 @@ export interface FileRouteTypes {
     | '/training-science'
     | '/_authenticated/plans'
     | '/_authenticated/questionnaire'
+    | '/admin/exercise-library'
     | '/tools/bmr-calculator'
     | '/tools/calorie-counter'
     | '/tools/macro-calculator'
@@ -329,6 +341,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   TrainingIntelligenceRoute: typeof TrainingIntelligenceRoute
   TrainingScienceRoute: typeof TrainingScienceRoute
+  AdminExerciseLibraryRoute: typeof AdminExerciseLibraryRoute
   ToolsBmrCalculatorRoute: typeof ToolsBmrCalculatorRoute
   ToolsCalorieCounterRoute: typeof ToolsCalorieCounterRoute
   ToolsMacroCalculatorRoute: typeof ToolsMacroCalculatorRoute
@@ -471,6 +484,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/exercise-library': {
+      id: '/admin/exercise-library'
+      path: '/admin/exercise-library'
+      fullPath: '/admin/exercise-library'
+      preLoaderRoute: typeof AdminExerciseLibraryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tools/': {
       id: '/tools/'
       path: '/tools'
@@ -550,6 +570,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   TrainingIntelligenceRoute: TrainingIntelligenceRoute,
   TrainingScienceRoute: TrainingScienceRoute,
+  AdminExerciseLibraryRoute: AdminExerciseLibraryRoute,
   ToolsBmrCalculatorRoute: ToolsBmrCalculatorRoute,
   ToolsCalorieCounterRoute: ToolsCalorieCounterRoute,
   ToolsMacroCalculatorRoute: ToolsMacroCalculatorRoute,
@@ -559,13 +580,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -165,6 +165,12 @@ function AdminInner() {
           </button>
         </div>
       )}
+
+      <div className="mb-4">
+        <Button asChild variant="outline">
+          <Link to="/admin/exercise-library">Upload exercise library</Link>
+        </Button>
+      </div>
 
       <Tabs defaultValue="overview">
         <TabsList className="mb-4 grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
