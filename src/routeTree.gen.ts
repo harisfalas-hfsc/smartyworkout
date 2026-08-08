@@ -10,33 +10,330 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as DisclaimerRouteImport } from './routes/disclaimer'
+import { Route as FaqRouteImport } from './routes/faq'
+import { Route as GlossaryRouteImport } from './routes/glossary'
+import { Route as HowItWorksRouteImport } from './routes/how-it-works'
+import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as TrainingIntelligenceRouteImport } from './routes/training-intelligence'
+import { Route as TrainingScienceRouteImport } from './routes/training-science'
+import { Route as AuthenticatedPlansRouteImport } from './routes/_authenticated/plans'
+import { Route as AuthenticatedQuestionnaireRouteImport } from './routes/_authenticated/questionnaire'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as ToolsIndexRouteImport } from './routes/tools.index'
+import { Route as ToolsBmrCalculatorRouteImport } from './routes/tools.bmr-calculator'
+import { Route as ToolsCalorieCounterRouteImport } from './routes/tools.calorie-counter'
+import { Route as ToolsMacroCalculatorRouteImport } from './routes/tools.macro-calculator'
+import { Route as AuthenticatedPlansSessionIdRouteImport } from './routes/_authenticated/plans.$sessionId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DisclaimerRoute = DisclaimerRouteImport.update({
+  id: '/disclaimer',
+  path: '/disclaimer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GlossaryRoute = GlossaryRouteImport.update({
+  id: '/glossary',
+  path: '/glossary',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HowItWorksRoute = HowItWorksRouteImport.update({
+  id: '/how-it-works',
+  path: '/how-it-works',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrainingIntelligenceRoute = TrainingIntelligenceRouteImport.update({
+  id: '/training-intelligence',
+  path: '/training-intelligence',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrainingScienceRoute = TrainingScienceRouteImport.update({
+  id: '/training-science',
+  path: '/training-science',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedPlansRoute = AuthenticatedPlansRouteImport.update({
+  id: '/plans',
+  path: '/plans',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedQuestionnaireRoute =
+  AuthenticatedQuestionnaireRouteImport.update({
+    id: '/questionnaire',
+    path: '/questionnaire',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsIndexRoute = ToolsIndexRouteImport.update({
+  id: '/tools/',
+  path: '/tools/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsBmrCalculatorRoute = ToolsBmrCalculatorRouteImport.update({
+  id: '/tools/bmr-calculator',
+  path: '/tools/bmr-calculator',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsCalorieCounterRoute = ToolsCalorieCounterRouteImport.update({
+  id: '/tools/calorie-counter',
+  path: '/tools/calorie-counter',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsMacroCalculatorRoute = ToolsMacroCalculatorRouteImport.update({
+  id: '/tools/macro-calculator',
+  path: '/tools/macro-calculator',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedPlansSessionIdRoute =
+  AuthenticatedPlansSessionIdRouteImport.update({
+    id: '/$sessionId',
+    path: '/$sessionId',
+    getParentRoute: () => AuthenticatedPlansRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/auth': typeof AuthRoute
+  '/contact': typeof ContactRoute
+  '/disclaimer': typeof DisclaimerRoute
+  '/faq': typeof FaqRoute
+  '/glossary': typeof GlossaryRoute
+  '/how-it-works': typeof HowItWorksRoute
+  '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
+  '/training-intelligence': typeof TrainingIntelligenceRoute
+  '/training-science': typeof TrainingScienceRoute
+  '/plans': typeof AuthenticatedPlansRouteWithChildren
+  '/questionnaire': typeof AuthenticatedQuestionnaireRoute
+  '/tools/bmr-calculator': typeof ToolsBmrCalculatorRoute
+  '/tools/calorie-counter': typeof ToolsCalorieCounterRoute
+  '/tools/macro-calculator': typeof ToolsMacroCalculatorRoute
+  '/admin/': typeof AdminIndexRoute
+  '/tools/': typeof ToolsIndexRoute
+  '/plans/$sessionId': typeof AuthenticatedPlansSessionIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/auth': typeof AuthRoute
+  '/contact': typeof ContactRoute
+  '/disclaimer': typeof DisclaimerRoute
+  '/faq': typeof FaqRoute
+  '/glossary': typeof GlossaryRoute
+  '/how-it-works': typeof HowItWorksRoute
+  '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
+  '/training-intelligence': typeof TrainingIntelligenceRoute
+  '/training-science': typeof TrainingScienceRoute
+  '/plans': typeof AuthenticatedPlansRouteWithChildren
+  '/questionnaire': typeof AuthenticatedQuestionnaireRoute
+  '/tools/bmr-calculator': typeof ToolsBmrCalculatorRoute
+  '/tools/calorie-counter': typeof ToolsCalorieCounterRoute
+  '/tools/macro-calculator': typeof ToolsMacroCalculatorRoute
+  '/admin': typeof AdminIndexRoute
+  '/tools': typeof ToolsIndexRoute
+  '/plans/$sessionId': typeof AuthenticatedPlansSessionIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/about': typeof AboutRoute
+  '/auth': typeof AuthRoute
+  '/contact': typeof ContactRoute
+  '/disclaimer': typeof DisclaimerRoute
+  '/faq': typeof FaqRoute
+  '/glossary': typeof GlossaryRoute
+  '/how-it-works': typeof HowItWorksRoute
+  '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
+  '/training-intelligence': typeof TrainingIntelligenceRoute
+  '/training-science': typeof TrainingScienceRoute
+  '/_authenticated/plans': typeof AuthenticatedPlansRouteWithChildren
+  '/_authenticated/questionnaire': typeof AuthenticatedQuestionnaireRoute
+  '/tools/bmr-calculator': typeof ToolsBmrCalculatorRoute
+  '/tools/calorie-counter': typeof ToolsCalorieCounterRoute
+  '/tools/macro-calculator': typeof ToolsMacroCalculatorRoute
+  '/admin/': typeof AdminIndexRoute
+  '/tools/': typeof ToolsIndexRoute
+  '/_authenticated/plans/$sessionId': typeof AuthenticatedPlansSessionIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/auth'
+    | '/contact'
+    | '/disclaimer'
+    | '/faq'
+    | '/glossary'
+    | '/how-it-works'
+    | '/pricing'
+    | '/privacy'
+    | '/reset-password'
+    | '/sitemap.xml'
+    | '/terms'
+    | '/training-intelligence'
+    | '/training-science'
+    | '/plans'
+    | '/questionnaire'
+    | '/tools/bmr-calculator'
+    | '/tools/calorie-counter'
+    | '/tools/macro-calculator'
+    | '/admin/'
+    | '/tools/'
+    | '/plans/$sessionId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/about'
+    | '/auth'
+    | '/contact'
+    | '/disclaimer'
+    | '/faq'
+    | '/glossary'
+    | '/how-it-works'
+    | '/pricing'
+    | '/privacy'
+    | '/reset-password'
+    | '/sitemap.xml'
+    | '/terms'
+    | '/training-intelligence'
+    | '/training-science'
+    | '/plans'
+    | '/questionnaire'
+    | '/tools/bmr-calculator'
+    | '/tools/calorie-counter'
+    | '/tools/macro-calculator'
+    | '/admin'
+    | '/tools'
+    | '/plans/$sessionId'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/about'
+    | '/auth'
+    | '/contact'
+    | '/disclaimer'
+    | '/faq'
+    | '/glossary'
+    | '/how-it-works'
+    | '/pricing'
+    | '/privacy'
+    | '/reset-password'
+    | '/sitemap.xml'
+    | '/terms'
+    | '/training-intelligence'
+    | '/training-science'
+    | '/_authenticated/plans'
+    | '/_authenticated/questionnaire'
+    | '/tools/bmr-calculator'
+    | '/tools/calorie-counter'
+    | '/tools/macro-calculator'
+    | '/admin/'
+    | '/tools/'
+    | '/_authenticated/plans/$sessionId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AboutRoute: typeof AboutRoute
+  AuthRoute: typeof AuthRoute
+  ContactRoute: typeof ContactRoute
+  DisclaimerRoute: typeof DisclaimerRoute
+  FaqRoute: typeof FaqRoute
+  GlossaryRoute: typeof GlossaryRoute
+  HowItWorksRoute: typeof HowItWorksRoute
+  PricingRoute: typeof PricingRoute
+  PrivacyRoute: typeof PrivacyRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TermsRoute: typeof TermsRoute
+  TrainingIntelligenceRoute: typeof TrainingIntelligenceRoute
+  TrainingScienceRoute: typeof TrainingScienceRoute
+  ToolsBmrCalculatorRoute: typeof ToolsBmrCalculatorRoute
+  ToolsCalorieCounterRoute: typeof ToolsCalorieCounterRoute
+  ToolsMacroCalculatorRoute: typeof ToolsMacroCalculatorRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+  ToolsIndexRoute: typeof ToolsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +345,217 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/disclaimer': {
+      id: '/disclaimer'
+      path: '/disclaimer'
+      fullPath: '/disclaimer'
+      preLoaderRoute: typeof DisclaimerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/glossary': {
+      id: '/glossary'
+      path: '/glossary'
+      fullPath: '/glossary'
+      preLoaderRoute: typeof GlossaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/how-it-works': {
+      id: '/how-it-works'
+      path: '/how-it-works'
+      fullPath: '/how-it-works'
+      preLoaderRoute: typeof HowItWorksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/training-intelligence': {
+      id: '/training-intelligence'
+      path: '/training-intelligence'
+      fullPath: '/training-intelligence'
+      preLoaderRoute: typeof TrainingIntelligenceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/training-science': {
+      id: '/training-science'
+      path: '/training-science'
+      fullPath: '/training-science'
+      preLoaderRoute: typeof TrainingScienceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/plans': {
+      id: '/_authenticated/plans'
+      path: '/plans'
+      fullPath: '/plans'
+      preLoaderRoute: typeof AuthenticatedPlansRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/questionnaire': {
+      id: '/_authenticated/questionnaire'
+      path: '/questionnaire'
+      fullPath: '/questionnaire'
+      preLoaderRoute: typeof AuthenticatedQuestionnaireRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/': {
+      id: '/tools/'
+      path: '/tools'
+      fullPath: '/tools/'
+      preLoaderRoute: typeof ToolsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/bmr-calculator': {
+      id: '/tools/bmr-calculator'
+      path: '/tools/bmr-calculator'
+      fullPath: '/tools/bmr-calculator'
+      preLoaderRoute: typeof ToolsBmrCalculatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/calorie-counter': {
+      id: '/tools/calorie-counter'
+      path: '/tools/calorie-counter'
+      fullPath: '/tools/calorie-counter'
+      preLoaderRoute: typeof ToolsCalorieCounterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/macro-calculator': {
+      id: '/tools/macro-calculator'
+      path: '/tools/macro-calculator'
+      fullPath: '/tools/macro-calculator'
+      preLoaderRoute: typeof ToolsMacroCalculatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/plans/$sessionId': {
+      id: '/_authenticated/plans/$sessionId'
+      path: '/$sessionId'
+      fullPath: '/plans/$sessionId'
+      preLoaderRoute: typeof AuthenticatedPlansSessionIdRouteImport
+      parentRoute: typeof AuthenticatedPlansRoute
+    }
   }
 }
 
+interface AuthenticatedPlansRouteChildren {
+  AuthenticatedPlansSessionIdRoute: typeof AuthenticatedPlansSessionIdRoute
+}
+
+const AuthenticatedPlansRouteChildren: AuthenticatedPlansRouteChildren = {
+  AuthenticatedPlansSessionIdRoute: AuthenticatedPlansSessionIdRoute,
+}
+
+const AuthenticatedPlansRouteWithChildren =
+  AuthenticatedPlansRoute._addFileChildren(AuthenticatedPlansRouteChildren)
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedPlansRoute: typeof AuthenticatedPlansRouteWithChildren
+  AuthenticatedQuestionnaireRoute: typeof AuthenticatedQuestionnaireRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedPlansRoute: AuthenticatedPlansRouteWithChildren,
+  AuthenticatedQuestionnaireRoute: AuthenticatedQuestionnaireRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AboutRoute: AboutRoute,
+  AuthRoute: AuthRoute,
+  ContactRoute: ContactRoute,
+  DisclaimerRoute: DisclaimerRoute,
+  FaqRoute: FaqRoute,
+  GlossaryRoute: GlossaryRoute,
+  HowItWorksRoute: HowItWorksRoute,
+  PricingRoute: PricingRoute,
+  PrivacyRoute: PrivacyRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TermsRoute: TermsRoute,
+  TrainingIntelligenceRoute: TrainingIntelligenceRoute,
+  TrainingScienceRoute: TrainingScienceRoute,
+  ToolsBmrCalculatorRoute: ToolsBmrCalculatorRoute,
+  ToolsCalorieCounterRoute: ToolsCalorieCounterRoute,
+  ToolsMacroCalculatorRoute: ToolsMacroCalculatorRoute,
+  AdminIndexRoute: AdminIndexRoute,
+  ToolsIndexRoute: ToolsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
