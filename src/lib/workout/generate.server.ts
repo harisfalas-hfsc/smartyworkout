@@ -2,7 +2,13 @@ import { streamText } from "ai";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 import { buildWorkoutPrompt, type AthleteContext } from "./prompt.server";
 import { enforceWorkout, estimateWorkMinutes } from "./enforce.server";
-import { filterPool, loadAllExercises, samplePool, type PoolExercise } from "./pool.server";
+import {
+  filterPool,
+  loadAllExercises,
+  resolveCustomEquipment,
+  samplePool,
+  type PoolExercise,
+} from "./pool.server";
 import {
   BANNED_NAME_WORDS,
   CATEGORY_FORMATS,
