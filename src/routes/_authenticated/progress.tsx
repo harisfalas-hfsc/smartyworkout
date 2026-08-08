@@ -23,6 +23,7 @@ type Row = {
   category: string;
   duration_min: number;
   status: string;
+  is_favorite: boolean | null;
   created_at: string;
 };
 
@@ -57,19 +58,34 @@ function Stat({
   icon: Icon,
   label,
   value,
+  to,
 }: {
   icon: typeof Flame;
   label: string;
   value: string | number;
+  to?: { filter: "all" | "completed" | "planned" | "favorites" | "scheduled" };
 }) {
-  return (
-    <div className="rounded-2xl border border-border bg-card p-4">
+  const body = (
+    <>
       <Icon className="h-5 w-5 text-primary" />
       <p className="mt-2 text-2xl font-black">{value}</p>
       <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
-    </div>
+    </>
+  );
+  if (!to)
+    return <div className="rounded-2xl border border-border bg-card p-4">{body}</div>;
+  return (
+    <Link
+      to="/logbook"
+      search={{ filter: to.filter, view: "list" as const }}
+      className="block rounded-2xl border border-border bg-card p-4 transition hover:border-primary/60"
+    >
+      {body}
+      <span className="mt-2 block text-[11px] font-semibold text-primary">View in logbook →</span>
+    </Link>
   );
 }
+
 
 function Progress() {
   const [rows, setRows] = useState<Row[] | null>(null);
@@ -78,7 +94,7 @@ function Progress() {
     (async () => {
       const { data } = await supabase
         .from("workouts")
-        .select("id,category,duration_min,status,created_at")
+        .select("id,category,duration_min,status,is_favorite,created_at")
         .order("created_at", { ascending: false })
         .limit(500);
       setRows((data as unknown as Row[]) ?? []);
@@ -98,6 +114,7 @@ function Progress() {
   const month = completed.filter((r) => now - new Date(r.created_at).getTime() < 30 * 86400000);
   const minutes = completed.reduce((s, r) => s + (r.duration_min || 0), 0);
   const { current, longest } = streaks(completed.map((r) => r.created_at.slice(0, 10)));
+  const favourites = rows.filter((r) => r.is_favorite).length;
   const counts = new Map<string, number>();
   for (const r of completed) counts.set(r.category, (counts.get(r.category) ?? 0) + 1);
   const favourite = Array.from(counts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
@@ -108,15 +125,37 @@ function Progress() {
       <p className="mt-1 text-muted-foreground">Keep showing up — Smarty Coach is tracking it all.</p>
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat icon={Activity} label="Total workouts" value={completed.length} />
+        <Stat
+          icon={Activity}
+          label="Completed"
+          value={completed.length}
+          to={{ filter: "completed" }}
+        />
+        <Stat
+          icon={Activity}
+          label="Not completed"
+          value={rows.length - completed.length}
+          to={{ filter: "planned" }}
+        />
         <Stat icon={Timer} label="Training minutes" value={minutes} />
         <Stat icon={Flame} label="Current streak" value={`${current}d`} />
         <Stat icon={Trophy} label="Longest streak" value={`${longest}d`} />
-        <Stat icon={Activity} label="This week" value={week.length} />
-        <Stat icon={Activity} label="This month" value={month.length} />
+        <Stat
+          icon={Activity}
+          label="This week"
+          value={week.length}
+          to={{ filter: "completed" }}
+        />
+        <Stat
+          icon={Activity}
+          label="Favourites"
+          value={favourites}
+          to={{ filter: "favorites" }}
+        />
         <Stat icon={Trophy} label="Favourite category" value={favourite} />
-        <Stat icon={Activity} label="Created" value={rows.length} />
+        <Stat icon={Activity} label="Created" value={rows.length} to={{ filter: "all" }} />
       </div>
+
 
       <Button asChild className="mt-8">
         <Link to="/coach">Train now</Link>

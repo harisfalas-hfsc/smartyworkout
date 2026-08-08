@@ -76,6 +76,7 @@ export type AthleteContext = {
   limitations?: string[] | null;
   location?: string | null;
   mood?: string | null;
+  recent_feedback?: string[] | null;
 };
 
 function athleteBlock(a?: AthleteContext): string {
@@ -99,7 +100,14 @@ function athleteBlock(a?: AthleteContext): string {
   if (a.favorite_exercises?.length) lines.push(`FAVOURITE exercises (prioritise close library matches): ${a.favorite_exercises.join(", ")}`);
   if (a.disliked_exercises?.length) lines.push(`DISLIKED exercises (never program these or close variations): ${a.disliked_exercises.join(", ")}`);
   if (a.limitations?.length) lines.push(`INJURIES / LIMITATIONS (must be respected, choose safe alternatives): ${a.limitations.join(", ")}`);
+  if (a.recent_feedback?.length)
+    lines.push(
+      `FEEDBACK FROM RECENT SESSIONS (adapt to it — if the athlete said "Too Easy" progress the load/volume, if "Very Hard" or "Exhausted" pull it back, avoid what they did not enjoy or would not repeat, and honour anything written in their comments):\n${a.recent_feedback
+        .map((f) => `  · ${f}`)
+        .join("\n")}`,
+    );
   if (!lines.length) return "";
+
   return `ATHLETE PROFILE — read this before writing a single line. The session must respect every point.\n${lines.map((l) => `- ${l}`).join("\n")}\n`;
 }
 
