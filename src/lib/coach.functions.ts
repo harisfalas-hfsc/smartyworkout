@@ -19,6 +19,7 @@ export type CoachRequest = {
   focus?: string;
   format?: string;
   note?: string;
+  level?: string;
   surprise?: boolean;
 };
 
@@ -38,7 +39,15 @@ const GOAL_TO_CATEGORY: Record<string, Category> = {
 
 const BODYWEIGHT_ONLY = new Set(["bodyweight"]);
 
-function starsFor(profile: { experience?: string | null; fitness_level?: string | null } | null, mood: string) {
+function starsFor(
+  profile: { experience?: string | null; fitness_level?: string | null } | null,
+  mood: string,
+  requested?: string,
+) {
+  // Explicit choice wins and is NOT softened by mood — the athlete already confirmed it.
+  if (requested === "beginner") return 2;
+  if (requested === "intermediate") return 4;
+  if (requested === "advanced") return 6;
   const level = (profile?.fitness_level ?? profile?.experience ?? "").toLowerCase();
   let stars = level.includes("adv") ? 5 : level.includes("inter") ? 4 : 2;
   if (mood === "tired" || mood === "low" || mood === "sore") stars = Math.max(1, stars - 1);
@@ -94,7 +103,12 @@ export const generateWorkout = createServerFn({ method: "POST" })
     }
     if (minutes <= 5) category = "MICRO-WORKOUTS";
 
-    const stars = starsFor((prof as never) ?? null, mood);
+    const requestedLevel = String(data.level ?? "auto");
+    const stars = starsFor(
+      (prof as never) ?? null,
+      mood,
+      requestedLevel === "auto" ? undefined : requestedLevel,
+    );
     const usedNames = history.map((r) => r.name);
 
     const requestedFormat = data.format as Format | undefined;
@@ -215,6 +229,28 @@ export const setWorkoutMeta = createServerFn({ method: "POST" })
     if (typeof data.is_favorite === "boolean") patch["is_favorite"] = data.is_favorite;
     if (data.rating !== undefined) patch["rating"] = data.rating;
     if (data.user_note !== undefined) patch["user_note"] = data.user_note;
+    if (!Object.keys(patch).length) return { ok: true };
+    const { error } = await context.supabase
+      .from("workouts")
+      .update(patch as never)
+      .eq("id", data.workoutId)
+      .eq("user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const setWorkoutStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (input: { workoutId: string; status?: string; scheduled_at?: string | null }) => input,
+  )
+  .handler(async ({ data, context }) => {
+    const patch: Record<string, unknown> = {};
+    if (data.status) {
+      patch["status"] = data.status;
+      patch["completed_at"] = data.status === "completed" ? new Date().toISOString() : null;
+    }
+    if (data.scheduled_at !== undefined) patch["scheduled_at"] = data.scheduled_at;
     if (!Object.keys(patch).length) return { ok: true };
     const { error } = await context.supabase
       .from("workouts")
