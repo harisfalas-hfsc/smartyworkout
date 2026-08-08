@@ -31,7 +31,7 @@ function Disclaimer() {
       lastUpdated="July 2026"
     >
       <div className="callout">
-        <strong>⚠️ Not medical or trainingal advice.</strong> SmartyWorkout generates general wellness
+        <strong>⚠️ Not medical or training advice.</strong> SmartyWorkout generates general wellness
         training plans using AI based on the answers you provide. It is not a doctor, coach, or
         any other healthcare provider. Before starting any plan, and especially if you have any
         medical condition, take medications, are pregnant or breastfeeding, or have an eating
@@ -52,11 +52,11 @@ function Disclaimer() {
           SmartyMove
         </a>
         ), is intended solely for <strong>general educational and wellness purposes</strong>.
-        SmartyWorkout does not provide medical, trainingal-therapy, or dietetic advice, diagnosis, or
+        SmartyWorkout does not provide medical, physiotherapy, or dietetic advice, diagnosis, or
         treatment.
       </p>
 
-      <h2>1. Not Medical or Trainingal Advice</h2>
+      <h2>1. Not Medical or Training Advice</h2>
       <ul>
         <li>The plans, equipment lists, macro targets, and educational content in SmartyWorkout are <strong>for general wellness purposes only</strong>.</li>
         <li>Always <strong>consult a qualified medical or training professional</strong> before starting any new diet — especially if you have diabetes, kidney disease, thyroid or heart conditions, an eating-disorder history, food allergies, or other health concerns; take medications that interact with food; or are pregnant or breastfeeding.</li>

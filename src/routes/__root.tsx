@@ -82,7 +82,7 @@ const KEYWORDS = [
   "Cutting Diet",
   "Bulking Diet",
   "Metabolic Health",
-  "Trainingal Deficiency",
+  "Training Deficiency",
   "Food Sensitivity",
   "Dietary Guidelines",
   "Portion Control",
@@ -133,7 +133,7 @@ const JSONLD_GRAPH = {
         "https://smartymove.com",
         "https://smartygym.com",
         "https://smartywellness.com",
-        "https://www.instagram.com/smartydiet",
+        "https://www.instagram.com/smartyworkout",
         "https://www.tiktok.com/@smarty.diet",
       ],
       contactPoint: [
@@ -290,7 +290,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:description", content: SITE_DESCRIPTION },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@smartydiet" },
+      { name: "twitter:site", content: "@smartyworkout" },
       {
         name: "twitter:title",
         content:

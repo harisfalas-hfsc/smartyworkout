@@ -71,7 +71,7 @@ function Terms() {
       </ul>
       <p>
         SmartyWorkout is intended for <strong>personal educational and wellness purposes only</strong> and
-        is <strong>not a substitute for medical, trainingal, or dietetic advice</strong>, diagnosis,
+        is <strong>not a substitute for medical, training, or dietetic advice</strong>, diagnosis,
         or treatment.
       </p>
       <p>
@@ -157,7 +157,7 @@ function Terms() {
           incompatible with your health.
         </li>
         <li>
-          Trainingal values (calories, protein, carbs, fat) shown in plans are estimates and may
+          Training values (calories, protein, carbs, fat) shown in plans are estimates and may
           differ from actual values.
         </li>
       </ul>
