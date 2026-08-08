@@ -32,7 +32,7 @@ export function PageHeader({
       )}
       <h1
         className={cn(
-          "flex flex-wrap items-center justify-center gap-x-2 text-balance text-3xl font-extrabold uppercase leading-tight tracking-tight sm:text-4xl",
+          "flex flex-wrap items-center justify-center gap-x-2 text-balance text-3xl font-extrabold tracking-tight sm:text-4xl",
           eyebrow ? "mt-2" : "mt-0",
         )}
       >
