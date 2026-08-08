@@ -242,9 +242,10 @@ function WodPage() {
 
 
 
-      <section>
+      <section className="lg:flex lg:flex-col lg:items-center">
         {workouts.length ? (
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid w-full gap-3 sm:grid-cols-2 lg:gap-5">
+
             {workouts.map((w) => (
               <WorkoutCard key={w.id} workout={w} />
             ))}
