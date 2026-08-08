@@ -30,8 +30,9 @@ function AboutPage() {
     <div className="mx-auto max-w-4xl px-4 py-8 sm:py-12">
       <div className="mb-8 text-center">
         <p className="text-xs font-semibold uppercase tracking-wider text-primary">About</p>
-        <h1 className="mt-2 text-3xl font-extrabold uppercase tracking-tight sm:text-4xl">
-          Not another <span className="text-primary">workout app.</span>
+        <h1 className="mt-2 text-pretty text-2xl font-extrabold uppercase leading-tight tracking-tight sm:text-4xl">
+          Not another{" "}
+          <span className="whitespace-nowrap text-primary">workout app.</span>
         </h1>
       </div>
 
