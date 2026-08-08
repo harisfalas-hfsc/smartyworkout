@@ -100,7 +100,7 @@ function Home() {
 
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:py-12">
+    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:py-12 lg:px-8 lg:py-16">
       <PageHeader
         title={
           <>
@@ -127,18 +127,44 @@ function Home() {
         </Link>
       </div>
 
-      <div className="mx-auto mt-8 grid max-w-xl grid-cols-3 gap-3">
-        {DISCOVER.map((d) => (
-          <Link
-            key={d.to}
-            to={d.to}
-            className="flex flex-col items-center gap-1 rounded-2xl border-2 border-blue-400 bg-card px-3 py-4 text-center transition hover:bg-blue-50 dark:hover:bg-blue-500/10"
-          >
-            <d.icon className="h-5 w-5 text-primary" />
-            <p className="text-sm font-bold leading-5">{d.title}</p>
-            <p className="hidden text-xs leading-5 text-muted-foreground sm:block">{d.desc}</p>
-          </Link>
-        ))}
+      {user && (
+        <div className="mt-10">
+          <h2 className="mb-3 text-center text-xs font-semibold uppercase tracking-wider text-primary">
+            My app
+          </h2>
+          <div className="mx-auto grid max-w-xl grid-cols-3 gap-3 sm:max-w-3xl sm:grid-cols-4 lg:max-w-5xl lg:grid-cols-5 lg:gap-5">
+            {MY_APP.map((d) => (
+              <Link
+                key={d.to}
+                to={d.to}
+                className="flex flex-col items-center gap-1 rounded-2xl border-2 border-blue-400 bg-card px-3 py-4 text-center transition hover:bg-blue-50 lg:py-6 dark:hover:bg-blue-500/10"
+              >
+                <d.icon className="h-5 w-5 text-primary lg:h-6 lg:w-6" />
+                <p className="text-sm font-bold leading-5">{d.title}</p>
+                <p className="hidden text-xs leading-5 text-muted-foreground sm:block">{d.desc}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="mt-10">
+        <h2 className="mb-3 text-center text-xs font-semibold uppercase tracking-wider text-primary">
+          Discover
+        </h2>
+        <div className="mx-auto grid max-w-xl grid-cols-3 gap-3 sm:max-w-3xl sm:grid-cols-4 lg:max-w-5xl lg:gap-5">
+          {DISCOVER.map((d) => (
+            <Link
+              key={d.to}
+              to={d.to}
+              className="flex flex-col items-center gap-1 rounded-2xl border-2 border-blue-400 bg-card px-3 py-4 text-center transition hover:bg-blue-50 lg:py-6 dark:hover:bg-blue-500/10"
+            >
+              <d.icon className="h-5 w-5 text-primary lg:h-6 lg:w-6" />
+              <p className="text-sm font-bold leading-5">{d.title}</p>
+              <p className="hidden text-xs leading-5 text-muted-foreground sm:block">{d.desc}</p>
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );
