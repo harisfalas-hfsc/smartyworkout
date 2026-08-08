@@ -188,21 +188,7 @@ function AdminInner() {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-extrabold">Admin panel</h1>
-          <p className="text-sm text-muted-foreground">
-            Environment: <span className="font-mono">{env}</span>
-          </p>
-        </div>
-        <div className="inline-flex rounded-full border p-1 text-xs font-semibold">
-          {(["sandbox", "live"] as StripeEnv[]).map((e) => (
-            <button
-              key={e}
-              type="button"
-              onClick={() => setEnv(e)}
-              className={`rounded-full px-3 py-1 ${env === e ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
-            >
-              {e}
-            </button>
-          ))}
+          <p className="text-sm text-muted-foreground">Users, credits and roles</p>
         </div>
       </div>
       {message && (
@@ -235,13 +221,7 @@ function AdminInner() {
         </TabsList>
 
         <TabsContent value="overview">
-          <OverviewTab
-            analytics={analytics}
-            loading={analyticsLoading}
-            error={analyticsError}
-            users={users}
-            onReload={reloadAnalytics}
-          />
+          <OverviewTab users={users} loading={usersLoading} onReload={reloadUsers} />
         </TabsContent>
 
         <TabsContent value="users">
@@ -314,57 +294,6 @@ function AdminInner() {
               />
             </CardContent>
           </Card>
-          <Card className="mt-4">
-            <CardHeader>
-              <CardTitle>Recent Stripe transactions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {analyticsLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : analytics?.recent?.length ? (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>ID</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead className="text-right">Amount</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {analytics.recent.map((r) => (
-                        <TableRow key={r.id}>
-                          <TableCell className="font-mono text-[10px]">{r.id.slice(0, 14)}…</TableCell>
-                          <TableCell className="whitespace-nowrap text-xs">
-                            {new Date(r.created).toLocaleString()}
-                          </TableCell>
-                          <TableCell className="text-xs">{r.email ?? "—"}</TableCell>
-                          <TableCell className="text-xs">{r.description ?? "—"}</TableCell>
-                          <TableCell className="text-xs">{r.status}</TableCell>
-                          <TableCell>
-                            <Badge variant={r.type === "subscription" ? "default" : "secondary"}>
-                              {r.type}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right font-mono text-xs">
-                            {r.amount.toFixed(2)} {r.currency}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  No transactions{analyticsError ? ` — ${analyticsError}` : ""}.
-                </p>
-              )}
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
 
@@ -420,74 +349,36 @@ function AdminInner() {
 }
 
 function OverviewTab({
-  analytics,
-  loading,
-  error,
   users,
+  loading,
   onReload,
 }: {
-  analytics: AdminAnalytics | null;
-  loading: boolean;
-  error: string | null;
   users: AdminUserRow[];
+  loading: boolean;
   onReload: () => void;
 }) {
   const totalCredits = users.reduce((s, u) => s + u.credits, 0);
+  const admins = users.filter((u) => u.is_admin).length;
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat
-          label="Total revenue"
-          value={
-            analytics
-              ? `${analytics.totalRevenue.toFixed(2)} ${analytics.currency}`
-              : loading
-                ? "…"
-                : "—"
-          }
-        />
-        <Stat label="Payments count" value={String(analytics?.paymentsCount ?? 0)} />
-        <Stat label="Active subscriptions" value={String(analytics?.activeSubscriptions ?? 0)} />
-        <Stat label="Product purchases" value={String(analytics?.productPurchases ?? 0)} />
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <Stat label="Total users" value={String(users.length)} />
+        <Stat label="Bonus credits outstanding" value={String(totalCredits)} />
+        <Stat label="Admins" value={String(admins)} />
       </div>
       <Card>
         <CardHeader className="flex-row items-center justify-between space-y-0">
-          <CardTitle>Revenue by month</CardTitle>
+          <CardTitle>Overview</CardTitle>
           <Button size="sm" variant="outline" onClick={onReload} disabled={loading}>
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Refresh"}
           </Button>
         </CardHeader>
         <CardContent>
-          {error && <p className="text-sm text-destructive">{error}</p>}
-          {!analytics?.revenueByMonth?.length && !loading && !error && (
-            <p className="text-sm text-muted-foreground">No revenue yet.</p>
-          )}
-          {analytics?.revenueByMonth?.length ? (
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={analytics.revenueByMonth}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="month" fontSize={12} />
-                  <YAxis fontSize={12} />
-                  <Tooltip
-                    formatter={(v: number) => `${v.toFixed(2)} ${analytics.currency}`}
-                    contentStyle={{ borderRadius: 12, fontSize: 12 }}
-                  />
-                  <Bar dataKey="amount" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          ) : null}
+          <p className="text-sm text-muted-foreground">
+            SmartyWorkout plans are free — manage users, credits and roles here.
+          </p>
         </CardContent>
       </Card>
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Stat label="Total users" value={String(users.length)} />
-        <Stat label="Bonus credits outstanding" value={String(totalCredits)} />
-        <Stat
-          label="Subscription payments"
-          value={String(analytics?.subscriptionPurchases ?? 0)}
-        />
-      </div>
     </div>
   );
 }
