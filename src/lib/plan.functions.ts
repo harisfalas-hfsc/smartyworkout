@@ -13,23 +13,26 @@ interface PlanResult {
 // -------------------- Rules & Validation --------------------
 
 export interface StrictRules {
-  mealsPerDay: number;
-  calorieTarget: number; // exact target
-  calorieTolerance: number; // ±kcal per day
-  excludeFoods: string[]; // lower-cased tokens
-  dietStyle: string;
+  daysPerWeek: number;
+  sessionMinutes: number; // exact target
+  sessionTolerance: number; // ±minutes per session
+  avoidMovements: string[]; // lower-cased tokens
+  trainingStyle: string;
+  experience: string;
+  environment: string;
+  equipment: string[];
+  focusAreas: string[];
   goal: string;
-  fastingWindow?: string;
   weeks: number;
 }
 
 interface RefinementConstraints {
-  mealsPerDay?: number;
-  excludeFoods?: string[];
-  includeMoreFoods?: string[];
-  calorieDelta?: number;
-  calorieTarget?: number;
-  fastingWindow?: string;
+  daysPerWeek?: number;
+  avoidMovements?: string[];
+  includeMoreMovements?: string[];
+  sessionMinutesDelta?: number;
+  sessionMinutes?: number;
+  trainingStyle?: string;
   notes?: string;
 }
 
@@ -38,109 +41,86 @@ function normalizeToken(s: string) {
 }
 
 function buildBaseRules(q: any, weeks: number): StrictRules {
-  const eating = q?.eating ?? {};
+  const training = q?.training ?? {};
   const goal = q?.goal ?? {};
-  const basics = q?.basics ?? {};
-  const activity = q?.activity ?? {};
+  const constraints = q?.constraints ?? {};
 
-  const fasting = eating.fasting ?? {};
-  const isOMAD = fasting.window === "OMAD";
-  const mealsPerDay: number = isOMAD ? 1 : Math.max(1, Math.min(6, Number(eating.mealsPerDay) || 3));
+  const daysPerWeek = Math.max(1, Math.min(7, Number(training.daysPerWeek) || 3));
+  const sessionMinutes = Math.max(15, Math.min(150, Number(training.sessionMinutes) || 45));
 
-  // Compute default calorie target if not provided
-  let calorieTarget: number | undefined = Number(goal.calorieTarget) || undefined;
-  if (!calorieTarget) {
-    const weight = Number(basics.weight) || 70;
-    const height = Number(basics.height) || 170;
-    const age = Number(basics.age) || 30;
-    const male = basics.gender === "male";
-    // Mifflin-St Jeor
-    const bmr = male
-      ? 10 * weight + 6.25 * height - 5 * age + 5
-      : 10 * weight + 6.25 * height - 5 * age - 161;
-    const mult =
-      activity.activityLevel === "sedentary" ? 1.2 :
-      activity.activityLevel === "light" ? 1.375 :
-      activity.activityLevel === "active" ? 1.725 :
-      activity.activityLevel === "very_active" ? 1.9 : 1.55;
-    let tdee = Math.round(bmr * mult);
-    if (goal.goal === "weight_loss") tdee -= 500;
-    else if (goal.goal === "muscle_gain") tdee += 300;
-    else if (goal.goal === "recomposition") tdee -= 200;
-    // Fasting approach adjusts deficit
-    if (fasting.approach === "aggressive") tdee -= 200;
-    if (fasting.approach === "very_aggressive") tdee -= 400;
-    calorieTarget = Math.max(1200, Math.round(tdee / 10) * 10);
-  }
-
-  const dislike: string[] = [
-    ...((eating.dislikedFoods as string[]) ?? []),
-    ...(String(eating.dislikedFoodsOther ?? "").split(",")),
+  const disliked: string[] = [
+    ...((training.dislikedExercises as string[]) ?? []),
+    ...String(training.dislikedExercisesOther ?? "").split(","),
   ]
     .map(normalizeToken)
     .filter(Boolean);
 
-  const allergyTags: string[] = ((eating.allergyTags as string[]) ?? [])
-    .filter((t) => t && t !== "none");
-  const allergyMap: Record<string, string[]> = {
-    nuts: ["almond", "walnut", "cashew", "pecan", "hazelnut", "pistachio", "nut"],
-    peanuts: ["peanut"],
-    "dairy/lactose": ["milk", "yogurt", "cheese", "butter", "cream", "dairy"],
-    gluten: ["wheat", "bread", "pasta", "flour", "barley", "rye", "gluten"],
-    eggs: ["egg"],
-    shellfish: ["shrimp", "prawn", "crab", "lobster", "shellfish"],
-    fish: ["fish", "tuna", "salmon", "cod", "sardine", "anchovy"],
-    soy: ["soy", "tofu", "edamame"],
-    sesame: ["sesame", "tahini"],
+  const injuryMap: Record<string, string[]> = {
+    "lower back": ["deadlift", "good morning", "barbell row", "sit-up"],
+    knee: ["deep squat", "jump squat", "box jump", "lunge jump"],
+    shoulder: ["overhead press", "upright row", "behind the neck press", "dip"],
+    wrist: ["front rack", "handstand", "push-up on floor"],
+    hip: ["deep squat", "sumo deadlift"],
+    ankle: ["box jump", "sprint"],
+    neck: ["behind the neck press", "heavy shrug"],
+    elbow: ["skullcrusher", "dip"],
+    hernia: ["heavy deadlift", "valsalva heavy lift"],
+    "heart condition": ["max effort sprint", "all-out hiit"],
   };
-  const allergyExcludes = allergyTags.flatMap((t) => allergyMap[t] ?? [t]);
-  const allergyFree = String(eating.allergies ?? "").split(",").map(normalizeToken).filter(Boolean);
-  const culturalMap: Record<string, string[]> = {
-    "no pork": ["pork", "bacon", "ham", "prosciutto"],
-    "no beef": ["beef", "steak"],
-    "no alcohol": ["wine", "beer", "alcohol"],
-  };
-  const cultural = ((eating.culturalRestrictions as string[]) ?? []).flatMap(
-    (t) => culturalMap[t] ?? [t],
+  const injuryTags: string[] = ((training.injuryTags as string[]) ?? []).filter(
+    (t) => t && t !== "none",
   );
+  const injuryExcludes = injuryTags.flatMap((t) => injuryMap[t] ?? [t]);
+  const injuryFree = String(training.injuries ?? "")
+    .split(",")
+    .map(normalizeToken)
+    .filter(Boolean);
 
-  const excludeFoods = Array.from(
-    new Set([...dislike, ...allergyExcludes, ...allergyFree, ...cultural]),
-  );
+  const avoidTags: string[] = [
+    ...((training.avoidTags as string[]) ?? []),
+    ...String(training.avoidTagsOther ?? "").split(","),
+  ]
+    .map(normalizeToken)
+    .filter(Boolean);
 
-  const dietStyle =
-    eating.dietStyle === "other" ? String(eating.dietStyleOther || "custom") : String(eating.dietStyle || "balanced");
+  const avoidMovements = Array.from(
+    new Set([...disliked, ...injuryExcludes, ...injuryFree, ...avoidTags].map(normalizeToken)),
+  ).filter(Boolean);
+
+  const trainingStyle =
+    training.trainingStyle === "other"
+      ? String(training.trainingStyleOther || "custom")
+      : String(training.trainingStyle || "full_body");
 
   return {
-    mealsPerDay,
-    calorieTarget,
-    calorieTolerance: 25,
-    excludeFoods,
-    dietStyle,
+    daysPerWeek,
+    sessionMinutes,
+    sessionTolerance: 10,
+    avoidMovements,
+    trainingStyle,
+    experience: String(constraints.experience || "beginner"),
+    environment: String(constraints.environment || "gym"),
+    equipment: ((constraints.equipment as string[]) ?? []).map(String),
+    focusAreas: ((goal.focusAreas as string[]) ?? []).map(String),
     goal: String(goal.goal || "maintenance"),
-    fastingWindow: fasting.window
-      ? fasting.window === "custom"
-        ? String(fasting.customWindow || "custom")
-        : String(fasting.window)
-      : undefined,
     weeks,
   };
 }
 
 function mergeConstraints(base: StrictRules, extra: RefinementConstraints): StrictRules {
   const merged: StrictRules = { ...base };
-  if (extra.mealsPerDay && extra.mealsPerDay >= 1 && extra.mealsPerDay <= 6) {
-    merged.mealsPerDay = extra.mealsPerDay;
+  if (extra.daysPerWeek && extra.daysPerWeek >= 1 && extra.daysPerWeek <= 7) {
+    merged.daysPerWeek = extra.daysPerWeek;
   }
-  if (extra.calorieTarget && extra.calorieTarget > 500) {
-    merged.calorieTarget = extra.calorieTarget;
-  } else if (extra.calorieDelta) {
-    merged.calorieTarget = Math.max(1000, merged.calorieTarget + extra.calorieDelta);
+  if (extra.sessionMinutes && extra.sessionMinutes >= 15) {
+    merged.sessionMinutes = extra.sessionMinutes;
+  } else if (extra.sessionMinutesDelta) {
+    merged.sessionMinutes = Math.max(15, merged.sessionMinutes + extra.sessionMinutesDelta);
   }
-  if (extra.fastingWindow) merged.fastingWindow = extra.fastingWindow;
-  if (extra.excludeFoods?.length) {
-    merged.excludeFoods = Array.from(
-      new Set([...merged.excludeFoods, ...extra.excludeFoods.map(normalizeToken)]),
+  if (extra.trainingStyle) merged.trainingStyle = extra.trainingStyle;
+  if (extra.avoidMovements?.length) {
+    merged.avoidMovements = Array.from(
+      new Set([...merged.avoidMovements, ...extra.avoidMovements.map(normalizeToken)]),
     );
   }
   return merged;
@@ -149,7 +129,7 @@ function mergeConstraints(base: StrictRules, extra: RefinementConstraints): Stri
 export interface ValidationIssue {
   day: number;
   weekNumber: number;
-  kind: "calorie" | "meal_count" | "excluded_food";
+  kind: "duration" | "day_count" | "excluded_movement" | "exercise_count";
   detail: string;
 }
 
@@ -158,41 +138,46 @@ export function validatePlan(plan: any, rules: StrictRules): ValidationIssue[] {
   const weeks = plan?.weeks ?? [];
   for (const w of weeks) {
     const wn = Number(w.weekNumber) || 0;
-    for (const d of w.days ?? []) {
+    const days = w.days ?? [];
+    const trainingDays = days.filter((d: any) => !d.rest && (d.exercises ?? []).length > 0);
+    if (trainingDays.length !== rules.daysPerWeek) {
+      issues.push({
+        day: 0,
+        weekNumber: wn,
+        kind: "day_count",
+        detail: `Week ${wn} has ${trainingDays.length} training days; required exactly ${rules.daysPerWeek}.`,
+      });
+    }
+    for (const d of trainingDays) {
       const day = Number(d.day) || 0;
-      const meals = d.meals ?? [];
-      if (meals.length !== rules.mealsPerDay) {
+      const exercises = d.exercises ?? [];
+      if (exercises.length < 3) {
         issues.push({
           day,
           weekNumber: wn,
-          kind: "meal_count",
-          detail: `Week ${wn} Day ${day} has ${meals.length} meals; required ${rules.mealsPerDay}.`,
+          kind: "exercise_count",
+          detail: `Week ${wn} Day ${day} has only ${exercises.length} exercises; give at least 3.`,
         });
       }
-      const sum = meals.reduce((a: number, m: any) => a + (Number(m.calories) || 0), 0);
-      if (Math.abs(sum - rules.calorieTarget) > rules.calorieTolerance) {
+      const dur = Number(d.durationMin) || 0;
+      if (Math.abs(dur - rules.sessionMinutes) > rules.sessionTolerance) {
         issues.push({
           day,
           weekNumber: wn,
-          kind: "calorie",
-          detail: `Week ${wn} Day ${day} totals ${sum} kcal; must be ${rules.calorieTarget}±${rules.calorieTolerance}.`,
+          kind: "duration",
+          detail: `Week ${wn} Day ${day} lasts ${dur} min; must be ${rules.sessionMinutes}±${rules.sessionTolerance} min.`,
         });
       }
-      for (const m of meals) {
-        const hay = [
-          m.title,
-          ...(m.ingredients ?? []).map((i: any) => `${i.qty} ${i.item}`),
-        ]
-          .join(" ")
-          .toLowerCase();
-        for (const bad of rules.excludeFoods) {
+      for (const ex of exercises) {
+        const hay = `${ex.name ?? ""} ${ex.notes ?? ""}`.toLowerCase();
+        for (const bad of rules.avoidMovements) {
           if (!bad) continue;
           if (hay.includes(bad)) {
             issues.push({
               day,
               weekNumber: wn,
-              kind: "excluded_food",
-              detail: `Week ${wn} Day ${day} meal "${m.title}" contains banned "${bad}".`,
+              kind: "excluded_movement",
+              detail: `Week ${wn} Day ${day} exercise "${ex.name}" contains banned "${bad}".`,
             });
           }
         }
@@ -205,37 +190,41 @@ export function validatePlan(plan: any, rules: StrictRules): ValidationIssue[] {
 // -------------------- Prompt building --------------------
 
 function buildSystemPrompt(rules: StrictRules) {
-  return `You are SmartyWorkout, an evidence-based nutrition assistant. You build safe, practical, personalized diet plans.
+  return `You are SmartyWorkout, an evidence-based training assistant. You build safe, practical, personalized workout plans.
 
 ABSOLUTE HARD RULES (non-negotiable — a plan violating any of these is REJECTED):
-1. Every day must contain EXACTLY ${rules.mealsPerDay} meal(s). No more, no less. No extra snacks.
-2. Every day's total calories must equal ${rules.calorieTarget} kcal within ±${rules.calorieTolerance} kcal. Do the arithmetic; sum of meal calories per day MUST land in that range.
-3. The following foods/ingredients are FORBIDDEN and must not appear in any meal title or ingredients (case-insensitive substring): ${rules.excludeFoods.length ? rules.excludeFoods.join(", ") : "(none)"}.
-4. Diet style: ${rules.dietStyle}. Goal: ${rules.goal}.${rules.fastingWindow ? ` Fasting window: ${rules.fastingWindow} — all meals must fit inside the eating window; no eating outside it.` : ""}
-5. Portion sizes must be numeric and realistic. Include short prep instructions per meal.
-6. Weekly variety — avoid repeating identical meals more than twice per week.
-7. Provide a consolidated grocery list per week.
-8. Include a short rationale explaining WHY this plan fits the user's goal.
-9. End with a disclaimer: not medical advice; consult a professional for medical conditions.
+1. Every week must contain EXACTLY ${rules.daysPerWeek} training day(s). Remaining days of the week are rest/active-recovery days (rest: true, no exercises).
+2. Every training session must last ${rules.sessionMinutes} minutes within ±${rules.sessionTolerance} minutes, including warm-up and cool-down. Estimate honestly from sets × reps × rest.
+3. The following movements are FORBIDDEN and must not appear in any exercise name or notes (case-insensitive substring): ${rules.avoidMovements.length ? rules.avoidMovements.join(", ") : "(none)"}.
+4. Training style: ${rules.trainingStyle}. Experience: ${rules.experience}. Environment: ${rules.environment}. Available equipment: ${rules.equipment.length ? rules.equipment.join(", ") : "bodyweight only"} — never program an exercise requiring unavailable equipment.
+5. Goal: ${rules.goal}.${rules.focusAreas.length ? ` Extra weekly volume on: ${rules.focusAreas.join(", ")} — but keep the whole body trained.` : ""}
+6. Sets, reps, rest seconds and RPE must be concrete numbers appropriate for the experience level. Include short form cues per exercise.
+7. Progressive overload across weeks — each week should progress load, reps, or density; explain the progression in the week note.
+8. At least 3 exercises per session, each with a warm-up and a cool-down block.
+9. Include a short rationale explaining WHY this plan fits the user's goal.
+10. End with a disclaimer: not medical advice; consult a professional for medical conditions or injuries.
 
-MATH DISCIPLINE: Before returning JSON, sum each day's meal calories yourself and adjust portion sizes so the total lands within ±${rules.calorieTolerance} of ${rules.calorieTarget}. Do not approximate.
+TIME DISCIPLINE: Before returning JSON, estimate each session's duration yourself and adjust sets/rest so it lands within ±${rules.sessionTolerance} of ${rules.sessionMinutes} minutes. Do not approximate.
 
 OUTPUT: Return STRICTLY valid JSON matching:
 type Plan = {
-  summary: { calorieTarget: number; macros: { protein_g: number; carbs_g: number; fat_g: number }; dietStyle: string; goal: string };
+  summary: { daysPerWeek: number; sessionMinutes: number; trainingStyle: string; goal: string; weeklyVolume: { pushSets: number; pullSets: number; legSets: number; coreSets: number } };
   weeks: Array<{
     weekNumber: number;
+    note: string;
     days: Array<{
       day: number;
-      totals: { calories: number; protein_g: number; carbs_g: number; fat_g: number };
-      meals: Array<{
-        name: string; time?: string; title: string;
-        ingredients: Array<{ item: string; qty: string }>;
-        calories: number; protein_g: number; carbs_g: number; fat_g: number;
-        instructions: string;
+      rest?: boolean;
+      focus: string;
+      durationMin: number;
+      warmup: string;
+      exercises: Array<{
+        name: string; sets: number; reps: string; restSeconds: number;
+        rpe?: string; tempo?: string; muscleGroup: string; notes: string;
       }>;
+      cooldown: string;
     }>;
-    groceryList: Array<{ item: string; qty: string; category?: string }>;
+    equipmentList: Array<{ item: string; note?: string }>;
   }>;
   rationale: string;
   disclaimer: string;
@@ -250,8 +239,8 @@ function buildUserPrompt(
   previousPlan?: any,
 ) {
   const parts = [
-    `Duration: ${rules.weeks} week(s). Meals/day: ${rules.mealsPerDay}. Calorie target: ${rules.calorieTarget} kcal/day (±${rules.calorieTolerance}).`,
-    `Excluded foods: ${rules.excludeFoods.length ? rules.excludeFoods.join(", ") : "none"}.`,
+    `Duration: ${rules.weeks} week(s). Training days/week: ${rules.daysPerWeek}. Session length: ${rules.sessionMinutes} min (±${rules.sessionTolerance}).`,
+    `Forbidden movements: ${rules.avoidMovements.length ? rules.avoidMovements.join(", ") : "none"}.`,
     `Questionnaire:\n${JSON.stringify(q, null, 2)}`,
   ];
   if (previousPlan && refinement) {
@@ -295,36 +284,37 @@ async function extractRefinementConstraints(refinement: string): Promise<Refinem
   const gateway = createLovableAiGatewayProvider(key);
   const { text } = await generateText({
     model: gateway("google/gemini-2.5-flash"),
-    system: `Extract explicit, actionable diet constraints from a user's refinement request. Return STRICT JSON only:
+    system: `Extract explicit, actionable training constraints from a user's refinement request. Return STRICT JSON only:
 {
-  "mealsPerDay": number | null,
-  "excludeFoods": string[] | null,
-  "includeMoreFoods": string[] | null,
-  "calorieDelta": number | null,
-  "calorieTarget": number | null,
-  "fastingWindow": "16:8"|"18:6"|"20:4"|"OMAD"|null,
+  "daysPerWeek": number | null,
+  "avoidMovements": string[] | null,
+  "includeMoreMovements": string[] | null,
+  "sessionMinutesDelta": number | null,
+  "sessionMinutes": number | null,
+  "trainingStyle": string | null,
   "notes": string | null
 }
 Rules:
-- "one meal a day", "OMAD", "only one meal" => mealsPerDay: 1, fastingWindow: "OMAD".
-- "two meals" => mealsPerDay: 2.
-- "less dairy", "no dairy" => excludeFoods: ["dairy","milk","yogurt","cheese"].
-- "no fish"/"no salmon" => add those to excludeFoods.
-- "more protein" => notes: "increase protein macro".
-- "1800 kcal" => calorieTarget: 1800.
-- "-200 kcal" => calorieDelta: -200.
+- "train 4 times a week" => daysPerWeek: 4.
+- "no running" / "no deadlifts" => add those to avoidMovements.
+- "shorter sessions" => sessionMinutesDelta: -15. "45 minute workouts" => sessionMinutes: 45.
+- "more upper body" => notes: "increase upper body volume".
+- "push pull legs" => trainingStyle: "push_pull_legs".
 - Unknowns => null. JSON only, no prose.`,
     prompt: refinement,
   });
   try {
     const obj = stripFences(text);
     return {
-      mealsPerDay: obj.mealsPerDay ?? undefined,
-      excludeFoods: Array.isArray(obj.excludeFoods) ? obj.excludeFoods : undefined,
-      includeMoreFoods: Array.isArray(obj.includeMoreFoods) ? obj.includeMoreFoods : undefined,
-      calorieDelta: typeof obj.calorieDelta === "number" ? obj.calorieDelta : undefined,
-      calorieTarget: typeof obj.calorieTarget === "number" ? obj.calorieTarget : undefined,
-      fastingWindow: obj.fastingWindow ?? undefined,
+      daysPerWeek: obj.daysPerWeek ?? undefined,
+      avoidMovements: Array.isArray(obj.avoidMovements) ? obj.avoidMovements : undefined,
+      includeMoreMovements: Array.isArray(obj.includeMoreMovements)
+        ? obj.includeMoreMovements
+        : undefined,
+      sessionMinutesDelta:
+        typeof obj.sessionMinutesDelta === "number" ? obj.sessionMinutesDelta : undefined,
+      sessionMinutes: typeof obj.sessionMinutes === "number" ? obj.sessionMinutes : undefined,
+      trainingStyle: obj.trainingStyle ?? undefined,
       notes: obj.notes ?? undefined,
     };
   } catch {
@@ -345,12 +335,13 @@ async function generateWithRepair(
     const fixMsg = `Your previous plan violated hard rules. Fix ALL of these and return the corrected full JSON plan (same shape). Do not introduce new violations.\n\nViolations:\n- ${issues
       .slice(0, 20)
       .map((i) => i.detail)
-      .join("\n- ")}\n\nRe-verify meal count = ${rules.mealsPerDay} and daily calories = ${rules.calorieTarget}±${rules.calorieTolerance} before responding.\n\nPrior (broken) plan:\n${JSON.stringify(plan)}`;
+      .join("\n- ")}\n\nRe-verify training days = ${rules.daysPerWeek} and session length = ${rules.sessionMinutes}±${rules.sessionTolerance} min before responding.\n\nPrior (broken) plan:\n${JSON.stringify(plan)}`;
     plan = await askModel(system, fixMsg);
     issues = validatePlan(plan, rules);
   }
   return { plan, issues };
 }
+
 
 // -------------------- Server functions --------------------
 
