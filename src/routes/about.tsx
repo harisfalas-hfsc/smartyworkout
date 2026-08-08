@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Brain } from "lucide-react";
-import { SmartyCard, SmartyRow } from "@/components/SmartyCard";
+import { SmartyCard } from "@/components/SmartyCard";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
@@ -38,9 +37,9 @@ function AboutPage() {
 
       <SmartyCard
         tone="purple"
+        align="center"
         eyebrow="Meet Smarty Coach"
         eyebrowIcon="🧠"
-        cornerIcon={Brain}
         title="Meet"
         accent="Smarty Coach."
         description={
@@ -56,33 +55,23 @@ function AboutPage() {
             .
           </>
         }
-
       >
-        <div className="grid gap-3 sm:grid-cols-2">
-          <SmartyRow
-            tone="purple"
-            icon="🧠"
-            title="SMART"
-            subtitle="Understands you, your goals and your training history."
-          />
-          <SmartyRow
-            tone="purple"
-            icon="🎯"
-            title="PERSONALIZED"
-            subtitle="Your mood, time, equipment, location and fitness level."
-          />
-          <SmartyRow
-            tone="purple"
-            icon="🔬"
-            title="SCIENCE-INFORMED"
-            subtitle="Sports science, safety, health and performance."
-          />
-          <SmartyRow
-            tone="purple"
-            icon="🔄"
-            title="ADAPTIVE"
-            subtitle="Learns from your workouts and feedback."
-          />
+        <div className="mx-auto grid max-w-xl gap-3 sm:grid-cols-2">
+          {[
+            { icon: "🧠", title: "SMART", subtitle: "Knows you and your history." },
+            { icon: "🎯", title: "PERSONALIZED", subtitle: "Mood, time, gear, level." },
+            { icon: "🔬", title: "SCIENCE-INFORMED", subtitle: "Safe, proven programming." },
+            { icon: "🔄", title: "ADAPTIVE", subtitle: "Learns from your feedback." },
+          ].map((f) => (
+            <div
+              key={f.title}
+              className="flex flex-col items-center gap-1 rounded-2xl border border-violet-200 bg-violet-50 px-3 py-4 text-center dark:border-violet-500/40 dark:bg-violet-500/10"
+            >
+              <span className="text-lg leading-none">{f.icon}</span>
+              <p className="text-sm font-bold leading-5">{f.title}</p>
+              <p className="text-xs leading-5 text-muted-foreground">{f.subtitle}</p>
+            </div>
+          ))}
         </div>
 
         <p className="mt-6 text-center text-sm font-bold leading-snug sm:text-base">
@@ -91,6 +80,7 @@ function AboutPage() {
           <span className="text-primary">Smarty Coach creates the workout you need today.</span>
         </p>
       </SmartyCard>
+
 
       <div className="mt-8 flex justify-center">
         <Button asChild size="lg" className="font-extrabold uppercase">

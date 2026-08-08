@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Sparkles } from "lucide-react";
 import { SmartyCard } from "@/components/SmartyCard";
 
 export const Route = createFileRoute("/how-it-works")({
@@ -62,9 +61,9 @@ function HowItWorks() {
 
       <SmartyCard
         tone="green"
+        align="center"
         eyebrow="Simple & Transparent"
         eyebrowIcon="✨"
-        cornerIcon={Sparkles}
         title="You answer. Smarty Coach thinks."
         accent="You train."
         description="No fluff. Just four steps."

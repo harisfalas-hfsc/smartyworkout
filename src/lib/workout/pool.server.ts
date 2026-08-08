@@ -86,6 +86,7 @@ export type PoolFilter = {
   category: Category;
   equipmentMode: EquipmentMode;
   selectedEquipment: string[];
+  customEquipment?: string[];
   level: DifficultyLevel;
   focus?: StrengthFocus | null;
 };
@@ -113,15 +114,39 @@ const EQUIPMENT_LABELS: Record<string, string[]> = {
 };
 
 /** Requires every apparatus named by the library row to be explicitly selected. */
-export function matchesSelectedEquipment(e: PoolExercise, selected: string[]): boolean {
+export function matchesSelectedEquipment(
+  e: PoolExercise,
+  selected: string[],
+  custom: string[] = [],
+): boolean {
   if (selected.includes("fullgym")) return true;
   const equipment = (e.equipment ?? "").toLowerCase().trim();
   if (!equipment) return false;
-  return selected.some((id) =>
+  const known = selected.some((id) =>
     (EQUIPMENT_LABELS[id] ?? []).some(
       (label) => equipment === label || equipment.startsWith(`${label} (`),
     ),
   );
+  if (known) return true;
+  // "Other" free-text: only honoured when the library actually has that apparatus.
+  if (selected.includes("other") && custom.length) {
+    return custom.some(
+      (term) => term.length > 2 && (equipment.includes(term) || term.includes(equipment)),
+    );
+  }
+  return false;
+}
+
+/** Keeps only the free-text apparatus that really exists in the exercise library. */
+export function resolveCustomEquipment(all: PoolExercise[], raw: string): string[] {
+  const terms = raw
+    .toLowerCase()
+    .split(/[,;\n]/)
+    .map((t) => t.trim())
+    .filter((t) => t.length > 2);
+  if (!terms.length) return [];
+  const labels = new Set(all.map((e) => (e.equipment ?? "").toLowerCase().trim()).filter(Boolean));
+  return terms.filter((t) => [...labels].some((l) => l.includes(t) || t.includes(l)));
 }
 
 /**
@@ -141,7 +166,9 @@ export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
     pool = pool.filter((e) => isBodyweight(e) && !MICRO_BAN_RE.test(text(e)));
 
   // 2. Exact equipment allowlist. Never widen a user's choices to all equipment.
-  pool = pool.filter((e) => matchesSelectedEquipment(e, f.selectedEquipment));
+  pool = pool.filter((e) =>
+    matchesSelectedEquipment(e, f.selectedEquipment, f.customEquipment ?? []),
+  );
   if (f.equipmentMode === "BODYWEIGHT")
     pool = pool.filter((e) => isBodyweight(e) && !HOME_APPARATUS_RE.test(text(e)));
 

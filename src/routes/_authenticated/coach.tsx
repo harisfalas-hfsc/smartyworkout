@@ -102,6 +102,7 @@ function CoachPage() {
   const [minutes, setMinutes] = useState<number>(30);
   const [location, setLocation] = useState<string>("home");
   const [equipment, setEquipment] = useState<string[]>(["bodyweight"]);
+  const [otherEquipment, setOtherEquipment] = useState("");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState<string>("");
@@ -144,6 +145,7 @@ function CoachPage() {
           minutes,
           location,
           equipment: equipment.length ? equipment : ["bodyweight"],
+          equipmentOther: equipment.includes("other") ? otherEquipment.trim() : "",
           note: note.trim(),
           surprise,
         },
@@ -248,6 +250,23 @@ function CoachPage() {
               </Chip>
             ))}
           </Grid>
+          {equipment.includes("other") ? (
+            <div className="mt-3">
+              <label className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+                What else do you have? Separate with commas.
+              </label>
+              <Textarea
+                value={otherEquipment}
+                onChange={(e) => setOtherEquipment(e.target.value)}
+                placeholder="e.g. sandbag, medicine ball, stability ball, rope"
+                rows={2}
+                className="rounded-2xl"
+              />
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                Smarty Coach only uses it if a matching exercise exists in the library.
+              </p>
+            </div>
+          ) : null}
         </QuestionCard>
 
         <QuestionCard
