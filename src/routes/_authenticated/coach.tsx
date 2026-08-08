@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { generateWorkout } from "@/lib/coach.functions";
+import { Link } from "@tanstack/react-router";
 import {
   EQUIPMENT,
   GOALS,
@@ -128,6 +129,7 @@ function CoachPage() {
   const [level, setLevel] = useState<string>("auto");
   const [confirmHard, setConfirmHard] = useState(false);
   const [resuming, setResuming] = useState(false);
+  const [wodMode, setWodMode] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -135,7 +137,7 @@ function CoachPage() {
       if (!auth.user) return;
       const { data } = await supabase
         .from("profiles")
-        .select("display_name,preferred_environment,preferred_equipment,typical_duration_min")
+        .select("display_name,preferred_environment,preferred_equipment,typical_duration_min,wod_mode")
         .eq("id", auth.user.id)
         .maybeSingle();
       const p = data as {
@@ -143,12 +145,14 @@ function CoachPage() {
         preferred_environment?: string | null;
         preferred_equipment?: string[] | null;
         typical_duration_min?: number | null;
+        wod_mode?: boolean | null;
       } | null;
       if (!p) return;
       setName(p.display_name ?? "");
       if (p.preferred_environment) setLocation(p.preferred_environment);
       if (p.preferred_equipment?.length) setEquipment(p.preferred_equipment);
       if (p.typical_duration_min) setMinutes(p.typical_duration_min);
+      setWodMode(Boolean(p.wod_mode));
     })();
   }, []);
 
@@ -161,7 +165,7 @@ function CoachPage() {
   }
 
   async function generate(surprise = false, levelOverride?: string) {
-    if (busy) return;
+    if (busy || wodMode) return;
     setBusy(true);
     setResuming(false);
     localStorage.setItem("smarty:generating", "1");
@@ -229,12 +233,31 @@ function CoachPage() {
       ) : null}
 
 
-      <div className="mb-6 rounded-3xl border-2 border-primary/40 bg-primary/5 p-5 text-center">
+      {wodMode ? (
+        <div className="mb-6 rounded-3xl border-2 border-primary/40 bg-primary/5 p-5 text-center">
+          <p className="text-sm font-bold uppercase tracking-[0.2em] text-primary">WOD mode is on</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            You're following the 84-day periodization cycle, so Smarty Coach builds one shared
+            session per day and manual generation stays locked. Switch WOD mode off in My account
+            to create your own workouts again.
+          </p>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            <Button asChild className="h-12 rounded-2xl font-extrabold">
+              <Link to="/wod">Open today's workout</Link>
+            </Button>
+            <Button asChild variant="secondary" className="h-12 rounded-2xl">
+              <Link to="/account">Turn WOD mode off</Link>
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+      <div className={`mb-6 rounded-3xl border-2 border-primary/40 bg-primary/5 p-5 text-center${wodMode ? " pointer-events-none opacity-40" : ""}`}>
         <p className="text-sm font-semibold">Don't feel like choosing?</p>
         <Button
           size="lg"
           className="mt-3 h-14 w-full rounded-2xl text-base font-extrabold"
-          disabled={busy}
+          disabled={busy || wodMode}
           onClick={() => requestGenerate(true)}
         >
           {busy ? (
@@ -249,7 +272,7 @@ function CoachPage() {
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className={`space-y-4${wodMode ? " pointer-events-none opacity-40" : ""}`}>
         <QuestionCard step={1} icon={Target} title="What's your goal today?">
           <Grid>
             {GOALS.map((g) => (
@@ -376,7 +399,7 @@ function CoachPage() {
         <Button
           size="lg"
           className="h-16 w-full rounded-2xl text-base font-extrabold shadow-lg"
-          disabled={busy}
+          disabled={busy || wodMode}
           onClick={() => requestGenerate(false)}
         >
           {busy ? (
