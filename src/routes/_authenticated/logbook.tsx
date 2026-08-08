@@ -25,6 +25,8 @@ const FILTERS: Array<{ id: Filter; label: string }> = [
 
 const FILTER_IDS = FILTERS.map((f) => f.id) as string[];
 
+type LogSearch = { filter: Filter; view: "list" | "calendar" };
+
 export const Route = createFileRoute("/_authenticated/logbook")({
   validateSearch: (search: Record<string, unknown>) => ({
     filter: FILTER_IDS.includes(String(search["filter"] ?? ""))
@@ -325,14 +327,14 @@ function Logbook() {
         <Button
           variant={view === "list" ? "default" : "secondary"}
           className="h-11 flex-1 rounded-2xl"
-          onClick={() => navigate({ search: (p) => ({ ...p, view: "list" as const }) })}
+          onClick={() => navigate({ search: (p: LogSearch) => ({ ...p, view: "list" as const }) })}
         >
           List
         </Button>
         <Button
           variant={view === "calendar" ? "default" : "secondary"}
           className="h-11 flex-1 rounded-2xl"
-          onClick={() => navigate({ search: (p) => ({ ...p, view: "calendar" as const }) })}
+          onClick={() => navigate({ search: (p: LogSearch) => ({ ...p, view: "calendar" as const }) })}
         >
           Calendar
         </Button>
@@ -349,7 +351,7 @@ function Logbook() {
               <button
                 key={f.id}
                 type="button"
-                onClick={() => navigate({ search: (p) => ({ ...p, filter: f.id }) })}
+                onClick={() => navigate({ search: (p: LogSearch) => ({ ...p, filter: f.id }) })}
                 className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
                   filter === f.id
                     ? "border-primary bg-primary text-primary-foreground"
