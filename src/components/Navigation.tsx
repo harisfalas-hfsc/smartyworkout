@@ -188,8 +188,12 @@ function NavDrawer({ onClose, isAuthed, isAdmin }: { onClose: () => void; isAuth
           {
             heading: "App",
             items: [
+              { to: "/coach", label: "Smarty Coach", Icon: Sparkles },
+              { to: "/logbook", label: "Logbook", Icon: BookOpen },
+              { to: "/progress", label: "Progress", Icon: ClipboardList },
+              { to: "/profile", label: "Training profile", Icon: Info },
               { to: "/plans", label: "My plans", Icon: ClipboardList },
-              { to: "/questionnaire", label: "New plan", Icon: Sparkles },
+
               ...(isAdmin ? [{ to: "/admin", label: "Admin", Icon: Shield }] : []),
             ],
           },
