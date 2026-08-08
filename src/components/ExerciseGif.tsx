@@ -1,10 +1,19 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dumbbell } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const cache = new Map<string, string>();
 
-export function ExerciseGif({ path, alt }: { path?: string | null; alt: string }) {
+export function ExerciseGif({
+  path,
+  alt,
+  className,
+}: {
+  path?: string | null;
+  alt: string;
+  className?: string;
+}) {
   const [url, setUrl] = useState<string | null>(path ? (cache.get(path) ?? null) : null);
 
   useEffect(() => {
@@ -25,7 +34,12 @@ export function ExerciseGif({ path, alt }: { path?: string | null; alt: string }
 
   if (!path || !url) {
     return (
-      <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+      <div
+        className={cn(
+          "flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground",
+          className,
+        )}
+      >
         <Dumbbell className="h-6 w-6" />
       </div>
     );
@@ -35,7 +49,7 @@ export function ExerciseGif({ path, alt }: { path?: string | null; alt: string }
       src={url}
       alt={alt}
       loading="lazy"
-      className="h-20 w-20 shrink-0 rounded-xl bg-muted object-cover"
+      className={cn("h-20 w-20 shrink-0 rounded-xl bg-muted object-cover", className)}
     />
   );
 }

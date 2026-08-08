@@ -15,6 +15,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DisclaimerRouteImport } from './routes/disclaimer'
+import { Route as ExerciseLibraryRouteImport } from './routes/exercise-library'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as GlossaryRouteImport } from './routes/glossary'
 import { Route as HarisFalasRouteImport } from './routes/haris-falas'
@@ -34,9 +35,9 @@ import { Route as AuthenticatedQuestionnaireRouteImport } from './routes/_authen
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminExerciseLibraryRouteImport } from './routes/admin.exercise-library'
 import { Route as ToolsIndexRouteImport } from './routes/tools.index'
-import { Route as ToolsBmrCalculatorRouteImport } from './routes/tools.bmr-calculator'
-import { Route as ToolsCalorieCounterRouteImport } from './routes/tools.calorie-counter'
-import { Route as ToolsMacroCalculatorRouteImport } from './routes/tools.macro-calculator'
+import { Route as Tools1rmCalculatorRouteImport } from './routes/tools.1rm-calculator'
+import { Route as ToolsRoundsTrackerRouteImport } from './routes/tools.rounds-tracker'
+import { Route as ToolsWorkoutTimerRouteImport } from './routes/tools.workout-timer'
 import { Route as AuthenticatedPlansSessionIdRouteImport } from './routes/_authenticated/plans.$sessionId'
 import { Route as AuthenticatedWorkoutWorkoutIdRouteImport } from './routes/_authenticated/workout.$workoutId'
 
@@ -67,6 +68,11 @@ const ContactRoute = ContactRouteImport.update({
 const DisclaimerRoute = DisclaimerRouteImport.update({
   id: '/disclaimer',
   path: '/disclaimer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExerciseLibraryRoute = ExerciseLibraryRouteImport.update({
+  id: '/exercise-library',
+  path: '/exercise-library',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FaqRoute = FaqRouteImport.update({
@@ -165,19 +171,19 @@ const ToolsIndexRoute = ToolsIndexRouteImport.update({
   path: '/tools/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ToolsBmrCalculatorRoute = ToolsBmrCalculatorRouteImport.update({
-  id: '/tools/bmr-calculator',
-  path: '/tools/bmr-calculator',
+const Tools1rmCalculatorRoute = Tools1rmCalculatorRouteImport.update({
+  id: '/tools/1rm-calculator',
+  path: '/tools/1rm-calculator',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ToolsCalorieCounterRoute = ToolsCalorieCounterRouteImport.update({
-  id: '/tools/calorie-counter',
-  path: '/tools/calorie-counter',
+const ToolsRoundsTrackerRoute = ToolsRoundsTrackerRouteImport.update({
+  id: '/tools/rounds-tracker',
+  path: '/tools/rounds-tracker',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ToolsMacroCalculatorRoute = ToolsMacroCalculatorRouteImport.update({
-  id: '/tools/macro-calculator',
-  path: '/tools/macro-calculator',
+const ToolsWorkoutTimerRoute = ToolsWorkoutTimerRouteImport.update({
+  id: '/tools/workout-timer',
+  path: '/tools/workout-timer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedPlansSessionIdRoute =
@@ -199,6 +205,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/disclaimer': typeof DisclaimerRoute
+  '/exercise-library': typeof ExerciseLibraryRoute
   '/faq': typeof FaqRoute
   '/glossary': typeof GlossaryRoute
   '/haris-falas': typeof HarisFalasRoute
@@ -216,9 +223,9 @@ export interface FileRoutesByFullPath {
   '/progress': typeof AuthenticatedProgressRoute
   '/questionnaire': typeof AuthenticatedQuestionnaireRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
-  '/tools/bmr-calculator': typeof ToolsBmrCalculatorRoute
-  '/tools/calorie-counter': typeof ToolsCalorieCounterRoute
-  '/tools/macro-calculator': typeof ToolsMacroCalculatorRoute
+  '/tools/1rm-calculator': typeof Tools1rmCalculatorRoute
+  '/tools/rounds-tracker': typeof ToolsRoundsTrackerRoute
+  '/tools/workout-timer': typeof ToolsWorkoutTimerRoute
   '/admin/': typeof AdminIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/plans/$sessionId': typeof AuthenticatedPlansSessionIdRoute
@@ -230,6 +237,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/disclaimer': typeof DisclaimerRoute
+  '/exercise-library': typeof ExerciseLibraryRoute
   '/faq': typeof FaqRoute
   '/glossary': typeof GlossaryRoute
   '/haris-falas': typeof HarisFalasRoute
@@ -247,9 +255,9 @@ export interface FileRoutesByTo {
   '/progress': typeof AuthenticatedProgressRoute
   '/questionnaire': typeof AuthenticatedQuestionnaireRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
-  '/tools/bmr-calculator': typeof ToolsBmrCalculatorRoute
-  '/tools/calorie-counter': typeof ToolsCalorieCounterRoute
-  '/tools/macro-calculator': typeof ToolsMacroCalculatorRoute
+  '/tools/1rm-calculator': typeof Tools1rmCalculatorRoute
+  '/tools/rounds-tracker': typeof ToolsRoundsTrackerRoute
+  '/tools/workout-timer': typeof ToolsWorkoutTimerRoute
   '/admin': typeof AdminIndexRoute
   '/tools': typeof ToolsIndexRoute
   '/plans/$sessionId': typeof AuthenticatedPlansSessionIdRoute
@@ -263,6 +271,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/disclaimer': typeof DisclaimerRoute
+  '/exercise-library': typeof ExerciseLibraryRoute
   '/faq': typeof FaqRoute
   '/glossary': typeof GlossaryRoute
   '/haris-falas': typeof HarisFalasRoute
@@ -280,9 +289,9 @@ export interface FileRoutesById {
   '/_authenticated/progress': typeof AuthenticatedProgressRoute
   '/_authenticated/questionnaire': typeof AuthenticatedQuestionnaireRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
-  '/tools/bmr-calculator': typeof ToolsBmrCalculatorRoute
-  '/tools/calorie-counter': typeof ToolsCalorieCounterRoute
-  '/tools/macro-calculator': typeof ToolsMacroCalculatorRoute
+  '/tools/1rm-calculator': typeof Tools1rmCalculatorRoute
+  '/tools/rounds-tracker': typeof ToolsRoundsTrackerRoute
+  '/tools/workout-timer': typeof ToolsWorkoutTimerRoute
   '/admin/': typeof AdminIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/_authenticated/plans/$sessionId': typeof AuthenticatedPlansSessionIdRoute
@@ -296,6 +305,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/disclaimer'
+    | '/exercise-library'
     | '/faq'
     | '/glossary'
     | '/haris-falas'
@@ -313,9 +323,9 @@ export interface FileRouteTypes {
     | '/progress'
     | '/questionnaire'
     | '/admin/exercise-library'
-    | '/tools/bmr-calculator'
-    | '/tools/calorie-counter'
-    | '/tools/macro-calculator'
+    | '/tools/1rm-calculator'
+    | '/tools/rounds-tracker'
+    | '/tools/workout-timer'
     | '/admin/'
     | '/tools/'
     | '/plans/$sessionId'
@@ -327,6 +337,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/disclaimer'
+    | '/exercise-library'
     | '/faq'
     | '/glossary'
     | '/haris-falas'
@@ -344,9 +355,9 @@ export interface FileRouteTypes {
     | '/progress'
     | '/questionnaire'
     | '/admin/exercise-library'
-    | '/tools/bmr-calculator'
-    | '/tools/calorie-counter'
-    | '/tools/macro-calculator'
+    | '/tools/1rm-calculator'
+    | '/tools/rounds-tracker'
+    | '/tools/workout-timer'
     | '/admin'
     | '/tools'
     | '/plans/$sessionId'
@@ -359,6 +370,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/disclaimer'
+    | '/exercise-library'
     | '/faq'
     | '/glossary'
     | '/haris-falas'
@@ -376,9 +388,9 @@ export interface FileRouteTypes {
     | '/_authenticated/progress'
     | '/_authenticated/questionnaire'
     | '/admin/exercise-library'
-    | '/tools/bmr-calculator'
-    | '/tools/calorie-counter'
-    | '/tools/macro-calculator'
+    | '/tools/1rm-calculator'
+    | '/tools/rounds-tracker'
+    | '/tools/workout-timer'
     | '/admin/'
     | '/tools/'
     | '/_authenticated/plans/$sessionId'
@@ -392,6 +404,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
   DisclaimerRoute: typeof DisclaimerRoute
+  ExerciseLibraryRoute: typeof ExerciseLibraryRoute
   FaqRoute: typeof FaqRoute
   GlossaryRoute: typeof GlossaryRoute
   HarisFalasRoute: typeof HarisFalasRoute
@@ -403,9 +416,9 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   TrainingIntelligenceRoute: typeof TrainingIntelligenceRoute
   AdminExerciseLibraryRoute: typeof AdminExerciseLibraryRoute
-  ToolsBmrCalculatorRoute: typeof ToolsBmrCalculatorRoute
-  ToolsCalorieCounterRoute: typeof ToolsCalorieCounterRoute
-  ToolsMacroCalculatorRoute: typeof ToolsMacroCalculatorRoute
+  Tools1rmCalculatorRoute: typeof Tools1rmCalculatorRoute
+  ToolsRoundsTrackerRoute: typeof ToolsRoundsTrackerRoute
+  ToolsWorkoutTimerRoute: typeof ToolsWorkoutTimerRoute
   AdminIndexRoute: typeof AdminIndexRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
 }
@@ -452,6 +465,13 @@ declare module '@tanstack/react-router' {
       path: '/disclaimer'
       fullPath: '/disclaimer'
       preLoaderRoute: typeof DisclaimerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/exercise-library': {
+      id: '/exercise-library'
+      path: '/exercise-library'
+      fullPath: '/exercise-library'
+      preLoaderRoute: typeof ExerciseLibraryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/faq': {
@@ -587,25 +607,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tools/bmr-calculator': {
-      id: '/tools/bmr-calculator'
-      path: '/tools/bmr-calculator'
-      fullPath: '/tools/bmr-calculator'
-      preLoaderRoute: typeof ToolsBmrCalculatorRouteImport
+    '/tools/1rm-calculator': {
+      id: '/tools/1rm-calculator'
+      path: '/tools/1rm-calculator'
+      fullPath: '/tools/1rm-calculator'
+      preLoaderRoute: typeof Tools1rmCalculatorRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tools/calorie-counter': {
-      id: '/tools/calorie-counter'
-      path: '/tools/calorie-counter'
-      fullPath: '/tools/calorie-counter'
-      preLoaderRoute: typeof ToolsCalorieCounterRouteImport
+    '/tools/rounds-tracker': {
+      id: '/tools/rounds-tracker'
+      path: '/tools/rounds-tracker'
+      fullPath: '/tools/rounds-tracker'
+      preLoaderRoute: typeof ToolsRoundsTrackerRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tools/macro-calculator': {
-      id: '/tools/macro-calculator'
-      path: '/tools/macro-calculator'
-      fullPath: '/tools/macro-calculator'
-      preLoaderRoute: typeof ToolsMacroCalculatorRouteImport
+    '/tools/workout-timer': {
+      id: '/tools/workout-timer'
+      path: '/tools/workout-timer'
+      fullPath: '/tools/workout-timer'
+      preLoaderRoute: typeof ToolsWorkoutTimerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/plans/$sessionId': {
@@ -666,6 +686,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
   DisclaimerRoute: DisclaimerRoute,
+  ExerciseLibraryRoute: ExerciseLibraryRoute,
   FaqRoute: FaqRoute,
   GlossaryRoute: GlossaryRoute,
   HarisFalasRoute: HarisFalasRoute,
@@ -677,12 +698,22 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   TrainingIntelligenceRoute: TrainingIntelligenceRoute,
   AdminExerciseLibraryRoute: AdminExerciseLibraryRoute,
-  ToolsBmrCalculatorRoute: ToolsBmrCalculatorRoute,
-  ToolsCalorieCounterRoute: ToolsCalorieCounterRoute,
-  ToolsMacroCalculatorRoute: ToolsMacroCalculatorRoute,
+  Tools1rmCalculatorRoute: Tools1rmCalculatorRoute,
+  ToolsRoundsTrackerRoute: ToolsRoundsTrackerRoute,
+  ToolsWorkoutTimerRoute: ToolsWorkoutTimerRoute,
   AdminIndexRoute: AdminIndexRoute,
   ToolsIndexRoute: ToolsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
