@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Download, Utensils, ShoppingBasket, RefreshCw, History, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
-import { exportPlanPdf, exportGroceryPdf } from "@/lib/pdf-export";
+import { exportPlanPdf, exportEquipmentPdf } from "@/lib/pdf-export";
 
 export const Route = createFileRoute("/_authenticated/plans/$sessionId")({
   head: () => ({
@@ -155,10 +155,10 @@ function PlanView() {
     }
   }
 
-  async function exportGrocery() {
+  async function exportEquipment() {
     if (!active?.plan?.weeks) return;
     try {
-      await exportGroceryPdf(active.plan);
+      await exportEquipmentPdf(active.plan);
     } catch (e: any) {
       toast.error(e?.message ?? "Could not build PDF");
     }
@@ -184,8 +184,8 @@ function PlanView() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={exportGrocery} disabled={!active}>
-            <ShoppingBasket className="mr-1.5 h-4 w-4" /> Grocery PDF
+          <Button variant="outline" size="sm" onClick={exportEquipment} disabled={!active}>
+            <ShoppingBasket className="mr-1.5 h-4 w-4" /> Equipment PDF
           </Button>
           <Button size="sm" onClick={exportPdf} disabled={!active}>
             <Download className="mr-1.5 h-4 w-4" /> Plan PDF
@@ -231,7 +231,7 @@ function PlanView() {
               </>
             ) : session.status === "paid" ? (
               <>
-                <p className="mb-4">Your payment is confirmed. Tap below to build your plan.</p>
+                <p className="mb-4">Your answers are saved. Tap below to build your plan.</p>
                 <Button
                   onClick={async () => {
                     setAutoGenerating(true);
@@ -282,14 +282,13 @@ function PlanView() {
             <Card>
               <CardContent className="p-4 text-sm">
                 <p className="font-semibold">
-                  {active.plan.summary.calorieTarget} kcal / day ·{" "}
+                  {active.plan.summary.daysPerWeek} days / week ·{" "}
                   <span className="text-muted-foreground">
-                    P {active.plan.summary.macros?.protein_g}g · C{" "}
-                    {active.plan.summary.macros?.carbs_g}g · F {active.plan.summary.macros?.fat_g}g
+                    {active.plan.summary.sessionMinutes} min per session
                   </span>
                 </p>
                 <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">
-                  {active.plan.summary.dietStyle} · {active.plan.summary.goal}
+                  {active.plan.summary.trainingStyle} · {active.plan.summary.goal}
                 </p>
               </CardContent>
             </Card>
@@ -298,42 +297,49 @@ function PlanView() {
           {(active.plan?.weeks ?? []).map((w: any) => (
             <div key={w.weekNumber} className="space-y-3">
               <h2 className="text-lg font-bold">Week {w.weekNumber}</h2>
+              {w.note && <p className="text-sm text-muted-foreground">{w.note}</p>}
               {(w.days ?? []).map((d: any) => (
                 <Card key={d.day}>
                   <CardContent className="p-4">
                     <div className="mb-2 flex items-center justify-between">
-                      <p className="font-semibold">Day {d.day}</p>
+                      <p className="font-semibold">
+                        Day {d.day}
+                        {d.focus ? ` · ${d.focus}` : ""}
+                      </p>
                       <p className="text-xs text-muted-foreground">
-                        {d.totals?.calories ?? "-"} kcal
+                        {d.rest ? "Rest day" : `${d.durationMin ?? "-"} min`}
                       </p>
                     </div>
+                    {d.warmup && (
+                      <p className="mb-2 text-xs text-muted-foreground">Warm-up: {d.warmup}</p>
+                    )}
                     <div className="space-y-3">
-                      {(d.meals ?? []).map((m: any, i: number) => (
+                      {(d.exercises ?? []).map((m: any, i: number) => (
                         <div key={i} className="rounded-md border p-3 text-sm">
                           <div className="flex flex-wrap items-baseline justify-between gap-2">
                             <p className="font-medium">
-                              <Utensils className="mr-1.5 inline h-3.5 w-3.5 text-primary" />
-                              {m.name}: {m.title}
+                              <Dumbbell className="mr-1.5 inline h-3.5 w-3.5 text-primary" />
+                              {m.name}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {m.calories} kcal · P{m.protein_g} C{m.carbs_g} F{m.fat_g}
+                              {m.sets}×{m.reps} · rest {m.restSeconds}s
+                              {m.rpe ? ` · RPE ${m.rpe}` : ""}
                             </p>
                           </div>
-                          {m.ingredients?.length ? (
-                            <p className="mt-1 text-xs text-muted-foreground">
-                              {m.ingredients.map((x: any) => `${x.qty} ${x.item}`).join(", ")}
-                            </p>
+                          {m.muscleGroup ? (
+                            <p className="mt-1 text-xs text-muted-foreground">{m.muscleGroup}</p>
                           ) : null}
-                          {m.instructions && (
-                            <p className="mt-1 text-xs">{m.instructions}</p>
-                          )}
+                          {m.notes && <p className="mt-1 text-xs">{m.notes}</p>}
                         </div>
                       ))}
                     </div>
+                    {d.cooldown && (
+                      <p className="mt-2 text-xs text-muted-foreground">Cool-down: {d.cooldown}</p>
+                    )}
                   </CardContent>
                 </Card>
               ))}
-              {w.groceryList?.length ? (
+              {w.equipmentList?.length ? (
                 <Card>
                   <CardContent className="p-4">
                     <p className="mb-2 font-semibold">
@@ -341,16 +347,18 @@ function PlanView() {
                       Equipment list — week {w.weekNumber}
                     </p>
                     <ul className="grid grid-cols-1 gap-1 text-sm sm:grid-cols-2">
-                      {w.groceryList.map((g: any, i: number) => (
+                      {w.equipmentList.map((g: any, i: number) => (
                         <li key={i} className="text-muted-foreground">
-                          • {g.qty} {g.item}
-                          {g.category ? ` (${g.category})` : ""}
+                          • {g.item}
+                          {g.note ? ` (${g.note})` : ""}
                         </li>
                       ))}
                     </ul>
                   </CardContent>
                 </Card>
               ) : null}
+            </div>
+          ))}
             </div>
           ))}
 
