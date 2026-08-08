@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Download, Utensils, ShoppingBasket, RefreshCw, History, AlertTriangle } from "lucide-react";
+import { Loader2, Download, Dumbbell, ShoppingBasket, RefreshCw, History, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { exportPlanPdf, exportEquipmentPdf } from "@/lib/pdf-export";
 
