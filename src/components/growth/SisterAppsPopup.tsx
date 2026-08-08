@@ -2,12 +2,11 @@ import { useEffect, useState } from "react";
 import { ExternalLink, Sparkles, ChevronLeft } from "lucide-react";
 import logoMove from "@/assets/smartymove-logo.png";
 import logoDiet from "@/assets/smartydiet-logo.png";
-import logoGym from "@/assets/smartygym-icon.png";
 
-const CURRENT_APP: "gym" | "move" | "diet" = "diet";
+const CURRENT_APP: "workout" | "move" | "diet" = "workout";
 
 type SisterApp = {
-  id: "gym" | "move" | "diet";
+  id: "workout" | "move" | "diet";
   name: string;
   tagline: string;
   url: string;
@@ -15,13 +14,6 @@ type SisterApp = {
 };
 
 const SISTER_APPS: SisterApp[] = [
-  {
-    id: "gym",
-    name: "SmartyGym",
-    tagline: "Train smart. Get stronger. Feel younger.",
-    url: "https://smartygym.com",
-    image: logoGym,
-  },
   {
     id: "move",
     name: "SmartyMove",
@@ -31,12 +23,13 @@ const SISTER_APPS: SisterApp[] = [
   },
   {
     id: "diet",
-    name: "SmartyWorkout",
+    name: "SmartyDiet",
     tagline: "Eat smart. Fuel your body. Live longer.",
     url: "https://smarty-meals-hub.lovable.app",
     image: logoDiet,
   },
 ];
+
 
 const DELAY_MS = 30000;
 
