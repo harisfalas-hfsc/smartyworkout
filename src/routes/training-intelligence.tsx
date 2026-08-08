@@ -17,7 +17,8 @@ const URL = "https://smartyworkout.com/training-intelligence";
 const TITLE =
   "Training Intelligence — The AI Training Intelligence Platform | SmartyWorkout";
 const DESCRIPTION =
-  "What training intelligence is, why it matters, and how SmartyWorkout's Smarty Training Score™ and Metabolic Age™ turn assessment into a personalized workout plan.";
+  "What training intelligence is, why it matters, and how SmartyWorkout's Smarty Training Score™ and Readiness Check™ turn your answers into the workout you need today.";
+
 
 const JSONLD = {
   "@context": "https://schema.org",
