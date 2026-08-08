@@ -97,14 +97,14 @@ function PricingPage() {
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <Button asChild size="lg">
-            <Link to="/coach">Create your workout</Link>
+            <Link to="/auth" search={{ next: "/profile", mode: "signup" }}>Create account</Link>
           </Button>
           <Button asChild size="lg" variant="outline">
             <Link to="/how-it-works">How it works</Link>
           </Button>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
-          Not medical advice. Consult a professional for medical conditions.
+          Flow: create your account → complete the mandatory Training Profile → activate Premium → choose Workout of the Day or create a workout.
         </p>
       </SmartyCard>
     </div>

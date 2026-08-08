@@ -221,6 +221,7 @@ export type Database = {
           favorite_exercises: string[]
           fitness_level: string | null
           gender: string | null
+          health_acknowledged_at: string | null
           height_cm: number | null
           id: string
           last_auto_workout_on: string | null
@@ -233,6 +234,8 @@ export type Database = {
           preferred_environment: string | null
           preferred_equipment: string[]
           primary_goal: string | null
+          readiness_answers: Json
+          readiness_warning_acknowledged_at: string | null
           secondary_goal: string | null
           timezone: string
           training_frequency: number | null
@@ -258,6 +261,7 @@ export type Database = {
           favorite_exercises?: string[]
           fitness_level?: string | null
           gender?: string | null
+          health_acknowledged_at?: string | null
           height_cm?: number | null
           id: string
           last_auto_workout_on?: string | null
@@ -270,6 +274,8 @@ export type Database = {
           preferred_environment?: string | null
           preferred_equipment?: string[]
           primary_goal?: string | null
+          readiness_answers?: Json
+          readiness_warning_acknowledged_at?: string | null
           secondary_goal?: string | null
           timezone?: string
           training_frequency?: number | null
@@ -295,6 +301,7 @@ export type Database = {
           favorite_exercises?: string[]
           fitness_level?: string | null
           gender?: string | null
+          health_acknowledged_at?: string | null
           height_cm?: number | null
           id?: string
           last_auto_workout_on?: string | null
@@ -307,6 +314,8 @@ export type Database = {
           preferred_environment?: string | null
           preferred_equipment?: string[]
           primary_goal?: string | null
+          readiness_answers?: Json
+          readiness_warning_acknowledged_at?: string | null
           secondary_goal?: string | null
           timezone?: string
           training_frequency?: number | null
@@ -344,6 +353,45 @@ export type Database = {
           data?: Json
           duration_weeks?: number | null
           id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean
+          created_at: string
+          current_period_end: string | null
+          id: string
+          provider: string
+          provider_customer_id: string | null
+          provider_subscription_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          provider: string
+          provider_customer_id?: string | null
+          provider_subscription_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          provider?: string
+          provider_customer_id?: string | null
+          provider_subscription_id?: string | null
           status?: string
           updated_at?: string
           user_id?: string

@@ -71,6 +71,8 @@ export async function runWodForUser(
   userId: string,
   profile?: DailyProfile | null,
 ): Promise<{ id: string; ids: string[]; created: number; recovery: boolean }> {
+  const { requireWorkoutAccess } = await import("@/lib/eligibility.server");
+  await requireWorkoutAccess(db, userId);
   let prof = profile ?? null;
   if (!prof) {
     const { data } = await db

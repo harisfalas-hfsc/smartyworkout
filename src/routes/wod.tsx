@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Dumbbell, Home, Loader2, Play } from "lucide-react";
+import { CheckCircle2, Crown, Dumbbell, Home, Loader2, Play, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { SwipeToExplore } from "@/components/ui/SwipeToExplore";
@@ -178,6 +178,7 @@ function WodPage() {
   const days = hub?.days;
   const workouts = hub?.workouts ?? [];
   const subscribed = hub?.settings.wod_mode ?? false;
+  const access = hub?.access;
   const daySlides = [
     { day: days?.yesterday ?? publicDays[0], label: "Yesterday" },
     { day: days?.today ?? publicDays[1], label: "Today" },
@@ -206,7 +207,7 @@ function WodPage() {
 
       </section>
 
-      <section className="relative rounded-2xl border-2 border-primary/60 bg-card px-4 py-4 shadow-sm">
+      <section className="relative px-1 py-1">
         <SwipeToExplore onPrev={() => api?.scrollPrev()} onNext={() => api?.scrollNext()} />
 
         <Carousel
@@ -252,7 +253,7 @@ function WodPage() {
           </div>
         ) : null}
 
-        {user ? (
+        {user && access?.profileComplete && access.healthAcknowledged && access.premium ? (
           <Button
             variant={subscribed ? "secondary" : "default"}
             className={`${workouts.length ? "mt-3 " : ""}h-12 w-full rounded-lg text-[15px] font-extrabold`}
@@ -264,14 +265,42 @@ function WodPage() {
               {busy ? "Please wait…" : subscribed ? "Unsubscribe" : "Subscribe"}
             </span>
           </Button>
-        ) : (
+        ) : !user ? (
           <Button asChild className="h-12 w-full rounded-lg text-[15px] font-extrabold">
-            <Link to="/auth">Sign in to subscribe</Link>
+            <Link to="/auth" search={{ next: "/wod", mode: "signup" }}>
+              Create an account
+            </Link>
           </Button>
+        ) : !access?.profileComplete || !access.healthAcknowledged ? (
+          <div className="rounded-xl border border-border bg-card p-4 text-center">
+            <UserRound className="mx-auto h-6 w-6 text-primary" />
+            <p className="mt-2 font-extrabold">Complete your Training Profile first</p>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              Smarty Coach needs your age, level, goal, equipment, environment, duration and safety acknowledgement before it can personalize a workout.
+            </p>
+            <Button asChild className="mt-3 h-12 w-full rounded-lg font-extrabold">
+              <Link to="/profile">Complete Training Profile</Link>
+            </Button>
+          </div>
+        ) : (
+          <div className="rounded-xl border border-border bg-card p-4 text-center">
+            <Crown className="mx-auto h-6 w-6 text-primary" />
+            <p className="mt-2 font-extrabold">Premium membership required</p>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              Your profile is ready. Activate your €9.99 monthly membership before joining Workout of the Day.
+            </p>
+            <Button asChild className="mt-3 h-12 w-full rounded-lg font-extrabold">
+              <Link to="/pricing">Become Premium</Link>
+            </Button>
+          </div>
         )}
         <p className="mt-2 text-center text-[11px] leading-4 text-muted-foreground">
           {!user
             ? "Explore the programme above, then sign in to receive your two personalized workouts every day."
+            : !access?.profileComplete || !access.healthAcknowledged
+              ? "Profile completion and the health acknowledgement are mandatory before any workout can be created."
+              : !access.premium
+                ? "Workout of the Day cannot be activated without a verified premium membership."
             : subscribed
             ? "Your two daily workouts arrive automatically. You can still open every workout you already have, but manual generation stays paused until you unsubscribe."
             : "Subscribe and today's two workouts are built right away, then every night automatically. Manual generation is paused while subscribed because Smarty Coach already creates your daily pair."}

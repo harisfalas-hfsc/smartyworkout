@@ -39,13 +39,17 @@ export const getDailyHub = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select(
-        "timezone,notify_motivation,motivation_hour,wod_mode,auto_workout_enabled,auto_workout_hour,wod_level,wod_renews_at",
-      )
-      .eq("id", userId)
-      .maybeSingle();
+    const [{ data: profile }, accessModule] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select(
+          "timezone,notify_motivation,motivation_hour,wod_mode,auto_workout_enabled,auto_workout_hour,wod_level,wod_renews_at",
+        )
+        .eq("id", userId)
+        .maybeSingle(),
+      import("@/lib/eligibility.server"),
+    ]);
+    const access = await accessModule.getAccessStateForUser(supabase as never, userId);
 
     const row = (profile as (Partial<DailySettings> & { wod_renews_at?: string | null }) | null) ?? null;
     const settings: DailySettings = { ...DEFAULTS, ...(row ?? {}) };
@@ -91,6 +95,7 @@ export const getDailyHub = createServerFn({ method: "GET" })
 
     return {
       settings,
+      access,
       today,
       renewsAt: row?.wod_renews_at ?? null,
       cycle: {
@@ -121,7 +126,7 @@ export const saveDailySettings = createServerFn({ method: "POST" })
     if (typeof data.notify_motivation === "boolean")
       patch["notify_motivation"] = data.notify_motivation;
     if (data.motivation_hour !== undefined) patch["motivation_hour"] = clampHour(data.motivation_hour);
-    if (typeof data.wod_mode === "boolean") patch["wod_mode"] = data.wod_mode;
+    // WOD membership can only change through setWodSubscription, where eligibility is enforced.
     if (typeof data.auto_workout_enabled === "boolean")
       patch["auto_workout_enabled"] = data.auto_workout_enabled;
     if (data.auto_workout_hour !== undefined)
@@ -213,6 +218,10 @@ export const setWodSubscription = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { subscribe: boolean; level?: WodLevel }) => input)
   .handler(async ({ data, context }) => {
+    if (data.subscribe) {
+      const { requireWorkoutAccess } = await import("@/lib/eligibility.server");
+      await requireWorkoutAccess(context.supabase as never, context.userId);
+    }
     const now = new Date();
     const renews = new Date(now);
     renews.setUTCMonth(renews.getUTCMonth() + 1);
