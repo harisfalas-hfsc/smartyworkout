@@ -258,7 +258,7 @@ function ProfilePage() {
         <p className="text-sm font-semibold uppercase tracking-[0.25em] text-primary">
           Your profile
         </p>
-        <h1 className="mt-2 text-3xl font-black sm:text-4xl">Training profile</h1>
+        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">Training profile</h1>
         <p className="mt-2 text-muted-foreground">
           Smarty Coach reads every field below before it builds a workout.
         </p>

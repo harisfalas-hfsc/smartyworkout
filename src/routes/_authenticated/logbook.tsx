@@ -382,7 +382,7 @@ function Logbook() {
         <p className="text-sm font-semibold uppercase tracking-[0.25em] text-primary">
           Your history
         </p>
-        <h1 className="mt-2 text-3xl font-black sm:text-4xl">Logbook</h1>
+        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">Logbook</h1>
         <p className="mt-2 text-muted-foreground">
           Every workout you created — completed, still to do, or scheduled.
         </p>

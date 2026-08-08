@@ -118,7 +118,7 @@ function FAQ() {
     <div className="mx-auto max-w-3xl px-4 py-8 sm:py-12">
       <div className="mb-6 text-center">
         <p className="text-xs font-semibold uppercase tracking-wider text-primary">FAQ</p>
-        <h1 className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">
+        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
           Your <span className="text-primary">questions</span>, answered
         </h1>
       </div>

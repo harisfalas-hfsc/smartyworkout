@@ -123,7 +123,7 @@ function NotificationsPage() {
         <p className="text-sm font-semibold uppercase tracking-[0.25em] text-primary">
           Inbox
         </p>
-        <h1 className="mt-2 text-3xl font-black sm:text-4xl">Notifications</h1>
+        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">Notifications</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Everything Smarty Coach sends you. Tap a message to read it, select to delete.
         </p>

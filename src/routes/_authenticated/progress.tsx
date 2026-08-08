@@ -125,7 +125,7 @@ function Progress() {
         <p className="text-sm font-semibold uppercase tracking-[0.25em] text-primary">
           Your training
         </p>
-        <h1 className="mt-2 text-3xl font-black sm:text-4xl">Progress</h1>
+        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">Progress</h1>
         <p className="mt-2 text-muted-foreground">
           Keep showing up — Smarty Coach is tracking it all.
         </p>
