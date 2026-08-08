@@ -19,32 +19,38 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import {
-  ALLERGY_TAGS,
-  CULTURAL_TAGS,
+  AVOID_TAGS,
   DEFAULT_QUESTIONNAIRE,
-  FOOD_CATEGORIES,
+  EQUIPMENT_OPTIONS,
+  EXERCISE_CATEGORIES,
+  FOCUS_AREAS,
+  INJURY_TAGS,
   STEP_LABELS,
   type QuestionnaireData,
 } from "@/lib/questionnaire-schema";
-import { saveQuestionnaire } from "@/lib/plan.functions";
+import { saveQuestionnaire, createSession } from "@/lib/plan.functions";
 import { useServerFn } from "@tanstack/react-start";
 
 export const Route = createFileRoute("/_authenticated/questionnaire")({
   head: () => ({
     meta: [
       { title: "Build your plan — SmartyWorkout" },
-      { name: "description", content: "Answer a smart training questionnaire to build your personalized plan." },
+      {
+        name: "description",
+        content: "Answer a smart training questionnaire to build your personalized workout plan.",
+      },
       { name: "robots", content: "noindex" },
     ],
   }),
   component: QuestionnairePage,
 });
 
-const STORAGE_KEY = "smartydiet.questionnaire.v2";
+const STORAGE_KEY = "smartyworkout.questionnaire.v1";
 
 function QuestionnairePage() {
   const navigate = useNavigate();
   const save = useServerFn(saveQuestionnaire);
+  const startSession = useServerFn(createSession);
   const [step, setStep] = useState(0);
   const [data, setData] = useState<QuestionnaireData>(DEFAULT_QUESTIONNAIRE);
   const [durationWeeks, setDurationWeeks] = useState<1 | 2 | 4>(2);
@@ -69,10 +75,14 @@ function QuestionnairePage() {
   const upd = <K extends keyof QuestionnaireData>(
     key: K,
     patch: Partial<QuestionnaireData[K]>,
-  ) => setData((d) => {
-    const cur = d[key] as Record<string, unknown>;
-    return { ...d, [key]: { ...cur, ...(patch as Record<string, unknown>) } as QuestionnaireData[K] };
-  });
+  ) =>
+    setData((d) => {
+      const cur = d[key] as Record<string, unknown>;
+      return {
+        ...d,
+        [key]: { ...cur, ...(patch as Record<string, unknown>) } as QuestionnaireData[K],
+      };
+    });
 
   function validateStep(): string | null {
     if (step === 0) {
@@ -80,8 +90,8 @@ function QuestionnairePage() {
         return "Please fill in age, gender, height and weight.";
     }
     if (step === 4) {
-      if (!data.eating.allergyTags?.length && !data.eating.allergies?.trim())
-        return "Please pick allergies (or select 'none').";
+      if (!data.training.injuryTags?.length && !data.training.injuries?.trim())
+        return "Please pick injuries / limitations (or select 'none').";
     }
     if (step === 6 && !data.health.disclaimerAcknowledged)
       return "Please acknowledge the health disclaimer to continue.";
@@ -90,7 +100,10 @@ function QuestionnairePage() {
 
   async function next() {
     const err = validateStep();
-    if (err) return toast.error(err);
+    if (err) {
+      toast.error(err);
+      return;
+    }
     if (step < STEP_LABELS.length - 1) setStep(step + 1);
     else await submit();
   }
@@ -101,8 +114,9 @@ function QuestionnairePage() {
       const res = await save({
         data: { data: data as any, durationWeeks, status: "submitted" as const },
       });
+      const session = await startSession({ data: { questionnaireId: res.id, durationWeeks } });
       localStorage.removeItem(STORAGE_KEY);
-      navigate({ to: "/checkout", search: { qid: res.id } });
+      navigate({ to: "/plans/$sessionId", params: { sessionId: session.id } });
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to save");
     } finally {
@@ -121,7 +135,7 @@ function QuestionnairePage() {
           </p>
           <h1 className="text-2xl font-bold">{STEP_LABELS[step]}</h1>
         </div>
-        <p className="text-sm text-muted-foreground">€9.99 at checkout</p>
+        <p className="text-sm text-muted-foreground">Free — no card needed</p>
       </div>
       <Progress value={progress} className="mb-6" />
 
@@ -131,7 +145,7 @@ function QuestionnairePage() {
           {step === 1 && <StepBody data={data} upd={upd} />}
           {step === 2 && <StepActivity data={data} upd={upd} />}
           {step === 3 && <StepGoal data={data} upd={upd} />}
-          {step === 4 && <StepEating data={data} upd={upd} />}
+          {step === 4 && <StepTraining data={data} upd={upd} />}
           {step === 5 && <StepConstraints data={data} upd={upd} />}
           {step === 6 && <StepHealth data={data} upd={upd} />}
           {step === 7 && (
@@ -155,7 +169,7 @@ function QuestionnairePage() {
         </Button>
         <Button onClick={next} disabled={busy}>
           {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {step === STEP_LABELS.length - 1 ? "Continue to payment" : "Next"}
+          {step === STEP_LABELS.length - 1 ? "Build my plan" : "Next"}
         </Button>
       </div>
     </div>
@@ -321,7 +335,7 @@ function StepActivity({ data, upd }: StepProps) {
   return (
     <div className="space-y-4">
       <div>
-        <Label>Do you train?</Label>
+        <Label>Do you train already?</Label>
         <RadioGroup
           value={data.activity.trains ? "yes" : "no"}
           onValueChange={(v) => upd("activity", { trains: v === "yes" })}
@@ -437,6 +451,13 @@ function StepActivity({ data, upd }: StepProps) {
 }
 
 function StepGoal({ data, upd }: StepProps) {
+  const focus = data.goal.focusAreas ?? [];
+  function toggleFocus(area: string) {
+    const cur = new Set(focus);
+    if (cur.has(area)) cur.delete(area);
+    else cur.add(area);
+    upd("goal", { focusAreas: [...cur] });
+  }
   return (
     <div className="space-y-4">
       <div>
@@ -444,10 +465,12 @@ function StepGoal({ data, upd }: StepProps) {
         <Select value={data.goal.goal} onValueChange={(v) => upd("goal", { goal: v as any })}>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="weight_loss">Weight loss</SelectItem>
+            <SelectItem value="fat_loss">Fat loss</SelectItem>
             <SelectItem value="maintenance">Maintenance</SelectItem>
             <SelectItem value="muscle_gain">Muscle gain</SelectItem>
-            <SelectItem value="recomposition">Body recomposition</SelectItem>
+            <SelectItem value="strength">Strength</SelectItem>
+            <SelectItem value="endurance">Endurance</SelectItem>
+            <SelectItem value="mobility">Mobility</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -470,34 +493,29 @@ function StepGoal({ data, upd }: StepProps) {
         </div>
       </div>
       <div>
-        <Label>Exact daily calorie target (optional)</Label>
-        <Input
-          type="number"
-          placeholder="e.g. 2000 — leave blank to auto-calculate"
-          value={data.goal.calorieTarget ?? ""}
-          onChange={(e) => upd("goal", { calorieTarget: Number(e.target.value) || undefined })}
-        />
+        <Label>Focus areas (optional)</Label>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {FOCUS_AREAS.map((a) => (
+            <Chip key={a} label={a} active={focus.includes(a)} onClick={() => toggleFocus(a)} />
+          ))}
+        </div>
         <p className="mt-1 text-xs text-muted-foreground">
-          If you set a number here, every day of your plan will match it (within 25 kcal).
+          Picked areas get extra volume — the rest of the body still gets trained.
         </p>
       </div>
     </div>
   );
 }
 
-function StepEating({ data, upd }: StepProps) {
-  const isFasting = data.eating.dietStyle === "intermittent_fasting";
-  const isOMAD = isFasting && data.eating.fasting?.window === "OMAD";
-  const minMeals = 1;
-
-  function toggleFood(kind: "likedFoods" | "dislikedFoods", food: string) {
-    const cur = new Set(data.eating[kind]);
-    if (cur.has(food)) cur.delete(food);
-    else cur.add(food);
-    upd("eating", { [kind]: [...cur] } as any);
+function StepTraining({ data, upd }: StepProps) {
+  function toggleExercise(kind: "likedExercises" | "dislikedExercises", ex: string) {
+    const cur = new Set(data.training[kind]);
+    if (cur.has(ex)) cur.delete(ex);
+    else cur.add(ex);
+    upd("training", { [kind]: [...cur] } as any);
   }
-  function toggleAllergy(tag: string) {
-    const cur = new Set(data.eating.allergyTags);
+  function toggleInjury(tag: string) {
+    const cur = new Set(data.training.injuryTags);
     if (tag === "none") {
       cur.clear();
       cur.add("none");
@@ -506,137 +524,99 @@ function StepEating({ data, upd }: StepProps) {
       if (cur.has(tag)) cur.delete(tag);
       else cur.add(tag);
     }
-    upd("eating", { allergyTags: [...cur] });
+    upd("training", { injuryTags: [...cur] });
   }
-  function toggleCultural(tag: string) {
-    const cur = new Set(data.eating.culturalRestrictions);
+  function toggleAvoid(tag: string) {
+    const cur = new Set(data.training.avoidTags);
     if (cur.has(tag)) cur.delete(tag);
     else cur.add(tag);
-    upd("eating", { culturalRestrictions: [...cur] });
+    upd("training", { avoidTags: [...cur] });
   }
 
   return (
     <div className="space-y-5">
       <div>
-        <Label>Diet style</Label>
+        <Label>Training style</Label>
         <Select
-          value={data.eating.dietStyle}
-          onValueChange={(v) => upd("eating", { dietStyle: v as any })}
+          value={data.training.trainingStyle}
+          onValueChange={(v) => upd("training", { trainingStyle: v as any })}
         >
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="balanced">Balanced</SelectItem>
-            <SelectItem value="mediterranean">Mediterranean</SelectItem>
-            <SelectItem value="keto">Keto</SelectItem>
-            <SelectItem value="carnivore">Carnivore</SelectItem>
-            <SelectItem value="vegetarian">Vegetarian</SelectItem>
-            <SelectItem value="vegan">Vegan</SelectItem>
-            <SelectItem value="low_carb">Low carb</SelectItem>
-            <SelectItem value="high_protein">High protein</SelectItem>
-            <SelectItem value="intermittent_fasting">Intermittent fasting</SelectItem>
+            <SelectItem value="full_body">Full body</SelectItem>
+            <SelectItem value="upper_lower">Upper / lower</SelectItem>
+            <SelectItem value="push_pull_legs">Push / pull / legs</SelectItem>
+            <SelectItem value="bodybuilding">Bodybuilding split</SelectItem>
+            <SelectItem value="powerlifting">Powerlifting</SelectItem>
+            <SelectItem value="calisthenics">Calisthenics</SelectItem>
+            <SelectItem value="hiit">HIIT / conditioning</SelectItem>
+            <SelectItem value="functional">Functional</SelectItem>
+            <SelectItem value="home_minimal">Home / minimal equipment</SelectItem>
             <SelectItem value="other">Other</SelectItem>
           </SelectContent>
         </Select>
       </div>
-      {data.eating.dietStyle === "other" && (
+      {data.training.trainingStyle === "other" && (
         <Input
           placeholder="Describe your style"
-          value={data.eating.dietStyleOther ?? ""}
-          onChange={(e) => upd("eating", { dietStyleOther: e.target.value })}
+          value={data.training.trainingStyleOther ?? ""}
+          onChange={(e) => upd("training", { trainingStyleOther: e.target.value })}
         />
-      )}
-
-      {isFasting && (
-        <div className="rounded-lg border border-primary/40 bg-primary/5 p-3 space-y-3">
-          <div>
-            <Label>Eating window</Label>
-            <Select
-              value={data.eating.fasting?.window ?? "16:8"}
-              onValueChange={(v) =>
-                upd("eating", { fasting: { ...(data.eating.fasting ?? {}), window: v as any } })
-              }
-            >
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="16:8">16:8 (8-hour window)</SelectItem>
-                <SelectItem value="18:6">18:6 (6-hour window)</SelectItem>
-                <SelectItem value="20:4">20:4 (4-hour window)</SelectItem>
-                <SelectItem value="OMAD">OMAD — one meal a day</SelectItem>
-                <SelectItem value="custom">Custom</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          {data.eating.fasting?.window === "custom" && (
-            <Input
-              placeholder="e.g. eat 12:00–18:00"
-              value={data.eating.fasting?.customWindow ?? ""}
-              onChange={(e) =>
-                upd("eating", {
-                  fasting: { ...(data.eating.fasting ?? {}), customWindow: e.target.value },
-                })
-              }
-            />
-          )}
-          <div>
-            <Label>Approach</Label>
-            <Select
-              value={data.eating.fasting?.approach ?? "balanced"}
-              onValueChange={(v) =>
-                upd("eating", { fasting: { ...(data.eating.fasting ?? {}), approach: v as any } })
-              }
-            >
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="balanced">Balanced</SelectItem>
-                <SelectItem value="aggressive">Aggressive (bigger deficit)</SelectItem>
-                <SelectItem value="very_aggressive">Very aggressive</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
       )}
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label>Meals per day</Label>
+          <Label>Training days per week</Label>
           <Input
             type="number"
-            min={minMeals}
-            max={6}
-            value={data.eating.mealsPerDay}
+            min={1}
+            max={7}
+            value={data.training.daysPerWeek}
             onChange={(e) =>
-              upd("eating", {
-                mealsPerDay: Math.max(minMeals, Math.min(6, Number(e.target.value) || minMeals)),
+              upd("training", {
+                daysPerWeek: Math.max(1, Math.min(7, Number(e.target.value) || 3)),
               })
             }
           />
-          {isOMAD && (
-            <p className="mt-1 text-xs text-primary">OMAD selected — 1 meal/day allowed.</p>
-          )}
         </div>
         <div>
-          <Label>Preferred meal times</Label>
+          <Label>Minutes per session</Label>
           <Input
-            placeholder="e.g. 8, 13, 20"
-            value={data.eating.preferredMealTimes ?? ""}
-            onChange={(e) => upd("eating", { preferredMealTimes: e.target.value })}
+            type="number"
+            min={15}
+            max={150}
+            value={data.training.sessionMinutes}
+            onChange={(e) =>
+              upd("training", {
+                sessionMinutes: Math.max(15, Math.min(150, Number(e.target.value) || 45)),
+              })
+            }
           />
         </div>
       </div>
 
       <div>
-        <Label>Foods you like — pick any</Label>
+        <Label>Preferred training times</Label>
+        <Input
+          placeholder="e.g. mornings, Mon/Wed/Fri 18:00"
+          value={data.training.preferredTrainingTimes ?? ""}
+          onChange={(e) => upd("training", { preferredTrainingTimes: e.target.value })}
+        />
+      </div>
+
+      <div>
+        <Label>Exercises you like — pick any</Label>
         <div className="mt-2 space-y-3">
-          {FOOD_CATEGORIES.map((cat) => (
+          {EXERCISE_CATEGORIES.map((cat) => (
             <div key={cat.label}>
               <p className="mb-1 text-xs font-semibold text-muted-foreground">{cat.label}</p>
               <div className="flex flex-wrap gap-1.5">
-                {cat.foods.map((f) => (
+                {cat.exercises.map((f) => (
                   <Chip
                     key={f}
                     label={f}
-                    active={data.eating.likedFoods.includes(f)}
-                    onClick={() => toggleFood("likedFoods", f)}
+                    active={data.training.likedExercises.includes(f)}
+                    onClick={() => toggleExercise("likedExercises", f)}
                   />
                 ))}
               </div>
@@ -644,25 +624,25 @@ function StepEating({ data, upd }: StepProps) {
           ))}
           <Input
             placeholder="Add your own (comma separated)"
-            value={data.eating.likedFoodsOther ?? ""}
-            onChange={(e) => upd("eating", { likedFoodsOther: e.target.value })}
+            value={data.training.likedExercisesOther ?? ""}
+            onChange={(e) => upd("training", { likedExercisesOther: e.target.value })}
           />
         </div>
       </div>
 
       <div>
-        <Label>Foods you dislike — pick any</Label>
+        <Label>Exercises you dislike — pick any</Label>
         <div className="mt-2 space-y-3">
-          {FOOD_CATEGORIES.map((cat) => (
+          {EXERCISE_CATEGORIES.map((cat) => (
             <div key={cat.label}>
               <p className="mb-1 text-xs font-semibold text-muted-foreground">{cat.label}</p>
               <div className="flex flex-wrap gap-1.5">
-                {cat.foods.map((f) => (
+                {cat.exercises.map((f) => (
                   <Chip
                     key={f}
                     label={f}
-                    active={data.eating.dislikedFoods.includes(f)}
-                    onClick={() => toggleFood("dislikedFoods", f)}
+                    active={data.training.dislikedExercises.includes(f)}
+                    onClick={() => toggleExercise("dislikedExercises", f)}
                   />
                 ))}
               </div>
@@ -670,8 +650,8 @@ function StepEating({ data, upd }: StepProps) {
           ))}
           <Input
             placeholder="Add your own (comma separated)"
-            value={data.eating.dislikedFoodsOther ?? ""}
-            onChange={(e) => upd("eating", { dislikedFoodsOther: e.target.value })}
+            value={data.training.dislikedExercisesOther ?? ""}
+            onChange={(e) => upd("training", { dislikedExercisesOther: e.target.value })}
           />
         </div>
       </div>
@@ -679,72 +659,69 @@ function StepEating({ data, upd }: StepProps) {
       <div>
         <Label className="flex items-center gap-2">
           <AlertTriangle className="h-4 w-4 text-destructive" />
-          Allergies & intolerances (required)
+          Injuries & limitations (required)
         </Label>
         <div className="mt-2 flex flex-wrap gap-1.5">
-          {ALLERGY_TAGS.map((t) => (
+          {INJURY_TAGS.map((t) => (
             <Chip
               key={t}
               label={t}
-              active={data.eating.allergyTags.includes(t)}
-              onClick={() => toggleAllergy(t)}
+              active={data.training.injuryTags.includes(t)}
+              onClick={() => toggleInjury(t)}
             />
           ))}
         </div>
         <Input
           className="mt-2"
           placeholder="Anything else? (comma separated)"
-          value={data.eating.allergies}
-          onChange={(e) => upd("eating", { allergies: e.target.value })}
+          value={data.training.injuries}
+          onChange={(e) => upd("training", { injuries: e.target.value })}
         />
       </div>
 
       <div>
-        <Label>Cultural / religious restrictions</Label>
+        <Label>Movements to avoid</Label>
         <div className="mt-2 flex flex-wrap gap-1.5">
-          {CULTURAL_TAGS.map((t) => (
+          {AVOID_TAGS.map((t) => (
             <Chip
               key={t}
               label={t}
-              active={data.eating.culturalRestrictions.includes(t)}
-              onClick={() => toggleCultural(t)}
+              active={data.training.avoidTags.includes(t)}
+              onClick={() => toggleAvoid(t)}
             />
           ))}
         </div>
         <Input
           className="mt-2"
           placeholder="Anything else?"
-          value={data.eating.culturalRestrictionsOther ?? ""}
-          onChange={(e) => upd("eating", { culturalRestrictionsOther: e.target.value })}
+          value={data.training.avoidTagsOther ?? ""}
+          onChange={(e) => upd("training", { avoidTagsOther: e.target.value })}
         />
       </div>
 
       <div className="grid grid-cols-3 gap-3">
         <div>
-          <Label>Alcohol</Label>
+          <Label>Cardio</Label>
           <Input
-            placeholder="freq"
-            value={data.eating.alcohol ?? ""}
-            onChange={(e) => upd("eating", { alcohol: e.target.value })}
+            placeholder="type"
+            value={data.training.cardioPreference ?? ""}
+            onChange={(e) => upd("training", { cardioPreference: e.target.value })}
           />
         </div>
         <div>
-          <Label>Caffeine</Label>
+          <Label>Steps goal</Label>
           <Input
-            placeholder="cups/day"
-            value={data.eating.caffeine ?? ""}
-            onChange={(e) => upd("eating", { caffeine: e.target.value })}
+            placeholder="steps/day"
+            value={data.training.stepsGoal ?? ""}
+            onChange={(e) => upd("training", { stepsGoal: e.target.value })}
           />
         </div>
         <div>
-          <Label>Water (L/day)</Label>
+          <Label>Rest-day activity</Label>
           <Input
-            type="number"
-            step="0.1"
-            value={data.eating.waterLitersPerDay ?? ""}
-            onChange={(e) =>
-              upd("eating", { waterLitersPerDay: Number(e.target.value) || undefined })
-            }
+            placeholder="e.g. walking"
+            value={data.training.restDayActivity ?? ""}
+            onChange={(e) => upd("training", { restDayActivity: e.target.value })}
           />
         </div>
       </div>
@@ -764,10 +741,10 @@ function StepConstraints({ data, upd }: StepProps) {
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label>Cooking skill</Label>
+          <Label>Training experience</Label>
           <Select
-            value={data.constraints.cookingSkill}
-            onValueChange={(v) => upd("constraints", { cookingSkill: v as any })}
+            value={data.constraints.experience}
+            onValueChange={(v) => upd("constraints", { experience: v as any })}
           >
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -778,36 +755,37 @@ function StepConstraints({ data, upd }: StepProps) {
           </Select>
         </div>
         <div>
-          <Label>Minutes / day for cooking</Label>
+          <Label>Warm-up minutes / session</Label>
           <Input
             type="number"
-            value={data.constraints.cookingMinutesPerDay ?? ""}
+            value={data.constraints.warmupMinutes ?? ""}
             onChange={(e) =>
               upd("constraints", {
-                cookingMinutesPerDay: Number(e.target.value) || undefined,
+                warmupMinutes: Number(e.target.value) || undefined,
               })
             }
           />
         </div>
       </div>
       <div>
-        <Label>Budget</Label>
+        <Label>Where do you train?</Label>
         <Select
-          value={data.constraints.budget}
-          onValueChange={(v) => upd("constraints", { budget: v as any })}
+          value={data.constraints.environment}
+          onValueChange={(v) => upd("constraints", { environment: v as any })}
         >
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="low">Low</SelectItem>
-            <SelectItem value="medium">Medium</SelectItem>
-            <SelectItem value="high">High</SelectItem>
+            <SelectItem value="gym">Gym</SelectItem>
+            <SelectItem value="home">Home</SelectItem>
+            <SelectItem value="outdoor">Outdoor</SelectItem>
+            <SelectItem value="mixed">Mixed</SelectItem>
           </SelectContent>
         </Select>
       </div>
       <div>
-        <Label>Kitchen equipment</Label>
+        <Label>Available equipment</Label>
         <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
-          {["oven", "stovetop", "microwave", "air fryer", "blender", "slow cooker"].map((k) => (
+          {EQUIPMENT_OPTIONS.map((k) => (
             <label key={k} className="flex items-center gap-2 text-sm">
               <Checkbox checked={eq.includes(k)} onCheckedChange={() => toggle(k)} />
               <span className="capitalize">{k}</span>
@@ -816,11 +794,11 @@ function StepConstraints({ data, upd }: StepProps) {
         </div>
       </div>
       <div>
-        <Label>Eating out frequency</Label>
+        <Label>Travel frequency</Label>
         <Input
-          placeholder="e.g. 2 times per week"
-          value={data.constraints.eatingOutFrequency ?? ""}
-          onChange={(e) => upd("constraints", { eatingOutFrequency: e.target.value })}
+          placeholder="e.g. 1 week per month"
+          value={data.constraints.travelFrequency ?? ""}
+          onChange={(e) => upd("constraints", { travelFrequency: e.target.value })}
         />
       </div>
     </div>
@@ -831,35 +809,35 @@ function StepHealth({ data, upd }: StepProps) {
   const flagged =
     !!(data.health.conditions?.trim() ||
       data.health.medications?.trim() ||
-      (data.health.pregnancyBreastfeeding && data.health.pregnancyBreastfeeding !== "none"));
+      (data.health.pregnancyPostpartum && data.health.pregnancyPostpartum !== "none"));
   return (
     <div className="space-y-4">
       <div>
         <Label>Diagnosed medical conditions</Label>
         <Textarea
-          placeholder="e.g. diabetes, hypertension, thyroid — or leave blank"
+          placeholder="e.g. heart condition, hypertension, disc herniation — or leave blank"
           value={data.health.conditions ?? ""}
           onChange={(e) => upd("health", { conditions: e.target.value })}
         />
       </div>
       <div>
-        <Label>Medications that affect diet</Label>
+        <Label>Medications that affect training</Label>
         <Input
           value={data.health.medications ?? ""}
           onChange={(e) => upd("health", { medications: e.target.value })}
         />
       </div>
       <div>
-        <Label>Pregnancy / breastfeeding</Label>
+        <Label>Pregnancy / postpartum</Label>
         <Select
-          value={data.health.pregnancyBreastfeeding ?? "none"}
-          onValueChange={(v) => upd("health", { pregnancyBreastfeeding: v as any })}
+          value={data.health.pregnancyPostpartum ?? "none"}
+          onValueChange={(v) => upd("health", { pregnancyPostpartum: v as any })}
         >
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="none">None / not applicable</SelectItem>
             <SelectItem value="pregnant">Pregnant</SelectItem>
-            <SelectItem value="breastfeeding">Breastfeeding</SelectItem>
+            <SelectItem value="postpartum">Postpartum</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -867,7 +845,7 @@ function StepHealth({ data, upd }: StepProps) {
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            You've indicated a medical condition, medication, or pregnancy/breastfeeding.
+            You've indicated a medical condition, medication, or pregnancy/postpartum status.
             Please consult a doctor or certified coach before starting any plan.
             SmartyWorkout is a general wellness tool, not medical advice.
           </AlertDescription>
@@ -876,9 +854,7 @@ function StepHealth({ data, upd }: StepProps) {
       <label className="flex items-start gap-2 text-sm">
         <Checkbox
           checked={data.health.disclaimerAcknowledged}
-          onCheckedChange={(v) =>
-            upd("health", { disclaimerAcknowledged: v === true })
-          }
+          onCheckedChange={(v) => upd("health", { disclaimerAcknowledged: v === true })}
         />
         <span>
           I understand SmartyWorkout is not medical advice and I take responsibility for
