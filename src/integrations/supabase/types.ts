@@ -234,6 +234,8 @@ export type Database = {
           preferred_environment: string | null
           preferred_equipment: string[]
           primary_goal: string | null
+          readiness_answers: Json
+          readiness_warning_acknowledged_at: string | null
           secondary_goal: string | null
           timezone: string
           training_frequency: number | null
@@ -272,6 +274,8 @@ export type Database = {
           preferred_environment?: string | null
           preferred_equipment?: string[]
           primary_goal?: string | null
+          readiness_answers?: Json
+          readiness_warning_acknowledged_at?: string | null
           secondary_goal?: string | null
           timezone?: string
           training_frequency?: number | null
@@ -310,6 +314,8 @@ export type Database = {
           preferred_environment?: string | null
           preferred_equipment?: string[]
           primary_goal?: string | null
+          readiness_answers?: Json
+          readiness_warning_acknowledged_at?: string | null
           secondary_goal?: string | null
           timezone?: string
           training_frequency?: number | null
