@@ -264,9 +264,10 @@ function WodPage() {
         </Button>
         <p className="mt-2 text-center text-[11px] leading-4 text-muted-foreground">
           {subscribed
-            ? "Both workouts arrive automatically at midnight, your local time. Renews monthly."
-            : "Subscribe and today's two workouts are built right away, then every night automatically."}
+            ? "Both workouts arrive automatically at midnight, your local time — while subscribed you don't create your own workouts, Smarty Coach does it for you. Renews monthly, unsubscribe anytime."
+            : "Subscribe and today's two workouts are built right away, then every night automatically — while subscribed you can't generate your own workouts, because your two are already made for you."}
         </p>
+
       </section>
     </div>
   );
