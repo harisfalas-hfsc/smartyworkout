@@ -42,7 +42,7 @@ export async function getAccessStateForUser(
   if (subscriptionError) throw new Error(subscriptionError.message);
 
   const row = (profile ?? null) as Record<string, unknown> | null;
-  const missingProfileFields = REQUIRED_PROFILE_FIELDS.filter(([key]) => {
+  const missingProfileFields: string[] = REQUIRED_PROFILE_FIELDS.filter(([key]) => {
     const value = row?.[key];
     return value === null || value === undefined || value === "";
   }).map(([, label]) => label);
