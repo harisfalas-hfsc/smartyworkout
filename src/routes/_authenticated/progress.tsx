@@ -57,19 +57,34 @@ function Stat({
   icon: Icon,
   label,
   value,
+  to,
 }: {
   icon: typeof Flame;
   label: string;
   value: string | number;
+  to?: { filter: "all" | "completed" | "planned" | "favorites" | "scheduled" };
 }) {
-  return (
-    <div className="rounded-2xl border border-border bg-card p-4">
+  const body = (
+    <>
       <Icon className="h-5 w-5 text-primary" />
       <p className="mt-2 text-2xl font-black">{value}</p>
       <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
-    </div>
+    </>
+  );
+  if (!to)
+    return <div className="rounded-2xl border border-border bg-card p-4">{body}</div>;
+  return (
+    <Link
+      to="/logbook"
+      search={{ filter: to.filter, view: "list" as const }}
+      className="block rounded-2xl border border-border bg-card p-4 transition hover:border-primary/60"
+    >
+      {body}
+      <span className="mt-2 block text-[11px] font-semibold text-primary">View in logbook →</span>
+    </Link>
   );
 }
+
 
 function Progress() {
   const [rows, setRows] = useState<Row[] | null>(null);
