@@ -76,11 +76,14 @@ export async function getAccessStateForUser(
 
 export async function requireWorkoutAccess(db: SupabaseClient, userId: string) {
   const access = await getAccessStateForUser(db, userId);
-  if (!access.profileComplete) {
-    throw new Error("Complete your Training Profile before creating a workout.");
-  }
   if (!access.healthAcknowledged) {
     throw new Error("Accept the health and safety acknowledgement in your Training Profile first.");
+  }
+  if (!access.readinessComplete) {
+    throw new Error("Complete the readiness questionnaire in your Training Profile first.");
+  }
+  if (!access.profileComplete) {
+    throw new Error("Complete your Training Profile before creating a workout.");
   }
   if (!access.premium) {
     throw new Error("An active Smarty Workout membership is required.");
