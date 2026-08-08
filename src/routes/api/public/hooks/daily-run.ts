@@ -68,7 +68,7 @@ export const Route = createFileRoute("/api/public/hooks/daily-run")({
               prof.last_auto_workout_on !== today
             ) {
               const res = await runWodForUser(db, prof.id, prof);
-              if (res.created) workouts += 1;
+              workouts += res.created;
             }
           } catch (e) {
             failures.push(`wod:${prof.id}:${e instanceof Error ? e.message : "error"}`);

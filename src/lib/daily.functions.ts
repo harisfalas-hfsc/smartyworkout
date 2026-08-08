@@ -70,15 +70,24 @@ export const getDailyHub = createServerFn({ method: "GET" })
       };
     };
 
-    const { data: wod } = await supabase
+    const { data: wods } = await supabase
       .from("workouts")
-      .select("id,name,category,difficulty_stars,duration_min,status,completed_at")
+      .select("id,name,category,difficulty_stars,duration_min,status,completed_at,wod_variant")
       .eq("user_id", userId)
       .eq("is_wod", true)
       .eq("wod_date", today)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .order("created_at", { ascending: true });
+
+    const workouts =
+      (wods as Array<{
+        id: string;
+        name: string;
+        category: string;
+        difficulty_stars: number;
+        duration_min: number;
+        status: string;
+        wod_variant: string | null;
+      }> | null) ?? [];
 
     return {
       settings,
@@ -97,16 +106,11 @@ export const getDailyHub = createServerFn({ method: "GET" })
         today: dayInfo(today),
         tomorrow: dayInfo(shift(1)),
       },
-      workout: (wod as {
-        id: string;
-        name: string;
-        category: string;
-        difficulty_stars: number;
-        duration_min: number;
-        status: string;
-      } | null) ?? null,
+      workouts,
+      workout: workouts[0] ?? null,
     };
   });
+
 
 export const saveDailySettings = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -204,7 +208,7 @@ export const deleteNotifications = createServerFn({ method: "POST" })
   });
 
 
-/** Joins or leaves the Workout of the Day programme. */
+/** Joins or leaves the Workout of the Day programme. Joining builds today's sessions at once. */
 export const setWodSubscription = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { subscribe: boolean; level?: WodLevel }) => input)
@@ -219,7 +223,7 @@ export const setWodSubscription = createServerFn({ method: "POST" })
           auto_workout_hour: 0,
           wod_subscribed_at: now.toISOString(),
           wod_renews_at: renews.toISOString(),
-          wod_level: data.level ?? "cycle",
+          wod_level: "cycle",
         }
       : { wod_mode: false, auto_workout_enabled: false, wod_renews_at: null };
     const { error } = await context.supabase
@@ -227,5 +231,14 @@ export const setWodSubscription = createServerFn({ method: "POST" })
       .update(patch as never)
       .eq("id", context.userId);
     if (error) throw new Error(error.message);
-    return { ok: true, subscribed: data.subscribe };
+
+    let created = 0;
+    if (data.subscribe) {
+      // Don't make the athlete wait until midnight — today's pair is built immediately.
+      const { runWodForUser } = await import("@/lib/daily.server");
+      const res = await runWodForUser(context.supabase as never, context.userId);
+      created = res.created;
+    }
+    return { ok: true, subscribed: data.subscribe, created };
   });
+

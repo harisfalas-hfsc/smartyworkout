@@ -55,12 +55,22 @@ async function completedStreak(db: DB, userId: string, timeZone: string): Promis
   return streak;
 }
 
-/** Creates today's Workout of the Day for one athlete (idempotent per local day). */
+/** Strips bodyweight-only markers so the equipment version always uses real gear. */
+function equipmentListFor(prof: DailyProfile | null): string[] {
+  const list = (prof?.preferred_equipment ?? []).filter((e) => e && e !== "bodyweight");
+  return list.length ? list : ["dumbbells"];
+}
+
+/**
+ * Creates today's Workout of the Day for one athlete — two sessions on training days
+ * (one bodyweight, one equipment-based) and a single session on recovery days.
+ * Idempotent per local day and per variant.
+ */
 export async function runWodForUser(
   db: DB,
   userId: string,
   profile?: DailyProfile | null,
-): Promise<{ id: string; created: boolean; recovery?: boolean }> {
+): Promise<{ id: string; ids: string[]; created: number; recovery: boolean }> {
   let prof = profile ?? null;
   if (!prof) {
     const { data } = await db
@@ -73,49 +83,76 @@ export async function runWodForUser(
   const timeZone = prof?.timezone || "Europe/Athens";
   const today = localDateISO(new Date(), timeZone);
   const cycleDay = getCycleDay(today);
+  const recovery = cycleDay.category === "RECOVERY";
 
-  const { data: existing } = await db
+  const { data: existingRows } = await db
     .from("workouts")
-    .select("id")
+    .select("id,wod_variant")
     .eq("user_id", userId)
     .eq("is_wod", true)
-    .eq("wod_date", today)
-    .limit(1)
-    .maybeSingle();
-  if (existing) return { id: (existing as { id: string }).id, created: false };
+    .eq("wod_date", today);
+  const existing = (existingRows as { id: string; wod_variant: string | null }[] | null) ?? [];
+  const byVariant = new Map(existing.map((r) => [r.wod_variant ?? "equipment", r.id]));
 
-  const minutes =
-    cycleDay.category === "RECOVERY" ? 20 : Math.max(10, Math.min(90, prof?.typical_duration_min ?? 30));
+  const minutes = recovery ? 20 : Math.max(10, Math.min(90, prof?.typical_duration_min ?? 30));
+  const stars = starsForCycleDayWithLevel(cycleDay, (prof?.wod_level as WodLevel) ?? "cycle");
+  const variants: { key: string; equipment: string[] }[] = recovery
+    ? [{ key: "recovery", equipment: ["bodyweight"] }]
+    : [
+        { key: "bodyweight", equipment: ["bodyweight"] },
+        { key: "equipment", equipment: equipmentListFor(prof) },
+      ];
 
-  const built = await createWorkoutForUser(db as never, userId, {
-    minutes,
-    mood: "normal",
-    location: prof?.preferred_environment ?? "home",
-    equipment: prof?.preferred_equipment?.length ? prof.preferred_equipment : ["bodyweight"],
-    wod: {
-      category: cycleDay.category,
-      stars: starsForCycleDayWithLevel(cycleDay, (prof?.wod_level as WodLevel) ?? "cycle"),
-      focus: cycleDay.strengthFocus ?? null,
-      date: today,
-      cycleDay: getDayIn84Cycle(today),
-    },
-  });
+  const ids: string[] = [];
+  let created = 0;
 
-  await db.from("notifications").insert({
-    user_id: userId,
-    kind: "wod",
-    title: "Your Workout of the Day is ready",
-    body: `${built.category} — ${built.name}`,
-    workout_id: built.id,
-  } as never);
+  for (const variant of variants) {
+    const known = byVariant.get(variant.key);
+    if (known) {
+      ids.push(known);
+      continue;
+    }
+    const built = await createWorkoutForUser(db as never, userId, {
+      minutes,
+      mood: "normal",
+      location: variant.key === "bodyweight" ? "home" : prof?.preferred_environment ?? "home",
+      equipment: variant.equipment,
+      wod: {
+        category: cycleDay.category,
+        stars,
+        focus: cycleDay.strengthFocus ?? null,
+        date: today,
+        cycleDay: getDayIn84Cycle(today),
+      },
+    });
+    await db
+      .from("workouts")
+      .update({ wod_variant: variant.key } as never)
+      .eq("id", built.id);
+    await db.from("notifications").insert({
+      user_id: userId,
+      kind: "wod",
+      title:
+        variant.key === "bodyweight"
+          ? "Your bodyweight Workout of the Day is ready"
+          : "Your equipment Workout of the Day is ready",
+      body: `${built.category} — ${built.name}`,
+      workout_id: built.id,
+    } as never);
+    ids.push(built.id);
+    created += 1;
+  }
 
-  await db
-    .from("profiles")
-    .update({ last_auto_workout_on: today } as never)
-    .eq("id", userId);
+  if (created) {
+    await db
+      .from("profiles")
+      .update({ last_auto_workout_on: today } as never)
+      .eq("id", userId);
+  }
 
-  return { id: built.id, created: true, recovery: cycleDay.category === "RECOVERY" };
+  return { id: ids[0] as string, ids, created, recovery };
 }
+
 
 /** Posts the daily motivational message for one athlete (idempotent per local day). */
 export async function runMotivationForUser(db: DB, prof: DailyProfile): Promise<boolean> {

@@ -504,6 +504,7 @@ export type Database = {
           warm_up: string | null
           wod_cycle_day: number | null
           wod_date: string | null
+          wod_variant: string | null
         }
         Insert: {
           activation?: string | null
@@ -549,6 +550,7 @@ export type Database = {
           warm_up?: string | null
           wod_cycle_day?: number | null
           wod_date?: string | null
+          wod_variant?: string | null
         }
         Update: {
           activation?: string | null
@@ -594,6 +596,7 @@ export type Database = {
           warm_up?: string | null
           wod_cycle_day?: number | null
           wod_date?: string | null
+          wod_variant?: string | null
         }
         Relationships: []
       }
