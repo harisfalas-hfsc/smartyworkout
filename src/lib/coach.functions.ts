@@ -1,75 +1,187 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import type { CoachRequest } from "@/lib/coach-engine.server";
+import {
+  CATEGORY_FORMATS,
+  difficultyLabel,
+  type Category,
+  type EquipmentMode,
+  type Format,
+  type StrengthFocus,
+} from "@/lib/workout/spec";
+
+export type CoachRequest = {
+  goal?: string;
+  mood?: string;
+  minutes?: number;
+  location?: string;
+  equipment?: string[];
+  focus?: string;
+  format?: string;
+  note?: string;
+  surprise?: boolean;
+};
+
+const GOAL_TO_CATEGORY: Record<string, Category> = {
+  strength: "STRENGTH",
+  muscle: "STRENGTH",
+  fullbody: "STRENGTH",
+  calorie: "CALORIE BURNING",
+  cardio: "CARDIO",
+  metabolic: "METABOLIC",
+  challenge: "CHALLENGE",
+  mobility: "MOBILITY & STABILITY",
+  pilates: "PILATES",
+  micro: "MICRO-WORKOUTS",
+  recovery: "RECOVERY",
+};
+
+const BODYWEIGHT_ONLY = new Set(["bodyweight"]);
+
+function starsFor(profile: { experience?: string | null; fitness_level?: string | null } | null, mood: string) {
+  const level = (profile?.fitness_level ?? profile?.experience ?? "").toLowerCase();
+  let stars = level.includes("adv") ? 5 : level.includes("inter") ? 4 : 2;
+  if (mood === "tired" || mood === "low" || mood === "sore") stars = Math.max(1, stars - 1);
+  if (mood === "push" || mood === "energized") stars = Math.min(6, stars + 1);
+  return stars;
+}
 
 export const generateWorkout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: CoachRequest) => input)
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const engine = await import("@/lib/coach-engine.server");
+    const engine = await import("@/lib/workout/generate.server");
 
-    const req: CoachRequest = {
-      goal: String(data.goal ?? "fullbody"),
-      mood: String(data.mood ?? "normal"),
-      minutes: Math.max(5, Math.min(120, Number(data.minutes) || 20)),
-      location: String(data.location ?? "anywhere"),
-      equipment: Array.isArray(data.equipment) ? data.equipment.map(String) : ["bodyweight"],
-      ...(data.note ? { note: String(data.note).slice(0, 500) } : {}),
-      ...(data.surprise ? { surprise: true } : {}),
-    };
+    const goal = String(data.goal ?? "fullbody");
+    const mood = String(data.mood ?? "normal");
+    const minutes = Math.max(5, Math.min(120, Number(data.minutes) || 30));
+    const equipmentIds = (Array.isArray(data.equipment) ? data.equipment : ["bodyweight"]).map(String);
+    const equipmentMode: EquipmentMode =
+      equipmentIds.length && equipmentIds.every((e) => BODYWEIGHT_ONLY.has(e))
+        ? "BODYWEIGHT"
+        : "EQUIPMENT";
 
-    const [{ data: profile }, { data: history }, { data: feedback }] = await Promise.all([
+    let category: Category = GOAL_TO_CATEGORY[goal] ?? "STRENGTH";
+    if (data.surprise) {
+      const keys = Object.values(GOAL_TO_CATEGORY);
+      category = keys[Math.floor(Math.random() * keys.length)]!;
+    }
+    if (minutes <= 5) category = "MICRO-WORKOUTS";
+
+    const [{ data: profile }, { data: recent }] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
       supabase
         .from("workouts")
-        .select("name,category,focus,duration_min,status,created_at")
+        .select("name")
         .order("created_at", { ascending: false })
-        .limit(10),
-      supabase
-        .from("workout_feedback")
-        .select("difficulty_rating,feeling,enjoyed,would_repeat,comment")
-        .order("created_at", { ascending: false })
-        .limit(6),
+        .limit(120),
     ]);
 
-    const disliked = ((profile as any)?.disliked_exercises ?? []) as string[];
-    const equipment = engine.resolveEquipment(req.equipment);
-    const pool = await engine.loadPool(supabase, equipment, disliked);
-    if (!pool.length) throw new Error("No exercises match that equipment. Try different equipment.");
+    const stars = starsFor((profile as never) ?? null, mood);
+    const usedNames = ((recent as { name: string }[] | null) ?? []).map((r) => r.name);
+    const requestedFormat = data.format as Format | undefined;
+    const format =
+      requestedFormat && CATEGORY_FORMATS[category].includes(requestedFormat) ? requestedFormat : null;
 
-    const { system, user } = engine.buildPrompt({
-      req,
-      profile: (profile as any) ?? null,
-      history: (history as any[]) ?? [],
-      feedback: (feedback as any[]) ?? [],
-      pool,
-    });
-
-    let result = engine.validateWorkout(await engine.askCoach(system, user), pool, req);
-    if (!result.ok) {
-      result = engine.validateWorkout(
-        await engine.askCoach(
-          system,
-          `${user}\n\nYour previous attempt failed validation (invalid or missing exercises). Use ONLY ids from the library list above.`,
-        ),
-        pool,
-        req,
-      );
-    }
-    if (!result.ok) throw new Error("Smarty Coach could not build a valid workout. Please try again.");
+    const built = await engine.generateWorkoutContent(
+      supabase,
+      {
+        category,
+        format,
+        equipmentMode,
+        stars,
+        minutes,
+        focus: (data.focus as StrengthFocus | undefined) ?? null,
+        ...(data.note ? { note: String(data.note).slice(0, 500) } : {}),
+      },
+      usedNames,
+    );
 
     const { data: inserted, error } = await supabase
       .from("workouts")
       .insert({
         user_id: userId,
-        ...result.workout,
-        location: req.location,
-        mood: req.mood,
+        name: built.name,
+        category,
+        format: built.format,
+        focus: (data.focus as string | undefined) ?? null,
+        difficulty_stars: stars,
+        difficulty_label: difficultyLabel(stars),
+        duration_min: minutes,
+        duration_label: built.duration,
+        equipment: equipmentIds,
+        location: String(data.location ?? "anywhere"),
+        mood,
+        description_html: built.description_html,
+        instructions_html: built.instructions_html,
+        tips_html: built.tips_html,
+        main_workout: built.main_workout,
+        needs_review: built.needs_review,
+        review_warnings: built.warnings,
         status: "created",
       } as never)
       .select("id")
       .single();
     if (error) throw new Error(error.message);
     return { id: (inserted as { id: string }).id };
+  });
+
+export const getExerciseDetails = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { ids: string[] }) => ({
+    ids: (input.ids ?? []).map(String).slice(0, 60),
+  }))
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    if (!data.ids.length) return { exercises: [] };
+    const { data: rows, error } = await supabase
+      .from("exercises")
+      .select(
+        "id,name,body_part,target_muscle,secondary_muscles,equipment,difficulty,category,description,instructions,gif_path",
+      )
+      .in("id", data.ids);
+    if (error) throw new Error(error.message);
+
+    const list = (rows ?? []) as Array<Record<string, unknown> & { gif_path: string | null }>;
+    const paths = list.map((r) => r.gif_path).filter((p): p is string => Boolean(p));
+    const signed = new Map<string, string>();
+    if (paths.length) {
+      const { data: urls } = await supabase.storage
+        .from("exercise-library")
+        .createSignedUrls(paths, 60 * 60 * 4);
+      for (const u of urls ?? []) {
+        if (u.path && u.signedUrl) signed.set(u.path, u.signedUrl);
+      }
+    }
+    return {
+      exercises: list.map((r) => ({
+        ...r,
+        gif_url: r.gif_path ? (signed.get(r.gif_path) ?? null) : null,
+      })),
+    };
+  });
+
+export const setWorkoutMeta = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (input: {
+      workoutId: string;
+      is_favorite?: boolean;
+      rating?: number | null;
+      user_note?: string | null;
+    }) => input,
+  )
+  .handler(async ({ data, context }) => {
+    const patch: Record<string, unknown> = {};
+    if (typeof data.is_favorite === "boolean") patch["is_favorite"] = data.is_favorite;
+    if (data.rating !== undefined) patch["rating"] = data.rating;
+    if (data.user_note !== undefined) patch["user_note"] = data.user_note;
+    if (!Object.keys(patch).length) return { ok: true };
+    const { error } = await context.supabase
+      .from("workouts")
+      .update(patch as never)
+      .eq("id", data.workoutId)
+      .eq("user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });

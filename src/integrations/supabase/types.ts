@@ -23,6 +23,8 @@ export type Database = {
           description: string | null
           difficulty: string | null
           equipment: string | null
+          frame_end_path: string | null
+          frame_start_path: string | null
           gif_path: string | null
           id: string
           instructions: string[]
@@ -42,6 +44,8 @@ export type Database = {
           description?: string | null
           difficulty?: string | null
           equipment?: string | null
+          frame_end_path?: string | null
+          frame_start_path?: string | null
           gif_path?: string | null
           id: string
           instructions?: string[]
@@ -61,6 +65,8 @@ export type Database = {
           description?: string | null
           difficulty?: string | null
           equipment?: string | null
+          frame_end_path?: string | null
+          frame_start_path?: string | null
           gif_path?: string | null
           id?: string
           instructions?: string[]
@@ -381,70 +387,130 @@ export type Database = {
       }
       workouts: {
         Row: {
+          activation: string | null
           category: string
           completed_at: string | null
+          cool_down: string | null
           created_at: string
+          created_by: string | null
           description: string | null
+          description_html: string | null
+          difficulty_label: string | null
           difficulty_stars: number
+          duration_label: string | null
           duration_min: number
           equipment: string[]
+          finisher: string | null
           focus: string | null
           format: string | null
           id: string
+          image_url: string | null
           instructions: string | null
+          instructions_html: string | null
+          is_favorite: boolean
           location: string | null
+          main_workout: string | null
           mood: string | null
           name: string
+          needs_review: boolean
           plan: Json
+          rating: number | null
           rationale: string | null
+          review_warnings: string[]
+          scheduled_at: string | null
+          serial: number
+          soft_tissue: string | null
           status: string
           tips: string[]
+          tips_html: string | null
           updated_at: string
           user_id: string
+          user_note: string | null
+          warm_up: string | null
         }
         Insert: {
+          activation?: string | null
           category: string
           completed_at?: string | null
+          cool_down?: string | null
           created_at?: string
+          created_by?: string | null
           description?: string | null
+          description_html?: string | null
+          difficulty_label?: string | null
           difficulty_stars?: number
+          duration_label?: string | null
           duration_min?: number
           equipment?: string[]
+          finisher?: string | null
           focus?: string | null
           format?: string | null
           id?: string
+          image_url?: string | null
           instructions?: string | null
+          instructions_html?: string | null
+          is_favorite?: boolean
           location?: string | null
+          main_workout?: string | null
           mood?: string | null
           name: string
+          needs_review?: boolean
           plan?: Json
+          rating?: number | null
           rationale?: string | null
+          review_warnings?: string[]
+          scheduled_at?: string | null
+          serial?: number
+          soft_tissue?: string | null
           status?: string
           tips?: string[]
+          tips_html?: string | null
           updated_at?: string
           user_id: string
+          user_note?: string | null
+          warm_up?: string | null
         }
         Update: {
+          activation?: string | null
           category?: string
           completed_at?: string | null
+          cool_down?: string | null
           created_at?: string
+          created_by?: string | null
           description?: string | null
+          description_html?: string | null
+          difficulty_label?: string | null
           difficulty_stars?: number
+          duration_label?: string | null
           duration_min?: number
           equipment?: string[]
+          finisher?: string | null
           focus?: string | null
           format?: string | null
           id?: string
+          image_url?: string | null
           instructions?: string | null
+          instructions_html?: string | null
+          is_favorite?: boolean
           location?: string | null
+          main_workout?: string | null
           mood?: string | null
           name?: string
+          needs_review?: boolean
           plan?: Json
+          rating?: number | null
           rationale?: string | null
+          review_warnings?: string[]
+          scheduled_at?: string | null
+          serial?: number
+          soft_tissue?: string | null
           status?: string
           tips?: string[]
+          tips_html?: string | null
           updated_at?: string
           user_id?: string
+          user_note?: string | null
+          warm_up?: string | null
         }
         Relationships: []
       }
