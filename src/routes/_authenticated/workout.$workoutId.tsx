@@ -218,7 +218,7 @@ function WorkoutPage() {
             <Link to="/coach">Next workout</Link>
           </Button>
           <Button asChild size="lg" variant="secondary" className="flex-1">
-            <Link to="/logbook">Open logbook</Link>
+            <Link to="/logbook" search={{ filter: "all" as const, view: "list" as const }}>Open logbook</Link>
           </Button>
         </div>
       ) : (

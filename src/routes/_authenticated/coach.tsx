@@ -223,7 +223,7 @@ function CoachPage() {
             <button
               type="button"
               className="font-semibold text-primary underline"
-              onClick={() => navigate({ to: "/logbook" })}
+              onClick={() => navigate({ to: "/logbook", search: { filter: "all" as const, view: "list" as const } })}
             >
               logbook
             </button>{" "}

@@ -134,7 +134,7 @@ export function Navigation() {
                   <Link to="/wod">Workout of the Day</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/logbook">Logbook</Link>
+                  <Link to="/logbook" search={{ filter: "all" as const, view: "list" as const }}>Logbook</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link to="/progress">Progress</Link>
