@@ -34,9 +34,6 @@ import { Route as AuthenticatedQuestionnaireRouteImport } from './routes/_authen
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminExerciseLibraryRouteImport } from './routes/admin.exercise-library'
 import { Route as ToolsIndexRouteImport } from './routes/tools.index'
-import { Route as ToolsBmrCalculatorRouteImport } from './routes/tools.bmr-calculator'
-import { Route as ToolsCalorieCounterRouteImport } from './routes/tools.calorie-counter'
-import { Route as ToolsMacroCalculatorRouteImport } from './routes/tools.macro-calculator'
 import { Route as AuthenticatedPlansSessionIdRouteImport } from './routes/_authenticated/plans.$sessionId'
 import { Route as AuthenticatedWorkoutWorkoutIdRouteImport } from './routes/_authenticated/workout.$workoutId'
 
@@ -165,21 +162,6 @@ const ToolsIndexRoute = ToolsIndexRouteImport.update({
   path: '/tools/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ToolsBmrCalculatorRoute = ToolsBmrCalculatorRouteImport.update({
-  id: '/tools/bmr-calculator',
-  path: '/tools/bmr-calculator',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ToolsCalorieCounterRoute = ToolsCalorieCounterRouteImport.update({
-  id: '/tools/calorie-counter',
-  path: '/tools/calorie-counter',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ToolsMacroCalculatorRoute = ToolsMacroCalculatorRouteImport.update({
-  id: '/tools/macro-calculator',
-  path: '/tools/macro-calculator',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedPlansSessionIdRoute =
   AuthenticatedPlansSessionIdRouteImport.update({
     id: '/$sessionId',
@@ -216,9 +198,6 @@ export interface FileRoutesByFullPath {
   '/progress': typeof AuthenticatedProgressRoute
   '/questionnaire': typeof AuthenticatedQuestionnaireRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
-  '/tools/bmr-calculator': typeof ToolsBmrCalculatorRoute
-  '/tools/calorie-counter': typeof ToolsCalorieCounterRoute
-  '/tools/macro-calculator': typeof ToolsMacroCalculatorRoute
   '/admin/': typeof AdminIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/plans/$sessionId': typeof AuthenticatedPlansSessionIdRoute
@@ -247,9 +226,6 @@ export interface FileRoutesByTo {
   '/progress': typeof AuthenticatedProgressRoute
   '/questionnaire': typeof AuthenticatedQuestionnaireRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
-  '/tools/bmr-calculator': typeof ToolsBmrCalculatorRoute
-  '/tools/calorie-counter': typeof ToolsCalorieCounterRoute
-  '/tools/macro-calculator': typeof ToolsMacroCalculatorRoute
   '/admin': typeof AdminIndexRoute
   '/tools': typeof ToolsIndexRoute
   '/plans/$sessionId': typeof AuthenticatedPlansSessionIdRoute
@@ -280,9 +256,6 @@ export interface FileRoutesById {
   '/_authenticated/progress': typeof AuthenticatedProgressRoute
   '/_authenticated/questionnaire': typeof AuthenticatedQuestionnaireRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
-  '/tools/bmr-calculator': typeof ToolsBmrCalculatorRoute
-  '/tools/calorie-counter': typeof ToolsCalorieCounterRoute
-  '/tools/macro-calculator': typeof ToolsMacroCalculatorRoute
   '/admin/': typeof AdminIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/_authenticated/plans/$sessionId': typeof AuthenticatedPlansSessionIdRoute
@@ -313,9 +286,6 @@ export interface FileRouteTypes {
     | '/progress'
     | '/questionnaire'
     | '/admin/exercise-library'
-    | '/tools/bmr-calculator'
-    | '/tools/calorie-counter'
-    | '/tools/macro-calculator'
     | '/admin/'
     | '/tools/'
     | '/plans/$sessionId'
@@ -344,9 +314,6 @@ export interface FileRouteTypes {
     | '/progress'
     | '/questionnaire'
     | '/admin/exercise-library'
-    | '/tools/bmr-calculator'
-    | '/tools/calorie-counter'
-    | '/tools/macro-calculator'
     | '/admin'
     | '/tools'
     | '/plans/$sessionId'
@@ -376,9 +343,6 @@ export interface FileRouteTypes {
     | '/_authenticated/progress'
     | '/_authenticated/questionnaire'
     | '/admin/exercise-library'
-    | '/tools/bmr-calculator'
-    | '/tools/calorie-counter'
-    | '/tools/macro-calculator'
     | '/admin/'
     | '/tools/'
     | '/_authenticated/plans/$sessionId'
@@ -403,9 +367,6 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   TrainingIntelligenceRoute: typeof TrainingIntelligenceRoute
   AdminExerciseLibraryRoute: typeof AdminExerciseLibraryRoute
-  ToolsBmrCalculatorRoute: typeof ToolsBmrCalculatorRoute
-  ToolsCalorieCounterRoute: typeof ToolsCalorieCounterRoute
-  ToolsMacroCalculatorRoute: typeof ToolsMacroCalculatorRoute
   AdminIndexRoute: typeof AdminIndexRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
 }
@@ -587,27 +548,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tools/bmr-calculator': {
-      id: '/tools/bmr-calculator'
-      path: '/tools/bmr-calculator'
-      fullPath: '/tools/bmr-calculator'
-      preLoaderRoute: typeof ToolsBmrCalculatorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tools/calorie-counter': {
-      id: '/tools/calorie-counter'
-      path: '/tools/calorie-counter'
-      fullPath: '/tools/calorie-counter'
-      preLoaderRoute: typeof ToolsCalorieCounterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tools/macro-calculator': {
-      id: '/tools/macro-calculator'
-      path: '/tools/macro-calculator'
-      fullPath: '/tools/macro-calculator'
-      preLoaderRoute: typeof ToolsMacroCalculatorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/plans/$sessionId': {
       id: '/_authenticated/plans/$sessionId'
       path: '/$sessionId'
@@ -677,12 +617,19 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   TrainingIntelligenceRoute: TrainingIntelligenceRoute,
   AdminExerciseLibraryRoute: AdminExerciseLibraryRoute,
-  ToolsBmrCalculatorRoute: ToolsBmrCalculatorRoute,
-  ToolsCalorieCounterRoute: ToolsCalorieCounterRoute,
-  ToolsMacroCalculatorRoute: ToolsMacroCalculatorRoute,
   AdminIndexRoute: AdminIndexRoute,
   ToolsIndexRoute: ToolsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
