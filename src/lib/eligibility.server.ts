@@ -25,7 +25,6 @@ export async function getAccessStateForUser(
       db
         .from("profiles")
         .select(
-          "onboarded,health_acknowledged_at,age,fitness_level,primary_goal,preferred_environment,preferred_equipment,typical_duration_min",
           "onboarded,health_acknowledged_at,readiness_answers,readiness_warning_acknowledged_at,age,fitness_level,primary_goal,preferred_environment,preferred_equipment,typical_duration_min",
         )
         .eq("id", userId)
