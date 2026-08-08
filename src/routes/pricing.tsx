@@ -60,7 +60,6 @@ function PricingPage() {
         tone="pink"
         eyebrow="Membership"
         eyebrowIcon="👑"
-        cornerIcon={Crown}
         title="€9.99"
         accent="per month."
         description="Two personalized workouts a day plus every feature on the platform. Cancel anytime."

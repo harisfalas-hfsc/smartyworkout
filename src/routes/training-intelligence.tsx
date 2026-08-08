@@ -98,7 +98,6 @@ function TrainingIntelligencePage() {
         tone="blue"
         eyebrow="The idea"
         eyebrowIcon="💡"
-        cornerIcon={Brain}
         title="What is training"
         accent="intelligence?"
         description="A workout app gives you a session. A training intelligence platform decides which session you actually need today — for your goal, your body, your fatigue and your equipment."
@@ -134,7 +133,6 @@ function TrainingIntelligencePage() {
           tone="green"
           eyebrow="Signature metric"
           eyebrowIcon="🌟"
-          cornerIcon={Gauge}
           title="Smarty Training"
           accent="Score™"
           description="A composite picture of your training across four axes — so progress isn't a feeling, it's a number."
@@ -157,7 +155,6 @@ function TrainingIntelligencePage() {
           tone="purple"
           eyebrow="Signature metric"
           eyebrowIcon="⚡"
-          cornerIcon={Activity}
           title="Smarty Readiness"
           accent="Check™"
           description="Before every session Smarty Coach reads your mood, time, recent training load and feedback — then sets today's intensity."
@@ -178,7 +175,6 @@ function TrainingIntelligencePage() {
           tone="cyan"
           eyebrow="The engine"
           eyebrowIcon="⚙️"
-          cornerIcon={Sparkles}
           title="From answers to your"
           accent="workout"
           description="You tell Smarty Coach your goal, mood, time, location and equipment. The engines do the rest."
@@ -200,7 +196,6 @@ function TrainingIntelligencePage() {
           tone="orange"
           eyebrow="The building blocks"
           eyebrowIcon="🏋️"
-          cornerIcon={Dumbbell}
           title="Volume, intensity"
           accent="& recovery"
           description="Intensity drives adaptation. Volume drives accumulation. Recovery decides whether any of it counts. A good session respects all three."
@@ -220,7 +215,6 @@ function TrainingIntelligencePage() {
           tone="pink"
           eyebrow="Who it's for"
           eyebrowIcon="👥"
-          cornerIcon={Users}
           title="Built for"
           accent="everyone with a goal"
           description="Whatever you're training for, training intelligence gets you there faster — with a session that fits today."
@@ -240,7 +234,6 @@ function TrainingIntelligencePage() {
           tone="cyan"
           eyebrow="Go deeper"
           eyebrowIcon="🔬"
-          cornerIcon={Compass}
           title="Related"
           accent="reading"
           description="Keep learning — the science, the terms and the coach behind the platform."

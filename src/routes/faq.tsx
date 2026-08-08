@@ -115,7 +115,6 @@ function FAQ() {
         tone="cyan"
         eyebrow="FAQ"
         eyebrowIcon="?"
-        cornerIcon={CircleHelp}
         title="Frequently asked"
         accent="questions."
       >

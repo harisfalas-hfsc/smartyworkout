@@ -83,7 +83,6 @@ function PlansList() {
           tone="cyan"
           eyebrow="Get started"
           eyebrowIcon="🚀"
-          cornerIcon={FileText}
           title="No plans"
           accent="yet."
           description="Build your first personalized Smarty Workout Plan™ in a few minutes."
@@ -104,7 +103,6 @@ function PlansList() {
                   tone={tone}
                   eyebrow={active ? "Active" : "Completed"}
                   eyebrowIcon={active ? "✅" : "📁"}
-                  cornerIcon={ClipboardList}
                   title={`${r.duration_weeks}-week`}
                   accent="plan"
                 >
@@ -140,7 +138,6 @@ function PlansList() {
                 tone="pink"
                 eyebrow="Fresh start"
                 eyebrowIcon="✨"
-                cornerIcon={Sparkles}
                 title="Want a"
                 accent="new plan?"
                 description="You've used all refinements on your current plans. Create a brand new personalized workout plan for free."

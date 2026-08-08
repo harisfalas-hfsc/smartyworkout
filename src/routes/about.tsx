@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Brain } from "lucide-react";
-import { SmartyCard, SmartyRow } from "@/components/SmartyCard";
+import { SmartyCard } from "@/components/SmartyCard";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
