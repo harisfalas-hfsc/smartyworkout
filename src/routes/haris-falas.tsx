@@ -150,7 +150,7 @@ function CoachProfilePage() {
 
       <div className="mt-10 flex flex-col items-center gap-3">
         <Button asChild size="lg" className="font-extrabold uppercase">
-          <Link to="/coach">Meet Smarty Coach</Link>
+          <Link to="/coach">Create your workout</Link>
         </Button>
         <p className="text-sm text-muted-foreground">
           Train with confidence under expert guidance
