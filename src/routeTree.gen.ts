@@ -26,6 +26,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TrainingIntelligenceRouteImport } from './routes/training-intelligence'
+import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedCoachRouteImport } from './routes/_authenticated/coach'
 import { Route as AuthenticatedLogbookRouteImport } from './routes/_authenticated/logbook'
 import { Route as AuthenticatedPlansRouteImport } from './routes/_authenticated/plans'
@@ -125,6 +126,11 @@ const TrainingIntelligenceRoute = TrainingIntelligenceRouteImport.update({
   path: '/training-intelligence',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedCoachRoute = AuthenticatedCoachRouteImport.update({
   id: '/coach',
   path: '/coach',
@@ -216,6 +222,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/training-intelligence': typeof TrainingIntelligenceRoute
+  '/account': typeof AuthenticatedAccountRoute
   '/coach': typeof AuthenticatedCoachRoute
   '/logbook': typeof AuthenticatedLogbookRoute
   '/plans': typeof AuthenticatedPlansRouteWithChildren
@@ -248,6 +255,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/training-intelligence': typeof TrainingIntelligenceRoute
+  '/account': typeof AuthenticatedAccountRoute
   '/coach': typeof AuthenticatedCoachRoute
   '/logbook': typeof AuthenticatedLogbookRoute
   '/plans': typeof AuthenticatedPlansRouteWithChildren
@@ -282,6 +290,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/training-intelligence': typeof TrainingIntelligenceRoute
+  '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/coach': typeof AuthenticatedCoachRoute
   '/_authenticated/logbook': typeof AuthenticatedLogbookRoute
   '/_authenticated/plans': typeof AuthenticatedPlansRouteWithChildren
@@ -316,6 +325,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/training-intelligence'
+    | '/account'
     | '/coach'
     | '/logbook'
     | '/plans'
@@ -348,6 +358,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/training-intelligence'
+    | '/account'
     | '/coach'
     | '/logbook'
     | '/plans'
@@ -381,6 +392,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/training-intelligence'
+    | '/_authenticated/account'
     | '/_authenticated/coach'
     | '/_authenticated/logbook'
     | '/_authenticated/plans'
@@ -544,6 +556,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TrainingIntelligenceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/account': {
+      id: '/_authenticated/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AuthenticatedAccountRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/coach': {
       id: '/_authenticated/coach'
       path: '/coach'
@@ -657,6 +676,7 @@ const AuthenticatedPlansRouteWithChildren =
   AuthenticatedPlansRoute._addFileChildren(AuthenticatedPlansRouteChildren)
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
   AuthenticatedCoachRoute: typeof AuthenticatedCoachRoute
   AuthenticatedLogbookRoute: typeof AuthenticatedLogbookRoute
   AuthenticatedPlansRoute: typeof AuthenticatedPlansRouteWithChildren
@@ -667,6 +687,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAccountRoute: AuthenticatedAccountRoute,
   AuthenticatedCoachRoute: AuthenticatedCoachRoute,
   AuthenticatedLogbookRoute: AuthenticatedLogbookRoute,
   AuthenticatedPlansRoute: AuthenticatedPlansRouteWithChildren,

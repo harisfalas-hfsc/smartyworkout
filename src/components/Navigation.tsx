@@ -137,7 +137,7 @@ export function Navigation() {
                   <Link to="/profile">Training profile</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/plans">My plans</Link>
+                  <Link to="/account">My account</Link>
                 </DropdownMenuItem>
 
                 {isAdmin && (
@@ -200,7 +200,7 @@ function NavDrawer({ onClose, isAuthed, isAdmin }: { onClose: () => void; isAuth
               { to: "/logbook", label: "Logbook", Icon: BookOpen },
               { to: "/progress", label: "Progress", Icon: ClipboardList },
               { to: "/profile", label: "Training profile", Icon: Info },
-              { to: "/plans", label: "My plans", Icon: ClipboardList },
+              { to: "/account", label: "My account", Icon: User },
 
               ...(isAdmin ? [{ to: "/admin", label: "Admin", Icon: Shield }] : []),
             ],
