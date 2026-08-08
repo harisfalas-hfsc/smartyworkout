@@ -49,33 +49,31 @@ type CtaState =
   | { kind: "has-active"; sessionId: string }
   | { kind: "no-active" };
 
-const DISCOVER = [
-  {
-    to: "/about",
-    icon: Info,
-    color: "text-emerald-500",
-    title: "About",
-    desc: "Who we are and why.",
-  },
-  {
-    to: "/how-it-works",
-    icon: ListChecks,
-    color: "text-orange-500",
-    title: "How it works",
-    desc: "Answer. Build. Train.",
-  },
-  {
-    to: "/faq",
-    icon: HelpCircle,
-    color: "text-sky-500",
-    title: "FAQ",
-    desc: "Common questions.",
-  },
-] as const;
-
-
-
 function Home() {
+  const DISCOVER = [
+    {
+      to: "/about",
+      icon: Info,
+      color: "text-emerald-500",
+      title: "About",
+      desc: "Who we are and why.",
+    },
+    {
+      to: "/how-it-works",
+      icon: ListChecks,
+      color: "text-orange-500",
+      title: "How it works",
+      desc: "Answer. Build. Train.",
+    },
+    {
+      to: "/faq",
+      icon: HelpCircle,
+      color: "text-sky-500",
+      title: "FAQ",
+      desc: "Common questions.",
+    },
+  ] as const;
+
   const { user, loading } = useAuth();
   const [cta, setCta] = useState<CtaState>({ kind: "loading" });
 
