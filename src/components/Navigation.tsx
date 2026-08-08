@@ -16,6 +16,7 @@ import {
   Sparkles,
   BookOpen,
   ChevronLeft,
+  User,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
