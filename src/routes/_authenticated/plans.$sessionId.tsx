@@ -359,8 +359,6 @@ function PlanView() {
               ) : null}
             </div>
           ))}
-            </div>
-          ))}
 
           {active.plan?.rationale && (
             <Card>
