@@ -38,6 +38,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { getMyAccessState } from "@/lib/access.functions";
 import { PageHeader } from "@/components/PageHeader";
 
 export const Route = createFileRoute("/_authenticated/coach")({
@@ -131,6 +132,18 @@ function CoachPage() {
   const [confirmHard, setConfirmHard] = useState(false);
   const [resuming, setResuming] = useState(false);
   const [wodMode, setWodMode] = useState(false);
+  const [profileReady, setProfileReady] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    void getMyAccessState()
+      .then((access) =>
+        setProfileReady(
+          access.profileComplete && access.healthAcknowledged && access.readinessComplete,
+        ),
+      )
+      .catch(() => setProfileReady(null));
+  }, []);
+
 
   useEffect(() => {
     (async () => {
@@ -201,7 +214,31 @@ function CoachPage() {
     void generate(surprise);
   }
 
+  if (profileReady === false) {
+    return (
+      <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:py-12 lg:max-w-5xl lg:px-8 lg:py-16">
+        <PageHeader
+          className="mb-6"
+          eyebrow="Smarty Coach"
+          title="Complete your training profile first"
+          subtitle="Smarty Coach builds around you — it needs your profile before the first workout."
+        />
+        <div className="rounded-2xl border border-blue-400 bg-card p-5 text-center">
+          <p className="text-sm text-muted-foreground">
+            Your age, level, goal, equipment, environment, session length and health
+            acknowledgement are required once. After that, every workout combines your profile with
+            the questions you answer here.
+          </p>
+          <Button asChild className="mt-4 h-14 w-full rounded-2xl text-base font-extrabold">
+            <Link to="/profile">Complete Training Profile</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
+
     <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:py-12 lg:max-w-5xl lg:px-8 lg:py-16">
       <PageHeader
         className="mb-6"

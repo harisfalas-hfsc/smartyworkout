@@ -172,7 +172,7 @@ function Account() {
         </div>
       </section>
 
-      <DailyCoachingSettings />
+      <DailyCoachingSettings premium={premium === true} />
 
       <section className="mt-4 rounded-2xl border border-blue-400 bg-card p-5">
         <div className="flex items-center gap-3">
