@@ -19,6 +19,7 @@ export type GenerateInput = {
   category: Category;
   format?: Format | null;
   equipmentMode: EquipmentMode;
+  selectedEquipment: string[];
   stars: number;
   minutes: number;
   focus?: StrengthFocus | null;
@@ -99,6 +100,7 @@ export async function generateWorkoutContent(
   const pool = filterPool(all, {
     category: input.category,
     equipmentMode: input.equipmentMode,
+    selectedEquipment: input.selectedEquipment,
     level,
     focus: input.focus ?? null,
   });
@@ -115,6 +117,7 @@ export async function generateWorkoutContent(
       category: input.category,
       format,
       equipmentMode: input.equipmentMode,
+      selectedEquipment: input.selectedEquipment,
       level,
       stars: input.stars,
       duration,

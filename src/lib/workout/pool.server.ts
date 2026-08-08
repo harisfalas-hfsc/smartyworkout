@@ -85,11 +85,44 @@ const FOCUS_RULES: Record<StrengthFocus, { allow?: RegExp; deny?: RegExp }> = {
 export type PoolFilter = {
   category: Category;
   equipmentMode: EquipmentMode;
+  selectedEquipment: string[];
   level: DifficultyLevel;
   focus?: StrengthFocus | null;
 };
 
 const isBodyweight = (e: PoolExercise) => (e.equipment ?? "").toLowerCase().includes("body weight");
+
+const EQUIPMENT_LABELS: Record<string, string[]> = {
+  bodyweight: ["body weight"],
+  dumbbells: ["dumbbell"],
+  kettlebells: ["kettlebell"],
+  barbell: ["barbell", "ez barbell", "olympic barbell", "trap bar"],
+  bands: ["band", "resistance band"],
+  trx: ["assisted"],
+  machines: [
+    "cable",
+    "leverage machine",
+    "smith machine",
+    "elliptical machine",
+    "skierg machine",
+    "sled machine",
+    "stationary bike",
+    "stepmill machine",
+    "upper body ergometer",
+  ],
+};
+
+/** Requires every apparatus named by the library row to be explicitly selected. */
+export function matchesSelectedEquipment(e: PoolExercise, selected: string[]): boolean {
+  if (selected.includes("fullgym")) return true;
+  const equipment = (e.equipment ?? "").toLowerCase().trim();
+  if (!equipment) return false;
+  return selected.some((id) =>
+    (EQUIPMENT_LABELS[id] ?? []).some(
+      (label) => equipment === label || equipment.startsWith(`${label} (`),
+    ),
+  );
+}
 
 /**
  * Applies the documented filter order: category ban -> equipment -> difficulty
@@ -107,12 +140,10 @@ export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
   if (f.category === "MICRO-WORKOUTS")
     pool = pool.filter((e) => isBodyweight(e) && !MICRO_BAN_RE.test(text(e)));
 
-  // 2. Equipment mode.
-  if (f.equipmentMode === "BODYWEIGHT") {
+  // 2. Exact equipment allowlist. Never widen a user's choices to all equipment.
+  pool = pool.filter((e) => matchesSelectedEquipment(e, f.selectedEquipment));
+  if (f.equipmentMode === "BODYWEIGHT")
     pool = pool.filter((e) => isBodyweight(e) && !HOME_APPARATUS_RE.test(text(e)));
-  } else if (f.category !== "MICRO-WORKOUTS") {
-    pool = pool.filter((e) => !isBodyweight(e));
-  }
 
   // 3. Strict difficulty match (no level mixing).
   if (f.level !== "all") {

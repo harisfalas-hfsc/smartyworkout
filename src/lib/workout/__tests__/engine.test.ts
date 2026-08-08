@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { parseStepTiming, parseWorkoutSteps } from "@/lib/workout/parse-steps";
 import { enforceWorkout } from "@/lib/workout/enforce.server";
 import { isValidName } from "@/lib/workout/generate.server";
-import type { PoolExercise } from "@/lib/workout/pool.server";
+import { filterPool, type PoolExercise } from "@/lib/workout/pool.server";
 
 const ex = (id: string, name: string, extra: Partial<PoolExercise> = {}): PoolExercise => ({
   id,
@@ -173,5 +173,28 @@ describe("isValidName", () => {
     expect(isValidName("CAL-813 Session", [])).toBe(false);
     expect(isValidName("Quiet Steel", ["quiet steel"])).toBe(false);
     expect(isValidName("Quiet Steel", [])).toBe(true);
+  });
+});
+
+describe("filterPool equipment allowlist", () => {
+  const equipmentPool = [
+    ex("d1", "dumbbell deadlift", { equipment: "dumbbell" }),
+    ex("k1", "kettlebell swing", { equipment: "kettlebell" }),
+    ex("b1", "push-up", { equipment: "body weight" }),
+    ex("s1", "smith bench press", { equipment: "smith machine" }),
+    ex("l1", "lever high row", { equipment: "leverage machine" }),
+    ex("r1", "band shoulder press", { equipment: "band" }),
+    ex("x1", "ball stretch", { equipment: "stability ball" }),
+  ];
+
+  it("allows only bodyweight, dumbbell and kettlebell when those are selected", () => {
+    const result = filterPool(equipmentPool, {
+      category: "STRENGTH",
+      equipmentMode: "EQUIPMENT",
+      selectedEquipment: ["bodyweight", "dumbbells", "kettlebells"],
+      level: "all",
+    });
+
+    expect(result.map((item) => item.id)).toEqual(["d1", "k1", "b1"]);
   });
 });
