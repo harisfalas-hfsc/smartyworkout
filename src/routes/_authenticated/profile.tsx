@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import {
   Heart,
   ThumbsDown,
   ShieldAlert,
+  CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { EQUIPMENT, GOALS, LOCATIONS } from "@/lib/coach-options";
@@ -52,6 +53,8 @@ type Profile = {
   favorite_exercises: string[] | null;
   disliked_exercises: string[] | null;
   limitations: string[] | null;
+  health_acknowledged_at: string | null;
+  onboarded: boolean;
 };
 
 const EMPTY: Profile = {
@@ -72,6 +75,8 @@ const EMPTY: Profile = {
   favorite_exercises: [],
   disliked_exercises: [],
   limitations: [],
+  health_acknowledged_at: null,
+  onboarded: false,
 };
 
 const LEVELS = ["beginner", "intermediate", "advanced"];
@@ -151,6 +156,7 @@ function toList(s: string) {
 }
 
 function ProfilePage() {
+  const navigate = useNavigate();
   const [p, setP] = useState<Profile | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -181,6 +187,20 @@ function ProfilePage() {
 
   async function save() {
     if (!p) return;
+    const missing = [
+      !p.display_name?.trim() && "name",
+      !p.age && "age",
+      !p.fitness_level && "fitness level",
+      !p.primary_goal?.trim() && "primary goal",
+      !p.preferred_environment && "training environment",
+      !(p.preferred_equipment?.length) && "available equipment",
+      !p.typical_duration_min && "workout duration",
+      !p.health_acknowledged_at && "health acknowledgement",
+    ].filter(Boolean);
+    if (missing.length) {
+      toast.error(`Complete: ${missing.join(", ")}.`);
+      return;
+    }
     setSaving(true);
     const { data: auth } = await supabase.auth.getUser();
     if (!auth.user) {
@@ -193,7 +213,10 @@ function ProfilePage() {
       .eq("id", auth.user.id);
     setSaving(false);
     if (error) toast.error(error.message);
-    else toast.success("Profile saved — Smarty Coach will use this from now on.");
+    else {
+      toast.success("Profile complete — Smarty Coach can now personalize your workouts.");
+      navigate({ to: "/pricing" });
+    }
   }
 
   if (!p)
@@ -373,6 +396,26 @@ function ProfilePage() {
             value={(p.favorite_exercises ?? []).join(", ")}
             onChange={(e) => set("favorite_exercises", toList(e.target.value))}
           />
+        </SectionCard>
+
+        <SectionCard
+          icon={CheckCircle2}
+          title="Health & safety acknowledgement"
+          hint="Required before Smarty Coach can create any workout"
+        >
+          <label className="flex min-h-14 cursor-pointer items-start gap-3 rounded-2xl border border-border bg-background p-4 text-sm leading-5">
+            <input
+              type="checkbox"
+              className="mt-0.5 h-5 w-5 shrink-0 accent-primary"
+              checked={Boolean(p.health_acknowledged_at)}
+              onChange={(event) =>
+                set("health_acknowledged_at", event.target.checked ? new Date().toISOString() : null)
+              }
+            />
+            <span>
+              I understand this is not medical advice. I choose to continue and will stop if I feel pain, dizziness or unusual symptoms.
+            </span>
+          </label>
         </SectionCard>
 
         <SectionCard

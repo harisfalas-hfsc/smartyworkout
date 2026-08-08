@@ -40,7 +40,7 @@ function Auth() {
 
   const goNext = () => {
     if (next) window.location.href = next;
-    else navigate({ to: "/", replace: true });
+    else navigate({ to: "/profile", replace: true });
   };
 
   useEffect(() => {
@@ -156,7 +156,7 @@ function Auth() {
           <h1 style={{ fontWeight: 800, fontSize: 24, color: "#14213A", letterSpacing: "-0.01em" }}>
             Create your account
           </h1>
-          <p className="-mt-1 text-sm" style={{ color: "#6B7A90" }}>Saved securely to your account.</p>
+          <p className="-mt-1 text-sm" style={{ color: "#6B7A90" }}>Next, complete your mandatory Training Profile.</p>
           <div className="space-y-1.5">
             <Label htmlFor="n">Name</Label>
             <Input id="n" value={name} onChange={(e) => setName(e.target.value)} required className="h-11 rounded-xl" autoComplete="name" />
