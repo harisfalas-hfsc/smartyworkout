@@ -44,9 +44,7 @@ export function SiteFooter() {
             <p>
               © {new Date().getFullYear()}{" "}
               <span className="text-primary font-semibold">SmartyWorkout</span>
-              <span className="hidden md:inline"> — Smart training, personalized for you.</span>
             </p>
-            <p className="md:hidden whitespace-nowrap">Smart training, personalized for you.</p>
           </div>
         </div>
       </div>
