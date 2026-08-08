@@ -30,7 +30,7 @@ const ITEMS: { q: string; a: string }[] = [
   },
   {
     q: "How is SmartyWorkout different from a human coach?",
-    a: "A human coach can diagnose and treat medical conditions; SmartyWorkout cannot. What SmartyWorkout does do is package the assessment, calculation and planning work of a coach into an always-available AI, at a one-time price of €9.99 instead of a per-session fee.",
+    a: "A human coach can diagnose and treat medical conditions; SmartyWorkout cannot. What SmartyWorkout does do is package the assessment, calculation and planning work of a coach into an always-available AI, at a one-time price of a free AI tool instead of a per-session fee.",
   },
   {
     q: "How does the AI workout planner work?",
@@ -47,7 +47,7 @@ const ITEMS: { q: string; a: string }[] = [
   },
   {
     q: "How much does it cost?",
-    a: "€9.99 as a one-time payment. That includes your initial personalized plan and 2 refinement credits (3 AI generations in total). There is no subscription.",
+    a: "It's completely free. That includes your initial personalized plan and 2 refinement credits (3 AI generations in total). There is no subscription.",
   },
   {
     q: "Is SmartyWorkout medical advice?",

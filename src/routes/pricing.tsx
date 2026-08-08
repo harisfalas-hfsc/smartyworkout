@@ -7,13 +7,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
-      { title: "Pricing — SmartyWorkout AI workout plan for €9.99, one-time" },
+      { title: "Pricing — SmartyWorkout AI workout plan — free" },
       {
         name: "description",
         content:
-          "One personalized Smarty Workout Plan™ for €9.99. Includes 1, 2 or 4-week workout plan, macros, equipment list, 2 free refinements and PDF export. No subscription.",
+          "One personalized Smarty Workout Plan™ for free. Includes 1, 2 or 4-week workout plan, macros, equipment list, 2 free refinements and PDF export. No subscription.",
       },
-      { property: "og:title", content: "SmartyWorkout Pricing — €9.99 one-time" },
+      { property: "og:title", content: "SmartyWorkout Pricing — free" },
       {
         property: "og:description",
         content: "One personalized Smarty Workout Plan™. Yours to keep. No subscription.",
@@ -58,10 +58,10 @@ function PricingPage() {
 
       <SmartyCard
         tone="pink"
-        eyebrow="One-time payment"
+        eyebrow="Always free"
         eyebrowIcon="💳"
         cornerIcon={HandCoins}
-        title="€9.99"
+        title="Free"
         accent="once."
         description="One personalized plan. Yours to keep. No subscription, no hidden add-ons, no monthly fee."
       >
@@ -110,7 +110,7 @@ function PricingPage() {
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <Button asChild size="lg">
-            <Link to="/questionnaire">Create my workout plan — €9.99</Link>
+            <Link to="/questionnaire">Create my workout plan — free</Link>
           </Button>
           <Button asChild size="lg" variant="outline">
             <Link to="/how-it-works">How it works</Link>

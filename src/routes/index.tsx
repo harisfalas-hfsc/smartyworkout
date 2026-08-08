@@ -16,7 +16,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Answer a smart questionnaire, get a fully personalized workout plan built around your body, goals, food preferences and constraints. Just €9.99, one time.",
+          "Answer a smart questionnaire, get a fully personalized workout plan built around your body, goals, food preferences and constraints. Completely free.",
       },
       {
         property: "og:title",
@@ -146,8 +146,8 @@ function Home() {
         </h1>
         <p className="mt-3 text-[15px] leading-relaxed text-[rgba(232,238,247,0.82)]">
           Answer a smart questionnaire. Get a full 1, 2 or 4-week workout plan
-          tailored to your body, goals, food preferences and constraints. €9.99
-          — one-time payment.
+          tailored to your body, goals, food preferences and constraints. Free
+          — free plan.
         </p>
         <Link
           to={heroCtaTo}
@@ -190,7 +190,7 @@ function Home() {
             <p className="mt-5 text-base leading-relaxed text-white/80 lg:mt-6 lg:text-lg">
               Answer a smart questionnaire. Get a full 1, 2 or 4-week workout plan
               tailored to your body, goals, food preferences and constraints.
-              €9.99 — one-time payment.
+              Free — no card required.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <Link
@@ -224,7 +224,7 @@ function Home() {
           cornerIcon={Sparkles}
           title="From questionnaire"
           accent="to plan."
-          description="Three steps. One payment. No subscription."
+          description="Three steps. No payment. No subscription."
         >
           <div className="mt-2 grid gap-6 sm:grid-cols-3 sm:gap-4">
             {STEPS.map((s) => (
@@ -261,10 +261,10 @@ function Home() {
 
           <div className="mt-8 border-t border-border pt-8 text-center">
             <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-              One-time payment
+              Always free
             </p>
             <p className="mt-2 text-5xl font-extrabold tracking-tight">
-              €9.99
+              Free
             </p>
             <p className="mt-2 text-sm text-muted-foreground">
               One personalized plan. Yours to keep.
