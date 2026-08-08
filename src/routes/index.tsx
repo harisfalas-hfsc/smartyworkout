@@ -61,24 +61,22 @@ const STEPS = [
     n: 2,
     color: "text-orange-500",
     title: "Build",
-    desc: "We generate your tailored plan.",
+    desc: "We generate your tailored workout.",
   },
   {
     n: 3,
     color: "text-sky-500",
     title: "Get",
-    desc: "Meals, macros & equipment list.",
+    desc: "Your tailor-made workout.",
   },
 ];
 
 const INCLUDES = [
-  "Calorie & macro targets",
-  "Full 1, 2 or 4-week workout plan",
-  "Weekly equipment list",
-  "2 free refinements",
+  "Your training program",
   "PDF export + printable list",
   "Saved to your account",
 ];
+
 
 function Home() {
   const { user, loading } = useAuth();
