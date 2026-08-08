@@ -76,14 +76,6 @@ function Privacy() {
         <li>Your generated workout plans, equipment lists, and plan history.</li>
       </ul>
 
-      <h3>Payment Data</h3>
-      <ul>
-        <li>
-          Payment records for each one-time plan purchase are processed by Stripe. We do not store
-          your full card details on our servers.
-        </li>
-      </ul>
-
       <h3>Usage &amp; Technical Data</h3>
       <ul>
         <li>Technical data such as IP address, browser type, device type, and operating system.</li>
@@ -93,12 +85,11 @@ function Privacy() {
       <h2>2. How We Use Your Data</h2>
       <ul>
         <li>Generate your personalized training plan and equipment list.</li>
-        <li>Exclude allergens, disliked foods, and restricted items from your plan.</li>
+        <li>Exclude injuries, disliked exercises, and unavailable equipment from your plan.</li>
         <li>Apply your refinement requests using remaining credits.</li>
         <li>Save your plans and history so you can view them at any time.</li>
-        <li>Process one-time plan payments via Stripe.</li>
         <li>
-          Send transactional emails (account, security, billing) and, with consent, product updates.
+          Send transactional emails (account, security) and, with consent, product updates.
         </li>
         <li>Improve SmartyWorkout through anonymized, aggregated analytics.</li>
         <li>Ensure legal compliance and platform security.</li>
@@ -112,12 +103,12 @@ function Privacy() {
         <li><strong>Consent (Art. 6(1)(a)):</strong> Marketing emails, optional analytics.</li>
         <li>
           <strong>Contractual necessity (Art. 6(1)(b)):</strong> Running the questionnaire, generating
-          plans, processing your purchases.
+          plans, and saving your plan history.
         </li>
-        <li><strong>Legal obligation (Art. 6(1)(c)):</strong> Tax and accounting records, fraud prevention.</li>
+        <li><strong>Legal obligation (Art. 6(1)(c)):</strong> Record keeping, fraud prevention.</li>
         <li><strong>Legitimate interests (Art. 6(1)(f)):</strong> Service security, product improvement.</li>
         <li>
-          <strong>Health-related self-reports</strong> (allergies, conditions, medications, pregnancy)
+          <strong>Health-related self-reports</strong> (injuries, conditions, medications, pregnancy)
           are processed only with your explicit consent and used solely to make your plan safer and
           more relevant. We do not share them for any other purpose.
         </li>
@@ -125,12 +116,6 @@ function Privacy() {
 
       <h2>4. Data Sharing &amp; Sub-Processors</h2>
       <ul>
-        <li>
-          <strong>Stripe</strong> — payment processing (PCI DSS compliant).{" "}
-          <a href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer">
-            Stripe Privacy Policy
-          </a>
-        </li>
         <li><strong>Lovable Cloud</strong> — database hosting and authentication.</li>
         <li>
           <strong>AI provider(s)</strong> — used only to generate your personalized plan from your
@@ -193,7 +178,6 @@ function Privacy() {
       <ul>
         <li><strong>Essential:</strong> authentication tokens, session security, fraud prevention.</li>
         <li><strong>Functional:</strong> UI preferences, questionnaire progress.</li>
-        <li><strong>Third-party (Stripe):</strong> payment fraud prevention at checkout.</li>
       </ul>
 
       <h2>9. Children</h2>

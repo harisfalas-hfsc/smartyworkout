@@ -96,37 +96,24 @@ function Terms() {
         <li>You are responsible for all activity that occurs under your account.</li>
       </ul>
 
-      <h2>5. Payments (Pay-Per-Plan)</h2>
+      <h2>5. Pricing (Free Service)</h2>
       <ul>
         <li>
-          SmartyWorkout operates on a <strong>pay-per-plan</strong> model. There is no subscription and
-          no recurring billing. Each plan is purchased as a one-time payment (currently €9.99 per
-          plan).
+          SmartyWorkout is <strong>free to use</strong>. There is no subscription, no one-time fee and
+          no payment details are collected.
         </li>
         <li>
-          Each purchase unlocks <strong>3 AI credits</strong>: 1 initial plan generation plus 2
-          refinements. Once all 3 credits have been used, the plan is locked as final and a new
-          purchase is required to start a new plan.
+          Each plan includes <strong>3 AI credits</strong>: 1 initial plan generation plus 2
+          refinements. Once all 3 credits have been used, the plan is locked as final and you can
+          start a new plan for free.
         </li>
-        <li>Payments are processed securely via Stripe. We do not store full card details on our servers.</li>
-        <li>All fees are stated in the currency shown at checkout and, where applicable, include VAT.</li>
       </ul>
 
-      <h2>6. Refunds &amp; Withdrawal (EU Consumer Rights)</h2>
+      <h2>6. Availability</h2>
       <ul>
         <li>
-          Under EU Directive 2011/83/EU, EU consumers ordinarily have a{" "}
-          <strong>14-day right of withdrawal</strong> for digital services that have not yet been
-          consumed.
-        </li>
-        <li>
-          By generating a plan after purchase, you expressly request immediate performance and
-          acknowledge that you waive your right of withdrawal once the initial generation credit has
-          been used.
-        </li>
-        <li>
-          Unused plan credits may be refunded on request within 14 days of purchase. Once the first
-          generation has been consumed, no refund will be provided except where required by law.
+          Because the service is free, it is provided &quot;as is&quot; and we may change, limit or
+          discontinue features at any time.
         </li>
         <li>Your statutory consumer rights under EU and national law remain unaffected.</li>
       </ul>
@@ -177,7 +164,6 @@ function Terms() {
 
       <h2>9. Third-Party Services</h2>
       <ul>
-        <li><strong>Stripe:</strong> Processes all payments. Stripe&apos;s terms and privacy policy apply.</li>
         <li><strong>Lovable Cloud:</strong> Hosts the database and authentication.</li>
         <li><strong>AI provider(s):</strong> Used to generate your personalized plan.</li>
       </ul>
@@ -188,8 +174,8 @@ function Terms() {
         <li>Reverse engineer, decompile, or attempt to extract the source code of SmartyWorkout.</li>
         <li>Use SmartyWorkout for any unlawful, harmful, or fraudulent purpose.</li>
         <li>Upload malicious content or attempt to interfere with the service.</li>
-        <li>Resell, sublicense, or share access to your account, credits, or generated plans.</li>
-        <li>Use SmartyWorkout to provide medical or trainingal advice to other people.</li>
+        <li>Resell, sublicense, or share access to your account or generated plans.</li>
+        <li>Use SmartyWorkout to provide medical or training advice to other people.</li>
       </ul>
 
       <h2>11. Intellectual Property</h2>
