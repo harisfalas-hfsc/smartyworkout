@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { UploadCloud, FileJson, Images } from "lucide-react";
@@ -34,70 +34,17 @@ export const Route = createFileRoute("/admin/exercise-library")({
 });
 
 function Page() {
-  const [signedIn, setSignedIn] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    void supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) =>
-      setSignedIn(!!session),
-    );
-    return () => sub.subscription.unsubscribe();
-  }, []);
-
   return (
     <div className="flex min-h-[100dvh] w-full flex-col bg-background text-foreground">
       <main className="mx-auto w-full max-w-[1100px] px-4 pb-16 pt-4 lg:px-8">
-        {signedIn === false ? <InlineSignIn /> : <Uploader />}
+        <Uploader />
       </main>
     </div>
   );
 }
 
-function InlineSignIn() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    setError(null);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) setError(error.message);
-    setBusy(false);
-  }
 
-  return (
-    <Card className="mx-auto mt-10 max-w-md">
-      <CardHeader>
-        <CardTitle className="text-base">Sign in to upload</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={submit} className="space-y-3">
-          <Input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <Input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          {error && <p className="text-sm text-destructive">{error}</p>}
-          <Button type="submit" className="w-full" disabled={busy}>
-            {busy ? "Signing in…" : "Sign in"}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
-  );
-}
 
 
 type Status = {
