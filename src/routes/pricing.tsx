@@ -51,7 +51,9 @@ function PricingPage() {
         eyebrow="Pricing"
         title={
           <>
-            One subscription. <span className="text-primary">Everything included.</span>
+            One subscription
+            <br />
+            <span className="text-primary">Everything included</span>
           </>
         }
         subtitle="Train with Smarty Coach every day — no add-ons, no upsells."

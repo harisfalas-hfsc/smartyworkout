@@ -52,7 +52,7 @@ function HowItWorks() {
         eyebrow="How it works"
         title={
           <>
-            Simple &amp; <span className="text-primary">transparent.</span>
+            Simple &amp; <span className="text-primary">transparent</span>
           </>
         }
         subtitle="You answer. Smarty Coach thinks. You train. No fluff. Just four steps."
