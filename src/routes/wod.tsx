@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/carousel";
 import { getDailyHub, setWodSubscription } from "@/lib/daily.functions";
 
-export const Route = createFileRoute("/_authenticated/wod")({
+export const Route = createFileRoute("/wod")({
   head: () => ({
     meta: [
       { title: "Workout of the Day — Smarty Workout" },
