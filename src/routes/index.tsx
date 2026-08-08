@@ -146,8 +146,8 @@ function Home() {
         </h1>
         <p className="mt-3 text-[15px] leading-relaxed text-[rgba(232,238,247,0.82)]">
           Answer a smart questionnaire. Get a full 1, 2 or 4-week workout plan
-          tailored to your body, goals, food preferences and constraints. Free
-          — free plan.
+          tailored to your body, goals, equipment and constraints. Free — no card
+          required.
         </p>
         <Link
           to={heroCtaTo}
@@ -189,7 +189,7 @@ function Home() {
             </h1>
             <p className="mt-5 text-base leading-relaxed text-white/80 lg:mt-6 lg:text-lg">
               Answer a smart questionnaire. Get a full 1, 2 or 4-week workout plan
-              tailored to your body, goals, food preferences and constraints.
+              tailored to your body, goals, equipment and constraints.
               Free — no card required.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-3">

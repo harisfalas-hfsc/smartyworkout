@@ -52,18 +52,18 @@ function PricingPage() {
           Simple pricing. <span className="text-primary">No subscription.</span>
         </h1>
         <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
-          Pay once, get your personalized plan. Come back only if you want a new one.
+          Get your personalized plan for free. Come back whenever you want a new one.
         </p>
       </div>
 
       <SmartyCard
         tone="pink"
         eyebrow="Always free"
-        eyebrowIcon="💳"
+        eyebrowIcon="🎁"
         cornerIcon={HandCoins}
         title="Free"
-        accent="once."
-        description="One personalized plan. Yours to keep. No subscription, no hidden add-ons, no monthly fee."
+        accent="forever."
+        description="One personalized plan. Yours to keep. No subscription, no card, no hidden add-ons."
       >
         <div className="grid gap-6 lg:grid-cols-2">
           <div
