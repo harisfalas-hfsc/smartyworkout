@@ -20,6 +20,7 @@ export type GenerateInput = {
   format?: Format | null;
   equipmentMode: EquipmentMode;
   customEquipment?: string[];
+  customEquipmentRaw?: string;
   selectedEquipment: string[];
   stars: number;
   minutes: number;
@@ -99,11 +100,14 @@ export async function generateWorkoutContent(
   const level = starsToLevel(input.stars);
   const format = pickFormat(input.category, input.format ?? null);
   const all = await loadAllExercises(supabase);
+  const customEquipment = input.customEquipmentRaw
+    ? resolveCustomEquipment(all, input.customEquipmentRaw)
+    : (input.customEquipment ?? []);
   const pool = filterPool(all, {
     category: input.category,
     equipmentMode: input.equipmentMode,
     selectedEquipment: input.selectedEquipment,
-    customEquipment: input.customEquipment ?? [],
+    customEquipment,
     level,
     focus: input.focus ?? null,
   });
@@ -121,7 +125,7 @@ export async function generateWorkoutContent(
       format,
       equipmentMode: input.equipmentMode,
       selectedEquipment: input.selectedEquipment,
-      ...(input.customEquipment?.length ? { customEquipment: input.customEquipment } : {}),
+      ...(customEquipment.length ? { customEquipment } : {}),
       level,
       stars: input.stars,
       duration,
