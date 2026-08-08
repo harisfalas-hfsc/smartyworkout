@@ -71,7 +71,18 @@ export const Route = createFileRoute("/api/public/hooks/daily-run")({
               workouts += res.created;
             }
           } catch (e) {
-            failures.push(`wod:${prof.id}:${e instanceof Error ? e.message : "error"}`);
+            const message = e instanceof Error ? e.message : "error";
+            failures.push(`wod:${prof.id}:${message}`);
+            if (
+              message.includes("Training Profile") ||
+              message.includes("health and safety") ||
+              message.includes("membership")
+            ) {
+              await db
+                .from("profiles")
+                .update({ wod_mode: false, auto_workout_enabled: false } as never)
+                .eq("id", prof.id);
+            }
           }
         }
 

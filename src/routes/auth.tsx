@@ -39,7 +39,7 @@ function Auth() {
   const [resetSent, setResetSent] = useState(false);
 
   const goNext = () => {
-    if (next) window.location.href = next;
+    if (next) navigate({ to: next as never, replace: true });
     else navigate({ to: "/profile", replace: true });
   };
 
