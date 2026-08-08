@@ -62,8 +62,8 @@ function equipmentListFor(prof: DailyProfile | null): string[] {
 }
 
 /**
- * Creates today's Workout of the Day for one athlete — two sessions on training days
- * (one bodyweight, one equipment-based) and a single session on recovery days.
+ * Creates today's Workout of the Day for one athlete — two workouts on training days
+ * (one bodyweight, one equipment-based) and one workout on recovery days.
  * Idempotent per local day and per variant.
  */
 export async function runWodForUser(

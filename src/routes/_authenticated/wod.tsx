@@ -1,10 +1,10 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { ChevronLeft, ChevronRight, Dumbbell, Home, Loader2, Play, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, Dumbbell, Home, Loader2, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { generateTodayWod, getDailyHub, setWodSubscription } from "@/lib/daily.functions";
+import { getDailyHub, setWodSubscription } from "@/lib/daily.functions";
 
 export const Route = createFileRoute("/_authenticated/wod")({
   head: () => ({
@@ -83,9 +83,7 @@ function WorkoutCard({ workout }: { workout: WodWorkout }) {
 }
 
 function WodPage() {
-  const navigate = useNavigate();
   const load = useServerFn(getDailyHub);
-  const build = useServerFn(generateTodayWod);
   const setSub = useServerFn(setWodSubscription);
   const [hub, setHub] = useState<Hub | null>(null);
   const [busy, setBusy] = useState(false);
@@ -128,23 +126,6 @@ function WodPage() {
 
   async function refresh() {
     setHub(await load({}));
-  }
-
-  async function make() {
-    if (busy) return;
-    setBusy(true);
-    try {
-      const res = await build({});
-      if (res.ids.length > 1) {
-        await refresh();
-      } else {
-        navigate({ to: "/workout/$workoutId", params: { workoutId: res.id } });
-      }
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not build today's workouts.");
-    } finally {
-      setBusy(false);
-    }
   }
 
   async function toggleSub(subscribe: boolean) {
@@ -193,7 +174,7 @@ function WodPage() {
         </p>
       </div>
 
-      <section className="rounded-2xl border-2 border-primary/40 bg-card px-5 py-6 shadow-sm sm:px-8">
+      <section className="rounded-2xl border border-border bg-card px-5 py-5 shadow-sm sm:px-8">
         <p className="text-center text-[14px] leading-6 text-muted-foreground">
           Get <strong className="text-foreground">two workouts</strong> every day: one bodyweight
           and one using your equipment. <strong className="text-primary">Smarty Coach</strong>{" "}
@@ -201,7 +182,10 @@ function WodPage() {
           like having a personal trainer choose the best workout for you.
         </p>
 
-        <div className="mt-6 flex items-center justify-center gap-5 text-xs font-medium text-muted-foreground">
+      </section>
+
+      <section className="overflow-hidden rounded-2xl border-2 border-primary/60 bg-card py-4 shadow-sm">
+        <div className="flex items-center justify-center gap-5 text-xs font-medium text-muted-foreground">
           <ChevronLeft className="h-5 w-5" />
           <span>Swipe to explore</span>
           <ChevronRight className="h-5 w-5" />
@@ -209,7 +193,7 @@ function WodPage() {
         <div
           ref={trackRef}
           onScroll={onTrackScroll}
-          className="-mx-5 mt-2 flex snap-x snap-mandatory gap-3 overflow-x-auto px-[16%] pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:-mx-8 sm:px-[27%] [&::-webkit-scrollbar]:hidden"
+          className="mt-2 flex snap-x snap-mandatory gap-3 overflow-x-auto px-[16%] pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:px-[27%] [&::-webkit-scrollbar]:hidden"
         >
           {daySlides.map((item, index) => (
             <DaySlide
@@ -241,33 +225,23 @@ function WodPage() {
               <WorkoutCard key={w.id} workout={w} />
             ))}
           </div>
-        ) : (
-          <Button
-            className="h-12 w-full rounded-lg text-[15px] font-extrabold"
-            disabled={busy}
-            onClick={() => void make()}
-          >
-            {busy ? (
-              <Loader2 className="mr-2 h-4 w-4 shrink-0 animate-spin" />
-            ) : (
-              <Sparkles className="mr-2 h-4 w-4 shrink-0" />
-            )}
-            <span className="truncate">{busy ? "Building…" : "Build today's workouts"}</span>
-          </Button>
-        )}
+        ) : null}
 
         <Button
-          variant="secondary"
-          className="mt-3 h-12 w-full rounded-lg text-[15px] font-extrabold"
+          variant={subscribed ? "secondary" : "default"}
+          className={`${workouts.length ? "mt-3 " : ""}h-12 w-full rounded-lg text-[15px] font-extrabold`}
           disabled={busy}
           onClick={() => void toggleSub(!subscribed)}
         >
-          <span className="truncate">{subscribed ? "Unsubscribe" : "Subscribe"}</span>
+          {busy ? <Loader2 className="mr-2 h-4 w-4 shrink-0 animate-spin" /> : null}
+          <span className="truncate">
+            {busy ? "Please wait…" : subscribed ? "Unsubscribe" : "Subscribe"}
+          </span>
         </Button>
         <p className="mt-2 text-center text-[11px] leading-4 text-muted-foreground">
           {subscribed
-            ? "Both workouts arrive automatically at midnight, your local time — while subscribed you don't create your own workouts, Smarty Coach does it for you. Renews monthly, unsubscribe anytime."
-            : "Subscribe and today's two workouts are built right away, then every night automatically — while subscribed you can't generate your own workouts, because your two are already made for you."}
+            ? "Your two daily workouts arrive automatically. You can still open every workout you already have, but manual generation stays paused until you unsubscribe."
+            : "Subscribe and today's two workouts are built right away, then every night automatically. Manual generation is paused while subscribed because Smarty Coach already creates your daily pair."}
         </p>
 
       </section>

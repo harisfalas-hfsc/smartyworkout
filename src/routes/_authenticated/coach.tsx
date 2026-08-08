@@ -237,9 +237,9 @@ function CoachPage() {
         <div className="mb-6 rounded-3xl border-2 border-primary/40 bg-primary/5 p-5 text-center">
           <p className="text-sm font-bold uppercase tracking-[0.2em] text-primary">WOD mode is on</p>
           <p className="mt-2 text-sm text-muted-foreground">
-            You're following the 84-day periodization cycle, so Smarty Coach builds one shared
-            session per day and manual generation stays locked. Switch WOD mode off in My account
-            to create your own workouts again.
+            You're following the periodization programme, so Smarty Coach builds two workouts for
+            you each day. You can still use every workout you already have, but new manual
+            generation stays paused until you unsubscribe.
           </p>
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
             <Button asChild className="h-12 rounded-2xl font-extrabold">
