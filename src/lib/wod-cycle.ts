@@ -142,3 +142,24 @@ export function starsForCycleDay(day: CycleDay): number {
 export function cycleBlock(dayIn84: number): number {
   return Math.ceil(dayIn84 / 28);
 }
+
+export type WodLevel = "cycle" | "beginner" | "intermediate" | "advanced";
+
+const LEVEL_STARS: Record<Exclude<WodLevel, "cycle">, number> = {
+  beginner: 2,
+  intermediate: 4,
+  advanced: 6,
+};
+
+/** Stars for a cycle day, honouring a fixed level preference when set. */
+export function starsForCycleDayWithLevel(day: CycleDay, level: WodLevel = "cycle"): number {
+  if (day.category === "RECOVERY") return 1;
+  if (level === "cycle") return starsForCycleDay(day);
+  return LEVEL_STARS[level];
+}
+
+export function difficultyLabelWithLevel(day: CycleDay, level: WodLevel = "cycle"): string {
+  if (day.category === "RECOVERY") return "Recovery";
+  if (level === "cycle") return day.difficulty ?? "Recovery";
+  return level.charAt(0).toUpperCase() + level.slice(1);
+}

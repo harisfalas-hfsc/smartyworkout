@@ -239,7 +239,10 @@ export type Database = {
           typical_duration_min: number | null
           updated_at: string
           weight_kg: number | null
+          wod_level: string
           wod_mode: boolean
+          wod_renews_at: string | null
+          wod_subscribed_at: string | null
         }
         Insert: {
           age?: number | null
@@ -273,7 +276,10 @@ export type Database = {
           typical_duration_min?: number | null
           updated_at?: string
           weight_kg?: number | null
+          wod_level?: string
           wod_mode?: boolean
+          wod_renews_at?: string | null
+          wod_subscribed_at?: string | null
         }
         Update: {
           age?: number | null
@@ -307,7 +313,10 @@ export type Database = {
           typical_duration_min?: number | null
           updated_at?: string
           weight_kg?: number | null
+          wod_level?: string
           wod_mode?: boolean
+          wod_renews_at?: string | null
+          wod_subscribed_at?: string | null
         }
         Relationships: []
       }

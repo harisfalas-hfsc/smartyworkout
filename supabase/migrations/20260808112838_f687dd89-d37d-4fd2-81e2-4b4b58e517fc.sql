@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS wod_level text NOT NULL DEFAULT 'cycle', ADD COLUMN IF NOT EXISTS wod_subscribed_at timestamp with time zone, ADD COLUMN IF NOT EXISTS wod_renews_at timestamp with time zone;

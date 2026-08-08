@@ -67,7 +67,7 @@ function Chip({
     <button
       type="button"
       onClick={onClick}
-      className={`min-h-12 rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
+      className={`flex h-12 w-full items-center justify-center truncate whitespace-nowrap rounded-2xl border px-2.5 text-[13px] font-semibold leading-none transition sm:text-sm ${
         active
           ? "border-primary bg-primary text-primary-foreground shadow-sm"
           : "border-border bg-background text-foreground hover:border-primary/50"
