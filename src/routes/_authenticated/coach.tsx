@@ -270,6 +270,36 @@ function CoachPage() {
           </Grid>
         </QuestionCard>
 
+        <QuestionCard
+          step={3}
+          icon={Flame}
+          title="How hard should it be?"
+          hint="Auto blends your profile level with today's mood. Pick a level to override it."
+        >
+          <div className="grid gap-2.5 sm:grid-cols-2">
+            {LEVELS.map((l) => (
+              <button
+                key={l.id}
+                type="button"
+                onClick={() => setLevel(l.id)}
+                className={`min-h-14 rounded-2xl border px-4 py-3 text-left transition ${
+                  level === l.id
+                    ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                    : "border-border bg-background hover:border-primary/50"
+                }`}
+              >
+                <span className="block text-sm font-semibold">{l.label}</span>
+                <span
+                  className={`block text-xs ${level === l.id ? "text-primary-foreground/80" : "text-muted-foreground"}`}
+                >
+                  {l.hint}
+                </span>
+              </button>
+            ))}
+          </div>
+        </QuestionCard>
+
+
         <QuestionCard step={3} icon={Clock} title="Time available">
           <Grid>
             {TIMES.map((t) => (
