@@ -150,7 +150,7 @@ export const listNotifications = createServerFn({ method: "GET" })
       .select("id,kind,title,body,workout_id,read_at,created_at")
       .eq("user_id", context.userId)
       .order("created_at", { ascending: false })
-      .limit(20);
+      .limit(100);
     const rows =
       (data as Array<{
         id: string;
@@ -174,6 +174,35 @@ export const markNotificationsRead = createServerFn({ method: "POST" })
       .is("read_at", null);
     return { ok: true };
   });
+
+/** Marks a specific set of notifications read or unread. */
+export const setNotificationsRead = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { ids: string[]; read: boolean }) => input)
+  .handler(async ({ data, context }) => {
+    if (!data.ids.length) return { ok: true };
+    await context.supabase
+      .from("notifications")
+      .update({ read_at: data.read ? new Date().toISOString() : null } as never)
+      .eq("user_id", context.userId)
+      .in("id", data.ids);
+    return { ok: true };
+  });
+
+/** Permanently deletes the given notifications. */
+export const deleteNotifications = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { ids: string[] }) => input)
+  .handler(async ({ data, context }) => {
+    if (!data.ids.length) return { ok: true };
+    await context.supabase
+      .from("notifications")
+      .delete()
+      .eq("user_id", context.userId)
+      .in("id", data.ids);
+    return { ok: true };
+  });
+
 
 /** Joins or leaves the Workout of the Day programme. */
 export const setWodSubscription = createServerFn({ method: "POST" })
