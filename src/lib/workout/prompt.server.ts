@@ -76,6 +76,7 @@ export type AthleteContext = {
   limitations?: string[] | null;
   location?: string | null;
   mood?: string | null;
+  recent_feedback?: string[] | null;
 };
 
 function athleteBlock(a?: AthleteContext): string {
