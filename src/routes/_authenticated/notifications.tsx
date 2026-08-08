@@ -118,7 +118,7 @@ function NotificationsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6">
+    <div className="mx-auto max-w-2xl px-4 py-8 sm:py-12">
       <div className="mb-5 text-center">
         <p className="text-sm font-semibold uppercase tracking-[0.25em] text-primary">
           Inbox
