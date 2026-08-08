@@ -388,6 +388,30 @@ export const saveQuestionnaire = createServerFn({ method: "POST" })
     return { id: row.id as string };
   });
 
+// Plans are free: a session is created directly, no checkout required.
+export const createSession = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { questionnaireId: string; durationWeeks: 1 | 2 | 4 }) => input)
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: row, error } = await supabase
+      .from("generation_sessions")
+      .insert({
+        user_id: userId,
+        questionnaire_id: data.questionnaireId,
+        duration_weeks: data.durationWeeks,
+        status: "paid",
+        credits_total: 3,
+        credits_used: 0,
+      })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    return { id: row.id as string };
+  });
+
+
+
 export const generatePlan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { sessionId: string; refinement?: string }) => input)
