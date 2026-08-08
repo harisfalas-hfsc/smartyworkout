@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { Crown, LogOut, Mail, User, ClipboardList } from "lucide-react";
 import { DailyCoachingSettings } from "@/components/DailyCoachingSettings";
+import { PageHeader } from "@/components/PageHeader";
 
 export const Route = createFileRoute("/_authenticated/account")({
   head: () => ({
@@ -35,13 +36,12 @@ function Account() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:py-12">
-      <div className="mb-2 text-center">
-        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-primary">
-          Smarty Workout
-        </p>
-        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">My account</h1>
-        <p className="mt-2 text-muted-foreground">Your subscription and personal details.</p>
-      </div>
+      <PageHeader
+        className="mb-2"
+        eyebrow="Smarty Workout"
+        title="My account"
+        subtitle="Your subscription and personal details."
+      />
 
       <section className="mt-6 rounded-2xl border border-border bg-card p-5">
         <div className="flex items-center gap-3">

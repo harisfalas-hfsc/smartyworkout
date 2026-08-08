@@ -3,6 +3,7 @@ import { Timer, Repeat, Dumbbell, type LucideIcon } from "lucide-react";
 import timerCard from "@/assets/tools/timer-card.jpg";
 import roundsCard from "@/assets/tools/rounds-card.jpg";
 import oneRmCard from "@/assets/tools/1rm-card.jpg";
+import { PageHeader } from "@/components/PageHeader";
 
 export const Route = createFileRoute("/tools/")({
   head: () => ({
@@ -93,17 +94,15 @@ function ToolCard({ tool }: { tool: Tool }) {
 function ToolsPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:py-12">
-      <div className="mb-8 text-center">
-        <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-          SmartyWorkout Tools
-        </p>
-        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
-          Free <span className="text-primary">training tools</span>
-        </h1>
-        <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-          Simple training tools you can use straight from your phone, mid-session.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="SmartyWorkout tools"
+        title={
+          <>
+            Free <span className="text-primary">training tools</span>
+          </>
+        }
+        subtitle="Simple training tools you can use straight from your phone, mid-session."
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {TOOLS.map((tool) => (

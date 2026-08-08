@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { RotateCcw, Plus, Minus, Volume2, VolumeX, Vibrate } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useKeepScreenAwake } from "@/hooks/useKeepScreenAwake";
+import { PageHeader } from "@/components/PageHeader";
 
 const URL = "https://smartyworkout.com/tools/rounds-tracker";
 const TITLE = "Rounds Tracker — Tap to count rounds & reps | SmartyWorkout";
@@ -256,17 +257,15 @@ function RoundsTrackerPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:py-12">
-      <div className="mb-8 text-center">
-        <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-          SmartyWorkout Tools
-        </p>
-        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
-          Rounds <span className="text-primary">Tracker</span>
-        </h1>
-        <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
-          Big-button rounds and reps counter for AMRAP, EMOM and circuit sessions.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="SmartyWorkout tools"
+        title={
+          <>
+            Rounds <span className="text-primary">Tracker</span>
+          </>
+        }
+        subtitle="Big-button rounds and reps counter for AMRAP, EMOM and circuit sessions."
+      />
 
       <Card className="overflow-hidden rounded-2xl">
         <CardContent className="flex flex-col gap-3 p-3 sm:p-4 lg:gap-4 lg:p-6">

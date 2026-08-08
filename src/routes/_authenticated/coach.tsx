@@ -38,6 +38,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { PageHeader } from "@/components/PageHeader";
 
 export const Route = createFileRoute("/_authenticated/coach")({
   head: () => ({
@@ -202,17 +203,12 @@ function CoachPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:py-12">
-      <div className="mb-6 text-center">
-        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-primary">
-          Smarty Coach
-        </p>
-        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
-          {name ? `${name}, what's your workout today?` : "What's your workout today?"}
-        </h1>
-        <p className="mt-2 text-muted-foreground">
-          Smarty Coach already knows your profile. Answer below — or let it decide for you.
-        </p>
-      </div>
+      <PageHeader
+        className="mb-6"
+        eyebrow="Smarty Coach"
+        title={name ? `${name}, what's your workout today?` : "What's your workout today?"}
+        subtitle="Smarty Coach already knows your profile. Answer below — or let it decide for you."
+      />
 
       {resuming && !busy ? (
         <div className="mb-4 rounded-2xl border border-primary/40 bg-primary/5 p-4 text-sm">

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Loader2, Flame, Trophy, Timer, Activity } from "lucide-react";
+import { PageHeader } from "@/components/PageHeader";
 
 export const Route = createFileRoute("/_authenticated/progress")({
   head: () => ({
@@ -121,15 +122,12 @@ function Progress() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:py-12">
-      <div className="mb-2 text-center">
-        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-primary">
-          Your training
-        </p>
-        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">Progress</h1>
-        <p className="mt-2 text-muted-foreground">
-          Keep showing up — Smarty Coach is tracking it all.
-        </p>
-      </div>
+      <PageHeader
+        className="mb-2"
+        eyebrow="Your training"
+        title="Progress"
+        subtitle="Keep showing up — Smarty Coach is tracking it all."
+      />
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat

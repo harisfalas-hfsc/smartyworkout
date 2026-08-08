@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Play, Pause, RotateCcw, Maximize2, Lock, Unlock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useKeepScreenAwake } from "@/hooks/useKeepScreenAwake";
+import { PageHeader } from "@/components/PageHeader";
 
 const URL = "https://smartyworkout.com/tools/workout-timer";
 const TITLE = "Workout Timer — Interval training timer | SmartyWorkout";
@@ -192,17 +193,15 @@ function WorkoutTimerPage() {
   return (
     <>
       <div className="mx-auto max-w-2xl px-4 py-8 sm:py-12">
-        <div className="mb-8 text-center">
-          <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-            SmartyWorkout Tools
-          </p>
-          <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
-            Workout <span className="text-primary">Timer</span>
-          </h1>
-          <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
-            Customizable interval timer for HIIT, Tabata and circuit training.
-          </p>
-        </div>
+        <PageHeader
+          eyebrow="SmartyWorkout tools"
+          title={
+            <>
+              Workout <span className="text-primary">Timer</span>
+            </>
+          }
+          subtitle="Customizable interval timer for HIIT, Tabata and circuit training."
+        />
 
         <Card>
           <CardContent className="p-6">

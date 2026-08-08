@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { EQUIPMENT, GOALS, LOCATIONS } from "@/lib/coach-options";
+import { PageHeader } from "@/components/PageHeader";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
@@ -254,15 +255,12 @@ function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:py-12">
-      <div className="mb-6 text-center">
-        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-primary">
-          Your profile
-        </p>
-        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">Training profile</h1>
-        <p className="mt-2 text-muted-foreground">
-          Smarty Coach reads every field below before it builds a workout.
-        </p>
-      </div>
+      <PageHeader
+        className="mb-6"
+        eyebrow="Your profile"
+        title="Training profile"
+        subtitle="Smarty Coach reads every field below before it builds a workout."
+      />
 
       <div className="space-y-4">
         <SectionCard icon={User} title="About you" hint="Basic biometrics">

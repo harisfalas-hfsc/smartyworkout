@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { CircleHelp } from "lucide-react";
 import { SmartyCard } from "@/components/SmartyCard";
 import {
+import { PageHeader } from "@/components/PageHeader";
   Accordion,
   AccordionContent,
   AccordionItem,
@@ -116,12 +117,14 @@ export const Route = createFileRoute("/faq")({
 function FAQ() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:py-12">
-      <div className="mb-6 text-center">
-        <p className="text-xs font-semibold uppercase tracking-wider text-primary">FAQ</p>
-        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
-          Your <span className="text-primary">questions</span>, answered
-        </h1>
-      </div>
+      <PageHeader
+        eyebrow="FAQ"
+        title={
+          <>
+            Your <span className="text-primary">questions</span>, answered
+          </>
+        }
+      />
 
       <SmartyCard
         tone="cyan"

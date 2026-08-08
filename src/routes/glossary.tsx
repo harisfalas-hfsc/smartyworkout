@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { PageHeader } from "@/components/PageHeader";
 
 const URL = "https://smartyworkout.com/glossary";
 const TITLE = "Training Glossary — 25+ terms defined | SmartyWorkout";
@@ -147,12 +148,11 @@ export const Route = createFileRoute("/glossary")({
 function GlossaryPage() {
   return (
     <article className="mx-auto max-w-3xl px-5 py-12 sm:py-16">
-      <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-        Training Glossary
-      </h1>
-      <p className="mt-3 text-muted-foreground">
-        Every metric, diet pattern and concept SmartyWorkout uses, defined in plain language.
-      </p>
+      <PageHeader
+        eyebrow="Glossary"
+        title="Training Glossary"
+        subtitle="Every metric, training pattern and concept SmartyWorkout uses, defined in plain language."
+      />
 
       <dl className="mt-8 divide-y divide-border">
         {TERMS.map((t) => (

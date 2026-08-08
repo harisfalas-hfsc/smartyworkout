@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Loader2, Search, X, Dumbbell } from "lucide-react";
 import { ExerciseGif } from "@/components/ExerciseGif";
+import { PageHeader } from "@/components/PageHeader";
 
 const URL = "https://smartyworkout.com/exercise-library";
 const TITLE = "Exercise Library — 1,300+ exercise demonstrations | SmartyWorkout";
@@ -183,18 +184,15 @@ function ExerciseLibraryPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:py-12">
-      <div className="mb-8 text-center">
-        <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-          Exercise Library
-        </p>
-        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
-          Every <span className="text-primary">movement</span>, demonstrated
-        </h1>
-        <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
-          Browse the exercise database Smarty Coach builds your sessions from. Filter by body part,
-          equipment, target muscle or difficulty.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Exercise library"
+        title={
+          <>
+            Every <span className="text-primary">movement</span>, demonstrated
+          </>
+        }
+        subtitle="Browse the exercise database Smarty Coach builds your sessions from. Filter by body part, equipment, target muscle or difficulty."
+      />
 
       <Card className="mb-6 border-2 border-primary/30">
         <CardContent className="space-y-3 p-4 sm:p-6">
