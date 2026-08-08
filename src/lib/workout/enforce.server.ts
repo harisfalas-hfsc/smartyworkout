@@ -44,6 +44,15 @@ function dropListItems(body: string, predicate: (itemHtml: string) => boolean): 
 const SOFT_TISSUE_ALLOWED =
   /^(foam[\s-]?roll|foam roller|lacrosse ball|tennis ball|trigger point|self-?massage|myofascial release)/i;
 
+/** Loaded apparatus that must never appear in Activation (movement prep only). */
+const ACTIVATION_BANNED_EQUIPMENT_RE =
+  /\b(barbell|dumbbell|kettlebell|machine|cable|smith|ez[\s-]?bar|olympic|sled|weighted|leverage|trap bar|hammer)\b/i;
+
+/** Heavy strength / high-impact patterns that are not movement preparation. */
+const ACTIVATION_BANNED_PATTERN_RE =
+  /\b(deadlift|bench press|back squat|front squat|overhead press|push press|clean|snatch|jerk|thruster|deep push-?up|decline push-?up|weighted|pull-?up|chin-?up|muscle-?up|burpee|box jump|sprint|dip)\b/i;
+
+
 /**
  * Layer 1-4 of the post-generation pipeline: token repair, section hygiene,
  * category bans and prescription checks. Returns cleaned HTML plus findings.
