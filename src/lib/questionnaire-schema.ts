@@ -1,23 +1,22 @@
 export type Units = "metric" | "imperial";
 export type Gender = "male" | "female" | "other";
 export type ActivityLevel = "sedentary" | "light" | "moderate" | "active" | "very_active";
-export type Goal = "weight_loss" | "maintenance" | "muscle_gain" | "recomposition";
-export type DietStyle =
-  | "balanced"
-  | "mediterranean"
-  | "keto"
-  | "carnivore"
-  | "vegetarian"
-  | "vegan"
-  | "low_carb"
-  | "high_protein"
-  | "intermittent_fasting"
+export type Goal = "fat_loss" | "maintenance" | "muscle_gain" | "strength" | "endurance" | "mobility";
+export type TrainingStyle =
+  | "full_body"
+  | "upper_lower"
+  | "push_pull_legs"
+  | "bodybuilding"
+  | "powerlifting"
+  | "calisthenics"
+  | "hiit"
+  | "functional"
+  | "home_minimal"
   | "other";
-export type Budget = "low" | "medium" | "high";
+export type Experience = "beginner" | "intermediate" | "advanced";
 export type Sleep = "poor" | "average" | "good";
-export type CookingSkill = "beginner" | "intermediate" | "advanced";
-export type FastingWindow = "16:8" | "18:6" | "20:4" | "OMAD" | "custom";
-export type FastingApproach = "balanced" | "aggressive" | "very_aggressive";
+export type Environment = "gym" | "home" | "outdoor" | "mixed";
+export type Intensity = "easy" | "moderate" | "hard";
 
 export interface QuestionnaireData {
   basics: {
@@ -50,41 +49,37 @@ export interface QuestionnaireData {
     goal: Goal;
     targetWeight?: number;
     timelineWeeks?: number;
-    calorieTarget?: number; // optional exact calorie target user wants
+    focusAreas?: string[];
   };
-  eating: {
-    dietStyle: DietStyle;
-    dietStyleOther?: string;
-    mealsPerDay: number;
-    preferredMealTimes?: string;
-    likedFoods: string[];
-    likedFoodsOther?: string;
-    dislikedFoods: string[];
-    dislikedFoodsOther?: string;
-    allergyTags: string[];
-    allergies: string; // free-text extra
-    culturalRestrictions: string[];
-    culturalRestrictionsOther?: string;
-    alcohol?: string;
-    caffeine?: string;
-    waterLitersPerDay?: number;
-    fasting?: {
-      window?: FastingWindow;
-      customWindow?: string;
-      approach?: FastingApproach;
-    };
+  training: {
+    trainingStyle: TrainingStyle;
+    trainingStyleOther?: string;
+    daysPerWeek: number;
+    sessionMinutes: number;
+    preferredTrainingTimes?: string;
+    likedExercises: string[];
+    likedExercisesOther?: string;
+    dislikedExercises: string[];
+    dislikedExercisesOther?: string;
+    injuryTags: string[];
+    injuries: string; // free-text extra
+    avoidTags: string[];
+    avoidTagsOther?: string;
+    cardioPreference?: string;
+    stepsGoal?: string;
+    restDayActivity?: string;
   };
   constraints: {
-    cookingSkill: CookingSkill;
-    cookingMinutesPerDay?: number;
-    budget: Budget;
+    experience: Experience;
+    warmupMinutes?: number;
+    environment: Environment;
     equipment?: string[];
-    eatingOutFrequency?: string;
+    travelFrequency?: string;
   };
   health: {
     conditions?: string;
     medications?: string;
-    pregnancyBreastfeeding?: "none" | "pregnant" | "breastfeeding";
+    pregnancyPostpartum?: "none" | "pregnant" | "postpartum";
     disclaimerAcknowledged: boolean;
   };
   notes: string;
@@ -95,16 +90,17 @@ export const DEFAULT_QUESTIONNAIRE: QuestionnaireData = {
   body: {},
   activity: { trains: false, activityLevel: "moderate", sleep: "average" },
   goal: { goal: "maintenance" },
-  eating: {
-    dietStyle: "balanced",
-    mealsPerDay: 3,
-    likedFoods: [],
-    dislikedFoods: [],
-    allergyTags: [],
-    allergies: "",
-    culturalRestrictions: [],
+  training: {
+    trainingStyle: "full_body",
+    daysPerWeek: 3,
+    sessionMinutes: 45,
+    likedExercises: [],
+    dislikedExercises: [],
+    injuryTags: [],
+    injuries: "",
+    avoidTags: [],
   },
-  constraints: { cookingSkill: "intermediate", budget: "medium" },
+  constraints: { experience: "beginner", environment: "gym" },
   health: { disclaimerAcknowledged: false },
   notes: "",
 };
@@ -114,50 +110,87 @@ export const STEP_LABELS = [
   "Body",
   "Activity",
   "Goal",
-  "Eating",
+  "Training",
   "Constraints",
   "Health",
   "Notes",
 ];
 
-export const FOOD_CATEGORIES: Array<{ label: string; foods: string[] }> = [
+export const EXERCISE_CATEGORIES: Array<{ label: string; exercises: string[] }> = [
   {
-    label: "Proteins",
-    foods: ["chicken", "beef", "pork", "turkey", "eggs", "fish", "tuna", "salmon", "shrimp", "tofu"],
+    label: "Push",
+    exercises: [
+      "bench press",
+      "push-up",
+      "overhead press",
+      "dumbbell press",
+      "dips",
+      "cable fly",
+    ],
   },
   {
-    label: "Dairy",
-    foods: ["milk", "yogurt", "cheese", "cottage cheese", "butter"],
+    label: "Pull",
+    exercises: ["pull-up", "lat pulldown", "barbell row", "dumbbell row", "face pull", "curl"],
   },
   {
-    label: "Carbs",
-    foods: ["rice", "potatoes", "pasta", "bread", "oats", "quinoa", "couscous"],
+    label: "Legs",
+    exercises: ["squat", "front squat", "deadlift", "lunge", "leg press", "hip thrust", "calf raise"],
   },
   {
-    label: "Vegetables",
-    foods: ["spinach", "broccoli", "tomato", "cucumber", "salad greens", "peppers", "carrots", "zucchini"],
+    label: "Core",
+    exercises: ["plank", "hanging leg raise", "crunch", "dead bug", "cable crunch", "pallof press"],
   },
   {
-    label: "Fruits",
-    foods: ["banana", "apple", "berries", "orange", "grapes", "watermelon"],
+    label: "Cardio",
+    exercises: ["running", "cycling", "rowing", "jump rope", "incline walking", "swimming"],
   },
   {
-    label: "Legumes & Nuts",
-    foods: ["lentils", "chickpeas", "beans", "almonds", "walnuts", "peanuts", "peanut butter"],
+    label: "Mobility",
+    exercises: ["hip mobility", "shoulder mobility", "stretching", "yoga flow", "foam rolling"],
   },
 ];
 
-export const ALLERGY_TAGS = [
+export const INJURY_TAGS = [
   "none",
-  "nuts",
-  "peanuts",
-  "dairy/lactose",
-  "gluten",
-  "eggs",
-  "shellfish",
-  "fish",
-  "soy",
-  "sesame",
+  "lower back",
+  "knee",
+  "shoulder",
+  "neck",
+  "wrist",
+  "elbow",
+  "hip",
+  "ankle",
+  "hernia",
 ];
 
-export const CULTURAL_TAGS = ["halal", "kosher", "no pork", "no beef", "no alcohol"];
+export const AVOID_TAGS = [
+  "no jumping",
+  "no running",
+  "no overhead pressing",
+  "no barbell",
+  "no floor work",
+];
+
+export const EQUIPMENT_OPTIONS = [
+  "barbell",
+  "dumbbells",
+  "kettlebell",
+  "machines",
+  "cables",
+  "resistance bands",
+  "pull-up bar",
+  "bench",
+  "treadmill",
+  "bodyweight only",
+];
+
+export const FOCUS_AREAS = [
+  "chest",
+  "back",
+  "shoulders",
+  "arms",
+  "glutes",
+  "legs",
+  "core",
+  "conditioning",
+];
