@@ -30,7 +30,7 @@ function hourLabel(h: number) {
   return `${String(h).padStart(2, "0")}:00`;
 }
 
-export function DailyCoachingSettings() {
+export function DailyCoachingSettings({ premium = false }: { premium?: boolean }) {
   const load = useServerFn(getDailyHub);
   const save = useServerFn(saveDailySettings);
   const [settings, setSettings] = useState<DailySettings | null>(null);
