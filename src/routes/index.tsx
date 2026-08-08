@@ -50,32 +50,30 @@ type CtaState =
   | { kind: "has-active"; sessionId: string }
   | { kind: "no-active" };
 
-const STEPS = [
+const DISCOVER = [
   {
-    n: 1,
+    to: "/about",
+    icon: Info,
     color: "text-emerald-500",
-    title: "Answer",
-    desc: "A short questionnaire about you.",
+    title: "About",
+    desc: "Who we are and why.",
   },
   {
-    n: 2,
+    to: "/how-it-works",
+    icon: ListChecks,
     color: "text-orange-500",
-    title: "Build",
-    desc: "We generate your tailored workout.",
+    title: "How it works",
+    desc: "Answer. Build. Train.",
   },
   {
-    n: 3,
+    to: "/faq",
+    icon: HelpCircle,
     color: "text-sky-500",
-    title: "Get",
-    desc: "Your tailor-made workout.",
+    title: "FAQ",
+    desc: "Common questions.",
   },
-];
+] as const;
 
-const INCLUDES = [
-  "Your training program",
-  "PDF export + printable list",
-  "Saved to your account",
-];
 
 
 function Home() {
