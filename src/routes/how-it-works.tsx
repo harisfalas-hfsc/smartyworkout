@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { SmartyCard } from "@/components/SmartyCard";
+import { PageHeader } from "@/components/PageHeader";
 
 export const Route = createFileRoute("/how-it-works")({
   head: () => ({
