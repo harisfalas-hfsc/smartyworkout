@@ -25,7 +25,11 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TrainingIntelligenceRouteImport } from './routes/training-intelligence'
 import { Route as TrainingScienceRouteImport } from './routes/training-science'
+import { Route as AuthenticatedCoachRouteImport } from './routes/_authenticated/coach'
+import { Route as AuthenticatedLogbookRouteImport } from './routes/_authenticated/logbook'
 import { Route as AuthenticatedPlansRouteImport } from './routes/_authenticated/plans'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedProgressRouteImport } from './routes/_authenticated/progress'
 import { Route as AuthenticatedQuestionnaireRouteImport } from './routes/_authenticated/questionnaire'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminExerciseLibraryRouteImport } from './routes/admin.exercise-library'
@@ -34,6 +38,7 @@ import { Route as ToolsBmrCalculatorRouteImport } from './routes/tools.bmr-calcu
 import { Route as ToolsCalorieCounterRouteImport } from './routes/tools.calorie-counter'
 import { Route as ToolsMacroCalculatorRouteImport } from './routes/tools.macro-calculator'
 import { Route as AuthenticatedPlansSessionIdRouteImport } from './routes/_authenticated/plans.$sessionId'
+import { Route as AuthenticatedWorkoutWorkoutIdRouteImport } from './routes/_authenticated/workout.$workoutId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -114,9 +119,29 @@ const TrainingScienceRoute = TrainingScienceRouteImport.update({
   path: '/training-science',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedCoachRoute = AuthenticatedCoachRouteImport.update({
+  id: '/coach',
+  path: '/coach',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedLogbookRoute = AuthenticatedLogbookRouteImport.update({
+  id: '/logbook',
+  path: '/logbook',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPlansRoute = AuthenticatedPlansRouteImport.update({
   id: '/plans',
   path: '/plans',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProgressRoute = AuthenticatedProgressRouteImport.update({
+  id: '/progress',
+  path: '/progress',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedQuestionnaireRoute =
@@ -161,6 +186,12 @@ const AuthenticatedPlansSessionIdRoute =
     path: '/$sessionId',
     getParentRoute: () => AuthenticatedPlansRoute,
   } as any)
+const AuthenticatedWorkoutWorkoutIdRoute =
+  AuthenticatedWorkoutWorkoutIdRouteImport.update({
+    id: '/workout/$workoutId',
+    path: '/workout/$workoutId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -178,7 +209,11 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/training-intelligence': typeof TrainingIntelligenceRoute
   '/training-science': typeof TrainingScienceRoute
+  '/coach': typeof AuthenticatedCoachRoute
+  '/logbook': typeof AuthenticatedLogbookRoute
   '/plans': typeof AuthenticatedPlansRouteWithChildren
+  '/profile': typeof AuthenticatedProfileRoute
+  '/progress': typeof AuthenticatedProgressRoute
   '/questionnaire': typeof AuthenticatedQuestionnaireRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
   '/tools/bmr-calculator': typeof ToolsBmrCalculatorRoute
@@ -187,6 +222,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/plans/$sessionId': typeof AuthenticatedPlansSessionIdRoute
+  '/workout/$workoutId': typeof AuthenticatedWorkoutWorkoutIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -204,7 +240,11 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/training-intelligence': typeof TrainingIntelligenceRoute
   '/training-science': typeof TrainingScienceRoute
+  '/coach': typeof AuthenticatedCoachRoute
+  '/logbook': typeof AuthenticatedLogbookRoute
   '/plans': typeof AuthenticatedPlansRouteWithChildren
+  '/profile': typeof AuthenticatedProfileRoute
+  '/progress': typeof AuthenticatedProgressRoute
   '/questionnaire': typeof AuthenticatedQuestionnaireRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
   '/tools/bmr-calculator': typeof ToolsBmrCalculatorRoute
@@ -213,6 +253,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/tools': typeof ToolsIndexRoute
   '/plans/$sessionId': typeof AuthenticatedPlansSessionIdRoute
+  '/workout/$workoutId': typeof AuthenticatedWorkoutWorkoutIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -232,7 +273,11 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/training-intelligence': typeof TrainingIntelligenceRoute
   '/training-science': typeof TrainingScienceRoute
+  '/_authenticated/coach': typeof AuthenticatedCoachRoute
+  '/_authenticated/logbook': typeof AuthenticatedLogbookRoute
   '/_authenticated/plans': typeof AuthenticatedPlansRouteWithChildren
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/progress': typeof AuthenticatedProgressRoute
   '/_authenticated/questionnaire': typeof AuthenticatedQuestionnaireRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
   '/tools/bmr-calculator': typeof ToolsBmrCalculatorRoute
@@ -241,6 +286,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/_authenticated/plans/$sessionId': typeof AuthenticatedPlansSessionIdRoute
+  '/_authenticated/workout/$workoutId': typeof AuthenticatedWorkoutWorkoutIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -260,7 +306,11 @@ export interface FileRouteTypes {
     | '/terms'
     | '/training-intelligence'
     | '/training-science'
+    | '/coach'
+    | '/logbook'
     | '/plans'
+    | '/profile'
+    | '/progress'
     | '/questionnaire'
     | '/admin/exercise-library'
     | '/tools/bmr-calculator'
@@ -269,6 +319,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/tools/'
     | '/plans/$sessionId'
+    | '/workout/$workoutId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -286,7 +337,11 @@ export interface FileRouteTypes {
     | '/terms'
     | '/training-intelligence'
     | '/training-science'
+    | '/coach'
+    | '/logbook'
     | '/plans'
+    | '/profile'
+    | '/progress'
     | '/questionnaire'
     | '/admin/exercise-library'
     | '/tools/bmr-calculator'
@@ -295,6 +350,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/tools'
     | '/plans/$sessionId'
+    | '/workout/$workoutId'
   id:
     | '__root__'
     | '/'
@@ -313,7 +369,11 @@ export interface FileRouteTypes {
     | '/terms'
     | '/training-intelligence'
     | '/training-science'
+    | '/_authenticated/coach'
+    | '/_authenticated/logbook'
     | '/_authenticated/plans'
+    | '/_authenticated/profile'
+    | '/_authenticated/progress'
     | '/_authenticated/questionnaire'
     | '/admin/exercise-library'
     | '/tools/bmr-calculator'
@@ -322,6 +382,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/tools/'
     | '/_authenticated/plans/$sessionId'
+    | '/_authenticated/workout/$workoutId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -463,11 +524,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TrainingScienceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/coach': {
+      id: '/_authenticated/coach'
+      path: '/coach'
+      fullPath: '/coach'
+      preLoaderRoute: typeof AuthenticatedCoachRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/logbook': {
+      id: '/_authenticated/logbook'
+      path: '/logbook'
+      fullPath: '/logbook'
+      preLoaderRoute: typeof AuthenticatedLogbookRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/plans': {
       id: '/_authenticated/plans'
       path: '/plans'
       fullPath: '/plans'
       preLoaderRoute: typeof AuthenticatedPlansRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/progress': {
+      id: '/_authenticated/progress'
+      path: '/progress'
+      fullPath: '/progress'
+      preLoaderRoute: typeof AuthenticatedProgressRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/questionnaire': {
@@ -526,6 +615,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlansSessionIdRouteImport
       parentRoute: typeof AuthenticatedPlansRoute
     }
+    '/_authenticated/workout/$workoutId': {
+      id: '/_authenticated/workout/$workoutId'
+      path: '/workout/$workoutId'
+      fullPath: '/workout/$workoutId'
+      preLoaderRoute: typeof AuthenticatedWorkoutWorkoutIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -541,13 +637,23 @@ const AuthenticatedPlansRouteWithChildren =
   AuthenticatedPlansRoute._addFileChildren(AuthenticatedPlansRouteChildren)
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedCoachRoute: typeof AuthenticatedCoachRoute
+  AuthenticatedLogbookRoute: typeof AuthenticatedLogbookRoute
   AuthenticatedPlansRoute: typeof AuthenticatedPlansRouteWithChildren
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedProgressRoute: typeof AuthenticatedProgressRoute
   AuthenticatedQuestionnaireRoute: typeof AuthenticatedQuestionnaireRoute
+  AuthenticatedWorkoutWorkoutIdRoute: typeof AuthenticatedWorkoutWorkoutIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedCoachRoute: AuthenticatedCoachRoute,
+  AuthenticatedLogbookRoute: AuthenticatedLogbookRoute,
   AuthenticatedPlansRoute: AuthenticatedPlansRouteWithChildren,
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedProgressRoute: AuthenticatedProgressRoute,
   AuthenticatedQuestionnaireRoute: AuthenticatedQuestionnaireRoute,
+  AuthenticatedWorkoutWorkoutIdRoute: AuthenticatedWorkoutWorkoutIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
