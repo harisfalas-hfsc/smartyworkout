@@ -123,11 +123,21 @@ export function Navigation() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link to="/plans">My plans</Link>
+                  <Link to="/coach">Smarty Coach</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/questionnaire">New plan</Link>
+                  <Link to="/logbook">Logbook</Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/progress">Progress</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/profile">Training profile</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/plans">My plans</Link>
+                </DropdownMenuItem>
+
                 {isAdmin && (
                   <DropdownMenuItem asChild>
                     <Link to="/admin">
