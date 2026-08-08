@@ -15,6 +15,7 @@ export type CoachRequest = {
   minutes?: number;
   location?: string;
   equipment?: string[];
+  equipmentOther?: string;
   focus?: string;
   format?: string;
   note?: string;
@@ -61,6 +62,8 @@ export const generateWorkout = createServerFn({ method: "POST" })
         ? "BODYWEIGHT"
         : "EQUIPMENT";
 
+    const equipmentOther = String(data.equipmentOther ?? "").slice(0, 200);
+
     let category: Category = GOAL_TO_CATEGORY[goal] ?? "STRENGTH";
 
     const [{ data: profile }, { data: recent }] = await Promise.all([
@@ -105,6 +108,7 @@ export const generateWorkout = createServerFn({ method: "POST" })
         format,
         equipmentMode,
         selectedEquipment: equipmentIds,
+        ...(equipmentOther ? { customEquipmentRaw: equipmentOther } : {}),
         stars,
         minutes,
         focus: (data.focus as StrengthFocus | undefined) ?? null,

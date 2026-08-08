@@ -108,6 +108,7 @@ export type PromptInput = {
   format: Format;
   equipmentMode: EquipmentMode;
   selectedEquipment: string[];
+  customEquipment?: string[];
   level: DifficultyLevel;
   stars: number;
   duration: string;
@@ -182,7 +183,7 @@ The "main_workout" field contains ALL sections joined in order.`;
 
   const user = `WORKOUT REQUEST
 Category: ${input.category}
-Available equipment (strict allowlist): ${input.selectedEquipment.join(", ")}
+Available equipment (strict allowlist): ${[...input.selectedEquipment.filter((x) => x !== "other"), ...(input.customEquipment ?? [])].join(", ")}
 Never use any apparatus outside this list, even during Activation or Cool Down.
 Difficulty: ${input.stars} stars (${input.level.toUpperCase()}) — do not mix levels
 Format: ${input.format}

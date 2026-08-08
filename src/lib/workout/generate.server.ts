@@ -19,6 +19,7 @@ export type GenerateInput = {
   category: Category;
   format?: Format | null;
   equipmentMode: EquipmentMode;
+  customEquipment?: string[];
   selectedEquipment: string[];
   stars: number;
   minutes: number;
@@ -102,6 +103,7 @@ export async function generateWorkoutContent(
     category: input.category,
     equipmentMode: input.equipmentMode,
     selectedEquipment: input.selectedEquipment,
+    customEquipment: input.customEquipment ?? [],
     level,
     focus: input.focus ?? null,
   });
@@ -119,6 +121,7 @@ export async function generateWorkoutContent(
       format,
       equipmentMode: input.equipmentMode,
       selectedEquipment: input.selectedEquipment,
+      ...(input.customEquipment?.length ? { customEquipment: input.customEquipment } : {}),
       level,
       stars: input.stars,
       duration,
