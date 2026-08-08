@@ -15,6 +15,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DisclaimerRouteImport } from './routes/disclaimer'
+import { Route as ExerciseLibraryRouteImport } from './routes/exercise-library'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as GlossaryRouteImport } from './routes/glossary'
 import { Route as HarisFalasRouteImport } from './routes/haris-falas'
@@ -67,6 +68,11 @@ const ContactRoute = ContactRouteImport.update({
 const DisclaimerRoute = DisclaimerRouteImport.update({
   id: '/disclaimer',
   path: '/disclaimer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExerciseLibraryRoute = ExerciseLibraryRouteImport.update({
+  id: '/exercise-library',
+  path: '/exercise-library',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FaqRoute = FaqRouteImport.update({
@@ -199,6 +205,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/disclaimer': typeof DisclaimerRoute
+  '/exercise-library': typeof ExerciseLibraryRoute
   '/faq': typeof FaqRoute
   '/glossary': typeof GlossaryRoute
   '/haris-falas': typeof HarisFalasRoute
@@ -230,6 +237,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/disclaimer': typeof DisclaimerRoute
+  '/exercise-library': typeof ExerciseLibraryRoute
   '/faq': typeof FaqRoute
   '/glossary': typeof GlossaryRoute
   '/haris-falas': typeof HarisFalasRoute
@@ -263,6 +271,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/disclaimer': typeof DisclaimerRoute
+  '/exercise-library': typeof ExerciseLibraryRoute
   '/faq': typeof FaqRoute
   '/glossary': typeof GlossaryRoute
   '/haris-falas': typeof HarisFalasRoute
@@ -296,6 +305,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/disclaimer'
+    | '/exercise-library'
     | '/faq'
     | '/glossary'
     | '/haris-falas'
@@ -327,6 +337,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/disclaimer'
+    | '/exercise-library'
     | '/faq'
     | '/glossary'
     | '/haris-falas'
@@ -359,6 +370,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/disclaimer'
+    | '/exercise-library'
     | '/faq'
     | '/glossary'
     | '/haris-falas'
@@ -392,6 +404,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
   DisclaimerRoute: typeof DisclaimerRoute
+  ExerciseLibraryRoute: typeof ExerciseLibraryRoute
   FaqRoute: typeof FaqRoute
   GlossaryRoute: typeof GlossaryRoute
   HarisFalasRoute: typeof HarisFalasRoute
@@ -452,6 +465,13 @@ declare module '@tanstack/react-router' {
       path: '/disclaimer'
       fullPath: '/disclaimer'
       preLoaderRoute: typeof DisclaimerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/exercise-library': {
+      id: '/exercise-library'
+      path: '/exercise-library'
+      fullPath: '/exercise-library'
+      preLoaderRoute: typeof ExerciseLibraryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/faq': {
@@ -666,6 +686,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
   DisclaimerRoute: DisclaimerRoute,
+  ExerciseLibraryRoute: ExerciseLibraryRoute,
   FaqRoute: FaqRoute,
   GlossaryRoute: GlossaryRoute,
   HarisFalasRoute: HarisFalasRoute,

@@ -1,23 +1,25 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { HandCoins } from "lucide-react";
+import { Crown } from "lucide-react";
 import { SmartyCard, SmartyPill, toneClasses } from "@/components/SmartyCard";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
-      { title: "Pricing — SmartyWorkout AI workout plan — free" },
+      { title: "Pricing — SmartyWorkout subscription €9.99/month" },
       {
         name: "description",
         content:
-          "One personalized Smarty Workout Plan™ for free. Includes 1, 2 or 4-week workout plan, macros, equipment list, 2 free refinements and PDF export. No subscription.",
+          "One SmartyWorkout subscription: €9.99 per month for 2 AI workouts a day, the full exercise library, all training tools, your logbook and every past workout.",
       },
-      { property: "og:title", content: "SmartyWorkout Pricing — free" },
+      { property: "og:title", content: "SmartyWorkout Pricing — €9.99/month" },
       {
         property: "og:description",
-        content: "One personalized Smarty Workout Plan™. Yours to keep. No subscription.",
+        content: "2 AI workouts a day, full exercise library, all tools and your training history.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { property: "og:url", content: "https://smartyworkout.com/pricing" },
     ],
     links: [{ rel: "canonical", href: "https://smartyworkout.com/pricing" }],
@@ -26,18 +28,18 @@ export const Route = createFileRoute("/pricing")({
 });
 
 const INCLUDES: { icon: string; label: string }[] = [
-  { icon: "🎯", label: "Calorie & macro targets" },
-  { icon: "🗓️", label: "1, 2 or 4-week workout plan" },
-  { icon: "🛒", label: "Weekly equipment list" },
-  { icon: "✏️", label: "2 free refinements" },
-  { icon: "📄", label: "PDF export + printable list" },
-  { icon: "☁️", label: "Saved to your account" },
+  { icon: "🏋️", label: "2 AI workouts every day" },
+  { icon: "🧠", label: "Smarty Coach personalization" },
+  { icon: "📚", label: "Full exercise library" },
+  { icon: "🕘", label: "All your previous workouts" },
+  { icon: "📓", label: "Logbook & progress tracking" },
+  { icon: "📄", label: "PDF export of any workout" },
 ];
 
-const FREE_TOOLS: { icon: string; label: string }[] = [
-  { icon: "🔥", label: "BMR Calculator" },
-  { icon: "🥧", label: "Macro Calculator" },
-  { icon: "🍎", label: "Calorie Counter" },
+const TOOLS: { icon: string; label: string }[] = [
+  { icon: "⏱️", label: "Workout Timer" },
+  { icon: "🔁", label: "Rounds Tracker" },
+  { icon: "🏋️", label: "1RM Calculator" },
 ];
 
 function PricingPage() {
@@ -45,36 +47,28 @@ function PricingPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:py-12">
       <div className="mb-8 text-center">
-        <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-          Pricing
-        </p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-primary">Pricing</p>
         <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
-          Simple pricing. <span className="text-primary">No subscription.</span>
+          One subscription. <span className="text-primary">Everything included.</span>
         </h1>
         <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
-          Get your personalized plan for free. Come back whenever you want a new one.
+          Train with Smarty Coach every day — no add-ons, no upsells.
         </p>
       </div>
 
       <SmartyCard
         tone="pink"
-        eyebrow="Always free"
-        eyebrowIcon="🎁"
-        cornerIcon={HandCoins}
-        title="Free"
-        accent="forever."
-        description="One personalized plan. Yours to keep. No subscription, no card, no hidden add-ons."
+        eyebrow="Membership"
+        eyebrowIcon="👑"
+        cornerIcon={Crown}
+        title="€9.99"
+        accent="per month."
+        description="Two personalized workouts a day plus every feature on the platform. Cancel anytime."
       >
         <div className="grid gap-6 lg:grid-cols-2">
-          <div
-            className={cn(
-              "rounded-2xl border p-4",
-              t.softBorder,
-              t.softBg,
-            )}
-          >
+          <div className={cn("rounded-2xl border p-4", t.softBorder, t.softBg)}>
             <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-foreground">
-              Your plan includes
+              Your membership includes
             </h3>
             <div className="grid gap-2 sm:grid-cols-2">
               {INCLUDES.map((it) => (
@@ -85,32 +79,26 @@ function PricingPage() {
             </div>
           </div>
 
-          <div
-            className={cn(
-              "rounded-2xl border p-4",
-              t.softBorder,
-              t.softBg,
-            )}
-          >
+          <div className={cn("rounded-2xl border p-4", t.softBorder, t.softBg)}>
             <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-foreground">
-              Free tools
+              Training tools
             </h3>
             <div className="grid gap-2">
-              {FREE_TOOLS.map((it) => (
+              {TOOLS.map((it) => (
                 <SmartyPill tone="pink" key={it.label} icon={it.icon}>
                   {it.label}
                 </SmartyPill>
               ))}
             </div>
             <p className="mt-3 text-xs text-muted-foreground">
-              Use BMR, TDEE, macro and calorie counter — no account required.
+              Timer, rounds tracker and 1RM calculator — ready mid-session.
             </p>
           </div>
         </div>
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <Button asChild size="lg">
-            <Link to="/questionnaire">Create my workout plan — free</Link>
+            <Link to="/coach">Start with Smarty Coach</Link>
           </Button>
           <Button asChild size="lg" variant="outline">
             <Link to="/how-it-works">How it works</Link>
@@ -123,4 +111,3 @@ function PricingPage() {
     </div>
   );
 }
-
