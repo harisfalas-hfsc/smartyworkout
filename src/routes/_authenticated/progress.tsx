@@ -23,6 +23,7 @@ type Row = {
   category: string;
   duration_min: number;
   status: string;
+  is_favorite: boolean | null;
   created_at: string;
 };
 
@@ -93,7 +94,7 @@ function Progress() {
     (async () => {
       const { data } = await supabase
         .from("workouts")
-        .select("id,category,duration_min,status,created_at")
+        .select("id,category,duration_min,status,is_favorite,created_at")
         .order("created_at", { ascending: false })
         .limit(500);
       setRows((data as unknown as Row[]) ?? []);
@@ -113,6 +114,7 @@ function Progress() {
   const month = completed.filter((r) => now - new Date(r.created_at).getTime() < 30 * 86400000);
   const minutes = completed.reduce((s, r) => s + (r.duration_min || 0), 0);
   const { current, longest } = streaks(completed.map((r) => r.created_at.slice(0, 10)));
+  const favourites = rows.filter((r) => r.is_favorite).length;
   const counts = new Map<string, number>();
   for (const r of completed) counts.set(r.category, (counts.get(r.category) ?? 0) + 1);
   const favourite = Array.from(counts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
