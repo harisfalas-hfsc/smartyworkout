@@ -342,12 +342,13 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <div className="flex min-h-screen flex-col bg-background">
         <Navigation />
-        <main>
+        <main className="pb-[calc(3.5rem+env(safe-area-inset-bottom))]">
           <Outlet />
         </main>
         <SiteFooter />
         <Toaster />
         <SisterAppsPopup />
+        <BottomNav />
       </div>
     </QueryClientProvider>
   );
