@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Timer, Repeat, Dumbbell } from "lucide-react";
-import { SmartyCard, SmartyRow } from "@/components/SmartyCard";
+import { Timer, Repeat, Dumbbell, type LucideIcon } from "lucide-react";
+import timerCard from "@/assets/tools/timer-card.jpg";
+import roundsCard from "@/assets/tools/rounds-card.jpg";
+import oneRmCard from "@/assets/tools/1rm-card.jpg";
 
 export const Route = createFileRoute("/tools/")({
   head: () => ({
@@ -25,6 +27,69 @@ export const Route = createFileRoute("/tools/")({
   component: ToolsPage,
 });
 
+type Tool = {
+  id: string;
+  title: string;
+  description: string;
+  to: string;
+  image: string;
+  icon: LucideIcon;
+};
+
+const TOOLS: Tool[] = [
+  {
+    id: "workout-timer",
+    title: "Workout Timer",
+    description: "Customizable interval timer for HIIT, Tabata and circuit training sessions.",
+    to: "/tools/workout-timer",
+    image: timerCard,
+    icon: Timer,
+  },
+  {
+    id: "rounds-tracker",
+    title: "Rounds Tracker",
+    description: "Big-button counter — tap to track rounds and optional reps during your workout.",
+    to: "/tools/rounds-tracker",
+    image: roundsCard,
+    icon: Repeat,
+  },
+  {
+    id: "1rm-calculator",
+    title: "1RM Calculator",
+    description: "Estimate your one-rep maximum and get your training percentages instantly.",
+    to: "/tools/1rm-calculator",
+    image: oneRmCard,
+    icon: Dumbbell,
+  },
+];
+
+function ToolCard({ tool }: { tool: Tool }) {
+  const Icon = tool.icon;
+  return (
+    <Link
+      to={tool.to as never}
+      className="group relative block h-56 overflow-hidden rounded-2xl border-2 border-primary/30 transition-all duration-300 hover:border-primary hover:shadow-xl sm:h-64"
+    >
+      <img
+        src={tool.image}
+        alt={tool.title}
+        loading="lazy"
+        className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/10" />
+      <div className="relative flex h-full flex-col justify-end p-4 sm:p-5">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <h2 className="text-lg font-extrabold leading-tight sm:text-xl">{tool.title}</h2>
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-primary/40 bg-card text-primary shadow-sm transition-transform duration-300 group-hover:scale-110">
+            <Icon className="h-5 w-5" />
+          </span>
+        </div>
+        <p className="text-sm leading-snug text-muted-foreground">{tool.description}</p>
+      </div>
+    </Link>
+  );
+}
+
 function ToolsPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:py-12">
@@ -35,62 +100,15 @@ function ToolsPage() {
         <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
           Free <span className="text-primary">training tools</span>
         </h1>
-        <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
+        <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
           Simple training tools you can use straight from your phone, mid-session.
         </p>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-3">
-        <SmartyCard
-          tone="orange"
-          eyebrow="Intervals"
-          eyebrowIcon="⏱️"
-          cornerIcon={Timer}
-          title="Workout"
-          accent="Timer"
-          description="Customizable work/rest intervals and rounds for HIIT, Tabata and circuit training."
-          ctaLabel="Open workout timer"
-          ctaTo="/tools/workout-timer"
-        >
-          <div className="hidden space-y-3 md:block">
-            <SmartyRow tone="orange" icon="🔔" title="Audio cues" subtitle="Beep on every work/rest switch." />
-            <SmartyRow tone="orange" icon="🔒" title="Fullscreen lock" subtitle="Big display, screen stays awake." />
-          </div>
-        </SmartyCard>
-
-        <SmartyCard
-          tone="purple"
-          eyebrow="Counting"
-          eyebrowIcon="🔁"
-          cornerIcon={Repeat}
-          title="Rounds"
-          accent="Tracker"
-          description="Big-button rounds and reps counter for AMRAP, EMOM and circuit sessions."
-          ctaLabel="Open rounds tracker"
-          ctaTo="/tools/rounds-tracker"
-        >
-          <div className="hidden space-y-3 md:block">
-            <SmartyRow tone="purple" icon="👆" title="Tap anywhere" subtitle="Count rounds or rounds + reps." />
-            <SmartyRow tone="purple" icon="📳" title="Sound & haptics" subtitle="Feedback without looking down." />
-          </div>
-        </SmartyCard>
-
-        <SmartyCard
-          tone="green"
-          eyebrow="Strength"
-          eyebrowIcon="🏋️"
-          cornerIcon={Dumbbell}
-          title="1RM"
-          accent="Calculator"
-          description="Estimate your one-rep maximum with the Brzycki formula and get training percentages."
-          ctaLabel="Open 1RM calculator"
-          ctaTo="/tools/1rm-calculator"
-        >
-          <div className="hidden space-y-3 md:block">
-            <SmartyRow tone="green" icon="🧮" title="Brzycki formula" subtitle="The standard 1RM estimate." />
-            <SmartyRow tone="green" icon="📊" title="Training percentages" subtitle="60–95% of your max, instantly." />
-          </div>
-        </SmartyCard>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {TOOLS.map((tool) => (
+          <ToolCard key={tool.id} tool={tool} />
+        ))}
       </div>
 
       <div className="mt-8 text-center text-xs text-muted-foreground">

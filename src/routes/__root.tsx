@@ -27,7 +27,7 @@ const KEYWORDS = [
   "AI Training Intelligence Platform",
   "AI Coach",
   "AI Trainingist",
-  "AI Diet Coach",
+  "AI Workout Coach",
   "AI Workout Planner",
   "Personal Training Plan",
   "Custom Workout Plans",
@@ -38,7 +38,7 @@ const KEYWORDS = [
   "Diet Score",
   "Diet Analysis",
   "Workout Plan Generator",
-  "Diet Coach App",
+  "Workout Coach App",
   "Weight Loss App",
   "Weight Management",
   "Calorie Calculator",
@@ -263,7 +263,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       {
         title:
-          "SmartyWorkout — AI Training Intelligence Platform | Your Pocket Coach & Diet Coach",
+          "SmartyWorkout — AI Training Intelligence Platform | Your Pocket Workout Coach",
       },
       { name: "description", content: SITE_DESCRIPTION },
       { name: "keywords", content: KEYWORDS },
@@ -286,7 +286,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         property: "og:title",
         content:
-          "SmartyWorkout — AI Training Intelligence Platform | Your Pocket Coach & Diet Coach",
+          "SmartyWorkout — AI Training Intelligence Platform | Your Pocket Workout Coach",
       },
       { property: "og:description", content: SITE_DESCRIPTION },
       { name: "twitter:card", content: "summary_large_image" },
@@ -294,7 +294,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "twitter:title",
         content:
-          "SmartyWorkout — AI Training Intelligence Platform | Your Pocket Coach & Diet Coach",
+          "SmartyWorkout — AI Training Intelligence Platform | Your Pocket Workout Coach",
       },
       { name: "twitter:description", content: SITE_DESCRIPTION },
     ],

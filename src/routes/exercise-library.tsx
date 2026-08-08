@@ -219,10 +219,10 @@ function ExerciseLibraryPage() {
                 <SelectTrigger aria-label={f.label}>
                   <SelectValue placeholder={f.label} />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-60">
                   <SelectItem value={ALL}>All {f.label.toLowerCase()}</SelectItem>
                   {f.items.map((item) => (
-                    <SelectItem key={item} value={item}>
+                    <SelectItem key={item} value={item} className="capitalize">
                       {item}
                     </SelectItem>
                   ))}
@@ -233,7 +233,9 @@ function ExerciseLibraryPage() {
 
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs text-muted-foreground">
-              {loading ? "Searching…" : `${exercises.length} exercise${exercises.length === 1 ? "" : "s"} shown`}
+              {loading
+                ? "Searching…"
+                : `${exercises.length} exercise${exercises.length === 1 ? "" : "s"} shown`}
             </p>
             {hasFilters && (
               <Button variant="ghost" size="sm" onClick={clearAll}>
@@ -241,42 +243,45 @@ function ExerciseLibraryPage() {
               </Button>
             )}
           </div>
+
+          {/* Results scroll inside the card */}
+          <div className="max-h-[55vh] overflow-y-auto rounded-2xl border bg-muted/20 p-2 sm:max-h-[420px]">
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
+            ) : exercises.length === 0 ? (
+              <p className="py-12 text-center text-sm text-muted-foreground">
+                No exercises match those filters.
+              </p>
+            ) : (
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {exercises.map((ex) => (
+                  <button
+                    key={ex.id}
+                    onClick={() => setSelected(ex)}
+                    className="flex items-start gap-3 rounded-2xl border bg-card p-3 text-left transition-colors hover:border-primary"
+                  >
+                    <ExerciseGif path={ex.gif_path} alt={ex.name} />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-bold capitalize leading-snug">{ex.name}</div>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {[ex.body_part, ex.equipment].filter(Boolean).map((tag) => (
+                          <Badge key={tag as string} variant="secondary" className="capitalize">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
-      {loading ? (
-        <div className="flex justify-center py-16">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        </div>
-      ) : exercises.length === 0 ? (
-        <p className="py-16 text-center text-sm text-muted-foreground">
-          No exercises match those filters.
-        </p>
-      ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {exercises.map((ex) => (
-            <button
-              key={ex.id}
-              onClick={() => setSelected(ex)}
-              className="flex items-center gap-3 rounded-2xl border bg-card p-3 text-left transition-colors hover:border-primary"
-            >
-              <ExerciseGif path={ex.gif_path} alt={ex.name} />
-              <div className="min-w-0">
-                <div className="truncate text-sm font-bold capitalize">{ex.name}</div>
-                <div className="mt-1 flex flex-wrap gap-1">
-                  {[ex.body_part, ex.equipment].filter(Boolean).map((tag) => (
-                    <Badge key={tag as string} variant="secondary" className="capitalize">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
-
-      <div className="mt-10 text-center text-xs text-muted-foreground">
+      <div className="mt-6 text-center text-xs text-muted-foreground">
         Want these exercises built into a session?{" "}
         <Link to="/coach" className="font-semibold text-primary">
           Ask Smarty Coach →
