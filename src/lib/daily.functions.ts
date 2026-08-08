@@ -70,15 +70,24 @@ export const getDailyHub = createServerFn({ method: "GET" })
       };
     };
 
-    const { data: wod } = await supabase
+    const { data: wods } = await supabase
       .from("workouts")
-      .select("id,name,category,difficulty_stars,duration_min,status,completed_at")
+      .select("id,name,category,difficulty_stars,duration_min,status,completed_at,wod_variant")
       .eq("user_id", userId)
       .eq("is_wod", true)
       .eq("wod_date", today)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .order("created_at", { ascending: true });
+
+    const workouts =
+      (wods as Array<{
+        id: string;
+        name: string;
+        category: string;
+        difficulty_stars: number;
+        duration_min: number;
+        status: string;
+        wod_variant: string | null;
+      }> | null) ?? [];
 
     return {
       settings,
@@ -97,16 +106,11 @@ export const getDailyHub = createServerFn({ method: "GET" })
         today: dayInfo(today),
         tomorrow: dayInfo(shift(1)),
       },
-      workout: (wod as {
-        id: string;
-        name: string;
-        category: string;
-        difficulty_stars: number;
-        duration_min: number;
-        status: string;
-      } | null) ?? null,
+      workouts,
+      workout: workouts[0] ?? null,
     };
   });
+
 
 export const saveDailySettings = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
