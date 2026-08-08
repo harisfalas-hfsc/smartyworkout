@@ -131,6 +131,18 @@ function CoachPage() {
   const [confirmHard, setConfirmHard] = useState(false);
   const [resuming, setResuming] = useState(false);
   const [wodMode, setWodMode] = useState(false);
+  const [profileReady, setProfileReady] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    void getMyAccessState()
+      .then((access) =>
+        setProfileReady(
+          access.profileComplete && access.healthAcknowledged && access.readinessComplete,
+        ),
+      )
+      .catch(() => setProfileReady(null));
+  }, []);
+
 
   useEffect(() => {
     (async () => {
