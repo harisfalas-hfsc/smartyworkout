@@ -100,26 +100,6 @@ function Home() {
     })();
   }, [user, loading]);
 
-  const primary = (() => {
-    if (cta.kind === "loading")
-      return (
-        <Button size="lg" disabled className="w-full sm:w-auto">
-          Get started
-        </Button>
-      );
-    if (cta.kind === "has-active")
-      return (
-        <Button asChild size="lg" className="w-full sm:w-auto">
-          <Link to="/coach">Open Smarty Coach</Link>
-        </Button>
-      );
-
-    return (
-      <Button asChild size="lg" className="w-full sm:w-auto">
-        <Link to="/coach">Start with Smarty Coach</Link>
-      </Button>
-    );
-  })();
 
 
   const heroCtaLabel =
