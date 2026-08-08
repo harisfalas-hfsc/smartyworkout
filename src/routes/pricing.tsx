@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Crown } from "lucide-react";
 import { SmartyCard, SmartyPill, toneClasses } from "@/components/SmartyCard";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/PageHeader";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
@@ -46,15 +47,15 @@ function PricingPage() {
   const t = toneClasses("pink");
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:py-12">
-      <div className="mb-8 text-center">
-        <p className="text-xs font-semibold uppercase tracking-wider text-primary">Pricing</p>
-        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
-          One subscription. <span className="text-primary">Everything included.</span>
-        </h1>
-        <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
-          Train with Smarty Coach every day — no add-ons, no upsells.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Pricing"
+        title={
+          <>
+            One subscription. <span className="text-primary">Everything included.</span>
+          </>
+        }
+        subtitle="Train with Smarty Coach every day — no add-ons, no upsells."
+      />
 
       <SmartyCard
         tone="pink"

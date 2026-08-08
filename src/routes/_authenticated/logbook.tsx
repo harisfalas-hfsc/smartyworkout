@@ -24,6 +24,7 @@ import {
   ChevronRight,
   ListFilter,
 } from "lucide-react";
+import { PageHeader } from "@/components/PageHeader";
 
 type Filter = "completed" | "planned" | "favorites" | "scheduled";
 
@@ -378,15 +379,12 @@ function Logbook() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:py-12">
-      <div className="mb-2 text-center">
-        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-primary">
-          Your history
-        </p>
-        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">Logbook</h1>
-        <p className="mt-2 text-muted-foreground">
-          Every workout you created — completed, still to do, or scheduled.
-        </p>
-      </div>
+      <PageHeader
+        className="mb-2"
+        eyebrow="Your history"
+        title="Logbook"
+        subtitle="Every workout you created — completed, still to do, or scheduled."
+      />
 
       <div className="mt-5 grid grid-cols-2 gap-2">
         <Button

@@ -19,6 +19,7 @@ import {
   listNotifications,
   setNotificationsRead,
 } from "@/lib/daily.functions";
+import { PageHeader } from "@/components/PageHeader";
 
 export const Route = createFileRoute("/_authenticated/notifications")({
   head: () => ({
@@ -119,15 +120,12 @@ function NotificationsPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:py-12">
-      <div className="mb-5 text-center">
-        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-primary">
-          Inbox
-        </p>
-        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">Notifications</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Everything Smarty Coach sends you. Tap a message to read it, select to delete.
-        </p>
-      </div>
+      <PageHeader
+        className="mb-5"
+        eyebrow="Inbox"
+        title="Notifications"
+        subtitle="Everything Smarty Coach sends you. Tap a message to read it, select to delete."
+      />
 
       <div className="mb-3 grid grid-cols-2 gap-2">
         <button

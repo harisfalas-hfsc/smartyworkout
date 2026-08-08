@@ -17,6 +17,7 @@ import {
 import { getDailyHub, setWodSubscription } from "@/lib/daily.functions";
 import { getCycleDay, localDateISO, starsForCycleDay } from "@/lib/wod-cycle";
 import { useAuth } from "@/hooks/useAuth";
+import { PageHeader } from "@/components/PageHeader";
 
 export const Route = createFileRoute("/wod")({
   head: () => ({
@@ -187,15 +188,12 @@ function WodPage() {
 
   return (
     <div className="mx-auto max-w-xl space-y-5 px-4 py-8 sm:py-12">
-      <div className="mb-2 text-center">
-        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-primary">
-          Smarty Coach
-        </p>
-        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">Workout of the Day</h1>
-        <p className="mt-2 text-muted-foreground">
-          Your daily programme, chosen for you by Smarty Coach.
-        </p>
-      </div>
+      <PageHeader
+        className="mb-2"
+        eyebrow="Smarty Coach"
+        title="Workout of the Day"
+        subtitle="Your daily programme, chosen for you by Smarty Coach."
+      />
 
       <section className="rounded-2xl border border-border bg-card px-5 py-5 shadow-sm sm:px-8">
         <p className="text-center text-[14px] leading-6 text-muted-foreground">

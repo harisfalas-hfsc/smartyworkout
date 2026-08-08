@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Info, ListChecks, HelpCircle } from "lucide-react";
-import { PageHeader } from "@/components/PageHeader";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { PageHeader } from "@/components/PageHeader";
 
 
 export const Route = createFileRoute("/")({
@@ -108,11 +108,11 @@ function Home() {
     <div className="mx-auto max-w-4xl px-4 py-8 sm:py-12">
       <PageHeader
         title={
-          <span className="uppercase">
+          <>
             Your personal workout
             <br />
             <span className="text-primary">anytime, anywhere.</span>
-          </span>
+          </>
         }
         subtitle="Answer a smart questionnaire. Get a full tailor-made workout built around your body, goals, equipment and constraints."
       />

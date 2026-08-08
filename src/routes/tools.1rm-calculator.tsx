@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { PageHeader } from "@/components/PageHeader";
 
 const URL = "https://smartyworkout.com/tools/1rm-calculator";
 const TITLE = "1RM Calculator — One rep max (Brzycki) | SmartyWorkout";
@@ -67,18 +68,15 @@ function OneRMCalculatorPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:py-12">
-      <div className="mb-8 text-center">
-        <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-          SmartyWorkout Tools
-        </p>
-        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
-          1RM <span className="text-primary">Calculator</span>
-        </h1>
-        <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
-          Uses the Brzycki formula to estimate your one-rep maximum — essential for programming
-          strength training.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="SmartyWorkout tools"
+        title={
+          <>
+            1RM <span className="text-primary">Calculator</span>
+          </>
+        }
+        subtitle="Uses the Brzycki formula to estimate your one-rep maximum — essential for programming strength training."
+      />
 
       <Card>
         <CardContent className="space-y-6 p-4 sm:p-6">

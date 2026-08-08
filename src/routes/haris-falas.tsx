@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import harisPhoto from "@/assets/haris-falas-coach.png";
+import { PageHeader } from "@/components/PageHeader";
 
 const URL = "https://smartyworkout.com/haris-falas";
 const TITLE =
@@ -82,12 +83,15 @@ function CoachProfilePage() {
             decoding="async"
           />
         </div>
-        <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
-          Haris <span className="text-primary">Falas</span>
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground sm:text-base">
-          Sports Scientist and Strength &amp; Conditioning Coach
-        </p>
+        <PageHeader
+          className="mb-0 mt-4"
+          title={
+            <>
+              Haris <span className="text-primary">Falas</span>
+            </>
+          }
+          subtitle="Sports Scientist and Strength & Conditioning Coach"
+        />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
