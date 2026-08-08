@@ -5,6 +5,10 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { Crown, LogOut, Mail, User, ClipboardList } from "lucide-react";
 import { DailyCoachingSettings } from "@/components/DailyCoachingSettings";
+import { getMyAccessState } from "@/lib/access.functions";
+import { createPortalSession } from "@/utils/payments.functions";
+import { getStripeEnvironment } from "@/lib/stripe";
+import { toast } from "sonner";
 import { PageHeader } from "@/components/PageHeader";
 
 export const Route = createFileRoute("/_authenticated/account")({
@@ -24,6 +28,27 @@ export const Route = createFileRoute("/_authenticated/account")({
 function Account() {
   const { user, displayName } = useAuth();
   const [count, setCount] = useState<number | null>(null);
+  const [premium, setPremium] = useState<boolean | null>(null);
+  const [portalBusy, setPortalBusy] = useState(false);
+
+  useEffect(() => {
+    void getMyAccessState().then((a) => setPremium(a.premium)).catch(() => setPremium(false));
+  }, []);
+
+  async function openPortal() {
+    setPortalBusy(true);
+    try {
+      const result = await createPortalSession({
+        data: { returnUrl: window.location.href, environment: getStripeEnvironment() },
+      });
+      if ("error" in result) throw new Error(result.error);
+      window.open(result.url, "_blank");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not open billing");
+    } finally {
+      setPortalBusy(false);
+    }
+  }
 
   useEffect(() => {
     (async () => {
@@ -78,13 +103,22 @@ function Account() {
           </div>
         </div>
         <p className="mt-3 text-sm text-muted-foreground">
-          Billing isn't switched on yet, so your account currently has full access. When checkout
-          goes live you'll be able to subscribe, change or cancel your plan right here.
+          {premium === null
+            ? "Checking your membership…"
+            : premium
+              ? "Your membership is active. Manage payment method, invoices or cancellation in the billing portal."
+              : "You don't have an active membership yet. Subscribe to unlock Smarty Coach, Workout of the Day and your full history."}
         </p>
         <div className="mt-4 grid gap-2 sm:grid-cols-2">
-          <Button asChild className="h-12 rounded-2xl">
-            <Link to="/pricing">See what's included</Link>
-          </Button>
+          {premium ? (
+            <Button className="h-12 rounded-2xl" disabled={portalBusy} onClick={() => void openPortal()}>
+              {portalBusy ? "Opening…" : "Manage billing"}
+            </Button>
+          ) : (
+            <Button asChild className="h-12 rounded-2xl">
+              <Link to="/checkout">Subscribe · €9.99 / month</Link>
+            </Button>
+          )}
           <Button asChild variant="secondary" className="h-12 rounded-2xl">
             <Link to="/contact">
               <Mail className="mr-2 h-4 w-4" /> Billing help
