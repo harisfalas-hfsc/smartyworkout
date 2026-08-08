@@ -5,10 +5,11 @@ import {
   Sparkles,
   Activity,
   Gauge,
-  Salad,
+  Dumbbell,
   Users,
   Compass,
 } from "lucide-react";
+
 import { SmartyCard, SmartyRow, SmartyPill, toneClasses } from "@/components/SmartyCard";
 import { cn } from "@/lib/utils";
 
@@ -16,7 +17,8 @@ const URL = "https://smartyworkout.com/training-intelligence";
 const TITLE =
   "Training Intelligence — The AI Training Intelligence Platform | SmartyWorkout";
 const DESCRIPTION =
-  "What training intelligence is, why it matters, and how SmartyWorkout's Smarty Training Score™ and Metabolic Age™ turn assessment into a personalized workout plan.";
+  "What training intelligence is, why it matters, and how SmartyWorkout's Smarty Training Score™ and Readiness Check™ turn your answers into the workout you need today.";
+
 
 const JSONLD = {
   "@context": "https://schema.org",
@@ -99,7 +101,7 @@ function TrainingIntelligencePage() {
         cornerIcon={Brain}
         title="What is training"
         accent="intelligence?"
-        description="A calorie counter tells you a number. A training intelligence platform tells you what that number means for your goal, your body, and your habits — and what to change next."
+        description="A workout app gives you a session. A training intelligence platform decides which session you actually need today — for your goal, your body, your fatigue and your equipment."
       >
         <div className="grid gap-6 lg:grid-cols-2">
           <div className={cn("rounded-2xl border p-4", blue.softBorder, blue.softBg)}>
@@ -107,9 +109,9 @@ function TrainingIntelligencePage() {
               🧬 What it is
             </h3>
             <div className="space-y-3">
-              <SmartyRow tone="blue" icon="📐" title="Classical dietetics" subtitle="Mifflin-St Jeor BMR, TDEE, macro splits, portions." />
-              <SmartyRow tone="blue" icon="🤖" title="Modern AI reasoning" subtitle="Scores your diet and personalizes your plan." />
-              <SmartyRow tone="blue" icon="🔄" title="Adaptive" subtitle="Refines as your goals and body change." />
+              <SmartyRow tone="blue" icon="📐" title="Sports science" subtitle="Progressive overload, volume, intensity, recovery." />
+              <SmartyRow tone="blue" icon="🤖" title="AI reasoning" subtitle="Reads your profile and builds today's session." />
+              <SmartyRow tone="blue" icon="🔄" title="Adaptive" subtitle="Learns from every workout and every feedback." />
             </div>
           </div>
 
@@ -118,9 +120,9 @@ function TrainingIntelligencePage() {
               🎯 Why it matters
             </h3>
             <div className="space-y-3">
-              <SmartyRow tone="blue" icon="🚫" title="Generic advice fails" subtitle="Bodies, goals and lifestyles aren't generic." />
-              <SmartyRow tone="blue" icon="👤" title="Respects you" subtitle="Allergies, preferences, culture, budget, schedule." />
-              <SmartyRow tone="blue" icon="📈" title="Closes the gap" subtitle="Turns assessment into an actionable plan." />
+              <SmartyRow tone="blue" icon="🚫" title="Generic plans fail" subtitle="Bodies, schedules and gyms aren't generic." />
+              <SmartyRow tone="blue" icon="👤" title="Respects you" subtitle="Injuries, experience, time, location, equipment." />
+              <SmartyRow tone="blue" icon="📈" title="Keeps you training" subtitle="The right session today beats the perfect plan you quit." />
             </div>
           </div>
         </div>
@@ -135,18 +137,18 @@ function TrainingIntelligencePage() {
           cornerIcon={Gauge}
           title="Smarty Training"
           accent="Score™"
-          description="A composite score of your current diet across four axes — so progress isn't a vibe, it's a number."
+          description="A composite picture of your training across four axes — so progress isn't a feeling, it's a number."
         >
           <div className={cn("rounded-2xl border p-4", green.softBorder, green.softBg)}>
             <div className="grid gap-3 sm:grid-cols-2">
-              <SmartyPill tone="green" icon="⚖️">Macro balance</SmartyPill>
-              <SmartyPill tone="green" icon="🥦">Micronutrient coverage</SmartyPill>
-              <SmartyPill tone="green" icon="🌾">Food quality</SmartyPill>
-              <SmartyPill tone="green" icon="⏱️">Behavior & timing</SmartyPill>
+              <SmartyPill tone="green" icon="🏋️">Strength &amp; power</SmartyPill>
+              <SmartyPill tone="green" icon="❤️">Conditioning</SmartyPill>
+              <SmartyPill tone="green" icon="🤸">Mobility &amp; control</SmartyPill>
+              <SmartyPill tone="green" icon="📅">Consistency</SmartyPill>
             </div>
             <p className="mt-4 text-sm text-muted-foreground">
-              Every plan raises the score you can realistically hit — no crash
-              diets, no impossible discipline.
+              Smarty Coach builds sessions that raise the axis you're neglecting
+              — no junk volume, no random workouts.
             </p>
           </div>
         </SmartyCard>
@@ -154,61 +156,60 @@ function TrainingIntelligencePage() {
         <SmartyCard
           tone="purple"
           eyebrow="Signature metric"
-          eyebrowIcon="⏳"
+          eyebrowIcon="⚡"
           cornerIcon={Activity}
-          title="Smarty Metabolic"
-          accent="Age™"
-          description="Estimates the age your metabolism is behaving like — from BMR, body composition, activity and dietary patterns."
+          title="Smarty Readiness"
+          accent="Check™"
+          description="Before every session Smarty Coach reads your mood, time, recent training load and feedback — then sets today's intensity."
         >
           <div className={cn("rounded-2xl border p-4", purple.softBorder, purple.softBg)}>
             <div className="space-y-3">
-              <SmartyRow tone="purple" icon="🔥" title="BMR-based" subtitle="Grounded in your true resting burn." />
-              <SmartyRow tone="purple" icon="🏃" title="Activity-aware" subtitle="Adjusts for how you move day to day." />
-              <SmartyRow tone="purple" icon="🎯" title="Motivating goal" subtitle="Aim: metabolic age below your calendar age." />
+              <SmartyRow tone="purple" icon="😴" title="Fatigue-aware" subtitle="Low energy day? You get a smarter, lighter session." />
+              <SmartyRow tone="purple" icon="⏱️" title="Time-aware" subtitle="10 minutes or 60 — the structure changes, not the quality." />
+              <SmartyRow tone="purple" icon="🩹" title="Safety first" subtitle="Injuries and limitations filter the exercise pool." />
             </div>
           </div>
         </SmartyCard>
       </div>
 
-      {/* From assessment to plan */}
+      {/* From assessment to workout */}
       <div className="mt-8">
         <SmartyCard
           tone="cyan"
           eyebrow="The engine"
           eyebrowIcon="⚙️"
           cornerIcon={Sparkles}
-          title="From assessment to your"
-          accent="workout plan"
-          description="You answer a smart questionnaire — body, goals, activity, preferences, allergies, schedule. Our engines do the rest."
+          title="From answers to your"
+          accent="workout"
+          description="You tell Smarty Coach your goal, mood, time, location and equipment. The engines do the rest."
         >
           <div className="grid gap-3 sm:grid-cols-3">
-            <SmartyRow tone="cyan" icon="🔥" title="Smarty Calorie Engine™" subtitle="Your daily target, calibrated to your goal." />
-            <SmartyRow tone="cyan" icon="🧮" title="Smarty Macro Index™" subtitle="Protein, carbs and fats split for your body." />
-            <SmartyRow tone="cyan" icon="🍽️" title="Smarty Workout Plan™" subtitle="Meals, portions & a weekly equipment list." />
+            <SmartyRow tone="cyan" icon="🎯" title="Smarty Goal Engine™" subtitle="Turns your goal into the right training stimulus." />
+            <SmartyRow tone="cyan" icon="📚" title="Smarty Exercise Index™" subtitle="1,300+ exercises filtered to what you can actually do." />
+            <SmartyRow tone="cyan" icon="🏗️" title="Smarty Session Builder™" subtitle="Warm-up, main blocks, finisher and cool-down." />
           </div>
           <p className="mt-4 text-sm text-muted-foreground">
-            ✨ You get 2 refinements included — the first plan is a starting
-            point, not a final verdict.
+            ✨ Every session you complete and rate makes the next one sharper.
           </p>
         </SmartyCard>
       </div>
 
-      {/* Macros */}
+      {/* Training principles */}
       <div className="mt-8">
         <SmartyCard
           tone="orange"
           eyebrow="The building blocks"
-          eyebrowIcon="🥗"
-          cornerIcon={Salad}
-          title="Macros, calories"
-          accent="& micronutrients"
-          description="Calories decide weight direction. Macros decide body composition. Micronutrients decide how you feel. A good plan pays attention to all three."
+          eyebrowIcon="🏋️"
+          cornerIcon={Dumbbell}
+          title="Volume, intensity"
+          accent="& recovery"
+          description="Intensity drives adaptation. Volume drives accumulation. Recovery decides whether any of it counts. A good session respects all three."
         >
           <div className="grid gap-3 sm:grid-cols-2">
-            <SmartyRow tone="orange" icon="💪" title="Protein prioritized" subtitle="Protects lean mass during a deficit." />
-            <SmartyRow tone="orange" icon="🍚" title="Carbs, timed" subtitle="Around activity where it actually matters." />
-            <SmartyRow tone="orange" icon="🥑" title="Fats for hormones" subtitle="Keeps satiety and hormones in a healthy range." />
-            <SmartyRow tone="orange" icon="💧" title="Fiber & water" subtitle="Tracked as guardrails, not afterthoughts." />
+            <SmartyRow tone="orange" icon="📈" title="Progressive overload" subtitle="Small, sustainable jumps session to session." />
+            <SmartyRow tone="orange" icon="🔁" title="Movement balance" subtitle="Push, pull, hinge, squat, carry, core." />
+            <SmartyRow tone="orange" icon="🤸" title="Mobility built in" subtitle="Prep and cool-down are part of the session." />
+            <SmartyRow tone="orange" icon="🛌" title="Recovery respected" subtitle="Load is spread so you can train again tomorrow." />
           </div>
         </SmartyCard>
       </div>
@@ -222,13 +223,13 @@ function TrainingIntelligencePage() {
           cornerIcon={Users}
           title="Built for"
           accent="everyone with a goal"
-          description="Whatever direction you're heading, training intelligence gets you there faster — without the subscription trap."
+          description="Whatever you're training for, training intelligence gets you there faster — without the subscription trap."
         >
           <div className="grid gap-3 sm:grid-cols-2">
-            <SmartyPill tone="pink" icon="⚖️">Losing weight</SmartyPill>
-            <SmartyPill tone="pink" icon="💪">Gaining muscle</SmartyPill>
-            <SmartyPill tone="pink" icon="🩺">Managing conditions</SmartyPill>
-            <SmartyPill tone="pink" icon="🌱">Eating better</SmartyPill>
+            <SmartyPill tone="pink" icon="💪">Building muscle</SmartyPill>
+            <SmartyPill tone="pink" icon="🔥">Losing fat</SmartyPill>
+            <SmartyPill tone="pink" icon="🏃">Getting fitter</SmartyPill>
+            <SmartyPill tone="pink" icon="🤸">Moving better</SmartyPill>
           </div>
         </SmartyCard>
       </div>
@@ -242,14 +243,14 @@ function TrainingIntelligencePage() {
           cornerIcon={Compass}
           title="Related"
           accent="reading"
-          description="Keep learning — the science, the terms, and the tools that back the platform."
+          description="Keep learning — the science, the terms and the coach behind the platform."
         >
           <div className="grid gap-3 sm:grid-cols-2">
             <Link to="/glossary" className="block">
-              <SmartyRow tone="cyan" icon="📖" title="Glossary" subtitle="Every metric and concept, defined." />
+              <SmartyRow tone="cyan" icon="📖" title="Glossary" subtitle="Every training term and metric, defined." />
             </Link>
-            <Link to="/tools" className="block">
-              <SmartyRow tone="cyan" icon="🛠️" title="Free tools" subtitle="BMR, macros, calorie counter." />
+            <Link to="/haris-falas" className="block">
+              <SmartyRow tone="cyan" icon="🧑‍🏫" title="Haris Falas" subtitle="The sports scientist behind Smarty Coach." />
             </Link>
           </div>
         </SmartyCard>
@@ -258,12 +259,13 @@ function TrainingIntelligencePage() {
       {/* CTA */}
       <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
         <Button asChild size="lg">
-          <Link to="/questionnaire">Create my workout plan</Link>
+          <Link to="/coach">Create my workout</Link>
         </Button>
         <Button asChild size="lg" variant="outline">
           <Link to="/about">About SmartyWorkout</Link>
         </Button>
       </div>
+
     </div>
   );
 }

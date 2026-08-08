@@ -17,6 +17,7 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DisclaimerRouteImport } from './routes/disclaimer'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as GlossaryRouteImport } from './routes/glossary'
+import { Route as HarisFalasRouteImport } from './routes/haris-falas'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -76,6 +77,11 @@ const FaqRoute = FaqRouteImport.update({
 const GlossaryRoute = GlossaryRouteImport.update({
   id: '/glossary',
   path: '/glossary',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HarisFalasRoute = HarisFalasRouteImport.update({
+  id: '/haris-falas',
+  path: '/haris-falas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HowItWorksRoute = HowItWorksRouteImport.update({
@@ -195,6 +201,7 @@ export interface FileRoutesByFullPath {
   '/disclaimer': typeof DisclaimerRoute
   '/faq': typeof FaqRoute
   '/glossary': typeof GlossaryRoute
+  '/haris-falas': typeof HarisFalasRoute
   '/how-it-works': typeof HowItWorksRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -225,6 +232,7 @@ export interface FileRoutesByTo {
   '/disclaimer': typeof DisclaimerRoute
   '/faq': typeof FaqRoute
   '/glossary': typeof GlossaryRoute
+  '/haris-falas': typeof HarisFalasRoute
   '/how-it-works': typeof HowItWorksRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -257,6 +265,7 @@ export interface FileRoutesById {
   '/disclaimer': typeof DisclaimerRoute
   '/faq': typeof FaqRoute
   '/glossary': typeof GlossaryRoute
+  '/haris-falas': typeof HarisFalasRoute
   '/how-it-works': typeof HowItWorksRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -289,6 +298,7 @@ export interface FileRouteTypes {
     | '/disclaimer'
     | '/faq'
     | '/glossary'
+    | '/haris-falas'
     | '/how-it-works'
     | '/pricing'
     | '/privacy'
@@ -319,6 +329,7 @@ export interface FileRouteTypes {
     | '/disclaimer'
     | '/faq'
     | '/glossary'
+    | '/haris-falas'
     | '/how-it-works'
     | '/pricing'
     | '/privacy'
@@ -350,6 +361,7 @@ export interface FileRouteTypes {
     | '/disclaimer'
     | '/faq'
     | '/glossary'
+    | '/haris-falas'
     | '/how-it-works'
     | '/pricing'
     | '/privacy'
@@ -382,6 +394,7 @@ export interface RootRouteChildren {
   DisclaimerRoute: typeof DisclaimerRoute
   FaqRoute: typeof FaqRoute
   GlossaryRoute: typeof GlossaryRoute
+  HarisFalasRoute: typeof HarisFalasRoute
   HowItWorksRoute: typeof HowItWorksRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -453,6 +466,13 @@ declare module '@tanstack/react-router' {
       path: '/glossary'
       fullPath: '/glossary'
       preLoaderRoute: typeof GlossaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/haris-falas': {
+      id: '/haris-falas'
+      path: '/haris-falas'
+      fullPath: '/haris-falas'
+      preLoaderRoute: typeof HarisFalasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/how-it-works': {
@@ -648,6 +668,7 @@ const rootRouteChildren: RootRouteChildren = {
   DisclaimerRoute: DisclaimerRoute,
   FaqRoute: FaqRoute,
   GlossaryRoute: GlossaryRoute,
+  HarisFalasRoute: HarisFalasRoute,
   HowItWorksRoute: HowItWorksRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,

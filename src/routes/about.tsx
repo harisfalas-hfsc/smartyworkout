@@ -47,17 +47,16 @@ function AboutPage() {
           <>
             An intelligent AI fitness coach trained around the sports science and training
             philosophy of{" "}
-            <a
-              href="https://smartygym.com/coach"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-primary underline underline-offset-2"
+            <Link
+              to="/haris-falas"
+              className="font-semibold text-primary underline underline-offset-2 sm:whitespace-nowrap"
             >
               Sports Scientist Haris Falas
-            </a>
+            </Link>
             .
           </>
         }
+
       >
         <div className="grid gap-3 sm:grid-cols-2">
           <SmartyRow

@@ -61,24 +61,22 @@ const STEPS = [
     n: 2,
     color: "text-orange-500",
     title: "Build",
-    desc: "We generate your tailored plan.",
+    desc: "We generate your tailored workout.",
   },
   {
     n: 3,
     color: "text-sky-500",
     title: "Get",
-    desc: "Meals, macros & equipment list.",
+    desc: "Your tailor-made workout.",
   },
 ];
 
 const INCLUDES = [
-  "Calorie & macro targets",
-  "Full 1, 2 or 4-week workout plan",
-  "Weekly equipment list",
-  "2 free refinements",
+  "Your training program",
   "PDF export + printable list",
   "Saved to your account",
 ];
+
 
 function Home() {
   const { user, loading } = useAuth();
@@ -141,14 +139,13 @@ function Home() {
         }}
       >
         <h1 className="text-[30px] font-black leading-[1.08] tracking-tight text-[#E8EEF7]">
-          Your personal training plan,
+          Your personal workout,
           <br />
           <span className="text-primary">built in minutes.</span>
         </h1>
         <p className="mt-3 text-[15px] leading-relaxed text-[rgba(232,238,247,0.82)]">
-          Answer a smart questionnaire. Get a full 1, 2 or 4-week workout plan
-          tailored to your body, goals, equipment and constraints. Free — no card
-          required.
+          Answer a smart questionnaire. Get a full tailor-made workout built
+          around your body, goals, equipment and constraints.
         </p>
         <Link
           to={heroCtaTo}
@@ -162,9 +159,7 @@ function Home() {
         >
           How it works
         </Link>
-        <p className="mt-3 text-center text-[13px] text-[rgba(232,238,247,0.6)]">
-          Includes 1 initial plan + 2 refinements. No subscription.
-        </p>
+
       </section>
 
       {/* FULL-BLEED HERO — desktop/tablet */}
@@ -184,14 +179,13 @@ function Home() {
 
           <div className="max-w-xl">
             <h1 className="text-[34px] font-extrabold leading-[1.05] tracking-tight text-white sm:text-[44px] lg:text-[60px]">
-              Your personal training plan,
+              Your personal workout,
               <br />
               <span className="text-primary">built in minutes.</span>
             </h1>
             <p className="mt-5 text-base leading-relaxed text-white/80 lg:mt-6 lg:text-lg">
-              Answer a smart questionnaire. Get a full 1, 2 or 4-week workout plan
-              tailored to your body, goals, equipment and constraints.
-              Free — no card required.
+              Answer a smart questionnaire. Get a full tailor-made workout built
+              around your body, goals, equipment and constraints.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <Link
@@ -207,9 +201,7 @@ function Home() {
                 How it works
               </Link>
             </div>
-            <p className="mt-4 text-sm text-white/60">
-              Includes 1 initial plan + 2 refinements. No subscription.
-            </p>
+
           </div>
         </div>
       </section>
@@ -221,11 +213,11 @@ function Home() {
         <SmartyCard
           tone="green"
           eyebrow="How it works"
-          eyebrowIcon="🥗"
+          eyebrowIcon="🏋️"
           cornerIcon={Sparkles}
           title="From questionnaire"
-          accent="to plan."
-          description="Three steps. No payment. No subscription."
+          accent="to workout."
+          description="You answer. Smarty Coach builds. You train."
         >
           <div className="mt-2 grid gap-6 sm:grid-cols-3 sm:gap-4">
             {STEPS.map((s) => (
@@ -241,7 +233,7 @@ function Home() {
                 <div className="mt-3 whitespace-nowrap text-base font-bold">
                   {s.title}
                 </div>
-                <div className="mt-1 whitespace-nowrap text-sm text-muted-foreground">
+                <div className="mt-1 text-sm text-muted-foreground">
                   {s.desc}
                 </div>
               </div>
@@ -254,30 +246,20 @@ function Home() {
               {INCLUDES.map((it) => (
                 <li key={it} className="flex items-center gap-3 text-sm">
                   <CheckCircle2 className="h-5 w-5 flex-none text-primary" />
-                  <span className="whitespace-nowrap">{it}</span>
+                  <span>{it}</span>
                 </li>
               ))}
             </ul>
           </div>
 
           <div className="mt-8 border-t border-border pt-8 text-center">
-            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-              Always free
+            <div className="flex justify-center">{primary}</div>
+            <p className="mt-3 text-xs text-muted-foreground">
+              Not medical advice. Consult a professional for medical
+              conditions.
             </p>
-            <p className="mt-2 text-5xl font-extrabold tracking-tight">
-              Free
-            </p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              One personalized plan. Yours to keep.
-            </p>
-            <div className="mt-6 flex justify-center">{primary}</div>
-            {cta.kind === "guest" && (
-              <p className="mt-3 text-xs text-muted-foreground">
-                Not medical advice. Consult a professional for medical
-                conditions.
-              </p>
-            )}
           </div>
+
         </SmartyCard>
       </section>
     </div>
