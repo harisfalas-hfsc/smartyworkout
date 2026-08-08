@@ -90,12 +90,41 @@ function WodPage() {
   const [hub, setHub] = useState<Hub | null>(null);
   const [busy, setBusy] = useState(false);
   const [activeDay, setActiveDay] = useState(1);
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const centeredRef = useRef(false);
+
+  function onTrackScroll() {
+    const el = trackRef.current;
+    if (!el) return;
+    const center = el.scrollLeft + el.clientWidth / 2;
+    let best = 0;
+    let bestDist = Infinity;
+    Array.from(el.children).forEach((child, index) => {
+      const node = child as HTMLElement;
+      const dist = Math.abs(node.offsetLeft + node.offsetWidth / 2 - center);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = index;
+      }
+    });
+    setActiveDay(best);
+  }
 
   useEffect(() => {
     void load({})
       .then(setHub)
       .catch(() => setHub(null));
   }, [load]);
+
+  useEffect(() => {
+    if (!hub || centeredRef.current) return;
+    const el = trackRef.current;
+    const today = el?.children[1] as HTMLElement | undefined;
+    if (!el || !today) return;
+    centeredRef.current = true;
+    el.scrollLeft = today.offsetLeft - (el.clientWidth - today.offsetWidth) / 2;
+  }, [hub]);
+
 
   async function refresh() {
     setHub(await load({}));
