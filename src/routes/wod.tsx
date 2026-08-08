@@ -271,7 +271,7 @@ function WodPage() {
             </Link>
           </Button>
         ) : !access?.profileComplete || !access.healthAcknowledged ? (
-          <div className="rounded-xl border border-border bg-card p-4 text-center">
+          <div className="w-full max-w-xl rounded-xl border border-border bg-card p-4 text-center">
             <UserRound className="mx-auto h-6 w-6 text-primary" />
             <p className="mt-2 font-extrabold">Complete your Training Profile first</p>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
@@ -282,7 +282,7 @@ function WodPage() {
             </Button>
           </div>
         ) : (
-          <div className="rounded-xl border border-border bg-card p-4 text-center">
+          <div className="w-full max-w-xl rounded-xl border border-border bg-card p-4 text-center">
             <Crown className="mx-auto h-6 w-6 text-primary" />
             <p className="mt-2 font-extrabold">Premium membership required</p>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
