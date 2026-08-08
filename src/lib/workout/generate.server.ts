@@ -1,6 +1,6 @@
 import { streamText } from "ai";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
-import { buildWorkoutPrompt } from "./prompt.server";
+import { buildWorkoutPrompt, type AthleteContext } from "./prompt.server";
 import { enforceWorkout, estimateWorkMinutes } from "./enforce.server";
 import { filterPool, loadAllExercises, samplePool, type PoolExercise } from "./pool.server";
 import {
