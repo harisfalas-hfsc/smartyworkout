@@ -31,6 +31,7 @@ import { Route as AuthenticatedCoachRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedLogbookRouteImport } from './routes/_authenticated/logbook'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedProgressRouteImport } from './routes/_authenticated/progress'
+import { Route as AuthenticatedWodRouteImport } from './routes/_authenticated/wod'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminExerciseLibraryRouteImport } from './routes/admin.exercise-library'
 import { Route as ToolsIndexRouteImport } from './routes/tools.index'
@@ -38,6 +39,7 @@ import { Route as Tools1rmCalculatorRouteImport } from './routes/tools.1rm-calcu
 import { Route as ToolsRoundsTrackerRouteImport } from './routes/tools.rounds-tracker'
 import { Route as ToolsWorkoutTimerRouteImport } from './routes/tools.workout-timer'
 import { Route as AuthenticatedWorkoutWorkoutIdRouteImport } from './routes/_authenticated/workout.$workoutId'
+import { Route as ApiPublicHooksDailyRunRouteImport } from './routes/api/public/hooks/daily-run'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -148,6 +150,11 @@ const AuthenticatedProgressRoute = AuthenticatedProgressRouteImport.update({
   path: '/progress',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedWodRoute = AuthenticatedWodRouteImport.update({
+  id: '/wod',
+  path: '/wod',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
@@ -184,6 +191,11 @@ const AuthenticatedWorkoutWorkoutIdRoute =
     path: '/workout/$workoutId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicHooksDailyRunRoute = ApiPublicHooksDailyRunRouteImport.update({
+  id: '/api/public/hooks/daily-run',
+  path: '/api/public/hooks/daily-run',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -207,6 +219,7 @@ export interface FileRoutesByFullPath {
   '/logbook': typeof AuthenticatedLogbookRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/progress': typeof AuthenticatedProgressRoute
+  '/wod': typeof AuthenticatedWodRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
   '/tools/1rm-calculator': typeof Tools1rmCalculatorRoute
   '/tools/rounds-tracker': typeof ToolsRoundsTrackerRoute
@@ -214,6 +227,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/workout/$workoutId': typeof AuthenticatedWorkoutWorkoutIdRoute
+  '/api/public/hooks/daily-run': typeof ApiPublicHooksDailyRunRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -237,6 +251,7 @@ export interface FileRoutesByTo {
   '/logbook': typeof AuthenticatedLogbookRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/progress': typeof AuthenticatedProgressRoute
+  '/wod': typeof AuthenticatedWodRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
   '/tools/1rm-calculator': typeof Tools1rmCalculatorRoute
   '/tools/rounds-tracker': typeof ToolsRoundsTrackerRoute
@@ -244,6 +259,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/tools': typeof ToolsIndexRoute
   '/workout/$workoutId': typeof AuthenticatedWorkoutWorkoutIdRoute
+  '/api/public/hooks/daily-run': typeof ApiPublicHooksDailyRunRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -269,6 +285,7 @@ export interface FileRoutesById {
   '/_authenticated/logbook': typeof AuthenticatedLogbookRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/progress': typeof AuthenticatedProgressRoute
+  '/_authenticated/wod': typeof AuthenticatedWodRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
   '/tools/1rm-calculator': typeof Tools1rmCalculatorRoute
   '/tools/rounds-tracker': typeof ToolsRoundsTrackerRoute
@@ -276,6 +293,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/_authenticated/workout/$workoutId': typeof AuthenticatedWorkoutWorkoutIdRoute
+  '/api/public/hooks/daily-run': typeof ApiPublicHooksDailyRunRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -301,6 +319,7 @@ export interface FileRouteTypes {
     | '/logbook'
     | '/profile'
     | '/progress'
+    | '/wod'
     | '/admin/exercise-library'
     | '/tools/1rm-calculator'
     | '/tools/rounds-tracker'
@@ -308,6 +327,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/tools/'
     | '/workout/$workoutId'
+    | '/api/public/hooks/daily-run'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -331,6 +351,7 @@ export interface FileRouteTypes {
     | '/logbook'
     | '/profile'
     | '/progress'
+    | '/wod'
     | '/admin/exercise-library'
     | '/tools/1rm-calculator'
     | '/tools/rounds-tracker'
@@ -338,6 +359,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/tools'
     | '/workout/$workoutId'
+    | '/api/public/hooks/daily-run'
   id:
     | '__root__'
     | '/'
@@ -362,6 +384,7 @@ export interface FileRouteTypes {
     | '/_authenticated/logbook'
     | '/_authenticated/profile'
     | '/_authenticated/progress'
+    | '/_authenticated/wod'
     | '/admin/exercise-library'
     | '/tools/1rm-calculator'
     | '/tools/rounds-tracker'
@@ -369,6 +392,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/tools/'
     | '/_authenticated/workout/$workoutId'
+    | '/api/public/hooks/daily-run'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -395,6 +419,7 @@ export interface RootRouteChildren {
   ToolsWorkoutTimerRoute: typeof ToolsWorkoutTimerRoute
   AdminIndexRoute: typeof AdminIndexRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
+  ApiPublicHooksDailyRunRoute: typeof ApiPublicHooksDailyRunRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -553,6 +578,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProgressRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/wod': {
+      id: '/_authenticated/wod'
+      path: '/wod'
+      fullPath: '/wod'
+      preLoaderRoute: typeof AuthenticatedWodRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/admin/': {
       id: '/admin/'
       path: '/admin'
@@ -602,6 +634,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWorkoutWorkoutIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/hooks/daily-run': {
+      id: '/api/public/hooks/daily-run'
+      path: '/api/public/hooks/daily-run'
+      fullPath: '/api/public/hooks/daily-run'
+      preLoaderRoute: typeof ApiPublicHooksDailyRunRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -611,6 +650,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLogbookRoute: typeof AuthenticatedLogbookRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedProgressRoute: typeof AuthenticatedProgressRoute
+  AuthenticatedWodRoute: typeof AuthenticatedWodRoute
   AuthenticatedWorkoutWorkoutIdRoute: typeof AuthenticatedWorkoutWorkoutIdRoute
 }
 
@@ -620,6 +660,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLogbookRoute: AuthenticatedLogbookRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedProgressRoute: AuthenticatedProgressRoute,
+  AuthenticatedWodRoute: AuthenticatedWodRoute,
   AuthenticatedWorkoutWorkoutIdRoute: AuthenticatedWorkoutWorkoutIdRoute,
 }
 
@@ -650,6 +691,7 @@ const rootRouteChildren: RootRouteChildren = {
   ToolsWorkoutTimerRoute: ToolsWorkoutTimerRoute,
   AdminIndexRoute: AdminIndexRoute,
   ToolsIndexRoute: ToolsIndexRoute,
+  ApiPublicHooksDailyRunRoute: ApiPublicHooksDailyRunRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -124,6 +124,47 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          kind: string
+          read_at: string | null
+          title: string
+          user_id: string
+          workout_id: string | null
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          read_at?: string | null
+          title: string
+          user_id: string
+          workout_id?: string | null
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          read_at?: string | null
+          title?: string
+          user_id?: string
+          workout_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       personal_records: {
         Row: {
           achieved_at: string
@@ -168,6 +209,8 @@ export type Database = {
       profiles: {
         Row: {
           age: number | null
+          auto_workout_enabled: boolean
+          auto_workout_hour: number
           avatar_url: string | null
           bonus_credits: number
           created_at: string
@@ -180,20 +223,28 @@ export type Database = {
           gender: string | null
           height_cm: number | null
           id: string
+          last_auto_workout_on: string | null
+          last_motivation_on: string | null
           limitations: string[]
+          motivation_hour: number
+          notify_motivation: boolean
           onboarded: boolean
           preferred_categories: string[]
           preferred_environment: string | null
           preferred_equipment: string[]
           primary_goal: string | null
           secondary_goal: string | null
+          timezone: string
           training_frequency: number | null
           typical_duration_min: number | null
           updated_at: string
           weight_kg: number | null
+          wod_mode: boolean
         }
         Insert: {
           age?: number | null
+          auto_workout_enabled?: boolean
+          auto_workout_hour?: number
           avatar_url?: string | null
           bonus_credits?: number
           created_at?: string
@@ -206,20 +257,28 @@ export type Database = {
           gender?: string | null
           height_cm?: number | null
           id: string
+          last_auto_workout_on?: string | null
+          last_motivation_on?: string | null
           limitations?: string[]
+          motivation_hour?: number
+          notify_motivation?: boolean
           onboarded?: boolean
           preferred_categories?: string[]
           preferred_environment?: string | null
           preferred_equipment?: string[]
           primary_goal?: string | null
           secondary_goal?: string | null
+          timezone?: string
           training_frequency?: number | null
           typical_duration_min?: number | null
           updated_at?: string
           weight_kg?: number | null
+          wod_mode?: boolean
         }
         Update: {
           age?: number | null
+          auto_workout_enabled?: boolean
+          auto_workout_hour?: number
           avatar_url?: string | null
           bonus_credits?: number
           created_at?: string
@@ -232,17 +291,23 @@ export type Database = {
           gender?: string | null
           height_cm?: number | null
           id?: string
+          last_auto_workout_on?: string | null
+          last_motivation_on?: string | null
           limitations?: string[]
+          motivation_hour?: number
+          notify_motivation?: boolean
           onboarded?: boolean
           preferred_categories?: string[]
           preferred_environment?: string | null
           preferred_equipment?: string[]
           primary_goal?: string | null
           secondary_goal?: string | null
+          timezone?: string
           training_frequency?: number | null
           typical_duration_min?: number | null
           updated_at?: string
           weight_kg?: number | null
+          wod_mode?: boolean
         }
         Relationships: []
       }
@@ -408,6 +473,7 @@ export type Database = {
           instructions: string | null
           instructions_html: string | null
           is_favorite: boolean
+          is_wod: boolean
           location: string | null
           main_workout: string | null
           mood: string | null
@@ -427,6 +493,8 @@ export type Database = {
           user_id: string
           user_note: string | null
           warm_up: string | null
+          wod_cycle_day: number | null
+          wod_date: string | null
         }
         Insert: {
           activation?: string | null
@@ -450,6 +518,7 @@ export type Database = {
           instructions?: string | null
           instructions_html?: string | null
           is_favorite?: boolean
+          is_wod?: boolean
           location?: string | null
           main_workout?: string | null
           mood?: string | null
@@ -469,6 +538,8 @@ export type Database = {
           user_id: string
           user_note?: string | null
           warm_up?: string | null
+          wod_cycle_day?: number | null
+          wod_date?: string | null
         }
         Update: {
           activation?: string | null
@@ -492,6 +563,7 @@ export type Database = {
           instructions?: string | null
           instructions_html?: string | null
           is_favorite?: boolean
+          is_wod?: boolean
           location?: string | null
           main_workout?: string | null
           mood?: string | null
@@ -511,6 +583,8 @@ export type Database = {
           user_id?: string
           user_note?: string | null
           warm_up?: string | null
+          wod_cycle_day?: number | null
+          wod_date?: string | null
         }
         Relationships: []
       }

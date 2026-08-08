@@ -18,11 +18,13 @@ import {
   ChevronLeft,
   User,
   Dumbbell,
+  CalendarCheck,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { isAdminEmail } from "@/lib/admin";
+import { NotificationBell } from "@/components/NotificationBell";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -105,6 +107,7 @@ export function Navigation() {
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
+          {!loading && user ? <NotificationBell /> : null}
           {loading ? null : user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -126,6 +129,9 @@ export function Navigation() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link to="/coach">Smarty Coach</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/wod">Workout of the Day</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link to="/logbook">Logbook</Link>
@@ -197,6 +203,7 @@ function NavDrawer({ onClose, isAuthed, isAdmin }: { onClose: () => void; isAuth
             heading: "App",
             items: [
               { to: "/coach", label: "Smarty Coach", Icon: Sparkles },
+              { to: "/wod", label: "Workout of the Day", Icon: CalendarCheck },
               { to: "/logbook", label: "Logbook", Icon: BookOpen },
               { to: "/progress", label: "Progress", Icon: ClipboardList },
               { to: "/profile", label: "Training profile", Icon: Info },

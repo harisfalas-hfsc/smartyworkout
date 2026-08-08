@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { Crown, LogOut, Mail, User, ClipboardList } from "lucide-react";
+import { DailyCoachingSettings } from "@/components/DailyCoachingSettings";
 
 export const Route = createFileRoute("/_authenticated/account")({
   head: () => ({
@@ -58,6 +59,8 @@ function Account() {
           </Button>
         </div>
       </section>
+
+      <DailyCoachingSettings />
 
       <section className="mt-4 rounded-2xl border border-border bg-card p-5">
         <div className="flex items-center gap-3">
