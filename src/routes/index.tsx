@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Info, ListChecks, HelpCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { SmartyCard } from "@/components/SmartyCard";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import heroTraining from "@/assets/hero-training.jpg";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
