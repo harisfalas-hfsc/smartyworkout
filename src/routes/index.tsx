@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Info, ListChecks, HelpCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { SmartyCard } from "@/components/SmartyCard";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -155,11 +154,6 @@ function Home() {
         </div>
       </SmartyCard>
 
-      <div className="mt-8 flex justify-center">
-        <Button asChild size="lg" className="font-extrabold uppercase">
-          <Link to="/coach">Start with Smarty Coach</Link>
-        </Button>
-      </div>
     </div>
   );
 }
