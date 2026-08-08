@@ -179,14 +179,13 @@ function Home() {
 
           <div className="max-w-xl">
             <h1 className="text-[34px] font-extrabold leading-[1.05] tracking-tight text-white sm:text-[44px] lg:text-[60px]">
-              Your personal training plan,
+              Your personal workout,
               <br />
               <span className="text-primary">built in minutes.</span>
             </h1>
             <p className="mt-5 text-base leading-relaxed text-white/80 lg:mt-6 lg:text-lg">
-              Answer a smart questionnaire. Get a full 1, 2 or 4-week workout plan
-              tailored to your body, goals, equipment and constraints.
-              Free — no card required.
+              Answer a smart questionnaire. Get a full tailor-made workout built
+              around your body, goals, equipment and constraints.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <Link
@@ -202,9 +201,7 @@ function Home() {
                 How it works
               </Link>
             </div>
-            <p className="mt-4 text-sm text-white/60">
-              Includes 1 initial plan + 2 refinements. No subscription.
-            </p>
+
           </div>
         </div>
       </section>
