@@ -174,6 +174,13 @@ EXERCISE LINE HTML (bullet lists only):
 
 SOFT TISSUE RULES — lines may only start with: Foam roll, Foam-roll, Foam roller, Lacrosse ball, Tennis ball, Trigger point, Self-massage, Myofascial release, or "... release". Forbidden there: tokens, stretch, circle, raise, swing, lunge, pose, march, bridge, squat, press, row, curl, twist, hydrant, cobra, cat-cow, sun salutation. Dynamic stretches belong in Activation, static stretches in Cool Down.
 
+ACTIVATION RULES (non-negotiable) — Activation is MOVEMENT PREPARATION, never training.
+- Bodyweight or light band only. NEVER dumbbell, kettlebell, barbell, cable, machine, Smith, EZ bar, sled or any external load, even if that equipment is available.
+- NEVER strength or high-impact movements: deadlift, squat/bench/overhead press variations, push-ups (any variation), pull-ups, dips, burpees, box jumps, sprints, Olympic lifts.
+- Use dynamic mobility, glute/scapular/core activation, light dynamic stretches and low-intensity patterning: 8-12 reps or 30-40 sec, never near failure, never Advanced-difficulty exercises.
+- Everything that loads a muscle for adaptation belongs in Main Workout or Finisher — never in Activation.
+
+
 PRESCRIPTION RULES
 - The measurable dose ALWAYS comes BEFORE the token: "15 reps {{exercise:1160:burpee}}", "40 sec {{exercise:0630:mountain climber}}", "200m {{exercise:0685:run}}".
 - Forbidden: naked tokens, dose after the token, compact tempo codes such as 20X0 or 31X1 (write readable coaching language instead).

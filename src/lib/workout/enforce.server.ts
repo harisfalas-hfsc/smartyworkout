@@ -44,6 +44,15 @@ function dropListItems(body: string, predicate: (itemHtml: string) => boolean): 
 const SOFT_TISSUE_ALLOWED =
   /^(foam[\s-]?roll|foam roller|lacrosse ball|tennis ball|trigger point|self-?massage|myofascial release)/i;
 
+/** Loaded apparatus that must never appear in Activation (movement prep only). */
+const ACTIVATION_BANNED_EQUIPMENT_RE =
+  /\b(barbell|dumbbell|kettlebell|machine|cable|smith|ez[\s-]?bar|olympic|sled|weighted|leverage|trap bar|hammer)\b/i;
+
+/** Heavy strength / high-impact patterns that are not movement preparation. */
+const ACTIVATION_BANNED_PATTERN_RE =
+  /\b(deadlift|bench press|back squat|front squat|overhead press|push press|clean|snatch|jerk|thruster|deep push-?up|decline push-?up|weighted|pull-?up|chin-?up|muscle-?up|burpee|box jump|sprint|dip)\b/i;
+
+
 /**
  * Layer 1-4 of the post-generation pipeline: token repair, section hygiene,
  * category bans and prescription checks. Returns cleaned HTML plus findings.
@@ -98,6 +107,35 @@ export function enforceWorkout(
         warnings.push("Rebuilt Soft Tissue Preparation with compliant entries.");
       }
     }
+
+    // ---- Layer 2b: Activation = movement prep only ----------------------------
+    if (section.name === "Activation") {
+      body = dropListItems(body, (item) => {
+        const tokens = findTokens(item);
+        if (!tokens.length) return false;
+        const text = stripHtml(item.replace(new RegExp(EXERCISE_TOKEN_RE.source, "g"), "$2"));
+        if (ACTIVATION_BANNED_PATTERN_RE.test(text)) {
+          warnings.push(`Removed "${tokens[0]!.name}" from Activation (strength movement, not prep).`);
+          return true;
+        }
+        const equipment = `${byId.get(tokens[0]!.id)?.equipment ?? ""} ${text}`;
+        if (ACTIVATION_BANNED_EQUIPMENT_RE.test(equipment)) {
+          warnings.push(`Removed "${tokens[0]!.name}" from Activation (loaded apparatus).`);
+          return true;
+        }
+        const difficulty = (byId.get(tokens[0]!.id)?.difficulty ?? "").toLowerCase();
+        if (difficulty.includes("advanced")) {
+          warnings.push(`Removed "${tokens[0]!.name}" from Activation (too advanced for prep).`);
+          return true;
+        }
+        return false;
+      });
+      if (!/<li/.test(body)) {
+        warnings.push("Activation was emptied by the movement-prep rules and needs review.");
+      }
+    }
+
+
 
     // ---- Layer 3: category bans in work sections -----------------------------
     const isWork = section.name === "Main Workout" || section.name === "Finisher";
