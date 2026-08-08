@@ -1,44 +1,28 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import {
-  Info,
-  ListChecks,
-  HelpCircle,
-  CalendarCheck,
-  Dumbbell,
-  Crown,
-  Wrench,
-  Mail,
-  Sparkles,
-  BookOpen,
-  ClipboardList,
-  User,
-} from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
-import { PageHeader } from "@/components/PageHeader";
-
+import heroTraining from "@/assets/hero-training.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       {
-        title: "SmartyWorkout — Your personal training plan, built in minutes",
+        title: "SmartyWorkout — Your personal workout, anytime, anywhere",
       },
       {
         name: "description",
         content:
-          "Answer a smart questionnaire, get a fully personalized workout plan built around your body, goals, food preferences and constraints. Completely free.",
+          "Answer a smart questionnaire and get a full tailor-made workout built around your body, goals, equipment and constraints.",
       },
       {
         property: "og:title",
-        content: "SmartyWorkout — Your personal training plan, built in minutes",
+        content: "SmartyWorkout — Your personal workout, anytime, anywhere",
       },
       {
         property: "og:description",
         content:
-          "Personalized AI workout plans with equipment list, macros and PDF export. Plus free BMR, TDEE, macro and calorie tools.",
+          "Personalized AI workouts built around your body, goals and equipment. Two workouts every day with Smarty Coach.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { property: "og:url", content: "https://smartyworkout.com/" },
       {
         property: "og:image",
@@ -56,133 +40,86 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-type CtaState =
-  | { kind: "loading" }
-  | { kind: "guest" }
-  | { kind: "has-active"; sessionId: string }
-  | { kind: "no-active" };
-
 function Home() {
-  const DISCOVER = [
-    { to: "/wod", icon: CalendarCheck, title: "Workout of the Day", desc: "Two fresh workouts daily." },
-    { to: "/about", icon: Info, title: "About", desc: "Who we are and why." },
-    { to: "/how-it-works", icon: ListChecks, title: "How it works", desc: "Answer. Build. Train." },
-    { to: "/exercise-library", icon: Dumbbell, title: "Exercise Library", desc: "1,300+ demonstrations." },
-    { to: "/pricing", icon: Crown, title: "Pricing", desc: "One simple plan." },
-    { to: "/tools", icon: Wrench, title: "Tools", desc: "Timer, rounds, 1RM." },
-    { to: "/faq", icon: HelpCircle, title: "FAQ", desc: "Common questions." },
-    { to: "/contact", icon: Mail, title: "Contact", desc: "Talk to us." },
-  ] as const;
-
-  const MY_APP = [
-    { to: "/coach", icon: Sparkles, title: "Smarty Coach", desc: "Create your workout." },
-    { to: "/logbook", icon: BookOpen, title: "Logbook", desc: "History and schedule." },
-    { to: "/progress", icon: ClipboardList, title: "Progress", desc: "Your training stats." },
-    { to: "/profile", icon: Info, title: "Training profile", desc: "Keep your data fresh." },
-    { to: "/account", icon: User, title: "My account", desc: "Plan and settings." },
-  ] as const;
-
-  const { user, loading } = useAuth();
-  const [cta, setCta] = useState<CtaState>({ kind: "loading" });
-
-  useEffect(() => {
-    if (loading) return;
-    if (!user) {
-      setCta({ kind: "guest" });
-      return;
-    }
-    (async () => {
-      const { data } = await supabase
-        .from("generation_sessions")
-        .select("id,credits_used,credits_total,created_at")
-        .eq("status", "paid")
-        .order("created_at", { ascending: false });
-      const active = (data ?? []).find(
-        (r) => (r.credits_used ?? 0) < (r.credits_total ?? 0),
-      );
-      if (active) setCta({ kind: "has-active", sessionId: active.id });
-      else setCta({ kind: "no-active" });
-    })();
-  }, [user, loading]);
-
-
-
-  const heroCtaLabel =
-    cta.kind === "has-active" ? "Open Smarty Coach" : "Create your workout";
-  const heroCtaTo = "/coach";
-
-
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:py-12 lg:px-8 lg:py-16">
-      <PageHeader
-        title={
-          <>
-            Your personal workout
-            <br />
-            <span className="text-primary">anytime, anywhere.</span>
-          </>
-        }
-        subtitle="Answer a smart questionnaire. Get a full tailor-made workout built around your body, goals, equipment and constraints."
-      />
-
-      <div className="mx-auto flex max-w-sm flex-col gap-2.5 sm:max-w-md sm:flex-row sm:justify-center">
+    <div className="mx-auto flex max-w-6xl flex-col px-4 pb-8 pt-0 sm:pb-12">
+      {/* MOBILE HERO CARD */}
+      <section
+        className="mb-4 mt-4 overflow-hidden rounded-[15px] border-[1.5px] border-sky-300/70 bg-cover bg-[68%_center] bg-no-repeat p-5 shadow-[0_12px_36px_-28px_rgba(0,0,0,0.8)] sm:hidden"
+        style={{
+          backgroundImage: `linear-gradient(to bottom, rgba(4,10,18,0.55), rgba(4,10,18,0.88)), url(${heroTraining})`,
+        }}
+      >
+        <h1 className="text-[30px] font-black uppercase leading-[1.08] tracking-tight text-[#E8EEF7]">
+          Your personal workout
+          <br />
+          <span className="text-primary">anytime, anywhere.</span>
+        </h1>
+        <p className="mt-3 text-[15px] leading-relaxed text-[rgba(232,238,247,0.82)]">
+          Answer a smart questionnaire. Get a full tailor-made workout built
+          around your body, goals, equipment and constraints.
+        </p>
         <Link
-          to={heroCtaTo}
-          className="flex h-12 min-h-12 shrink-0 items-center justify-center truncate whitespace-nowrap rounded-2xl bg-primary px-4 text-[15px] font-extrabold leading-none text-primary-foreground transition hover:opacity-95 sm:flex-1"
+          to="/coach"
+          className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary text-[15px] font-extrabold text-primary-foreground"
         >
-          {heroCtaLabel}
+          Create your workout
         </Link>
         <Link
           to="/pricing"
-          className="flex h-12 min-h-12 shrink-0 items-center justify-center truncate whitespace-nowrap rounded-2xl border-2 border-primary px-4 text-[15px] font-extrabold leading-none text-primary transition hover:bg-primary/10 sm:flex-1"
+          className="mt-2.5 flex h-[46px] w-full items-center justify-center rounded-full border-2 border-primary bg-[rgba(4,10,18,0.35)] text-[15px] font-extrabold text-primary"
         >
           See pricing
         </Link>
-      </div>
+        <p className="mt-3 text-center text-[13px] text-[rgba(232,238,247,0.6)]">
+          One membership. Two personalized workouts every day.
+        </p>
+      </section>
 
-      {user && (
-        <div className="mt-10">
-          <h2 className="mb-3 text-center text-xs font-semibold uppercase tracking-wider text-primary">
-            My app
-          </h2>
-          <div className="mx-auto grid max-w-xl grid-cols-3 gap-3 sm:max-w-3xl sm:grid-cols-4 lg:max-w-5xl lg:grid-cols-5 lg:gap-5">
-            {MY_APP.map((d) => (
+      {/* FULL-BLEED HERO — desktop/tablet */}
+      <section className="relative left-1/2 mb-8 hidden w-screen -translate-x-1/2 overflow-hidden sm:mb-14 sm:block">
+        <img
+          src={heroTraining}
+          alt="Athlete training with dumbbells during a personalized workout session"
+          width={1920}
+          height={1080}
+          fetchPriority="high"
+          decoding="async"
+          className="absolute inset-0 h-full w-full object-cover object-[60%_center]"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/92 via-black/75 to-black/25" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/25 to-transparent" />
+        <div className="relative mx-auto w-full max-w-6xl px-5 py-16 lg:px-6 lg:py-36">
+          <div className="max-w-xl">
+            <h1 className="text-[34px] font-extrabold uppercase leading-[1.05] tracking-tight text-white sm:text-[44px] lg:text-[60px]">
+              Your personal workout
+              <br />
+              <span className="text-primary">anytime, anywhere.</span>
+            </h1>
+            <p className="mt-5 text-base leading-relaxed text-white/80 lg:mt-6 lg:text-lg">
+              Answer a smart questionnaire. Get a full tailor-made workout built
+              around your body, goals, equipment and constraints.
+            </p>
+            <div className="mt-7 flex flex-wrap items-center gap-3">
               <Link
-                key={d.to}
-                to={d.to}
-                className="flex flex-col items-center gap-1 rounded-2xl border-2 border-blue-400 bg-card px-3 py-4 text-center transition hover:bg-blue-50 lg:py-6 dark:hover:bg-blue-500/10"
+                to="/coach"
+                className="inline-flex h-12 items-center rounded-full bg-primary px-8 text-base font-bold text-primary-foreground hover:opacity-95"
               >
-                <d.icon className="h-5 w-5 text-primary lg:h-6 lg:w-6" />
-                <p className="text-sm font-bold leading-5">{d.title}</p>
-                <p className="hidden text-xs leading-5 text-muted-foreground sm:block">{d.desc}</p>
+                Create your workout
               </Link>
-            ))}
+              <Link
+                to="/pricing"
+                className="inline-flex h-12 items-center rounded-full border-2 border-primary px-8 text-base font-bold text-primary hover:bg-primary/10"
+              >
+                See pricing
+              </Link>
+            </div>
+            <p className="mt-4 text-sm text-white/60">
+              One membership. Two personalized workouts every day.
+            </p>
           </div>
         </div>
-      )}
-
-      <div className="mt-10">
-        <h2 className="mb-3 text-center text-xs font-semibold uppercase tracking-wider text-primary">
-          Discover
-        </h2>
-        <div className="mx-auto grid max-w-xl grid-cols-3 gap-3 sm:max-w-3xl sm:grid-cols-4 lg:max-w-5xl lg:gap-5">
-          {DISCOVER.map((d) => (
-            <Link
-              key={d.to}
-              to={d.to}
-              className="flex flex-col items-center gap-1 rounded-2xl border-2 border-blue-400 bg-card px-3 py-4 text-center transition hover:bg-blue-50 lg:py-6 dark:hover:bg-blue-500/10"
-            >
-              <d.icon className="h-5 w-5 text-primary lg:h-6 lg:w-6" />
-              <p className="text-sm font-bold leading-5">{d.title}</p>
-              <p className="hidden text-xs leading-5 text-muted-foreground sm:block">{d.desc}</p>
-            </Link>
-          ))}
-        </div>
-      </div>
+      </section>
     </div>
   );
 }
-
-
-
-
