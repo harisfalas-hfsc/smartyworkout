@@ -105,10 +105,37 @@ export async function getAccessStateForUser(
     subscription && (!periodEnd || Number.isNaN(periodEnd) || periodEnd > Date.now()),
   );
 
-  return { profileComplete, healthAcknowledged, readinessComplete, premium, missingProfileFields };
+  const timezone = (row?.["timezone"] as string) || "Europe/Athens";
+  let generationsUsedToday = 0;
+  try {
+    const { count } = await db
+      .from("workouts")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("is_wod", false)
+      .gte("created_at", startOfLocalDayIso(timezone));
+    generationsUsedToday = count ?? 0;
+  } catch {
+    generationsUsedToday = 0;
+  }
+
+  return {
+    profileComplete,
+    healthAcknowledged,
+    readinessComplete,
+    premium,
+    missingProfileFields,
+    generationsUsedToday,
+    generationsLimit: DAILY_GENERATION_LIMIT,
+    generationsLeftToday: Math.max(0, DAILY_GENERATION_LIMIT - generationsUsedToday),
+  };
 }
 
-export async function requireWorkoutAccess(db: SupabaseClient, userId: string) {
+export async function requireWorkoutAccess(
+  db: SupabaseClient,
+  userId: string,
+  options: { countsAgainstDailyQuota?: boolean } = {},
+) {
   const access = await getAccessStateForUser(db, userId);
   if (!access.healthAcknowledged) {
     throw new Error("Accept the health and safety acknowledgement in your Training Profile first.");
@@ -121,6 +148,11 @@ export async function requireWorkoutAccess(db: SupabaseClient, userId: string) {
   }
   if (!access.premium) {
     throw new Error("An active Smarty Workout membership is required.");
+  }
+  if (options.countsAgainstDailyQuota && access.generationsLeftToday <= 0) {
+    throw new Error(
+      `Your membership includes ${DAILY_GENERATION_LIMIT} workout generations per day. You've used both today — your Workout of the Day is still available, and your allowance resets tomorrow.`,
+    );
   }
   return access;
 }
