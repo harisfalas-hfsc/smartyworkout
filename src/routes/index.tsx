@@ -51,27 +51,22 @@ type CtaState =
 
 function Home() {
   const DISCOVER = [
-    {
-      to: "/about",
-      icon: Info,
-      color: "text-emerald-500",
-      title: "About",
-      desc: "Who we are and why.",
-    },
-    {
-      to: "/how-it-works",
-      icon: ListChecks,
-      color: "text-orange-500",
-      title: "How it works",
-      desc: "Answer. Build. Train.",
-    },
-    {
-      to: "/faq",
-      icon: HelpCircle,
-      color: "text-sky-500",
-      title: "FAQ",
-      desc: "Common questions.",
-    },
+    { to: "/wod", icon: CalendarCheck, title: "Workout of the Day", desc: "Two fresh workouts daily." },
+    { to: "/about", icon: Info, title: "About", desc: "Who we are and why." },
+    { to: "/how-it-works", icon: ListChecks, title: "How it works", desc: "Answer. Build. Train." },
+    { to: "/exercise-library", icon: Dumbbell, title: "Exercise Library", desc: "1,300+ demonstrations." },
+    { to: "/pricing", icon: Crown, title: "Pricing", desc: "One simple plan." },
+    { to: "/tools", icon: Wrench, title: "Tools", desc: "Timer, rounds, 1RM." },
+    { to: "/faq", icon: HelpCircle, title: "FAQ", desc: "Common questions." },
+    { to: "/contact", icon: Mail, title: "Contact", desc: "Talk to us." },
+  ] as const;
+
+  const MY_APP = [
+    { to: "/coach", icon: Sparkles, title: "Smarty Coach", desc: "Create your workout." },
+    { to: "/logbook", icon: BookOpen, title: "Logbook", desc: "History and schedule." },
+    { to: "/progress", icon: ClipboardList, title: "Progress", desc: "Your training stats." },
+    { to: "/profile", icon: Info, title: "Training profile", desc: "Keep your data fresh." },
+    { to: "/account", icon: User, title: "My account", desc: "Plan and settings." },
   ] as const;
 
   const { user, loading } = useAuth();
