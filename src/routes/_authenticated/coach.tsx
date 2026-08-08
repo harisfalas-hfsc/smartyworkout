@@ -160,7 +160,7 @@ function CoachPage() {
     setEquipment((prev) => (prev.includes(id) ? prev.filter((e) => e !== id) : [...prev, id]));
   }
 
-  async function generate(surprise = false) {
+  async function generate(surprise = false, levelOverride?: string) {
     if (busy) return;
     setBusy(true);
     setResuming(false);
@@ -175,7 +175,7 @@ function CoachPage() {
           equipment: equipment.length ? equipment : ["bodyweight"],
           equipmentOther: equipment.includes("other") ? otherEquipment.trim() : "",
           note: note.trim(),
-          level: surprise ? "auto" : level,
+          level: surprise ? "auto" : (levelOverride ?? level),
           surprise,
         },
       });
@@ -403,7 +403,7 @@ function CoachPage() {
             <AlertDialogCancel
               onClick={() => {
                 setLevel("auto");
-                void generate(false);
+                void generate(false, "auto");
               }}
             >
               Scale it to my mood
