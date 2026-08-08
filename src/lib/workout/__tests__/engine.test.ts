@@ -142,7 +142,7 @@ describe("parseWorkoutSteps", () => {
   it("assigns the right sections", () => {
     expect(steps[0]!.section).toBe("Activation");
     expect(steps[1]!.section).toBe("Main Workout");
-    expect(steps[4]!.section).toBe("Finisher");
+    expect(steps[5]!.section).toBe("Finisher");
     expect(steps.at(-1)!.section).toBe("Cool-down");
   });
 });
