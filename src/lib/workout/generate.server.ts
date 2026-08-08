@@ -26,6 +26,7 @@ export type GenerateInput = {
   note?: string;
   location?: string;
   mood?: string;
+  athlete?: AthleteContext;
 };
 
 export type GeneratedWorkout = {
@@ -123,6 +124,7 @@ export async function generateWorkoutContent(
       duration,
       focus: input.focus ?? null,
       ...(input.note ? { note: input.note } : {}),
+      ...(input.athlete ? { athlete: input.athlete } : {}),
       pool: promptPool,
       bannedNames: usedNames,
     });
