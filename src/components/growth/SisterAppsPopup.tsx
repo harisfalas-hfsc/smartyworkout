@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { ExternalLink, Sparkles, ChevronLeft } from "lucide-react";
 import logoMove from "@/assets/smartymove-logo.png";
 import logoDiet from "@/assets/smartydiet-logo.png";
+import logoGym from "@/assets/smartygym-icon.png";
+import logoLogbook from "@/assets/smartylogbook-logo.png";
 
-const CURRENT_APP: "workout" | "move" | "diet" = "workout";
+const CURRENT_APP: "workout" | "gym" | "move" | "diet" | "logbook" = "workout";
 
 type SisterApp = {
-  id: "workout" | "move" | "diet";
+  id: "workout" | "gym" | "move" | "diet" | "logbook";
   name: string;
   tagline: string;
   url: string;
@@ -15,18 +17,32 @@ type SisterApp = {
 
 const SISTER_APPS: SisterApp[] = [
   {
+    id: "gym",
+    name: "SmartyGym",
+    tagline: "Train smart. Get stronger. Feel younger.",
+    url: "https://smartygym.com",
+    image: logoGym,
+  },
+  {
     id: "move",
     name: "SmartyMove",
     tagline: "Check your posture. Correct your movement. Live better.",
-    url: "https://smarty-motion-pro.lovable.app",
+    url: "https://smartymove.com",
     image: logoMove,
   },
   {
     id: "diet",
     name: "SmartyDiet",
     tagline: "Eat smart. Fuel your body. Live longer.",
-    url: "https://smarty-meals-hub.lovable.app",
+    url: "https://smartydiet.com",
     image: logoDiet,
+  },
+  {
+    id: "logbook",
+    name: "SmartyLogbook",
+    tagline: "Track your life. Stay organized. Live better.",
+    url: "https://smartylogbook.lovable.app",
+    image: logoLogbook,
   },
 ];
 
