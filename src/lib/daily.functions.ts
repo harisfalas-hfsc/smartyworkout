@@ -208,7 +208,7 @@ export const deleteNotifications = createServerFn({ method: "POST" })
   });
 
 
-/** Joins or leaves the Workout of the Day programme. Joining builds today's sessions at once. */
+/** Joins or leaves the Workout of the Day programme. Joining builds today's workouts at once. */
 export const setWodSubscription = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { subscribe: boolean; level?: WodLevel }) => input)
