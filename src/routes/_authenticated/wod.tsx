@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ChevronLeft, ChevronRight, Dumbbell, Home, Loader2, Play, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ type Hub = Awaited<ReturnType<typeof getDailyHub>>;
 type DayInfo = Hub["days"]["today"];
 type WodWorkout = Hub["workouts"][number];
 
-function DaySlide({ day, label }: { day: DayInfo; label: string }) {
+function DaySlide({ day, label, active }: { day: DayInfo; label: string; active: boolean }) {
   const formatted = new Intl.DateTimeFormat("en", {
     weekday: "long",
     month: "long",
@@ -34,7 +34,13 @@ function DaySlide({ day, label }: { day: DayInfo; label: string }) {
   }).format(new Date(`${day.date}T12:00:00Z`));
 
   return (
-    <div className="min-w-0 flex-1 rounded-lg border-2 border-primary bg-primary/10 px-3 py-4 text-center">
+    <div
+      className={`w-[72%] shrink-0 snap-center rounded-lg border-2 px-3 py-4 text-center transition-all sm:w-[46%] ${
+        active
+          ? "border-primary bg-primary/10 opacity-100"
+          : "border-border bg-muted/40 opacity-60"
+      }`}
+    >
       <p className="text-xs font-bold text-primary">{label}</p>
       <p className="mt-1 truncate text-xs font-bold text-primary">{formatted}</p>
       <p className="mt-3 truncate text-sm font-black uppercase">{day.category}</p>
@@ -44,6 +50,7 @@ function DaySlide({ day, label }: { day: DayInfo; label: string }) {
     </div>
   );
 }
+
 
 function WorkoutCard({ workout }: { workout: WodWorkout }) {
   const bodyweight = workout.wod_variant === "bodyweight";
@@ -83,12 +90,41 @@ function WodPage() {
   const [hub, setHub] = useState<Hub | null>(null);
   const [busy, setBusy] = useState(false);
   const [activeDay, setActiveDay] = useState(1);
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const centeredRef = useRef(false);
+
+  function onTrackScroll() {
+    const el = trackRef.current;
+    if (!el) return;
+    const center = el.scrollLeft + el.clientWidth / 2;
+    let best = 0;
+    let bestDist = Infinity;
+    Array.from(el.children).forEach((child, index) => {
+      const node = child as HTMLElement;
+      const dist = Math.abs(node.offsetLeft + node.offsetWidth / 2 - center);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = index;
+      }
+    });
+    setActiveDay(best);
+  }
 
   useEffect(() => {
     void load({})
       .then(setHub)
       .catch(() => setHub(null));
   }, [load]);
+
+  useEffect(() => {
+    if (!hub || centeredRef.current) return;
+    const el = trackRef.current;
+    const today = el?.children[1] as HTMLElement | undefined;
+    if (!el || !today) return;
+    centeredRef.current = true;
+    el.scrollLeft = today.offsetLeft - (el.clientWidth - today.offsetWidth) / 2;
+  }, [hub]);
+
 
   async function refresh() {
     setHub(await load({}));
@@ -144,16 +180,18 @@ function WodPage() {
     { day: days.today, label: "Today" },
     { day: days.tomorrow, label: "Tomorrow" },
   ];
-  const selectedDay = daySlides[activeDay] ?? daySlides[1];
 
   return (
     <div className="mx-auto max-w-xl space-y-5 px-4 py-6 sm:py-10">
-      <section className="rounded-lg border-2 border-primary/60 bg-card px-5 py-6 text-center shadow-sm sm:px-8">
-        <header className="text-center">
-          <h1 className="text-2xl font-black uppercase leading-tight">Workout of the Day</h1>
-        </header>
+      <header>
+        <h1 className="text-3xl font-black">Workout of the Day</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Your daily programme, chosen for you by Smarty Coach.
+        </p>
+      </header>
 
-        <p className="mt-4 text-[14px] leading-6 text-muted-foreground">
+      <section className="rounded-lg border-2 border-primary/60 bg-card px-5 py-6 text-center shadow-sm sm:px-8">
+        <p className="text-[14px] leading-6 text-muted-foreground">
           Get <strong className="text-foreground">two workouts</strong> every day: one bodyweight
           and one using your equipment. <strong className="text-primary">Smarty Coach</strong>{" "}
           follows a balanced periodization plan and adapts every workout to your profile. It is
@@ -161,36 +199,25 @@ function WodPage() {
         </p>
       </section>
 
-      <section className="rounded-lg border border-border bg-card p-3 shadow-sm">
+      <section className="rounded-lg border border-border bg-card py-3 shadow-sm">
         <div className="flex items-center justify-center gap-5 py-1 text-xs font-medium text-muted-foreground">
           <ChevronLeft className="h-5 w-5" />
           <span>Swipe to explore</span>
           <ChevronRight className="h-5 w-5" />
         </div>
-        <div className="mt-2 grid grid-cols-[44px_minmax(0,1fr)_44px] items-center gap-2">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-11 w-11 rounded-full"
-            disabled={activeDay === 0}
-            aria-label="Previous day"
-            onClick={() => setActiveDay((day) => Math.max(0, day - 1))}
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
-          {selectedDay ? <DaySlide day={selectedDay.day} label={selectedDay.label} /> : null}
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-11 w-11 rounded-full"
-            disabled={activeDay === 2}
-            aria-label="Next day"
-            onClick={() => setActiveDay((day) => Math.min(2, day + 1))}
-          >
-            <ChevronRight className="h-5 w-5" />
-          </Button>
+        <div
+          ref={trackRef}
+          onScroll={onTrackScroll}
+          className="mt-2 flex snap-x snap-mandatory gap-3 overflow-x-auto px-[14%] pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:px-[27%] [&::-webkit-scrollbar]:hidden"
+        >
+          {daySlides.map((item, index) => (
+            <DaySlide
+              key={item.label}
+              day={item.day}
+              label={item.label}
+              active={index === activeDay}
+            />
+          ))}
         </div>
         <div className="mt-3 flex justify-center gap-2" aria-hidden="true">
           {daySlides.map((item, index) => (
@@ -203,6 +230,7 @@ function WodPage() {
           ))}
         </div>
       </section>
+
 
       <section>
         {workouts.length ? (
@@ -236,9 +264,10 @@ function WodPage() {
         </Button>
         <p className="mt-2 text-center text-[11px] leading-4 text-muted-foreground">
           {subscribed
-            ? "Both workouts arrive automatically at midnight, your local time. Renews monthly."
-            : "Subscribe and today's two workouts are built right away, then every night automatically."}
+            ? "Both workouts arrive automatically at midnight, your local time — while subscribed you don't create your own workouts, Smarty Coach does it for you. Renews monthly, unsubscribe anytime."
+            : "Subscribe and today's two workouts are built right away, then every night automatically — while subscribed you can't generate your own workouts, because your two are already made for you."}
         </p>
+
       </section>
     </div>
   );

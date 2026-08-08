@@ -31,6 +31,18 @@ const ITEMS: { q: string; a: string }[] = [
     a: "Up to 2 workouts per day, the full exercise library, all training tools, your logbook, progress tracking and every previous workout you've created.",
   },
   {
+    q: "What is the Workout of the Day?",
+    a: "Two workouts built for you every day — one bodyweight, one with your equipment — following a balanced periodization plan. Smarty Coach picks the category and difficulty; your profile decides the exercises, location and limitations.",
+  },
+  {
+    q: "Why should I follow the Workout of the Day?",
+    a: "Because the hard part of training is knowing what to do today. Periodization mixes strength, cardio, metabolic, mobility and recovery in the right order, so you progress without overtraining or undertraining.",
+  },
+  {
+    q: "How is it different from choosing a workout myself?",
+    a: "Choosing manually is random: you repeat what you like and skip what you need. The Workout of the Day is a plan — like a personal trainer deciding for you — ready in your account before you wake up. While subscribed you don't generate your own workouts; your two are already made. Unsubscribe anytime and go back to creating them yourself.",
+  },
+  {
     q: "Do I need equipment?",
     a: "No. Tell Smarty Coach what you have — nothing, dumbbells, bands or a full gym — and the session is built around it.",
   },
