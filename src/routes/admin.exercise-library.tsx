@@ -1,12 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { ShieldAlert, Loader2, UploadCloud, FileJson, Images, ArrowLeft } from "lucide-react";
-import { isAdminEmail } from "@/lib/admin";
+import { UploadCloud, FileJson, Images } from "lucide-react";
 
 const BUCKET = "exercise-library";
 const CONCURRENCY = 6;
@@ -34,34 +33,10 @@ export const Route = createFileRoute("/admin/exercise-library")({
 });
 
 function Page() {
-  const [authed, setAuthed] = useState<boolean | null>(null);
-  useEffect(() => {
-    supabase.auth
-      .getUser()
-      .then(({ data }) => setAuthed(isAdminEmail(data.user?.email)))
-      .catch(() => setAuthed(false));
-  }, []);
-
   return (
     <div className="flex min-h-[100dvh] w-full flex-col bg-background text-foreground">
       <main className="mx-auto w-full max-w-[1100px] px-4 pb-16 pt-4 lg:px-8">
-        {authed === null ? (
-          <div className="mt-10 flex justify-center">
-            <Loader2 className="h-6 w-6 animate-spin text-primary" />
-          </div>
-        ) : !authed ? (
-          <div className="mx-auto mt-10 max-w-sm rounded-3xl border bg-card p-6 text-center shadow-sm">
-            <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-primary/10 text-primary">
-              <ShieldAlert className="h-6 w-6" />
-            </div>
-            <h1 className="mt-4 text-xl font-extrabold">Admin access only</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              This area is restricted to SmartyWorkout administrators.
-            </p>
-          </div>
-        ) : (
-          <Uploader />
-        )}
+        <Uploader />
       </main>
     </div>
   );
@@ -155,20 +130,11 @@ function Uploader() {
 
   return (
     <div className="space-y-6 py-6">
-      <div className="flex items-center gap-3">
-        <Button asChild variant="ghost" size="sm">
-          <Link to="/admin">
-            <ArrowLeft className="mr-1 h-4 w-4" />
-            Admin
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight">Exercise library upload</h1>
-          <p className="text-sm text-muted-foreground">
-            Upload the exercise GIFs and the metadata JSON. Files are stored privately and served
-            through signed links.
-          </p>
-        </div>
+      <div>
+        <h1 className="text-2xl font-extrabold tracking-tight">Exercise library upload</h1>
+        <p className="text-sm text-muted-foreground">
+          Upload the exercise GIFs and the metadata JSON here.
+        </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
