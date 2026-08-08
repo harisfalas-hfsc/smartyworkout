@@ -108,6 +108,35 @@ export function enforceWorkout(
       }
     }
 
+    // ---- Layer 2b: Activation = movement prep only ----------------------------
+    if (section.name === "Activation") {
+      body = dropListItems(body, (item) => {
+        const tokens = findTokens(item);
+        if (!tokens.length) return false;
+        const text = stripHtml(item.replace(new RegExp(EXERCISE_TOKEN_RE.source, "g"), "$2"));
+        if (ACTIVATION_BANNED_PATTERN_RE.test(text)) {
+          warnings.push(`Removed "${tokens[0]!.name}" from Activation (strength movement, not prep).`);
+          return true;
+        }
+        const equipment = `${byId.get(tokens[0]!.id)?.equipment ?? ""} ${text}`;
+        if (ACTIVATION_BANNED_EQUIPMENT_RE.test(equipment)) {
+          warnings.push(`Removed "${tokens[0]!.name}" from Activation (loaded apparatus).`);
+          return true;
+        }
+        const difficulty = (byId.get(tokens[0]!.id)?.difficulty ?? "").toLowerCase();
+        if (difficulty.includes("advanced")) {
+          warnings.push(`Removed "${tokens[0]!.name}" from Activation (too advanced for prep).`);
+          return true;
+        }
+        return false;
+      });
+      if (!/<li/.test(body)) {
+        warnings.push("Activation was emptied by the movement-prep rules and needs review.");
+      }
+    }
+
+
+
     // ---- Layer 3: category bans in work sections -----------------------------
     const isWork = section.name === "Main Workout" || section.name === "Finisher";
     if (isWork && opts.category === "CHALLENGE") {
