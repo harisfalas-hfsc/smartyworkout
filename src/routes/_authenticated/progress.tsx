@@ -123,15 +123,37 @@ function Progress() {
       <p className="mt-1 text-muted-foreground">Keep showing up — Smarty Coach is tracking it all.</p>
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat icon={Activity} label="Total workouts" value={completed.length} />
+        <Stat
+          icon={Activity}
+          label="Completed"
+          value={completed.length}
+          to={{ filter: "completed" }}
+        />
+        <Stat
+          icon={Activity}
+          label="Not completed"
+          value={rows.length - completed.length}
+          to={{ filter: "planned" }}
+        />
         <Stat icon={Timer} label="Training minutes" value={minutes} />
         <Stat icon={Flame} label="Current streak" value={`${current}d`} />
         <Stat icon={Trophy} label="Longest streak" value={`${longest}d`} />
-        <Stat icon={Activity} label="This week" value={week.length} />
-        <Stat icon={Activity} label="This month" value={month.length} />
+        <Stat
+          icon={Activity}
+          label="This week"
+          value={week.length}
+          to={{ filter: "completed" }}
+        />
+        <Stat
+          icon={Activity}
+          label="Favourites"
+          value={favourites}
+          to={{ filter: "favorites" }}
+        />
         <Stat icon={Trophy} label="Favourite category" value={favourite} />
-        <Stat icon={Activity} label="Created" value={rows.length} />
+        <Stat icon={Activity} label="Created" value={rows.length} to={{ filter: "all" }} />
       </div>
+
 
       <Button asChild className="mt-8">
         <Link to="/coach">Train now</Link>
