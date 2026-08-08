@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export type AccessState = {
   profileComplete: boolean;
   healthAcknowledged: boolean;
+  readinessComplete: boolean;
   premium: boolean;
   missingProfileFields: string[];
 };
@@ -25,6 +26,7 @@ export async function getAccessStateForUser(
         .from("profiles")
         .select(
           "onboarded,health_acknowledged_at,age,fitness_level,primary_goal,preferred_environment,preferred_equipment,typical_duration_min",
+          "onboarded,health_acknowledged_at,readiness_answers,readiness_warning_acknowledged_at,age,fitness_level,primary_goal,preferred_environment,preferred_equipment,typical_duration_min",
         )
         .eq("id", userId)
         .maybeSingle(),
@@ -52,7 +54,17 @@ export async function getAccessStateForUser(
   }
 
   const healthAcknowledged = Boolean(row?.["health_acknowledged_at"]);
-  const profileComplete = Boolean(row?.["onboarded"]) && missingProfileFields.length === 0;
+  const readinessAnswers = (row?.["readiness_answers"] ?? {}) as Record<string, unknown>;
+  const readinessValues = ["heart", "chestPain", "dizziness", "jointProblem", "otherReason"].map(
+    (key) => readinessAnswers[key],
+  );
+  const readinessAnswered = readinessValues.every((value) => typeof value === "boolean");
+  const hasReadinessWarning = readinessValues.some((value) => value === true);
+  const readinessComplete =
+    readinessAnswered &&
+    (!hasReadinessWarning || Boolean(row?.["readiness_warning_acknowledged_at"]));
+  const profileComplete =
+    Boolean(row?.["onboarded"]) && missingProfileFields.length === 0 && readinessComplete;
   const periodEnd = subscription?.current_period_end
     ? new Date(subscription.current_period_end).getTime()
     : null;
@@ -60,7 +72,7 @@ export async function getAccessStateForUser(
     subscription && (!periodEnd || Number.isNaN(periodEnd) || periodEnd > Date.now()),
   );
 
-  return { profileComplete, healthAcknowledged, premium, missingProfileFields };
+  return { profileComplete, healthAcknowledged, readinessComplete, premium, missingProfileFields };
 }
 
 export async function requireWorkoutAccess(db: SupabaseClient, userId: string) {
