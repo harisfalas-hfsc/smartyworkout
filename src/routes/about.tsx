@@ -26,89 +26,78 @@ export const Route = createFileRoute("/about")({
   component: AboutPage,
 });
 
-const POINTS = [
-  {
-    icon: "🧠",
-    tone: "purple" as const,
-    title: "SMART",
-    text: "Understands you, your goals and your training history.",
-  },
-  {
-    icon: "🎯",
-    tone: "orange" as const,
-    title: "PERSONALIZED",
-    text: "Your mood, time, equipment, location and level.",
-  },
-  {
-    icon: "🔬",
-    tone: "cyan" as const,
-    title: "SCIENCE-INFORMED",
-    text: "Sports science, safety, health and performance.",
-  },
-  {
-    icon: "🔄",
-    tone: "green" as const,
-    title: "ADAPTIVE",
-    text: "Learns from your workouts and feedback.",
-  },
-];
-
 function AboutPage() {
   return (
-    <div className="mx-auto w-full max-w-md px-4 py-4">
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:py-12">
+      <div className="mb-8 text-center">
+        <p className="text-xs font-semibold uppercase tracking-wider text-primary">About</p>
+        <h1 className="mt-2 text-3xl font-extrabold uppercase tracking-tight sm:text-4xl">
+          Not another <span className="text-primary">workout app.</span>
+        </h1>
+      </div>
+
       <SmartyCard
         tone="purple"
-        eyebrow="About"
-        eyebrowIcon="💪"
+        eyebrow="Meet Smarty Coach"
+        eyebrowIcon="🧠"
         cornerIcon={Brain}
-        className="p-5 sm:p-6"
+        title="Meet"
+        accent="Smarty Coach."
+        description={
+          <>
+            An intelligent AI fitness coach trained around the sports science and training
+            philosophy of{" "}
+            <a
+              href="https://smartygym.com/coach"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-primary underline underline-offset-2"
+            >
+              Sports Scientist Haris Falas
+            </a>
+            .
+          </>
+        }
       >
-        <h1 className="-mt-7 text-2xl font-extrabold uppercase leading-[1.05] tracking-tight">
-          Not another <span className="text-violet-500 dark:text-violet-300">workout app.</span>
-        </h1>
-        <p className="mt-1.5 text-sm font-bold">Meet Smarty Coach.</p>
-        <p className="mt-1.5 text-[13px] leading-snug text-muted-foreground">
-          An intelligent AI fitness coach trained around the sports science and training philosophy
-          of{" "}
-          <a
-            href="https://smartygym.com/coach"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-semibold text-primary underline underline-offset-2"
-          >
-            Sports Scientist Haris Falas
-          </a>
-          .
-        </p>
-
-        <div className="mt-4 space-y-1">
-          {POINTS.map((p) => (
-            <SmartyRow
-              key={p.title}
-              tone={p.tone}
-              icon={p.icon}
-              title={p.title}
-              subtitle={p.text}
-            />
-          ))}
+        <div className="grid gap-3 sm:grid-cols-2">
+          <SmartyRow
+            tone="purple"
+            icon="🧠"
+            title="SMART"
+            subtitle="Understands you, your goals and your training history."
+          />
+          <SmartyRow
+            tone="purple"
+            icon="🎯"
+            title="PERSONALIZED"
+            subtitle="Your mood, time, equipment, location and fitness level."
+          />
+          <SmartyRow
+            tone="purple"
+            icon="🔬"
+            title="SCIENCE-INFORMED"
+            subtitle="Sports science, safety, health and performance."
+          />
+          <SmartyRow
+            tone="purple"
+            icon="🔄"
+            title="ADAPTIVE"
+            subtitle="Learns from your workouts and feedback."
+          />
         </div>
 
-        <p className="mt-4 text-center text-[13px] font-bold leading-snug">
+        <p className="mt-6 text-center text-sm font-bold leading-snug sm:text-base">
           You don&apos;t choose a workout.
           <br />
-          <span className="text-violet-500 dark:text-violet-300">
-            Smarty Coach creates the workout you need today.
-          </span>
+          <span className="text-primary">Smarty Coach creates the workout you need today.</span>
         </p>
+      </SmartyCard>
 
-        <Button
-          asChild
-          size="lg"
-          className="mt-4 w-full rounded-full text-sm font-extrabold uppercase"
-        >
+      <div className="mt-8 flex justify-center">
+        <Button asChild size="lg" className="font-extrabold uppercase">
           <Link to="/coach">Meet Smarty Coach</Link>
         </Button>
-      </SmartyCard>
+      </div>
     </div>
   );
 }
