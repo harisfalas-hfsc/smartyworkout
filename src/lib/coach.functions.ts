@@ -62,23 +62,38 @@ export const generateWorkout = createServerFn({ method: "POST" })
         : "EQUIPMENT";
 
     let category: Category = GOAL_TO_CATEGORY[goal] ?? "STRENGTH";
-    if (data.surprise) {
-      const keys = Object.values(GOAL_TO_CATEGORY);
-      category = keys[Math.floor(Math.random() * keys.length)]!;
-    }
-    if (minutes <= 5) category = "MICRO-WORKOUTS";
 
     const [{ data: profile }, { data: recent }] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
       supabase
         .from("workouts")
-        .select("name")
+        .select("name,category,created_at")
         .order("created_at", { ascending: false })
         .limit(120),
     ]);
 
-    const stars = starsFor((profile as never) ?? null, mood);
-    const usedNames = ((recent as { name: string }[] | null) ?? []).map((r) => r.name);
+    const prof = (profile ?? null) as Record<string, unknown> | null;
+    const history = ((recent as { name: string; category: string }[] | null) ?? []);
+
+    if (data.surprise) {
+      // Deterministic per user per day, and never the same category as the last 2 workouts.
+      const seedSource = `${userId}:${new Date().toISOString().slice(0, 10)}`;
+      let seed = 0;
+      for (let i = 0; i < seedSource.length; i++) seed = (seed * 31 + seedSource.charCodeAt(i)) >>> 0;
+      const preferred = (prof?.["preferred_categories"] as string[] | null) ?? [];
+      const pool = (preferred.length
+        ? preferred.map((g) => GOAL_TO_CATEGORY[g]).filter(Boolean)
+        : Object.values(GOAL_TO_CATEGORY)) as Category[];
+      const recentCats = new Set(history.slice(0, 2).map((h) => h.category));
+      const fresh = pool.filter((c) => !recentCats.has(c));
+      const choices = fresh.length ? fresh : pool;
+      category = choices[seed % choices.length]!;
+    }
+    if (minutes <= 5) category = "MICRO-WORKOUTS";
+
+    const stars = starsFor((prof as never) ?? null, mood);
+    const usedNames = history.map((r) => r.name);
+
     const requestedFormat = data.format as Format | undefined;
     const format =
       requestedFormat && CATEGORY_FORMATS[category].includes(requestedFormat) ? requestedFormat : null;
