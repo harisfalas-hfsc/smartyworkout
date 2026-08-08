@@ -223,7 +223,7 @@ function TrainingIntelligencePage() {
           cornerIcon={Users}
           title="Built for"
           accent="everyone with a goal"
-          description="Whatever you're training for, training intelligence gets you there faster — without the subscription trap."
+          description="Whatever you're training for, training intelligence gets you there faster — with a session that fits today."
         >
           <div className="grid gap-3 sm:grid-cols-2">
             <SmartyPill tone="pink" icon="💪">Building muscle</SmartyPill>

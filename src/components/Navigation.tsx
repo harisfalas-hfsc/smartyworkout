@@ -17,6 +17,7 @@ import {
   BookOpen,
   ChevronLeft,
   User,
+  Dumbbell,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -212,6 +213,7 @@ function NavDrawer({ onClose, isAuthed, isAdmin }: { onClose: () => void; isAuth
         { to: "/", label: "Home", Icon: Home },
         { to: "/about", label: "About", Icon: Info },
         { to: "/how-it-works", label: "How It Works", Icon: BookOpen },
+        { to: "/exercise-library", label: "Exercise Library", Icon: Dumbbell },
         { to: "/pricing", label: "Pricing", Icon: Crown },
         { to: "/tools", label: "Tools", Icon: Wrench },
         { to: "/faq", label: "Frequently Asked Questions", Icon: HelpCircle },

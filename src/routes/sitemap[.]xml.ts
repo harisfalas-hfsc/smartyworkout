@@ -23,6 +23,7 @@ const ENTRIES: SitemapEntry[] = [
 
   { path: "/pricing", changefreq: "monthly", priority: "0.9" },
   { path: "/how-it-works", changefreq: "monthly", priority: "0.8" },
+  { path: "/exercise-library", changefreq: "weekly", priority: "0.85" },
   { path: "/faq", changefreq: "monthly", priority: "0.8" },
   { path: "/contact", changefreq: "yearly", priority: "0.5" },
   { path: "/training-intelligence", changefreq: "monthly", priority: "0.95" },
@@ -30,9 +31,9 @@ const ENTRIES: SitemapEntry[] = [
 
 
   { path: "/tools", changefreq: "monthly", priority: "0.8" },
-  { path: "/tools/bmr-calculator", changefreq: "monthly", priority: "0.8" },
-  { path: "/tools/macro-calculator", changefreq: "monthly", priority: "0.8" },
-  { path: "/tools/calorie-counter", changefreq: "monthly", priority: "0.8" },
+  { path: "/tools/workout-timer", changefreq: "monthly", priority: "0.8" },
+  { path: "/tools/rounds-tracker", changefreq: "monthly", priority: "0.8" },
+  { path: "/tools/1rm-calculator", changefreq: "monthly", priority: "0.8" },
   { path: "/privacy", changefreq: "yearly", priority: "0.3" },
   { path: "/terms", changefreq: "yearly", priority: "0.3" },
   { path: "/disclaimer", changefreq: "yearly", priority: "0.3" },
