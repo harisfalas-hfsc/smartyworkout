@@ -2,6 +2,17 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { useServerFn } from "@tanstack/react-start";
+import { setWorkoutMeta } from "@/lib/coach.functions";
+import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Loader2,
   Star,
@@ -11,12 +22,12 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  ListFilter,
 } from "lucide-react";
 
-type Filter = "all" | "completed" | "planned" | "favorites" | "scheduled";
+type Filter = "completed" | "planned" | "favorites" | "scheduled";
 
 const FILTERS: Array<{ id: Filter; label: string }> = [
-  { id: "all", label: "All" },
   { id: "completed", label: "Completed" },
   { id: "planned", label: "Not done" },
   { id: "scheduled", label: "Scheduled" },
@@ -25,13 +36,11 @@ const FILTERS: Array<{ id: Filter; label: string }> = [
 
 const FILTER_IDS = FILTERS.map((f) => f.id) as string[];
 
-type LogSearch = { filter: Filter; view: "list" | "calendar" };
+type LogSearch = { filter: string; view: "list" | "calendar" };
 
 export const Route = createFileRoute("/_authenticated/logbook")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    filter: FILTER_IDS.includes(String(search["filter"] ?? ""))
-      ? (String(search["filter"]) as Filter)
-      : ("all" as Filter),
+  validateSearch: (search: Record<string, unknown>): LogSearch => ({
+    filter: String(search["filter"] ?? "all"),
     view: search["view"] === "calendar" ? ("calendar" as const) : ("list" as const),
   }),
   head: () => ({
@@ -75,75 +84,103 @@ function anchorDate(r: Row) {
   return new Date(r.scheduled_at ?? r.completed_at ?? r.created_at);
 }
 
-function WorkoutCard({ r }: { r: Row }) {
+function matches(r: Row, f: Filter) {
+  if (f === "completed") return r.status === "completed";
+  if (f === "planned") return r.status !== "completed";
+  if (f === "favorites") return Boolean(r.is_favorite);
+  return Boolean(r.scheduled_at);
+}
+
+function WorkoutCard({
+  r,
+  onToggleFavorite,
+}: {
+  r: Row;
+  onToggleFavorite?: (id: string, next: boolean) => void;
+}) {
   const scheduled = r.scheduled_at ? new Date(r.scheduled_at) : null;
   return (
-    <Link
-      to="/workout/$workoutId"
-      params={{ workoutId: r.id }}
-      className="block rounded-2xl border border-border bg-card p-4 transition hover:border-primary/50"
-    >
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
-          {r.category}
-        </p>
-        <span className="text-[11px] text-muted-foreground">
-          {new Date(r.created_at).toLocaleDateString()}
-        </span>
-      </div>
+    <div className="relative">
+      <Link
+        to="/workout/$workoutId"
+        params={{ workoutId: r.id }}
+        className="block rounded-2xl border border-green-500/50 bg-card p-4 transition hover:border-green-500"
+      >
+        <div className="flex items-center justify-between gap-2 pr-10">
+          <p className="truncate text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
+            {r.category}
+          </p>
+          <span className="shrink-0 text-[11px] text-muted-foreground">
+            {new Date(r.created_at).toLocaleDateString()}
+          </span>
+        </div>
 
-      <p className="mt-1 flex items-center gap-2 font-bold leading-tight">
-        <span className="min-w-0 flex-1">{r.name}</span>
-        {r.is_favorite ? <Heart className="h-4 w-4 shrink-0 fill-primary text-primary" /> : null}
-      </p>
+        <p className="mt-1 pr-10 font-bold leading-tight">{r.name}</p>
 
-      <div className="mt-2 grid grid-cols-3 gap-2 text-xs text-muted-foreground">
-        <span className="inline-flex items-center gap-1">
-          <Clock className="h-3.5 w-3.5" />
-          {r.duration_min} min
-        </span>
-        <span className="inline-flex items-center gap-0.5">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Star
-              key={i}
-              className={`h-3 w-3 ${
-                i < r.difficulty_stars ? "fill-primary text-primary" : "text-muted-foreground/30"
-              }`}
-            />
-          ))}
-        </span>
-        <span className="inline-flex items-center justify-end gap-1">
-          {r.status === "completed" ? (
-            <>
-              <CheckCircle2 className="h-3.5 w-3.5 text-primary" /> Completed
-            </>
-          ) : scheduled ? (
-            <>
-              <CalendarClock className="h-3.5 w-3.5" /> {scheduled.toLocaleDateString()}
-            </>
-          ) : (
-            "Not done"
-          )}
-        </span>
-      </div>
+        <div className="mt-2 grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+          <span className="inline-flex items-center gap-1">
+            <Clock className="h-3.5 w-3.5 shrink-0" />
+            {r.duration_min} min
+          </span>
+          <span className="inline-flex items-center gap-0.5">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Star
+                key={i}
+                className={`h-3 w-3 ${
+                  i < r.difficulty_stars ? "fill-primary text-primary" : "text-muted-foreground/30"
+                }`}
+              />
+            ))}
+          </span>
+          <span className="inline-flex items-center justify-end gap-1">
+            {r.status === "completed" ? (
+              <>
+                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-primary" /> Completed
+              </>
+            ) : scheduled ? (
+              <>
+                <CalendarClock className="h-3.5 w-3.5 shrink-0" /> {scheduled.toLocaleDateString()}
+              </>
+            ) : (
+              "Not done"
+            )}
+          </span>
+        </div>
 
-      {r.mood || r.workout_feedback?.[0]?.difficulty_rating ? (
-        <p className="mt-2 text-xs text-muted-foreground">
-          {[
-            r.mood ? `mood: ${r.mood}` : null,
-            r.workout_feedback?.[0]?.difficulty_rating
-              ? `felt ${r.workout_feedback[0]!.difficulty_rating}`
-              : null,
-          ]
-            .filter(Boolean)
-            .join(" · ")}
-        </p>
-      ) : null}
-    </Link>
+        {r.mood || r.workout_feedback?.[0]?.difficulty_rating ? (
+          <p className="mt-2 text-xs text-muted-foreground">
+            {[
+              r.mood ? `mood: ${r.mood}` : null,
+              r.workout_feedback?.[0]?.difficulty_rating
+                ? `felt ${r.workout_feedback[0]!.difficulty_rating}`
+                : null,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+          </p>
+        ) : null}
+      </Link>
+
+      <button
+        type="button"
+        aria-label={r.is_favorite ? "Remove from favourites" : "Mark as favourite"}
+        aria-pressed={Boolean(r.is_favorite)}
+        onClick={() => onToggleFavorite?.(r.id, !r.is_favorite)}
+        className="absolute right-2 top-2 grid h-10 w-10 place-items-center rounded-full text-muted-foreground transition hover:bg-primary/10 hover:text-primary"
+      >
+        <Heart className={`h-5 w-5 ${r.is_favorite ? "fill-primary text-primary" : ""}`} />
+      </button>
+    </div>
   );
 }
 
-function Calendar({ rows }: { rows: Row[] }) {
+function Calendar({
+  rows,
+  onToggleFavorite,
+}: {
+  rows: Row[];
+  onToggleFavorite: (id: string, next: boolean) => void;
+}) {
   const [cursor, setCursor] = useState(() => {
     const d = new Date();
     return new Date(d.getFullYear(), d.getMonth(), 1);
@@ -174,7 +211,7 @@ function Calendar({ rows }: { rows: Row[] }) {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-border bg-card p-4">
+      <div className="rounded-2xl border border-primary/40 bg-card p-4">
         <div className="flex items-center justify-between">
           <Button
             variant="ghost"
@@ -273,7 +310,7 @@ function Calendar({ rows }: { rows: Row[] }) {
           <ul className="grid gap-3 sm:grid-cols-2">
             {selectedRows.map((r) => (
               <li key={r.id}>
-                <WorkoutCard r={r} />
+                <WorkoutCard r={r} onToggleFavorite={onToggleFavorite} />
               </li>
             ))}
           </ul>
@@ -287,6 +324,12 @@ function Logbook() {
   const { filter, view } = Route.useSearch();
   const navigate = useNavigate({ from: "/logbook" });
   const [rows, setRows] = useState<Row[] | null>(null);
+  const saveMeta = useServerFn(setWorkoutMeta);
+
+  const active = useMemo(
+    () => filter.split(",").filter((f) => FILTER_IDS.includes(f)) as Filter[],
+    [filter],
+  );
 
   useEffect(() => {
     (async () => {
@@ -301,6 +344,21 @@ function Logbook() {
     })();
   }, []);
 
+  async function toggleFavorite(id: string, next: boolean) {
+    setRows((prev) => prev?.map((r) => (r.id === id ? { ...r, is_favorite: next } : r)) ?? prev);
+    try {
+      await saveMeta({ data: { workoutId: id, is_favorite: next } });
+    } catch {
+      setRows((prev) => prev?.map((r) => (r.id === id ? { ...r, is_favorite: !next } : r)) ?? prev);
+      toast.error("Could not save that.");
+    }
+  }
+
+  function setActive(next: Filter[]) {
+    const value = next.length ? next.join(",") : "all";
+    void navigate({ search: (p: LogSearch) => ({ ...p, filter: value }) });
+  }
+
   if (!rows)
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
@@ -308,13 +366,15 @@ function Logbook() {
       </div>
     );
 
-  const filtered = rows.filter((r) => {
-    if (filter === "completed") return r.status === "completed";
-    if (filter === "planned") return r.status !== "completed";
-    if (filter === "favorites") return Boolean(r.is_favorite);
-    if (filter === "scheduled") return Boolean(r.scheduled_at);
-    return true;
-  });
+  // Multiple filters combine as "any of" — pick favourites + scheduled to see both.
+  const filtered = active.length ? rows.filter((r) => active.some((f) => matches(r, f))) : rows;
+
+  const label =
+    active.length === 0
+      ? "All workouts"
+      : active.length === 1
+        ? FILTERS.find((f) => f.id === active[0])!.label
+        : `${active.length} filters`;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:py-12">
@@ -328,18 +388,20 @@ function Logbook() {
         </p>
       </div>
 
-      <div className="mt-5 flex gap-2">
+      <div className="mt-5 grid grid-cols-2 gap-2">
         <Button
           variant={view === "list" ? "default" : "secondary"}
-          className="h-11 flex-1 rounded-2xl"
+          className="h-11 w-full rounded-2xl"
           onClick={() => navigate({ search: (p: LogSearch) => ({ ...p, view: "list" as const }) })}
         >
           List
         </Button>
         <Button
           variant={view === "calendar" ? "default" : "secondary"}
-          className="h-11 flex-1 rounded-2xl"
-          onClick={() => navigate({ search: (p: LogSearch) => ({ ...p, view: "calendar" as const }) })}
+          className="h-11 w-full rounded-2xl"
+          onClick={() =>
+            navigate({ search: (p: LogSearch) => ({ ...p, view: "calendar" as const }) })
+          }
         >
           Calendar
         </Button>
@@ -347,52 +409,67 @@ function Logbook() {
 
       {view === "calendar" ? (
         <div className="mt-4">
-          <Calendar rows={rows} />
+          <Calendar rows={rows} onToggleFavorite={toggleFavorite} />
         </div>
       ) : (
         <>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {FILTERS.map((f) => (
-              <button
-                key={f.id}
-                type="button"
-                onClick={() => navigate({ search: (p: LogSearch) => ({ ...p, filter: f.id }) })}
-                className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-                  filter === f.id
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border hover:border-primary/50"
-                }`}
-              >
-                {f.label} ·{" "}
-                {
-                  rows.filter((r) =>
-                    f.id === "completed"
-                      ? r.status === "completed"
-                      : f.id === "planned"
-                        ? r.status !== "completed"
-                        : f.id === "favorites"
-                          ? Boolean(r.is_favorite)
-                          : f.id === "scheduled"
-                            ? Boolean(r.scheduled_at)
-                            : true,
-                  ).length
-                }
-              </button>
-            ))}
+          <div className="mt-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="h-11 w-full justify-between rounded-2xl">
+                  <span className="inline-flex items-center gap-2 truncate">
+                    <ListFilter className="h-4 w-4 shrink-0" />
+                    {label}
+                  </span>
+                  <span className="shrink-0 text-muted-foreground">{filtered.length}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-[min(20rem,90vw)]">
+                <DropdownMenuLabel>Show</DropdownMenuLabel>
+                <DropdownMenuCheckboxItem
+                  checked={active.length === 0}
+                  onSelect={(e) => e.preventDefault()}
+                  onCheckedChange={() => setActive([])}
+                  className="h-11"
+                >
+                  All workouts · {rows.length}
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuSeparator />
+                {FILTERS.map((f) => (
+                  <DropdownMenuCheckboxItem
+                    key={f.id}
+                    checked={active.includes(f.id)}
+                    onSelect={(e) => e.preventDefault()}
+                    onCheckedChange={(checked) =>
+                      setActive(
+                        checked ? [...active, f.id] : active.filter((a) => a !== f.id),
+                      )
+                    }
+                    className="h-11"
+                  >
+                    {f.label} · {rows.filter((r) => matches(r, f.id)).length}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {filtered.length === 0 ? (
             <div className="mt-6 rounded-2xl border border-border bg-card p-8 text-center">
-              <p className="text-muted-foreground">Nothing here yet.</p>
-              <Button asChild className="mt-4">
-                <Link to="/coach">Ask Smarty Coach</Link>
+              <p className="text-muted-foreground">
+                {active.length
+                  ? "No workouts match this filter yet."
+                  : "You haven't created a workout yet."}
+              </p>
+              <Button asChild className="mt-4 h-11 rounded-2xl">
+                <Link to="/coach">Create your workout</Link>
               </Button>
             </div>
           ) : (
             <ul className="mt-4 grid gap-3 sm:grid-cols-2">
               {filtered.map((r) => (
                 <li key={r.id}>
-                  <WorkoutCard r={r} />
+                  <WorkoutCard r={r} onToggleFavorite={toggleFavorite} />
                 </li>
               ))}
             </ul>
