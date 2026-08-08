@@ -26,7 +26,6 @@ const ENTRIES: SitemapEntry[] = [
   { path: "/exercise-library", changefreq: "weekly", priority: "0.85" },
   { path: "/faq", changefreq: "monthly", priority: "0.8" },
   { path: "/contact", changefreq: "yearly", priority: "0.5" },
-  { path: "/training-intelligence", changefreq: "monthly", priority: "0.95" },
   { path: "/glossary", changefreq: "monthly", priority: "0.75" },
 
 

@@ -3,13 +3,9 @@ import { createFileRoute } from "@tanstack/react-router";
 const URL = "https://smartyworkout.com/glossary";
 const TITLE = "Training Glossary — 25+ terms defined | SmartyWorkout";
 const DESCRIPTION =
-  "Definitions of every training, diet and metabolism term SmartyWorkout uses — from BMR and TDEE to Smarty Training Score™ and Smarty Metabolic Age™.";
+  "Clear definitions of common workout, training and fitness terms used by SmartyWorkout.";
 
 const TERMS: { term: string; def: string }[] = [
-  {
-    term: "Smarty Training Score™",
-    def: "A composite 0–100 score of a user's current diet across macro balance, micronutrient coverage, food quality, and eating behavior.",
-  },
   {
     term: "Smarty Metabolic Age™",
     def: "An estimate of the age a user's metabolism is behaving like, derived from BMR, body composition, activity, and dietary patterns.",
@@ -17,10 +13,6 @@ const TERMS: { term: string; def: string }[] = [
   {
     term: "Smarty Macro Index™",
     def: "How closely a user's actual protein, carb and fat intake matches the optimal split for their body and goal.",
-  },
-  {
-    term: "Smarty Training Intelligence™",
-    def: "The AI engine that combines assessment, scoring, personalization and adaptive coaching across the SmartyWorkout platform.",
   },
   {
     term: "BMI (Body Mass Index)",

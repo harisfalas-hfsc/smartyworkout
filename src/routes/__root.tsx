@@ -21,10 +21,9 @@ const OG_IMAGE =
   "https://smartyworkout.com/__l5e/assets-v1/d1e59921-5974-44b4-96d8-9bfbec15c871/smartydiet-social.png";
 
 const SITE_DESCRIPTION =
-  "SmartyWorkout is the AI Training Intelligence Platform — your pocket coach and diet coach. Personalized AI workout plans, Smarty Training Score™, Metabolic Age™, and free calorie, BMI, BMR, TDEE and macro calculators.";
+  "SmartyWorkout creates personalized workouts from your goals, experience, equipment, limitations and feedback, guided by Smarty Coach and sports scientist Haris Falas.";
 
 const KEYWORDS = [
-  "AI Training Intelligence Platform",
   "AI Coach",
   "AI Trainingist",
   "AI Workout Coach",
@@ -34,7 +33,6 @@ const KEYWORDS = [
   "Training Coaching",
   "Training Assessment",
   "Training Analysis",
-  "Training Score",
   "Diet Score",
   "Diet Analysis",
   "Workout Plan Generator",
@@ -89,10 +87,8 @@ const KEYWORDS = [
   "Mindful Eating",
   "Sustainable Weight Loss",
   "Training Education",
-  "Smarty Training Score",
   "Smarty Metabolic Age",
   "Smarty Macro Index",
-  "Smarty Training Intelligence",
   "Smarty Workout Plan",
   "Smarty Calorie Engine",
 ].join(", ");
@@ -104,11 +100,11 @@ const JSONLD_GRAPH = {
       "@type": "Organization",
       "@id": `${SITE_URL}/#organization`,
       name: "SmartyWorkout",
-      alternateName: ["Smarty Workout", "SmartyWorkout AI", "AI Training Intelligence Platform"],
+      alternateName: ["Smarty Workout", "SmartyWorkout AI"],
       url: SITE_URL,
       logo: `${SITE_URL}/icon-512x512.png`,
       description:
-        "SmartyWorkout is the AI Training Intelligence Platform — a pocket coach, training consultant and diet coach powered by AI.",
+        "SmartyWorkout creates personalized workouts through Smarty Coach, combining AI with the coaching expertise of sports scientist Haris Falas.",
       foundingDate: "2024",
       email: "smartyworkout@outlook.com",
       knowsAbout: [
@@ -162,16 +158,15 @@ const JSONLD_GRAPH = {
     {
       "@type": "SoftwareApplication",
       "@id": `${SITE_URL}/#software`,
-      name: "SmartyWorkout — AI Training Intelligence Platform",
+      name: "SmartyWorkout — Personalized Workout Coach",
       applicationCategory: ["HealthApplication", "LifestyleApplication", "FoodEstablishment"],
-      applicationSubCategory: "AI Training Intelligence Platform",
+      applicationSubCategory: "Personalized Workout Coach",
       operatingSystem: "Web, iOS, Android",
       url: SITE_URL,
       publisher: { "@id": `${SITE_URL}/#organization` },
       description: SITE_DESCRIPTION,
       featureList: [
         "AI Workout Planner",
-        "Smarty Training Score™",
         "Smarty Metabolic Age™",
         "Smarty Macro Index™",
         "Personalized workout plans",
@@ -263,7 +258,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       {
         title:
-          "SmartyWorkout — AI Training Intelligence Platform | Your Pocket Workout Coach",
+          "SmartyWorkout — Personalized Workouts with Smarty Coach",
       },
       { name: "description", content: SITE_DESCRIPTION },
       { name: "keywords", content: KEYWORDS },
@@ -286,7 +281,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         property: "og:title",
         content:
-          "SmartyWorkout — AI Training Intelligence Platform | Your Pocket Workout Coach",
+          "SmartyWorkout — Personalized Workouts with Smarty Coach",
       },
       { property: "og:description", content: SITE_DESCRIPTION },
       { name: "twitter:card", content: "summary_large_image" },
@@ -294,7 +289,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "twitter:title",
         content:
-          "SmartyWorkout — AI Training Intelligence Platform | Your Pocket Workout Coach",
+          "SmartyWorkout — Personalized Workouts with Smarty Coach",
       },
       { name: "twitter:description", content: SITE_DESCRIPTION },
     ],
