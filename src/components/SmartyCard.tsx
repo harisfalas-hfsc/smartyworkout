@@ -136,7 +136,7 @@ export function SmartyCard({
         <p
           className={cn(
             "mt-4 text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7",
-            centered && "mx-auto max-w-xl",
+            centered && "mx-auto max-w-xl lg:max-w-3xl",
           )}
         >
           {description}

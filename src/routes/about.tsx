@@ -52,7 +52,7 @@ function AboutPage() {
         }
       />
 
-      <div className="mx-auto grid max-w-xl gap-3 sm:grid-cols-2">
+      <div className="mx-auto grid max-w-xl gap-3 sm:grid-cols-2 lg:max-w-5xl lg:grid-cols-4 lg:gap-5">
         {[
           { icon: "🧠", title: "SMART", subtitle: "Knows you and your history." },
           { icon: "🎯", title: "PERSONALIZED", subtitle: "Mood, time, gear, level." },
