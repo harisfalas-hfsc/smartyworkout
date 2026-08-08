@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Info, ListChecks, HelpCircle } from "lucide-react";
-import { SmartyCard } from "@/components/SmartyCard";
+import { PageHeader } from "@/components/PageHeader";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -106,58 +106,49 @@ function Home() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:py-12">
-      <div className="mb-8 text-center">
-        <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-          Smarty Workout
-        </p>
-        <h1 className="mt-2 text-3xl font-extrabold uppercase tracking-tight sm:text-4xl">
-          Your personal <span className="text-primary">workout.</span>
-        </h1>
+      <PageHeader
+        title={
+          <span className="uppercase">
+            Your personal workout
+            <br />
+            <span className="text-primary">anytime, anywhere.</span>
+          </span>
+        }
+        subtitle="Answer a smart questionnaire. Get a full tailor-made workout built around your body, goals, equipment and constraints."
+      />
+
+      <div className="mx-auto flex max-w-sm flex-col gap-2.5 sm:max-w-md sm:flex-row sm:justify-center">
+        <Link
+          to={heroCtaTo}
+          className="flex h-12 min-h-12 shrink-0 items-center justify-center truncate whitespace-nowrap rounded-2xl bg-primary px-4 text-[15px] font-extrabold leading-none text-primary-foreground transition hover:opacity-95 sm:flex-1"
+        >
+          {heroCtaLabel}
+        </Link>
+        <Link
+          to="/pricing"
+          className="flex h-12 min-h-12 shrink-0 items-center justify-center truncate whitespace-nowrap rounded-2xl border-2 border-primary px-4 text-[15px] font-extrabold leading-none text-primary transition hover:bg-primary/10 sm:flex-1"
+        >
+          See pricing
+        </Link>
       </div>
 
-      <SmartyCard
-        tone="cyan"
-        align="center"
-        eyebrow="Built in minutes"
-        eyebrowIcon="⚡"
-        title="Your personal workout,"
-        accent="built in minutes."
-        description="Answer a smart questionnaire. Get a full tailor-made workout built around your body, goals, equipment and constraints."
-      >
-        <div className="mx-auto flex max-w-sm flex-col gap-2.5 sm:max-w-md sm:flex-row sm:justify-center">
+      <div className="mx-auto mt-8 grid max-w-xl grid-cols-3 gap-3">
+        {DISCOVER.map((d) => (
           <Link
-            to={heroCtaTo}
-            className="flex h-12 min-h-12 shrink-0 items-center justify-center truncate whitespace-nowrap rounded-2xl bg-primary px-4 text-[15px] font-extrabold leading-none text-primary-foreground transition hover:opacity-95 sm:flex-1"
+            key={d.to}
+            to={d.to}
+            className="flex flex-col items-center gap-1 rounded-2xl border-2 border-blue-400 bg-card px-3 py-4 text-center transition hover:bg-blue-50 dark:hover:bg-blue-500/10"
           >
-            {heroCtaLabel}
+            <d.icon className="h-5 w-5 text-primary" />
+            <p className="text-sm font-bold leading-5">{d.title}</p>
+            <p className="hidden text-xs leading-5 text-muted-foreground sm:block">{d.desc}</p>
           </Link>
-          <Link
-            to="/pricing"
-            className="flex h-12 min-h-12 shrink-0 items-center justify-center truncate whitespace-nowrap rounded-2xl border-2 border-primary px-4 text-[15px] font-extrabold leading-none text-primary transition hover:bg-primary/10 sm:flex-1"
-          >
-            See pricing
-          </Link>
-
-        </div>
-
-        <div className="mx-auto mt-6 grid max-w-xl grid-cols-3 gap-3">
-          {DISCOVER.map((d) => (
-            <Link
-              key={d.to}
-              to={d.to}
-              className="flex flex-col items-center gap-1 rounded-2xl border border-sky-200 bg-sky-50 px-3 py-4 text-center transition hover:border-sky-400 dark:border-sky-500/40 dark:bg-sky-500/10"
-            >
-              <d.icon className={`h-5 w-5 ${d.color}`} />
-              <p className="text-sm font-bold leading-5">{d.title}</p>
-              <p className="hidden text-xs leading-5 text-muted-foreground sm:block">{d.desc}</p>
-            </Link>
-          ))}
-        </div>
-      </SmartyCard>
-
+        ))}
+      </div>
     </div>
   );
 }
+
 
 
 

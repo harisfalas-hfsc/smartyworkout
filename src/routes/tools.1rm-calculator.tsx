@@ -150,7 +150,7 @@ function OneRMCalculatorPage() {
                 </div>
               </div>
 
-              <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-500/40 dark:bg-amber-500/10">
+              <div className="rounded-lg border border-blue-400 bg-blue-50 p-4 dark:border-blue-500/40 dark:bg-blue-500/10">
                 <p className="text-sm text-muted-foreground">
                   <strong>Note:</strong> This is an estimate using the Brzycki formula. Actual 1RM
                   may vary. Always use proper form and have a spotter when testing maximum lifts.

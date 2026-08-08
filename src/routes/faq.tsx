@@ -118,7 +118,7 @@ function FAQ() {
     <div className="mx-auto max-w-3xl px-4 py-8 sm:py-12">
       <div className="mb-6 text-center">
         <p className="text-xs font-semibold uppercase tracking-wider text-primary">FAQ</p>
-        <h1 className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">
+        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
           Your <span className="text-primary">questions</span>, answered
         </h1>
       </div>
@@ -132,7 +132,7 @@ function FAQ() {
       >
         <Accordion type="single" collapsible className="w-full">
           {ITEMS.map((it, i) => (
-            <AccordionItem key={it.q} value={`item-${i}`} className="border-sky-100 last:border-b-0">
+            <AccordionItem key={it.q} value={`item-${i}`} className="border-blue-200 dark:border-blue-500/40 last:border-b-0">
               <AccordionTrigger className="py-3 text-left text-sm font-semibold leading-5 hover:no-underline sm:text-base">
                 {it.q}
               </AccordionTrigger>

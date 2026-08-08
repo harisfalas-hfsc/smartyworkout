@@ -12,52 +12,25 @@ export type SmartyTone =
   | "pink"
   | "blue";
 
+// Single brand tone: every card across the site uses the same blue border.
+const BLUE = {
+  border: "border-blue-400",
+  text: "text-blue-500 dark:text-blue-300",
+  softBg: "bg-blue-50 dark:bg-blue-500/15",
+  softBorder: "border-blue-200 dark:border-blue-500/40",
+};
+
 const TONE: Record<
   SmartyTone,
   { border: string; text: string; softBg: string; softBorder: string }
 > = {
-  cyan: {
-    border: "border-sky-400",
-    text: "text-sky-500 dark:text-sky-300",
-    softBg: "bg-sky-50 dark:bg-sky-500/15",
-    softBorder: "border-sky-200 dark:border-sky-500/40",
-  },
-  green: {
-    border: "border-emerald-400",
-    text: "text-emerald-500 dark:text-emerald-300",
-    softBg: "bg-emerald-50 dark:bg-emerald-500/15",
-    softBorder: "border-emerald-200 dark:border-emerald-500/40",
-  },
-  orange: {
-    border: "border-orange-400",
-    text: "text-orange-500 dark:text-orange-300",
-    softBg: "bg-orange-50 dark:bg-orange-500/15",
-    softBorder: "border-orange-200 dark:border-orange-500/40",
-  },
-  purple: {
-    border: "border-violet-400",
-    text: "text-violet-500 dark:text-violet-300",
-    softBg: "bg-violet-50 dark:bg-violet-500/15",
-    softBorder: "border-violet-200 dark:border-violet-500/40",
-  },
-  yellow: {
-    border: "border-amber-400",
-    text: "text-amber-500 dark:text-amber-300",
-    softBg: "bg-amber-50 dark:bg-amber-500/15",
-    softBorder: "border-amber-200 dark:border-amber-500/40",
-  },
-  pink: {
-    border: "border-pink-400",
-    text: "text-pink-500 dark:text-pink-300",
-    softBg: "bg-pink-50 dark:bg-pink-500/15",
-    softBorder: "border-pink-200 dark:border-pink-500/40",
-  },
-  blue: {
-    border: "border-blue-400",
-    text: "text-blue-500 dark:text-blue-300",
-    softBg: "bg-blue-50 dark:bg-blue-500/15",
-    softBorder: "border-blue-200 dark:border-blue-500/40",
-  },
+  cyan: BLUE,
+  green: BLUE,
+  orange: BLUE,
+  purple: BLUE,
+  yellow: BLUE,
+  pink: BLUE,
+  blue: BLUE,
 };
 
 

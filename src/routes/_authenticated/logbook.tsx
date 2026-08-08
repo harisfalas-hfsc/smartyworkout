@@ -104,7 +104,7 @@ function WorkoutCard({
       <Link
         to="/workout/$workoutId"
         params={{ workoutId: r.id }}
-        className="block rounded-2xl border border-green-500/50 bg-card p-4 transition hover:border-green-500"
+        className="block rounded-2xl border-2 border-blue-400 bg-card p-4 transition hover:bg-blue-50 dark:hover:bg-blue-500/10"
       >
         <div className="flex items-center justify-between gap-2 pr-10">
           <p className="truncate text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
@@ -382,7 +382,7 @@ function Logbook() {
         <p className="text-sm font-semibold uppercase tracking-[0.25em] text-primary">
           Your history
         </p>
-        <h1 className="mt-2 text-3xl font-black sm:text-4xl">Logbook</h1>
+        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">Logbook</h1>
         <p className="mt-2 text-muted-foreground">
           Every workout you created — completed, still to do, or scheduled.
         </p>

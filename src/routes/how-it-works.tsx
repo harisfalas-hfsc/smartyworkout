@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { SmartyCard } from "@/components/SmartyCard";
+import { PageHeader } from "@/components/PageHeader";
 
 export const Route = createFileRoute("/how-it-works")({
   head: () => ({
@@ -25,25 +25,21 @@ export const Route = createFileRoute("/how-it-works")({
 const STEPS = [
   {
     n: "01",
-    color: "text-emerald-500",
     title: "You answer",
     desc: "Goal • Mood • Time • Location • Equipment",
   },
   {
     n: "02",
-    color: "text-violet-500",
     title: "Smarty Coach analyzes",
     desc: "Profile • Fitness level • Goals • History",
   },
   {
     n: "03",
-    color: "text-sky-500",
     title: "Training philosophy",
     desc: "Sports science • Safety • Health • Performance",
   },
   {
     n: "04",
-    color: "text-orange-500",
     title: "Your workout",
     desc: "The right exercises, built into your session.",
   },
@@ -52,37 +48,32 @@ const STEPS = [
 function HowItWorks() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:py-12">
-      <div className="mb-8 text-center">
-        <p className="text-xs font-semibold uppercase tracking-wider text-primary">How it works</p>
-        <h1 className="mt-2 text-3xl font-extrabold uppercase tracking-tight sm:text-4xl">
-          How it <span className="text-primary">works</span>
-        </h1>
+      <PageHeader
+        eyebrow="How it works"
+        title={
+          <>
+            Simple &amp; <span className="text-primary">transparent.</span>
+          </>
+        }
+        subtitle="You answer. Smarty Coach thinks. You train. No fluff. Just four steps."
+      />
+
+      <div className="grid gap-6 sm:grid-cols-4 sm:gap-4">
+        {STEPS.map((s) => (
+          <div key={s.n} className="flex flex-col items-center text-center">
+            <div className="text-4xl font-black leading-none text-primary sm:text-5xl">
+              {s.n}
+            </div>
+            <div className="mt-3 text-base font-bold uppercase">{s.title}</div>
+            <div className="mt-1 text-sm text-muted-foreground">{s.desc}</div>
+          </div>
+        ))}
       </div>
 
-      <SmartyCard
-        tone="green"
-        align="center"
-        eyebrow="Simple & Transparent"
-        eyebrowIcon="✨"
-        title="You answer. Smarty Coach thinks."
-        accent="You train."
-        description="No fluff. Just four steps."
-      >
-        <div className="mt-2 grid gap-6 sm:grid-cols-4 sm:gap-4">
-          {STEPS.map((s) => (
-            <div key={s.n} className="flex flex-col items-center text-center">
-              <div className={`text-4xl font-black leading-none sm:text-5xl ${s.color}`}>{s.n}</div>
-              <div className="mt-3 text-base font-bold uppercase">{s.title}</div>
-              <div className="mt-1 text-sm text-muted-foreground">{s.desc}</div>
-            </div>
-          ))}
-        </div>
-
-        <p className="mt-6 text-center text-sm font-semibold leading-snug text-muted-foreground">
-          Then you train, give feedback, and Smarty Coach uses your history to make your next
-          workout <span className="text-primary">even smarter.</span>
-        </p>
-      </SmartyCard>
+      <p className="mt-6 text-center text-sm font-semibold leading-snug text-muted-foreground">
+        Then you train, give feedback, and Smarty Coach uses your history to make your next
+        workout <span className="text-primary">even smarter.</span>
+      </p>
 
       <div className="mt-8 flex justify-center">
         <Button asChild size="lg" className="font-extrabold uppercase">

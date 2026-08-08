@@ -39,7 +39,7 @@ function Account() {
         <p className="text-sm font-semibold uppercase tracking-[0.25em] text-primary">
           Smarty Workout
         </p>
-        <h1 className="mt-2 text-3xl font-black sm:text-4xl">My account</h1>
+        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">My account</h1>
         <p className="mt-2 text-muted-foreground">Your subscription and personal details.</p>
       </div>
 
