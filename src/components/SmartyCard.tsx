@@ -118,45 +118,31 @@ export function SmartyCard({
   className,
 }: SmartyCardProps) {
   const t = TONE[tone];
-  const hasHeader = Boolean(eyebrow || cornerIcon);
+  const hasHeader = Boolean(eyebrow);
+  const centered = align === "center";
   return (
     <div
       className={cn(
         "relative flex flex-col overflow-hidden rounded-3xl border-2 bg-card p-7 shadow-soft sm:p-9",
         t.border,
+        centered && "text-center",
         className,
       )}
     >
       {hasHeader && (
-        <div className="grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-start gap-x-8 gap-y-5">
-          {eyebrow ? (
-            <div
-              className={cn(
-                "inline-flex max-w-full min-w-0 items-center gap-4 rounded-full border px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wider sm:text-[11px]",
-                t.softBorder,
-                t.text,
-              )}
-            >
-              {eyebrowIcon && (
-                <IconOrEmoji icon={eyebrowIcon} className="h-4 w-4 shrink-0 text-sm" />
-              )}
-              <span className="min-w-0 truncate">{eyebrow}</span>
-            </div>
-          ) : (
-            <span />
-          )}
-          {cornerIcon && (
-            <div
-              className={cn(
-                "grid h-12 w-12 shrink-0 place-items-center rounded-2xl border",
-                t.softBorder,
-                t.softBg,
-                t.text,
-              )}
-            >
-              <IconOrEmoji icon={cornerIcon} className="h-5 w-5 text-lg" />
-            </div>
-          )}
+        <div className={cn("flex min-h-9 items-start", centered && "justify-center")}>
+          <div
+            className={cn(
+              "inline-flex max-w-full min-w-0 items-center gap-3 rounded-full border px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wider sm:text-[11px]",
+              t.softBorder,
+              t.text,
+            )}
+          >
+            {eyebrowIcon && (
+              <IconOrEmoji icon={eyebrowIcon} className="h-4 w-4 shrink-0 text-sm" />
+            )}
+            <span className="min-w-0 truncate">{eyebrow}</span>
+          </div>
         </div>
       )}
 
@@ -164,7 +150,7 @@ export function SmartyCard({
         <h2
           className={cn(
             "text-2xl font-extrabold leading-tight tracking-tight text-foreground sm:text-3xl",
-            hasHeader ? "mt-10" : "mt-0",
+            hasHeader ? "mt-6" : "mt-0",
           )}
         >
           {title}
@@ -173,8 +159,16 @@ export function SmartyCard({
       )}
 
       {description && (
-        <p className="mt-5 text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7">{description}</p>
+        <p
+          className={cn(
+            "mt-4 text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7",
+            centered && "mx-auto max-w-xl",
+          )}
+        >
+          {description}
+        </p>
       )}
+
 
       {children && <div className="mt-7">{children}</div>}
 
