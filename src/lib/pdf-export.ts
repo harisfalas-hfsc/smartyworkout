@@ -9,27 +9,15 @@ const MUTED = "#64748b";
 const BORDER = "#e2e8f0";
 const BG_SOFT = "#f0f9ff";
 
-function mealEmoji(name = "") {
+function muscleEmoji(name = "") {
   const n = name.toLowerCase();
-  if (n.includes("break")) return "🍳";
-  if (n.includes("lunch")) return "🥗";
-  if (n.includes("dinner") || n.includes("supper")) return "🍽️";
-  if (n.includes("snack")) return "🍎";
-  if (n.includes("dessert")) return "🍓";
-  return "🍴";
-}
-
-function categoryEmoji(cat = "") {
-  const c = cat.toLowerCase();
-  if (c.includes("produce") || c.includes("veg") || c.includes("fruit")) return "🥬";
-  if (c.includes("meat") || c.includes("poultry")) return "🍗";
-  if (c.includes("fish") || c.includes("seafood")) return "🐟";
-  if (c.includes("dairy") || c.includes("egg")) return "🥛";
-  if (c.includes("grain") || c.includes("bread") || c.includes("pasta")) return "🌾";
-  if (c.includes("pantry") || c.includes("oil") || c.includes("spice")) return "🧂";
-  if (c.includes("nut") || c.includes("seed")) return "🥜";
-  if (c.includes("legume") || c.includes("bean")) return "🫘";
-  return "🛒";
+  if (n.includes("chest") || n.includes("push")) return "🏋️";
+  if (n.includes("back") || n.includes("pull")) return "🤸";
+  if (n.includes("leg") || n.includes("glute") || n.includes("quad")) return "🦵";
+  if (n.includes("core") || n.includes("abs")) return "🧘";
+  if (n.includes("cardio") || n.includes("condition")) return "🏃";
+  if (n.includes("shoulder") || n.includes("arm")) return "💪";
+  return "🔁";
 }
 
 function esc(s: unknown) {
@@ -130,14 +118,15 @@ export async function exportPlanPdf(plan: any, durationWeeks: number) {
   const summary = s
     ? `
       <div style="background:${BG_SOFT};border:1px solid ${BORDER};border-radius:14px;padding:16px;margin-bottom:20px;">
-        <div style="font-size:26px;font-weight:800;color:${PRIMARY_DARK};">${esc(s.calorieTarget)} kcal <span style="font-size:14px;color:${MUTED};font-weight:500;">/ day</span></div>
+        <div style="font-size:26px;font-weight:800;color:${PRIMARY_DARK};">${esc(s.daysPerWeek)} days <span style="font-size:14px;color:${MUTED};font-weight:500;">/ week · ${esc(s.sessionMinutes)} min per session</span></div>
         <div style="margin-top:6px;font-size:13px;color:${INK};">
-          <span style="display:inline-block;background:#fff;border:1px solid ${BORDER};border-radius:999px;padding:3px 10px;margin-right:6px;">💪 Protein ${esc(s.macros?.protein_g)}g</span>
-          <span style="display:inline-block;background:#fff;border:1px solid ${BORDER};border-radius:999px;padding:3px 10px;margin-right:6px;">🌾 Carbs ${esc(s.macros?.carbs_g)}g</span>
-          <span style="display:inline-block;background:#fff;border:1px solid ${BORDER};border-radius:999px;padding:3px 10px;">🥑 Fat ${esc(s.macros?.fat_g)}g</span>
+          <span style="display:inline-block;background:#fff;border:1px solid ${BORDER};border-radius:999px;padding:3px 10px;margin-right:6px;">🏋️ Push ${esc(s.weeklyVolume?.pushSets ?? "-")} sets</span>
+          <span style="display:inline-block;background:#fff;border:1px solid ${BORDER};border-radius:999px;padding:3px 10px;margin-right:6px;">🤸 Pull ${esc(s.weeklyVolume?.pullSets ?? "-")} sets</span>
+          <span style="display:inline-block;background:#fff;border:1px solid ${BORDER};border-radius:999px;padding:3px 10px;margin-right:6px;">🦵 Legs ${esc(s.weeklyVolume?.legSets ?? "-")} sets</span>
+          <span style="display:inline-block;background:#fff;border:1px solid ${BORDER};border-radius:999px;padding:3px 10px;">🧘 Core ${esc(s.weeklyVolume?.coreSets ?? "-")} sets</span>
         </div>
         <div style="margin-top:10px;font-size:12px;color:${MUTED};text-transform:uppercase;letter-spacing:0.06em;">
-          ${esc(s.dietStyle)} · ${esc(s.goal)}
+          ${esc(s.trainingStyle)} · ${esc(s.goal)}
         </div>
       </div>`
     : "";
@@ -148,41 +137,37 @@ export async function exportPlanPdf(plan: any, durationWeeks: number) {
       <div style="margin-bottom:26px;">
         <h2 style="font-size:18px;font-weight:800;color:${PRIMARY_DARK};margin:0 0 12px;
           border-left:4px solid ${PRIMARY};padding-left:10px;">📅 Week ${esc(w.weekNumber)}</h2>
+        ${w.note ? `<div style="font-size:12px;color:${MUTED};margin:0 0 10px;">${esc(w.note)}</div>` : ""}
         ${(w.days ?? [])
           .map(
             (d: any) => `
           <div style="border:1px solid ${BORDER};border-radius:12px;padding:14px;margin-bottom:12px;background:#fff;">
             <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;">
-              <div style="font-weight:700;font-size:15px;color:${INK};">Day ${esc(d.day)}</div>
-              <div style="font-size:12px;color:${MUTED};font-weight:600;">🔥 ${esc(d.totals?.calories ?? "-")} kcal</div>
+              <div style="font-weight:700;font-size:15px;color:${INK};">Day ${esc(d.day)} · ${esc(d.focus ?? (d.rest ? "Rest" : ""))}</div>
+              <div style="font-size:12px;color:${MUTED};font-weight:600;">⏱️ ${esc(d.durationMin ?? "-")} min</div>
             </div>
-            ${(d.meals ?? [])
+            ${d.warmup ? `<div style="font-size:11px;color:${MUTED};margin-bottom:8px;">🔥 Warm-up: ${esc(d.warmup)}</div>` : ""}
+            ${(d.exercises ?? [])
               .map(
                 (m: any) => `
               <div style="background:${BG_SOFT};border-radius:10px;padding:10px 12px;margin-bottom:8px;">
                 <div style="display:flex;justify-content:space-between;gap:10px;">
                   <div style="font-weight:600;font-size:13px;color:${INK};">
-                    ${mealEmoji(m.name)} <span style="color:${PRIMARY_DARK};">${esc(m.name)}:</span> ${esc(m.title)}
+                    ${muscleEmoji(m.muscleGroup)} <span style="color:${PRIMARY_DARK};">${esc(m.name)}</span>
                   </div>
                   <div style="font-size:11px;color:${MUTED};white-space:nowrap;">
-                    ${esc(m.calories)} kcal · P${esc(m.protein_g)} C${esc(m.carbs_g)} F${esc(m.fat_g)}
+                    ${esc(m.sets)}×${esc(m.reps)} · rest ${esc(m.restSeconds)}s${m.rpe ? ` · RPE ${esc(m.rpe)}` : ""}
                   </div>
                 </div>
                 ${
-                  m.ingredients?.length
-                    ? `<div style="margin-top:6px;font-size:11px;color:${MUTED};">🧾 ${esc(
-                        m.ingredients.map((i: any) => `${i.qty} ${i.item}`).join(", "),
-                      )}</div>`
-                    : ""
-                }
-                ${
-                  m.instructions
-                    ? `<div style="margin-top:4px;font-size:11px;color:${INK};">👨‍🍳 ${esc(m.instructions)}</div>`
+                  m.notes
+                    ? `<div style="margin-top:4px;font-size:11px;color:${INK};">💡 ${esc(m.notes)}</div>`
                     : ""
                 }
               </div>`,
               )
               .join("")}
+            ${d.cooldown ? `<div style="font-size:11px;color:${MUTED};">🧘 Cool-down: ${esc(d.cooldown)}</div>` : ""}
           </div>`,
           )
           .join("")}
@@ -202,31 +187,31 @@ export async function exportPlanPdf(plan: any, durationWeeks: number) {
     : "";
 
   const body = summary + weeksHtml + rationale + disclaimer;
-  await renderToPdf(shell(body, `Your ${durationWeeks}-week personalized plan`), "smartydiet-plan.pdf");
+  await renderToPdf(shell(body, `Your ${durationWeeks}-week personalized plan`), "smartyworkout-plan.pdf");
 }
 
-export async function exportGroceryPdf(plan: any) {
+export async function exportEquipmentPdf(plan: any) {
   const weeksHtml = (plan?.weeks ?? [])
     .map((w: any) => {
-      const items = (w.groceryList ?? [])
+      const items = (w.equipmentList ?? [])
         .map(
           (g: any) => `
           <li style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid ${BORDER};border-radius:8px;background:#fff;font-size:13px;">
             <span style="display:inline-block;width:14px;height:14px;border:2px solid ${PRIMARY};border-radius:4px;flex-shrink:0;"></span>
-            <span style="font-size:14px;">${categoryEmoji(g.category)}</span>
-            <span style="color:${INK};"><b>${esc(g.qty)}</b> ${esc(g.item)}</span>
-            ${g.category ? `<span style="margin-left:auto;font-size:10px;color:${MUTED};text-transform:uppercase;letter-spacing:0.05em;">${esc(g.category)}</span>` : ""}
+            <span style="font-size:14px;">🏋️</span>
+            <span style="color:${INK};"><b>${esc(g.item)}</b></span>
+            ${g.note ? `<span style="margin-left:auto;font-size:10px;color:${MUTED};text-transform:uppercase;letter-spacing:0.05em;">${esc(g.note)}</span>` : ""}
           </li>`,
         )
         .join("");
       return `
         <div style="margin-bottom:22px;">
           <h2 style="font-size:18px;font-weight:800;color:${PRIMARY_DARK};margin:0 0 12px;
-            border-left:4px solid ${PRIMARY};padding-left:10px;">🛒 Week ${esc(w.weekNumber)}</h2>
+            border-left:4px solid ${PRIMARY};padding-left:10px;">🏋️ Week ${esc(w.weekNumber)}</h2>
           <ul style="list-style:none;padding:0;margin:0;display:grid;grid-template-columns:1fr 1fr;gap:8px;">${items}</ul>
         </div>`;
     })
     .join("");
 
-  await renderToPdf(shell(weeksHtml, "Your printable grocery list"), "smartydiet-grocery.pdf");
+  await renderToPdf(shell(weeksHtml, "Your printable equipment checklist"), "smartyworkout-equipment.pdf");
 }
