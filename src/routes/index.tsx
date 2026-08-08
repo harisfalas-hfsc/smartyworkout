@@ -127,16 +127,17 @@ function Home() {
         <div className="mx-auto flex max-w-sm flex-col gap-2.5 sm:max-w-md sm:flex-row sm:justify-center">
           <Link
             to={heroCtaTo}
-            className="flex h-12 flex-1 items-center justify-center truncate whitespace-nowrap rounded-2xl bg-primary px-4 text-[15px] font-extrabold leading-none text-primary-foreground transition hover:opacity-95"
+            className="flex h-12 min-h-12 shrink-0 items-center justify-center truncate whitespace-nowrap rounded-2xl bg-primary px-4 text-[15px] font-extrabold leading-none text-primary-foreground transition hover:opacity-95 sm:flex-1"
           >
             {heroCtaLabel}
           </Link>
           <Link
             to="/pricing"
-            className="flex h-12 flex-1 items-center justify-center truncate whitespace-nowrap rounded-2xl border-2 border-primary px-4 text-[15px] font-extrabold leading-none text-primary transition hover:bg-primary/10"
+            className="flex h-12 min-h-12 shrink-0 items-center justify-center truncate whitespace-nowrap rounded-2xl border-2 border-primary px-4 text-[15px] font-extrabold leading-none text-primary transition hover:bg-primary/10 sm:flex-1"
           >
             See pricing
           </Link>
+
         </div>
 
         <div className="mx-auto mt-6 grid max-w-xl grid-cols-3 gap-3">
