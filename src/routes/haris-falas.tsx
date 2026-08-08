@@ -32,8 +32,27 @@ const QUALIFICATIONS = [
   "EXOS Performance and Rehab Specialist",
   "FMS Specialist",
   "ACE Medical Exercise Specialist",
-  "NSCA CSCS (ongoing)",
+  "NSCA CSCS",
 ];
+
+const PROJECTS: { name: string; href: string; desc: string }[] = [
+  {
+    name: "SmartyMove",
+    href: "https://smarty-motion-pro.lovable.app",
+    desc: "Posture and movement screening",
+  },
+  {
+    name: "SmartyDiet",
+    href: "https://smarty-meals-hub.lovable.app",
+    desc: "Personalized nutrition planning",
+  },
+  {
+    name: "SmartyGym",
+    href: "https://smartygym.com",
+    desc: "Workouts and training programs",
+  },
+];
+
 
 function Bullets({ items }: { items: React.ReactNode[] }) {
   return (
