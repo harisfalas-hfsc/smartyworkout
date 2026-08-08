@@ -2,12 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { CircleHelp } from "lucide-react";
 import { SmartyCard } from "@/components/SmartyCard";
 import {
-import { PageHeader } from "@/components/PageHeader";
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { PageHeader } from "@/components/PageHeader";
 
 const URL = "https://smartyworkout.com/faq";
 const TITLE = "SmartyWorkout FAQ — Smarty Coach, workouts & subscription";

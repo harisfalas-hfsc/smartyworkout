@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Info, ListChecks, HelpCircle } from "lucide-react";
-import { PageHeader } from "@/components/PageHeader";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { PageHeader } from "@/components/PageHeader";
 
 
 export const Route = createFileRoute("/")({

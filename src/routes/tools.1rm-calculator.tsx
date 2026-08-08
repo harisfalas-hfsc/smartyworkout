@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-import { PageHeader } from "@/components/PageHeader";
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { PageHeader } from "@/components/PageHeader";
 
 const URL = "https://smartyworkout.com/tools/1rm-calculator";
 const TITLE = "1RM Calculator — One rep max (Brzycki) | SmartyWorkout";

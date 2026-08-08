@@ -15,11 +15,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-import { PageHeader } from "@/components/PageHeader";
   deleteNotifications,
   listNotifications,
   setNotificationsRead,
 } from "@/lib/daily.functions";
+import { PageHeader } from "@/components/PageHeader";
 
 export const Route = createFileRoute("/_authenticated/notifications")({
   head: () => ({
