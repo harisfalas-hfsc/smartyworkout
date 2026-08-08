@@ -112,7 +112,7 @@ function CoachProfilePage() {
             <Bullets
               items={[
                 "Strength and Conditioning Coach in elite football",
-                "Worked with Olympiakos Nicosia, APOEL, Anorthosis, AEL, Achna and Digenis",
+                "Worked with top-level football teams",
                 "Designed performance programs and injury-prevention systems",
                 <>
                   Founder and Head Coach of{" "}
@@ -125,48 +125,28 @@ function CoachProfilePage() {
                     HFSC
                   </a>
                 </>,
-                "Creator of the SmartyGym online training platform",
+                <>
+                  Founder of the Smarty ecosystem:{" "}
+                  {PROJECTS.map((p, i) => (
+                    <span key={p.name}>
+                      {i > 0 ? ", " : ""}
+                      <a
+                        href={p.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-primary underline underline-offset-2"
+                      >
+                        {p.name}
+                      </a>
+                    </span>
+                  ))}
+                </>,
               ]}
             />
           </CardContent>
         </Card>
       </div>
 
-      <Card className="mt-6 border-2 border-primary">
-        <CardHeader>
-          <CardTitle className="text-xl text-primary sm:text-2xl">
-            <a
-              href="https://hfsc.eu/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:underline"
-            >
-              HFSC
-            </a>{" "}
-            and Smarty Workout
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4 text-sm sm:text-base">
-          <p>
-            At{" "}
-            <a
-              href="https://hfsc.eu/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-primary underline underline-offset-2"
-            >
-              HFSC
-            </a>
-            , I focus on functional strength, mobility, rehabilitation
-            principles and real performance training for athletes and adults.
-          </p>
-          <p>
-            With Smarty Workout, that approach became Smarty Coach — an AI
-            coach that builds the session you need today, based on the same
-            sports science principles.
-          </p>
-        </CardContent>
-      </Card>
 
       <div className="mt-10 flex flex-col items-center gap-3">
         <Button asChild size="lg" className="font-extrabold uppercase">
