@@ -55,7 +55,7 @@ function Account() {
             </Link>
           </Button>
           <Button asChild variant="secondary" className="h-12 rounded-2xl">
-            <Link to="/logbook">Logbook{count !== null ? ` (${count})` : ""}</Link>
+            <Link to="/logbook" search={{ filter: "all" as const, view: "list" as const }}>Logbook{count !== null ? ` (${count})` : ""}</Link>
           </Button>
         </div>
       </section>
