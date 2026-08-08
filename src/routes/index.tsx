@@ -213,11 +213,11 @@ function Home() {
         <SmartyCard
           tone="green"
           eyebrow="How it works"
-          eyebrowIcon="🥗"
+          eyebrowIcon="🏋️"
           cornerIcon={Sparkles}
           title="From questionnaire"
-          accent="to plan."
-          description="Three steps. No payment. No subscription."
+          accent="to workout."
+          description="You answer. Smarty Coach builds. You train."
         >
           <div className="mt-2 grid gap-6 sm:grid-cols-3 sm:gap-4">
             {STEPS.map((s) => (
@@ -233,7 +233,7 @@ function Home() {
                 <div className="mt-3 whitespace-nowrap text-base font-bold">
                   {s.title}
                 </div>
-                <div className="mt-1 whitespace-nowrap text-sm text-muted-foreground">
+                <div className="mt-1 text-sm text-muted-foreground">
                   {s.desc}
                 </div>
               </div>
@@ -246,30 +246,20 @@ function Home() {
               {INCLUDES.map((it) => (
                 <li key={it} className="flex items-center gap-3 text-sm">
                   <CheckCircle2 className="h-5 w-5 flex-none text-primary" />
-                  <span className="whitespace-nowrap">{it}</span>
+                  <span>{it}</span>
                 </li>
               ))}
             </ul>
           </div>
 
           <div className="mt-8 border-t border-border pt-8 text-center">
-            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-              Always free
+            <div className="flex justify-center">{primary}</div>
+            <p className="mt-3 text-xs text-muted-foreground">
+              Not medical advice. Consult a professional for medical
+              conditions.
             </p>
-            <p className="mt-2 text-5xl font-extrabold tracking-tight">
-              Free
-            </p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              One personalized plan. Yours to keep.
-            </p>
-            <div className="mt-6 flex justify-center">{primary}</div>
-            {cta.kind === "guest" && (
-              <p className="mt-3 text-xs text-muted-foreground">
-                Not medical advice. Consult a professional for medical
-                conditions.
-              </p>
-            )}
           </div>
+
         </SmartyCard>
       </section>
     </div>
