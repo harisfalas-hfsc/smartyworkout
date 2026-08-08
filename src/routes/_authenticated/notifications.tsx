@@ -148,15 +148,22 @@ function NotificationsPage() {
       </div>
 
       <div className="mb-3 flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-background p-2">
-        <button
-          type="button"
-          onClick={toggleAll}
-          disabled={!visibleIds.length}
-          className="flex h-9 shrink-0 items-center gap-2 rounded-xl px-2 text-xs font-bold disabled:opacity-40"
+        <div
+          className={`flex h-9 shrink-0 items-center gap-2 rounded-xl px-2 text-xs font-bold ${
+            visibleIds.length ? "" : "pointer-events-none opacity-40"
+          }`}
         >
-          <Checkbox checked={allPicked} aria-label="Select all" />
-          <span className="whitespace-nowrap">{picked.length ? `${picked.length} selected` : "Select all"}</span>
-        </button>
+          <Checkbox
+            checked={allPicked}
+            onCheckedChange={toggleAll}
+            aria-label="Select all"
+            disabled={!visibleIds.length}
+          />
+          <button type="button" onClick={toggleAll} className="whitespace-nowrap">
+            {picked.length ? `${picked.length} selected` : "Select all"}
+          </button>
+        </div>
+
         <div className="ml-auto flex shrink-0 items-center gap-1.5">
           <button
             type="button"
