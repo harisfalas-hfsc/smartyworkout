@@ -1,31 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Compass, BookOpen, Brain } from "lucide-react";
-
-
-import { cn } from "@/lib/utils";
-import {
-  SmartyCard,
-  SmartyPill,
-  SmartyRow,
-  toneClasses,
-} from "@/components/SmartyCard";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About SmartyWorkout — The AI Training Intelligence Platform" },
+      { title: "About Smarty Workout — Meet Smarty Coach" },
       {
         name: "description",
         content:
-          "SmartyWorkout is the AI Training Intelligence Platform — a pocket coach and diet coach that builds personalized plans based on established sports-science methods.",
+          "Smarty Workout is not another workout app. Smarty Coach is an AI fitness coach built around the sports science of Haris Falas.",
       },
-      { property: "og:title", content: "About SmartyWorkout — AI Training Intelligence Platform" },
+      { property: "og:title", content: "About Smarty Workout — Meet Smarty Coach" },
       {
         property: "og:description",
-        content:
-          "The AI Training Intelligence Platform: pocket coach, training consultant and diet coach, powered by science.",
+        content: "An intelligent AI fitness coach. Smart, personalized, science-informed, adaptive.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { property: "og:url", content: "https://smartyworkout.com/about" },
     ],
     links: [{ rel: "canonical", href: "https://smartyworkout.com/about" }],
@@ -33,128 +24,84 @@ export const Route = createFileRoute("/about")({
   component: AboutPage,
 });
 
+const POINTS = [
+  {
+    icon: "🧠",
+    title: "SMART",
+    text: "Understands you, your goals and your training history.",
+    border: "border-violet-400",
+    tint: "text-violet-500 dark:text-violet-300",
+  },
+  {
+    icon: "🎯",
+    title: "PERSONALIZED",
+    text: "Considers your mood, time, equipment, location and fitness level.",
+    border: "border-orange-400",
+    tint: "text-orange-500 dark:text-orange-300",
+  },
+  {
+    icon: "🔬",
+    title: "SCIENCE-INFORMED",
+    text: "Built around sports science, safety, health and performance.",
+    border: "border-sky-400",
+    tint: "text-sky-500 dark:text-sky-300",
+  },
+  {
+    icon: "🔄",
+    title: "ADAPTIVE",
+    text: "Learns from your workouts and feedback to improve future sessions.",
+    border: "border-emerald-400",
+    tint: "text-emerald-500 dark:text-emerald-300",
+  },
+];
+
 function AboutPage() {
-  const t = toneClasses("purple");
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:py-12">
-      <div className="mb-8 text-center">
-        <p className="text-xs font-semibold uppercase tracking-wider text-primary">About us</p>
-        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
-          The <span className="text-primary">AI Training Intelligence</span> Platform
+    <div className="mx-auto flex w-full max-w-md flex-col gap-4 px-4 py-4">
+      <header>
+        <h1 className="text-[26px] font-extrabold uppercase leading-[1.05] tracking-tight">
+          Not another <span className="text-primary">workout app.</span>
         </h1>
-        <p className="mx-auto mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
-          SmartyWorkout combines personalized workout planning with free tools so anyone can eat
-          with intention — no subscription, no guesswork.
+        <p className="mt-1 text-sm font-semibold text-muted-foreground">Meet Smarty Coach.</p>
+        <p className="mt-2 text-[13px] leading-snug text-muted-foreground">
+          An intelligent AI fitness coach trained around the sports science and training philosophy
+          of{" "}
+          <a
+            href="https://smartygym.com/coach"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-primary underline underline-offset-2"
+          >
+            Sports Scientist Haris Falas
+          </a>
+          .
         </p>
-      </div>
+      </header>
 
-      <SmartyCard
-        tone="purple"
-        eyebrow="Our mission"
-        eyebrowIcon="🌱"
-        cornerIcon={Compass}
-        title="Training made"
-        accent="personal."
-        description="We package the assessment, calculation and planning work of a coach into an always-available AI — accessible for one €9.99 payment."
-      >
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div className={cn("rounded-2xl border p-4", t.softBorder, t.softBg)}>
-            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-foreground">
-              Mission
-            </h3>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <SmartyPill tone="purple" icon="🎯">Personalized to your body</SmartyPill>
-              <SmartyPill tone="purple" icon="🧪">Evidence-based methods</SmartyPill>
-              <SmartyPill tone="purple" icon="🔎">Transparent numbers</SmartyPill>
-              <SmartyPill tone="purple" icon="🚫">No subscription trap</SmartyPill>
-            </div>
+      <ul className="grid grid-cols-2 gap-2.5">
+        {POINTS.map((p) => (
+          <li
+            key={p.title}
+            className={`rounded-2xl border-2 bg-card p-3 shadow-soft ${p.border}`}
+          >
+            <span className="text-lg leading-none">{p.icon}</span>
+            <p className={`mt-1 text-[11px] font-extrabold uppercase tracking-wide ${p.tint}`}>
+              {p.title}
+            </p>
+            <p className="mt-1 text-[11px] leading-snug text-muted-foreground">{p.text}</p>
+          </li>
+        ))}
+      </ul>
 
-            <div className="mt-4 border-t border-border pt-4">
-              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-foreground">
-                <span className="text-base">✨</span>
-                Smarty family
-              </h3>
-              <div className="space-y-3">
-                <SmartyRow tone="purple" icon="🏋️" title="SmartyGym" subtitle="Your smart training partner." />
-                <SmartyRow tone="purple" icon="🤸" title="SmartyMove" subtitle="Your pocket movement coach." />
-              </div>
-            </div>
-          </div>
+      <p className="text-center text-sm font-bold leading-snug">
+        You don&apos;t choose a workout.
+        <br />
+        <span className="text-primary">Smarty Coach creates the workout you need today.</span>
+      </p>
 
-          <div className={cn("rounded-2xl border p-4", t.softBorder, t.softBg)}>
-            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-foreground">
-              Approach
-            </h3>
-            <div className="space-y-3">
-              <SmartyRow tone="purple" icon="📋" title="Smart questionnaire" subtitle="Body, activity, goal, food & allergies." />
-              <SmartyRow tone="purple" icon="⚙️" title="Mifflin-St Jeor engine" subtitle="Standard BMR + TDEE multipliers." />
-              <SmartyRow tone="purple" icon="🍽️" title="Full personalized plan" subtitle="Meals, macros, portions, equipment list." />
-            </div>
-
-            <div className="mt-4 border-t border-border pt-4">
-              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-foreground">
-                <span className="text-base">🎯</span>
-                Principles
-              </h3>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <SmartyRow tone="purple" icon="🎯" title="Personalization first" subtitle="Plans built around your body and preferences." />
-                <SmartyRow tone="purple" icon="🧪" title="Evidence-based" subtitle="Methods used by coachs." />
-                <SmartyRow tone="purple" icon="🔎" title="Transparent" subtitle="See the calories, macros and rationale." />
-                <SmartyRow tone="purple" icon="🚫" title="No subscription trap" subtitle="Pay once, own your plan." />
-              </div>
-            </div>
-          </div>
-        </div>
-      </SmartyCard>
-
-      <div className="mt-8">
-        <SmartyCard
-          tone="blue"
-          eyebrow="What powers SmartyWorkout"
-          eyebrowIcon="🧠"
-          cornerIcon={Brain}
-          title="Training"
-          accent="Intelligence"
-          description="An AI training engine that assesses your body, activity and goals, then plans meals, macros and portions the way a coach would — instantly and transparently."
-          ctaLabel="Learn more about Training Intelligence"
-          ctaTo="/training-intelligence"
-        >
-          <div className="grid gap-3 sm:grid-cols-2">
-            <SmartyRow tone="blue" icon="📊" title="Personal assessment" subtitle="Body, activity, goal, preferences & allergies." />
-            <SmartyRow tone="blue" icon="⚙️" title="Mifflin-St Jeor engine" subtitle="Standard BMR + TDEE multipliers." />
-            <SmartyRow tone="blue" icon="🍽️" title="Complete workout plan" subtitle="Meals, macros, portions, equipment list." />
-            <SmartyRow tone="blue" icon="🔎" title="Transparent numbers" subtitle="See the calories, macros and rationale." />
-          </div>
-        </SmartyCard>
-      </div>
-
-
-      <div className="mt-8">
-        <SmartyCard
-          tone="cyan"
-          eyebrow="Learn more"
-          eyebrowIcon="🔬"
-          cornerIcon={BookOpen}
-          title="The Diet"
-          accent="Science"
-          description="Explore the evidence behind our approach: diet schedules decoded, the role of protein, carbs and fats, how human training evolved, common myths, and the sources we rely on."
-          ctaLabel="Read The Diet Science"
-          ctaTo="/training-science"
-        />
-      </div>
-
-
-
-      <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-        <Button asChild size="lg">
-          <Link to="/questionnaire">Create my workout plan</Link>
-        </Button>
-        <Button asChild size="lg" variant="outline">
-          <Link to="/tools">Explore free tools</Link>
-        </Button>
-      </div>
+      <Button asChild size="lg" className="w-full rounded-full text-sm font-extrabold uppercase">
+        <Link to="/coach">Meet Smarty Coach</Link>
+      </Button>
     </div>
   );
 }
-
-
