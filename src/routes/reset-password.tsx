@@ -58,7 +58,7 @@ function ResetPassword() {
       const { error: updateError } = await supabase.auth.updateUser({ password });
       if (updateError) throw updateError;
       setDone(true);
-      setTimeout(() => navigate({ to: "/questionnaire", replace: true }), 1500);
+      setTimeout(() => navigate({ to: "/coach", replace: true }), 1500);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't update password.");
     } finally {

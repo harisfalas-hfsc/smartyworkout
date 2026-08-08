@@ -12,11 +12,30 @@ import {
   MapPin,
   Dumbbell,
   MessageSquare,
+  Flame,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { generateWorkout } from "@/lib/coach.functions";
-import { EQUIPMENT, GOALS, LOCATIONS, MOODS, TIMES } from "@/lib/coach-options";
+import {
+  EQUIPMENT,
+  GOALS,
+  LEVELS,
+  LOCATIONS,
+  LOW_ENERGY_MOODS,
+  MOODS,
+  TIMES,
+} from "@/lib/coach-options";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/coach")({
@@ -106,6 +125,9 @@ function CoachPage() {
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState<string>("");
+  const [level, setLevel] = useState<string>("auto");
+  const [confirmHard, setConfirmHard] = useState(false);
+  const [resuming, setResuming] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -130,13 +152,19 @@ function CoachPage() {
     })();
   }, []);
 
+  useEffect(() => {
+    setResuming(localStorage.getItem("smarty:generating") === "1");
+  }, []);
+
   function toggleEquipment(id: string) {
     setEquipment((prev) => (prev.includes(id) ? prev.filter((e) => e !== id) : [...prev, id]));
   }
 
-  async function generate(surprise = false) {
+  async function generate(surprise = false, levelOverride?: string) {
     if (busy) return;
     setBusy(true);
+    setResuming(false);
+    localStorage.setItem("smarty:generating", "1");
     try {
       const res = await run({
         data: {
@@ -147,6 +175,7 @@ function CoachPage() {
           equipment: equipment.length ? equipment : ["bodyweight"],
           equipmentOther: equipment.includes("other") ? otherEquipment.trim() : "",
           note: note.trim(),
+          level: surprise ? "auto" : (levelOverride ?? level),
           surprise,
         },
       });
@@ -154,8 +183,17 @@ function CoachPage() {
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Smarty Coach could not build that workout.");
     } finally {
+      localStorage.removeItem("smarty:generating");
       setBusy(false);
     }
+  }
+
+  function requestGenerate(surprise: boolean) {
+    if (!surprise && level === "advanced" && LOW_ENERGY_MOODS.includes(mood)) {
+      setConfirmHard(true);
+      return;
+    }
+    void generate(surprise);
   }
 
   return (
@@ -172,13 +210,32 @@ function CoachPage() {
         </p>
       </div>
 
+      {resuming && !busy ? (
+        <div className="mb-4 rounded-2xl border border-primary/40 bg-primary/5 p-4 text-sm">
+          <p className="font-semibold">A workout was being built when you left.</p>
+          <p className="mt-1 text-muted-foreground">
+            Smarty Coach finishes on the server, so it keeps going even if you close the page. Check
+            your{" "}
+            <button
+              type="button"
+              className="font-semibold text-primary underline"
+              onClick={() => navigate({ to: "/logbook" })}
+            >
+              logbook
+            </button>{" "}
+            — if it isn't there, generate again.
+          </p>
+        </div>
+      ) : null}
+
+
       <div className="mb-6 rounded-3xl border-2 border-primary/40 bg-primary/5 p-5 text-center">
         <p className="text-sm font-semibold">Don't feel like choosing?</p>
         <Button
           size="lg"
           className="mt-3 h-14 w-full rounded-2xl text-base font-extrabold"
           disabled={busy}
-          onClick={() => generate(true)}
+          onClick={() => requestGenerate(true)}
         >
           {busy ? (
             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -213,7 +270,37 @@ function CoachPage() {
           </Grid>
         </QuestionCard>
 
-        <QuestionCard step={3} icon={Clock} title="Time available">
+        <QuestionCard
+          step={3}
+          icon={Flame}
+          title="How hard should it be?"
+          hint="Auto blends your profile level with today's mood. Pick a level to override it."
+        >
+          <div className="grid gap-2.5 sm:grid-cols-2">
+            {LEVELS.map((l) => (
+              <button
+                key={l.id}
+                type="button"
+                onClick={() => setLevel(l.id)}
+                className={`min-h-14 rounded-2xl border px-4 py-3 text-left transition ${
+                  level === l.id
+                    ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                    : "border-border bg-background hover:border-primary/50"
+                }`}
+              >
+                <span className="block text-sm font-semibold">{l.label}</span>
+                <span
+                  className={`block text-xs ${level === l.id ? "text-primary-foreground/80" : "text-muted-foreground"}`}
+                >
+                  {l.hint}
+                </span>
+              </button>
+            ))}
+          </div>
+        </QuestionCard>
+
+
+        <QuestionCard step={4} icon={Clock} title="Time available">
           <Grid>
             {TIMES.map((t) => (
               <Chip key={t} active={minutes === t} onClick={() => setMinutes(t)}>
@@ -223,7 +310,7 @@ function CoachPage() {
           </Grid>
         </QuestionCard>
 
-        <QuestionCard step={4} icon={MapPin} title="Where are you training?">
+        <QuestionCard step={5} icon={MapPin} title="Where are you training?">
           <Grid>
             {LOCATIONS.map((l) => (
               <Chip key={l.id} active={location === l.id} onClick={() => setLocation(l.id)}>
@@ -234,7 +321,7 @@ function CoachPage() {
         </QuestionCard>
 
         <QuestionCard
-          step={5}
+          step={6}
           icon={Dumbbell}
           title="Equipment available"
           hint="Only what you pick will appear in your workout."
@@ -270,7 +357,7 @@ function CoachPage() {
         </QuestionCard>
 
         <QuestionCard
-          step={6}
+          step={7}
           icon={MessageSquare}
           title="Anything else?"
           hint="Optional — Smarty Coach reads this too."
@@ -290,7 +377,7 @@ function CoachPage() {
           size="lg"
           className="h-16 w-full rounded-2xl text-base font-extrabold shadow-lg"
           disabled={busy}
-          onClick={() => generate(false)}
+          onClick={() => requestGenerate(false)}
         >
           {busy ? (
             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -300,6 +387,33 @@ function CoachPage() {
           {busy ? "Smarty Coach is thinking…" : "Create my workout"}
         </Button>
       </div>
+
+      <AlertDialog open={confirmHard} onOpenChange={setConfirmHard}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Advanced today — are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You told Smarty Coach you're feeling{" "}
+              {MOODS.find((m) => m.id === mood)?.label.toLowerCase() ?? mood}. Advanced means high
+              volume, complex movements and short rest. Training hard on a low-energy day raises
+              injury risk. Smarty Coach can scale it to match how you feel instead.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setLevel("auto");
+                void generate(false, "auto");
+              }}
+            >
+              Scale it to my mood
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => void generate(false)}>
+              Yes, go advanced
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -26,19 +26,17 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TrainingIntelligenceRouteImport } from './routes/training-intelligence'
+import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedCoachRouteImport } from './routes/_authenticated/coach'
 import { Route as AuthenticatedLogbookRouteImport } from './routes/_authenticated/logbook'
-import { Route as AuthenticatedPlansRouteImport } from './routes/_authenticated/plans'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedProgressRouteImport } from './routes/_authenticated/progress'
-import { Route as AuthenticatedQuestionnaireRouteImport } from './routes/_authenticated/questionnaire'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminExerciseLibraryRouteImport } from './routes/admin.exercise-library'
 import { Route as ToolsIndexRouteImport } from './routes/tools.index'
 import { Route as Tools1rmCalculatorRouteImport } from './routes/tools.1rm-calculator'
 import { Route as ToolsRoundsTrackerRouteImport } from './routes/tools.rounds-tracker'
 import { Route as ToolsWorkoutTimerRouteImport } from './routes/tools.workout-timer'
-import { Route as AuthenticatedPlansSessionIdRouteImport } from './routes/_authenticated/plans.$sessionId'
 import { Route as AuthenticatedWorkoutWorkoutIdRouteImport } from './routes/_authenticated/workout.$workoutId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -125,6 +123,11 @@ const TrainingIntelligenceRoute = TrainingIntelligenceRouteImport.update({
   path: '/training-intelligence',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedCoachRoute = AuthenticatedCoachRouteImport.update({
   id: '/coach',
   path: '/coach',
@@ -133,11 +136,6 @@ const AuthenticatedCoachRoute = AuthenticatedCoachRouteImport.update({
 const AuthenticatedLogbookRoute = AuthenticatedLogbookRouteImport.update({
   id: '/logbook',
   path: '/logbook',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedPlansRoute = AuthenticatedPlansRouteImport.update({
-  id: '/plans',
-  path: '/plans',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
@@ -150,12 +148,6 @@ const AuthenticatedProgressRoute = AuthenticatedProgressRouteImport.update({
   path: '/progress',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedQuestionnaireRoute =
-  AuthenticatedQuestionnaireRouteImport.update({
-    id: '/questionnaire',
-    path: '/questionnaire',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
@@ -186,12 +178,6 @@ const ToolsWorkoutTimerRoute = ToolsWorkoutTimerRouteImport.update({
   path: '/tools/workout-timer',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedPlansSessionIdRoute =
-  AuthenticatedPlansSessionIdRouteImport.update({
-    id: '/$sessionId',
-    path: '/$sessionId',
-    getParentRoute: () => AuthenticatedPlansRoute,
-  } as any)
 const AuthenticatedWorkoutWorkoutIdRoute =
   AuthenticatedWorkoutWorkoutIdRouteImport.update({
     id: '/workout/$workoutId',
@@ -216,19 +202,17 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/training-intelligence': typeof TrainingIntelligenceRoute
+  '/account': typeof AuthenticatedAccountRoute
   '/coach': typeof AuthenticatedCoachRoute
   '/logbook': typeof AuthenticatedLogbookRoute
-  '/plans': typeof AuthenticatedPlansRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
   '/progress': typeof AuthenticatedProgressRoute
-  '/questionnaire': typeof AuthenticatedQuestionnaireRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
   '/tools/1rm-calculator': typeof Tools1rmCalculatorRoute
   '/tools/rounds-tracker': typeof ToolsRoundsTrackerRoute
   '/tools/workout-timer': typeof ToolsWorkoutTimerRoute
   '/admin/': typeof AdminIndexRoute
   '/tools/': typeof ToolsIndexRoute
-  '/plans/$sessionId': typeof AuthenticatedPlansSessionIdRoute
   '/workout/$workoutId': typeof AuthenticatedWorkoutWorkoutIdRoute
 }
 export interface FileRoutesByTo {
@@ -248,19 +232,17 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/training-intelligence': typeof TrainingIntelligenceRoute
+  '/account': typeof AuthenticatedAccountRoute
   '/coach': typeof AuthenticatedCoachRoute
   '/logbook': typeof AuthenticatedLogbookRoute
-  '/plans': typeof AuthenticatedPlansRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
   '/progress': typeof AuthenticatedProgressRoute
-  '/questionnaire': typeof AuthenticatedQuestionnaireRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
   '/tools/1rm-calculator': typeof Tools1rmCalculatorRoute
   '/tools/rounds-tracker': typeof ToolsRoundsTrackerRoute
   '/tools/workout-timer': typeof ToolsWorkoutTimerRoute
   '/admin': typeof AdminIndexRoute
   '/tools': typeof ToolsIndexRoute
-  '/plans/$sessionId': typeof AuthenticatedPlansSessionIdRoute
   '/workout/$workoutId': typeof AuthenticatedWorkoutWorkoutIdRoute
 }
 export interface FileRoutesById {
@@ -282,19 +264,17 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/training-intelligence': typeof TrainingIntelligenceRoute
+  '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/coach': typeof AuthenticatedCoachRoute
   '/_authenticated/logbook': typeof AuthenticatedLogbookRoute
-  '/_authenticated/plans': typeof AuthenticatedPlansRouteWithChildren
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/progress': typeof AuthenticatedProgressRoute
-  '/_authenticated/questionnaire': typeof AuthenticatedQuestionnaireRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
   '/tools/1rm-calculator': typeof Tools1rmCalculatorRoute
   '/tools/rounds-tracker': typeof ToolsRoundsTrackerRoute
   '/tools/workout-timer': typeof ToolsWorkoutTimerRoute
   '/admin/': typeof AdminIndexRoute
   '/tools/': typeof ToolsIndexRoute
-  '/_authenticated/plans/$sessionId': typeof AuthenticatedPlansSessionIdRoute
   '/_authenticated/workout/$workoutId': typeof AuthenticatedWorkoutWorkoutIdRoute
 }
 export interface FileRouteTypes {
@@ -316,19 +296,17 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/training-intelligence'
+    | '/account'
     | '/coach'
     | '/logbook'
-    | '/plans'
     | '/profile'
     | '/progress'
-    | '/questionnaire'
     | '/admin/exercise-library'
     | '/tools/1rm-calculator'
     | '/tools/rounds-tracker'
     | '/tools/workout-timer'
     | '/admin/'
     | '/tools/'
-    | '/plans/$sessionId'
     | '/workout/$workoutId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -348,19 +326,17 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/training-intelligence'
+    | '/account'
     | '/coach'
     | '/logbook'
-    | '/plans'
     | '/profile'
     | '/progress'
-    | '/questionnaire'
     | '/admin/exercise-library'
     | '/tools/1rm-calculator'
     | '/tools/rounds-tracker'
     | '/tools/workout-timer'
     | '/admin'
     | '/tools'
-    | '/plans/$sessionId'
     | '/workout/$workoutId'
   id:
     | '__root__'
@@ -381,19 +357,17 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/training-intelligence'
+    | '/_authenticated/account'
     | '/_authenticated/coach'
     | '/_authenticated/logbook'
-    | '/_authenticated/plans'
     | '/_authenticated/profile'
     | '/_authenticated/progress'
-    | '/_authenticated/questionnaire'
     | '/admin/exercise-library'
     | '/tools/1rm-calculator'
     | '/tools/rounds-tracker'
     | '/tools/workout-timer'
     | '/admin/'
     | '/tools/'
-    | '/_authenticated/plans/$sessionId'
     | '/_authenticated/workout/$workoutId'
   fileRoutesById: FileRoutesById
 }
@@ -544,6 +518,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TrainingIntelligenceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/account': {
+      id: '/_authenticated/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AuthenticatedAccountRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/coach': {
       id: '/_authenticated/coach'
       path: '/coach'
@@ -558,13 +539,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLogbookRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/plans': {
-      id: '/_authenticated/plans'
-      path: '/plans'
-      fullPath: '/plans'
-      preLoaderRoute: typeof AuthenticatedPlansRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/profile': {
       id: '/_authenticated/profile'
       path: '/profile'
@@ -577,13 +551,6 @@ declare module '@tanstack/react-router' {
       path: '/progress'
       fullPath: '/progress'
       preLoaderRoute: typeof AuthenticatedProgressRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/questionnaire': {
-      id: '/_authenticated/questionnaire'
-      path: '/questionnaire'
-      fullPath: '/questionnaire'
-      preLoaderRoute: typeof AuthenticatedQuestionnaireRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/admin/': {
@@ -628,13 +595,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsWorkoutTimerRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/plans/$sessionId': {
-      id: '/_authenticated/plans/$sessionId'
-      path: '/$sessionId'
-      fullPath: '/plans/$sessionId'
-      preLoaderRoute: typeof AuthenticatedPlansSessionIdRouteImport
-      parentRoute: typeof AuthenticatedPlansRoute
-    }
     '/_authenticated/workout/$workoutId': {
       id: '/_authenticated/workout/$workoutId'
       path: '/workout/$workoutId'
@@ -645,34 +605,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AuthenticatedPlansRouteChildren {
-  AuthenticatedPlansSessionIdRoute: typeof AuthenticatedPlansSessionIdRoute
-}
-
-const AuthenticatedPlansRouteChildren: AuthenticatedPlansRouteChildren = {
-  AuthenticatedPlansSessionIdRoute: AuthenticatedPlansSessionIdRoute,
-}
-
-const AuthenticatedPlansRouteWithChildren =
-  AuthenticatedPlansRoute._addFileChildren(AuthenticatedPlansRouteChildren)
-
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
   AuthenticatedCoachRoute: typeof AuthenticatedCoachRoute
   AuthenticatedLogbookRoute: typeof AuthenticatedLogbookRoute
-  AuthenticatedPlansRoute: typeof AuthenticatedPlansRouteWithChildren
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedProgressRoute: typeof AuthenticatedProgressRoute
-  AuthenticatedQuestionnaireRoute: typeof AuthenticatedQuestionnaireRoute
   AuthenticatedWorkoutWorkoutIdRoute: typeof AuthenticatedWorkoutWorkoutIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAccountRoute: AuthenticatedAccountRoute,
   AuthenticatedCoachRoute: AuthenticatedCoachRoute,
   AuthenticatedLogbookRoute: AuthenticatedLogbookRoute,
-  AuthenticatedPlansRoute: AuthenticatedPlansRouteWithChildren,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedProgressRoute: AuthenticatedProgressRoute,
-  AuthenticatedQuestionnaireRoute: AuthenticatedQuestionnaireRoute,
   AuthenticatedWorkoutWorkoutIdRoute: AuthenticatedWorkoutWorkoutIdRoute,
 }
 
@@ -707,3 +654,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
