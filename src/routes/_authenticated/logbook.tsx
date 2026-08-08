@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,25 @@ import {
   ChevronRight,
 } from "lucide-react";
 
+type Filter = "all" | "completed" | "planned" | "favorites" | "scheduled";
+
+const FILTERS: Array<{ id: Filter; label: string }> = [
+  { id: "all", label: "All" },
+  { id: "completed", label: "Completed" },
+  { id: "planned", label: "Not done" },
+  { id: "scheduled", label: "Scheduled" },
+  { id: "favorites", label: "Favourites" },
+];
+
+const FILTER_IDS = FILTERS.map((f) => f.id) as string[];
+
 export const Route = createFileRoute("/_authenticated/logbook")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    filter: FILTER_IDS.includes(String(search["filter"] ?? ""))
+      ? (String(search["filter"]) as Filter)
+      : ("all" as Filter),
+    view: search["view"] === "calendar" ? ("calendar" as const) : ("list" as const),
+  }),
   head: () => ({
     meta: [
       { title: "Logbook — your training history" },
@@ -39,24 +57,20 @@ type Row = {
   status: string;
   is_favorite: boolean | null;
   scheduled_at: string | null;
+  completed_at: string | null;
   created_at: string;
   workout_feedback: Array<{ difficulty_rating: string | null; feeling: string | null }>;
 };
-
-type Filter = "all" | "completed" | "planned" | "favorites" | "scheduled";
-
-const FILTERS: Array<{ id: Filter; label: string }> = [
-  { id: "all", label: "All" },
-  { id: "completed", label: "Completed" },
-  { id: "planned", label: "Not done" },
-  { id: "scheduled", label: "Scheduled" },
-  { id: "favorites", label: "Favourites" },
-];
 
 function dayKey(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
     d.getDate(),
   ).padStart(2, "0")}`;
+}
+
+/** Which calendar day a workout belongs to: when you plan to do it, else when it happened. */
+function anchorDate(r: Row) {
+  return new Date(r.scheduled_at ?? r.completed_at ?? r.created_at);
 }
 
 function WorkoutCard({ r }: { r: Row }) {
@@ -132,13 +146,12 @@ function Calendar({ rows }: { rows: Row[] }) {
     const d = new Date();
     return new Date(d.getFullYear(), d.getMonth(), 1);
   });
+  const [selected, setSelected] = useState<string>(() => dayKey(new Date()));
 
   const byDay = useMemo(() => {
     const map = new Map<string, Row[]>();
     for (const r of rows) {
-      const src = r.scheduled_at ?? (r.status === "completed" ? r.created_at : null);
-      if (!src) continue;
-      const key = dayKey(new Date(src));
+      const key = dayKey(anchorDate(r));
       map.set(key, [...(map.get(key) ?? []), r]);
     }
     return map;
@@ -149,91 +162,136 @@ function Calendar({ rows }: { rows: Row[] }) {
   const days = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate();
   const cells: Array<Date | null> = [
     ...Array.from({ length: offset }, () => null),
-    ...Array.from({ length: days }, (_, i) => new Date(cursor.getFullYear(), cursor.getMonth(), i + 1)),
+    ...Array.from(
+      { length: days },
+      (_, i) => new Date(cursor.getFullYear(), cursor.getMonth(), i + 1),
+    ),
   ];
   const today = dayKey(new Date());
+  const selectedRows = byDay.get(selected) ?? [];
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4">
-      <div className="flex items-center justify-between">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))}
-          aria-label="Previous month"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <p className="font-bold">
-          {cursor.toLocaleDateString(undefined, { month: "long", year: "numeric" })}
-        </p>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))}
-          aria-label="Next month"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </Button>
+    <div className="space-y-4">
+      <div className="rounded-2xl border border-border bg-card p-4">
+        <div className="flex items-center justify-between">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))}
+            aria-label="Previous month"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <p className="font-bold">
+            {cursor.toLocaleDateString(undefined, { month: "long", year: "numeric" })}
+          </p>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))}
+            aria-label="Next month"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <div className="mt-3 grid grid-cols-7 gap-1 text-center text-[10px] uppercase tracking-wide text-muted-foreground">
+          {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
+            <span key={d}>{d}</span>
+          ))}
+        </div>
+        <div className="mt-1 grid grid-cols-7 gap-1">
+          {cells.map((d, i) => {
+            if (!d) return <span key={`e${i}`} />;
+            const key = dayKey(d);
+            const items = byDay.get(key) ?? [];
+            const isSelected = key === selected;
+            return (
+              <button
+                type="button"
+                key={key}
+                onClick={() => setSelected(key)}
+                className={`min-h-14 rounded-xl border p-1 text-left text-[10px] transition ${
+                  isSelected
+                    ? "border-primary bg-primary/10"
+                    : key === today
+                      ? "border-primary/60"
+                      : "border-border hover:border-primary/40"
+                }`}
+              >
+                <span className="font-bold">{d.getDate()}</span>
+                <span className="mt-1 flex flex-wrap gap-0.5">
+                  {items.slice(0, 4).map((r) => (
+                    <span
+                      key={r.id}
+                      className={`h-1.5 w-1.5 rounded-full ${
+                        r.status === "completed"
+                          ? "bg-primary"
+                          : r.scheduled_at
+                            ? "bg-sky-500"
+                            : "bg-muted-foreground/50"
+                      }`}
+                    />
+                  ))}
+                  {items.length > 4 ? (
+                    <span className="text-muted-foreground">+{items.length - 4}</span>
+                  ) : null}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-3 text-[11px] text-muted-foreground">
+          <span className="inline-flex items-center gap-1">
+            <span className="h-2 w-2 rounded-full bg-primary" /> Completed
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <span className="h-2 w-2 rounded-full bg-sky-500" /> Scheduled
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <span className="h-2 w-2 rounded-full bg-muted-foreground/50" /> Created, not done
+          </span>
+        </div>
       </div>
 
-      <div className="mt-3 grid grid-cols-7 gap-1 text-center text-[10px] uppercase tracking-wide text-muted-foreground">
-        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
-          <span key={d}>{d}</span>
-        ))}
+      <div>
+        <p className="mb-2 text-sm font-bold">
+          {new Date(`${selected}T00:00:00`).toLocaleDateString(undefined, {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+          })}
+        </p>
+        {selectedRows.length === 0 ? (
+          <div className="rounded-2xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+            Nothing on this day.
+          </div>
+        ) : (
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {selectedRows.map((r) => (
+              <li key={r.id}>
+                <WorkoutCard r={r} />
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
-      <div className="mt-1 grid grid-cols-7 gap-1">
-        {cells.map((d, i) => {
-          if (!d) return <span key={`e${i}`} />;
-          const key = dayKey(d);
-          const items = byDay.get(key) ?? [];
-          return (
-            <div
-              key={key}
-              className={`min-h-14 rounded-xl border p-1 text-left text-[10px] ${
-                key === today ? "border-primary bg-primary/5" : "border-border"
-              }`}
-            >
-              <span className="font-bold">{d.getDate()}</span>
-              {items.slice(0, 2).map((r) => (
-                <Link
-                  key={r.id}
-                  to="/workout/$workoutId"
-                  params={{ workoutId: r.id }}
-                  className={`mt-0.5 block truncate rounded px-1 ${
-                    r.status === "completed"
-                      ? "bg-primary/20 text-primary"
-                      : "bg-secondary text-foreground"
-                  }`}
-                >
-                  {r.name}
-                </Link>
-              ))}
-              {items.length > 2 ? (
-                <span className="block text-muted-foreground">+{items.length - 2}</span>
-              ) : null}
-            </div>
-          );
-        })}
-      </div>
-      <p className="mt-3 text-xs text-muted-foreground">
-        Scheduled and completed workouts appear here. Schedule one from any workout page.
-      </p>
     </div>
   );
 }
 
 function Logbook() {
+  const { filter, view } = Route.useSearch();
+  const navigate = useNavigate({ from: "/logbook" });
   const [rows, setRows] = useState<Row[] | null>(null);
-  const [filter, setFilter] = useState<Filter>("all");
-  const [view, setView] = useState<"list" | "calendar">("list");
 
   useEffect(() => {
     (async () => {
       const { data } = await supabase
         .from("workouts")
         .select(
-          "id,name,category,duration_min,difficulty_stars,difficulty_label,mood,status,is_favorite,scheduled_at,created_at,workout_feedback(difficulty_rating,feeling)",
+          "id,name,category,duration_min,difficulty_stars,difficulty_label,mood,status,is_favorite,scheduled_at,completed_at,created_at,workout_feedback(difficulty_rating,feeling)",
         )
         .order("created_at", { ascending: false })
         .limit(300);
@@ -259,20 +317,22 @@ function Logbook() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:py-12">
       <h1 className="text-3xl font-black">Logbook</h1>
-      <p className="mt-1 text-muted-foreground">Your complete training history and schedule.</p>
+      <p className="mt-1 text-muted-foreground">
+        Every workout you created — completed, still to do, or scheduled.
+      </p>
 
       <div className="mt-5 flex gap-2">
         <Button
           variant={view === "list" ? "default" : "secondary"}
           className="h-11 flex-1 rounded-2xl"
-          onClick={() => setView("list")}
+          onClick={() => navigate({ search: (p) => ({ ...p, view: "list" as const }) })}
         >
           List
         </Button>
         <Button
           variant={view === "calendar" ? "default" : "secondary"}
           className="h-11 flex-1 rounded-2xl"
-          onClick={() => setView("calendar")}
+          onClick={() => navigate({ search: (p) => ({ ...p, view: "calendar" as const }) })}
         >
           Calendar
         </Button>
@@ -289,14 +349,27 @@ function Logbook() {
               <button
                 key={f.id}
                 type="button"
-                onClick={() => setFilter(f.id)}
+                onClick={() => navigate({ search: (p) => ({ ...p, filter: f.id }) })}
                 className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
                   filter === f.id
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-border hover:border-primary/50"
                 }`}
               >
-                {f.label}
+                {f.label} ·{" "}
+                {
+                  rows.filter((r) =>
+                    f.id === "completed"
+                      ? r.status === "completed"
+                      : f.id === "planned"
+                        ? r.status !== "completed"
+                        : f.id === "favorites"
+                          ? Boolean(r.is_favorite)
+                          : f.id === "scheduled"
+                            ? Boolean(r.scheduled_at)
+                            : true,
+                  ).length
+                }
               </button>
             ))}
           </div>
