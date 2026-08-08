@@ -210,6 +210,25 @@ function CoachPage() {
         </p>
       </div>
 
+      {resuming && !busy ? (
+        <div className="mb-4 rounded-2xl border border-primary/40 bg-primary/5 p-4 text-sm">
+          <p className="font-semibold">A workout was being built when you left.</p>
+          <p className="mt-1 text-muted-foreground">
+            Smarty Coach finishes on the server, so it keeps going even if you close the page. Check
+            your{" "}
+            <button
+              type="button"
+              className="font-semibold text-primary underline"
+              onClick={() => navigate({ to: "/logbook" })}
+            >
+              logbook
+            </button>{" "}
+            — if it isn't there, generate again.
+          </p>
+        </div>
+      ) : null}
+
+
       <div className="mb-6 rounded-3xl border-2 border-primary/40 bg-primary/5 p-5 text-center">
         <p className="text-sm font-semibold">Don't feel like choosing?</p>
         <Button
