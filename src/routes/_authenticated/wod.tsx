@@ -35,7 +35,7 @@ function DaySlide({ day, label, active }: { day: DayInfo; label: string; active:
 
   return (
     <div
-      className={`w-[72%] shrink-0 snap-center rounded-lg border-2 px-3 py-4 text-center transition-all sm:w-[46%] ${
+      className={`w-[72%] shrink-0 snap-center rounded-2xl border-2 px-3 py-4 text-center transition-all sm:w-[46%] ${
         active
           ? "border-primary bg-primary/10 opacity-100"
           : "border-border bg-muted/40 opacity-60"

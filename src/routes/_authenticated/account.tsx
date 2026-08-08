@@ -35,8 +35,13 @@ function Account() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:py-12">
-      <h1 className="text-3xl font-black">My account</h1>
-      <p className="mt-1 text-muted-foreground">Your subscription and personal details.</p>
+      <div className="mb-2 text-center">
+        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-primary">
+          Smarty Workout
+        </p>
+        <h1 className="mt-2 text-3xl font-black sm:text-4xl">My account</h1>
+        <p className="mt-2 text-muted-foreground">Your subscription and personal details.</p>
+      </div>
 
       <section className="mt-6 rounded-2xl border border-border bg-card p-5">
         <div className="flex items-center gap-3">

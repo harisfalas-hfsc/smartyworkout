@@ -119,12 +119,15 @@ function NotificationsPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-6">
-      <header className="mb-4">
-        <h1 className="text-2xl font-extrabold tracking-tight">Notifications</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+      <div className="mb-5 text-center">
+        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-primary">
+          Inbox
+        </p>
+        <h1 className="mt-2 text-3xl font-black sm:text-4xl">Notifications</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
           Everything Smarty Coach sends you. Tap a message to read it, select to delete.
         </p>
-      </header>
+      </div>
 
       <div className="mb-3 grid grid-cols-2 gap-2">
         <button

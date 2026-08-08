@@ -121,8 +121,15 @@ function Progress() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:py-12">
-      <h1 className="text-3xl font-black">Progress</h1>
-      <p className="mt-1 text-muted-foreground">Keep showing up — Smarty Coach is tracking it all.</p>
+      <div className="mb-2 text-center">
+        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-primary">
+          Your training
+        </p>
+        <h1 className="mt-2 text-3xl font-black sm:text-4xl">Progress</h1>
+        <p className="mt-2 text-muted-foreground">
+          Keep showing up — Smarty Coach is tracking it all.
+        </p>
+      </div>
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat
