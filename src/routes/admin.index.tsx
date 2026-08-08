@@ -166,6 +166,12 @@ function AdminInner() {
         </div>
       )}
 
+      <div className="mb-4">
+        <Button asChild variant="outline">
+          <Link to="/admin/exercise-library">Upload exercise library</Link>
+        </Button>
+      </div>
+
       <Tabs defaultValue="overview">
         <TabsList className="mb-4 grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
           <TabsTrigger value="overview">
