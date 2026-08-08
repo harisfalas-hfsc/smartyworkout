@@ -188,7 +188,7 @@ function ExerciseLibraryPage() {
         eyebrow="Exercise library"
         title={
           <>
-            Every <span className="text-primary">movement</span>, demonstrated
+            Every <span className="text-primary">movement</span> demonstrated
           </>
         }
         subtitle="Browse the exercise database Smarty Coach builds your sessions from. Filter by body part, equipment, target muscle or difficulty."

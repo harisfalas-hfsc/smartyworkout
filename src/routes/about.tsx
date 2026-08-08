@@ -34,7 +34,7 @@ function AboutPage() {
           <>
             Coaching expertise
             <br />
-            <span className="text-primary">AI precision.</span>
+            <span className="text-primary">AI precision</span>
           </>
         }
         subtitle={

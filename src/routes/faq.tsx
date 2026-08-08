@@ -121,7 +121,7 @@ function FAQ() {
         eyebrow="FAQ"
         title={
           <>
-            Your <span className="text-primary">questions</span>, answered
+            Your <span className="text-primary">questions</span> answered
           </>
         }
       />
