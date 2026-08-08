@@ -27,6 +27,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as WodRouteImport } from './routes/wod'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
+import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
 import { Route as AuthenticatedCoachRouteImport } from './routes/_authenticated/coach'
 import { Route as AuthenticatedLogbookRouteImport } from './routes/_authenticated/logbook'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
@@ -131,6 +132,11 @@ const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCheckoutRoute = AuthenticatedCheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedCoachRoute = AuthenticatedCoachRouteImport.update({
   id: '/coach',
   path: '/coach',
@@ -223,6 +229,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/wod': typeof WodRoute
   '/account': typeof AuthenticatedAccountRoute
+  '/checkout': typeof AuthenticatedCheckoutRoute
   '/coach': typeof AuthenticatedCoachRoute
   '/logbook': typeof AuthenticatedLogbookRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -256,6 +263,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/wod': typeof WodRoute
   '/account': typeof AuthenticatedAccountRoute
+  '/checkout': typeof AuthenticatedCheckoutRoute
   '/coach': typeof AuthenticatedCoachRoute
   '/logbook': typeof AuthenticatedLogbookRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -291,6 +299,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/wod': typeof WodRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
+  '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
   '/_authenticated/coach': typeof AuthenticatedCoachRoute
   '/_authenticated/logbook': typeof AuthenticatedLogbookRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
@@ -326,6 +335,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/wod'
     | '/account'
+    | '/checkout'
     | '/coach'
     | '/logbook'
     | '/notifications'
@@ -359,6 +369,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/wod'
     | '/account'
+    | '/checkout'
     | '/coach'
     | '/logbook'
     | '/notifications'
@@ -393,6 +404,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/wod'
     | '/_authenticated/account'
+    | '/_authenticated/checkout'
     | '/_authenticated/coach'
     | '/_authenticated/logbook'
     | '/_authenticated/notifications'
@@ -565,6 +577,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/checkout': {
+      id: '/_authenticated/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof AuthenticatedCheckoutRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/coach': {
       id: '/_authenticated/coach'
       path: '/coach'
@@ -668,6 +687,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
+  AuthenticatedCheckoutRoute: typeof AuthenticatedCheckoutRoute
   AuthenticatedCoachRoute: typeof AuthenticatedCoachRoute
   AuthenticatedLogbookRoute: typeof AuthenticatedLogbookRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
@@ -678,6 +698,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountRoute: AuthenticatedAccountRoute,
+  AuthenticatedCheckoutRoute: AuthenticatedCheckoutRoute,
   AuthenticatedCoachRoute: AuthenticatedCoachRoute,
   AuthenticatedLogbookRoute: AuthenticatedLogbookRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
