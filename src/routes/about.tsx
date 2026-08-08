@@ -28,22 +28,16 @@ export const Route = createFileRoute("/about")({
 function AboutPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:py-12">
-      <div className="mb-8 text-center">
-        <p className="text-xs font-semibold uppercase tracking-wider text-primary">About</p>
-        <h1 className="mt-2 text-pretty text-2xl font-extrabold uppercase leading-tight tracking-tight sm:text-4xl">
-          Not another{" "}
-          <span className="whitespace-nowrap text-primary">workout app.</span>
-        </h1>
-      </div>
-
-      <SmartyCard
-        tone="purple"
-        align="center"
-        eyebrow="Smarty Coach"
-        eyebrowIcon="🧠"
-        title="Coaching expertise."
-        accent="AI precision."
-        description={
+      <PageHeader
+        eyebrow="About"
+        title={
+          <>
+            Coaching expertise
+            <br />
+            <span className="text-primary">AI precision.</span>
+          </>
+        }
+        subtitle={
           <>
             An intelligent AI fitness coach trained around the sports science and training
             philosophy of{" "}
@@ -56,32 +50,31 @@ function AboutPage() {
             .
           </>
         }
-      >
-        <div className="mx-auto grid max-w-xl gap-3 sm:grid-cols-2">
-          {[
-            { icon: "🧠", title: "SMART", subtitle: "Knows you and your history." },
-            { icon: "🎯", title: "PERSONALIZED", subtitle: "Mood, time, gear, level." },
-            { icon: "🔬", title: "SCIENCE-INFORMED", subtitle: "Safe, proven programming." },
-            { icon: "🔄", title: "ADAPTIVE", subtitle: "Learns from your feedback." },
-          ].map((f) => (
-            <div
-              key={f.title}
-              className="flex flex-col items-center gap-1 rounded-2xl border border-violet-200 bg-violet-50 px-3 py-4 text-center dark:border-violet-500/40 dark:bg-violet-500/10"
-            >
-              <span className="text-lg leading-none">{f.icon}</span>
-              <p className="text-sm font-bold leading-5">{f.title}</p>
-              <p className="text-xs leading-5 text-muted-foreground">{f.subtitle}</p>
-            </div>
-          ))}
-        </div>
+      />
 
-        <p className="mt-6 text-center text-sm font-bold leading-snug sm:text-base">
-          You don&apos;t choose a workout.
-          <br />
-          <span className="text-primary">Smarty Coach creates the workout you need today.</span>
-        </p>
-      </SmartyCard>
+      <div className="mx-auto grid max-w-xl gap-3 sm:grid-cols-2">
+        {[
+          { icon: "🧠", title: "SMART", subtitle: "Knows you and your history." },
+          { icon: "🎯", title: "PERSONALIZED", subtitle: "Mood, time, gear, level." },
+          { icon: "🔬", title: "SCIENCE-INFORMED", subtitle: "Safe, proven programming." },
+          { icon: "🔄", title: "ADAPTIVE", subtitle: "Learns from your feedback." },
+        ].map((f) => (
+          <div
+            key={f.title}
+            className="flex flex-col items-center gap-1 rounded-2xl border-2 border-blue-400 bg-card px-3 py-4 text-center"
+          >
+            <span className="text-lg leading-none">{f.icon}</span>
+            <p className="text-sm font-bold leading-5">{f.title}</p>
+            <p className="text-xs leading-5 text-muted-foreground">{f.subtitle}</p>
+          </div>
+        ))}
+      </div>
 
+      <p className="mt-6 text-center text-sm font-bold leading-snug sm:text-base">
+        You don&apos;t choose a workout.
+        <br />
+        <span className="text-primary">Smarty Coach creates the workout you need today.</span>
+      </p>
 
       <div className="mt-8 flex justify-center">
         <Button asChild size="lg" className="font-extrabold uppercase">
