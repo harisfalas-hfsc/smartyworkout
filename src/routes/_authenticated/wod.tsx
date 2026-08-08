@@ -1,9 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ChevronLeft, ChevronRight, Dumbbell, Home, Loader2, Play } from "lucide-react";
+import { Dumbbell, Home, Loader2, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { SwipeToExplore } from "@/components/ui/SwipeToExplore";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+  type CarouselApi,
+} from "@/components/ui/carousel";
 import { getDailyHub, setWodSubscription } from "@/lib/daily.functions";
 
 export const Route = createFileRoute("/_authenticated/wod")({
@@ -25,26 +35,20 @@ type Hub = Awaited<ReturnType<typeof getDailyHub>>;
 type DayInfo = Hub["days"]["today"];
 type WodWorkout = Hub["workouts"][number];
 
-function DaySlide({ day, label, active }: { day: DayInfo; label: string; active: boolean }) {
+function DaySlide({ day, label }: { day: DayInfo; label: string }) {
   const formatted = new Intl.DateTimeFormat("en", {
-    weekday: "long",
-    month: "long",
+    weekday: "short",
+    month: "short",
     day: "numeric",
     timeZone: "UTC",
   }).format(new Date(`${day.date}T12:00:00Z`));
 
   return (
-    <div
-      className={`w-[72%] shrink-0 snap-center rounded-2xl border-2 px-3 py-4 text-center transition-all sm:w-[46%] ${
-        active
-          ? "border-primary bg-primary/10 opacity-100"
-          : "border-border bg-muted/40 opacity-60"
-      }`}
-    >
-      <p className="text-xs font-bold text-primary">{label}</p>
-      <p className="mt-1 truncate text-xs font-bold text-primary">{formatted}</p>
-      <p className="mt-3 truncate text-sm font-black uppercase">{day.category}</p>
-      <p className="mx-auto mt-2 w-fit rounded-full bg-primary/15 px-3 py-1 text-[11px] font-bold text-primary">
+    <div className="flex h-[165px] flex-col justify-center rounded-xl border-2 border-primary/40 bg-card px-3 py-3 text-center transition-all duration-300 hover:border-primary">
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-primary">{label}</p>
+      <p className="mt-0.5 truncate text-[10px] text-muted-foreground">{formatted}</p>
+      <p className="mt-2 line-clamp-2 text-sm font-bold uppercase leading-tight">{day.category}</p>
+      <p className="mx-auto mt-2 w-fit rounded-full bg-primary/15 px-2.5 py-0.5 text-[10px] font-semibold text-primary">
         {day.difficulty || "Recovery"}
       </p>
     </div>
@@ -56,7 +60,7 @@ function WorkoutCard({ workout }: { workout: WodWorkout }) {
   const bodyweight = workout.wod_variant === "bodyweight";
   const Icon = bodyweight ? Home : Dumbbell;
   return (
-    <div className="rounded-2xl border border-primary/40 bg-primary/5 p-3">
+    <div className="rounded-xl border-2 border-primary/40 bg-card p-3 transition-colors hover:border-primary">
       <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-primary">
         <Icon className="h-3.5 w-3.5 shrink-0" />
         <span className="truncate">
@@ -72,7 +76,11 @@ function WorkoutCard({ workout }: { workout: WodWorkout }) {
         {workout.duration_min} min · {workout.difficulty_stars}★ ·{" "}
         {workout.status === "completed" ? "Completed" : "Not done yet"}
       </p>
-      <Button asChild className="mt-3 h-11 w-full rounded-2xl text-[14px] font-extrabold">
+      <Button
+        asChild
+        variant="outline"
+        className="mt-3 h-11 w-full rounded-xl border-2 border-primary/40 bg-transparent text-[14px] font-extrabold text-primary hover:border-primary hover:bg-transparent hover:text-primary"
+      >
         <Link to="/workout/$workoutId" params={{ workoutId: workout.id }}>
           <Play className="mr-2 h-4 w-4 shrink-0" />
           <span className="truncate">Open</span>
@@ -87,26 +95,22 @@ function WodPage() {
   const setSub = useServerFn(setWodSubscription);
   const [hub, setHub] = useState<Hub | null>(null);
   const [busy, setBusy] = useState(false);
-  const [activeDay, setActiveDay] = useState(1);
-  const trackRef = useRef<HTMLDivElement | null>(null);
-  const centeredRef = useRef(false);
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(1);
 
-  function onTrackScroll() {
-    const el = trackRef.current;
-    if (!el) return;
-    const center = el.scrollLeft + el.clientWidth / 2;
-    let best = 0;
-    let bestDist = Infinity;
-    Array.from(el.children).forEach((child, index) => {
-      const node = child as HTMLElement;
-      const dist = Math.abs(node.offsetLeft + node.offsetWidth / 2 - center);
-      if (dist < bestDist) {
-        bestDist = dist;
-        best = index;
-      }
-    });
-    setActiveDay(best);
-  }
+  const onSelect = useCallback(() => {
+    if (!api) return;
+    setCurrent(api.selectedScrollSnap());
+  }, [api]);
+
+  useEffect(() => {
+    if (!api) return;
+    onSelect();
+    api.on("select", onSelect);
+    return () => {
+      api.off("select", onSelect);
+    };
+  }, [api, onSelect]);
 
   useEffect(() => {
     void load({})
@@ -114,14 +118,6 @@ function WodPage() {
       .catch(() => setHub(null));
   }, [load]);
 
-  useEffect(() => {
-    if (!hub || centeredRef.current) return;
-    const el = trackRef.current;
-    const today = el?.children[1] as HTMLElement | undefined;
-    if (!el || !today) return;
-    centeredRef.current = true;
-    el.scrollLeft = today.offsetLeft - (el.clientWidth - today.offsetWidth) / 2;
-  }, [hub]);
 
 
   async function refresh() {
