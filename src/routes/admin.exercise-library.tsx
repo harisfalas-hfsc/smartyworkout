@@ -34,24 +34,15 @@ export const Route = createFileRoute("/admin/exercise-library")({
 });
 
 function Page() {
-  const [signedIn, setSignedIn] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    void supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) =>
-      setSignedIn(!!session),
-    );
-    return () => sub.subscription.unsubscribe();
-  }, []);
-
   return (
     <div className="flex min-h-[100dvh] w-full flex-col bg-background text-foreground">
       <main className="mx-auto w-full max-w-[1100px] px-4 pb-16 pt-4 lg:px-8">
-        {signedIn === false ? <InlineSignIn /> : <Uploader />}
+        <Uploader />
       </main>
     </div>
   );
 }
+
 
 function InlineSignIn() {
   const [email, setEmail] = useState("");
