@@ -1,6 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Info, ListChecks, HelpCircle } from "lucide-react";
+import {
+  Info,
+  ListChecks,
+  HelpCircle,
+  CalendarCheck,
+  Dumbbell,
+  Crown,
+  Wrench,
+  Mail,
+  Sparkles,
+  BookOpen,
+  ClipboardList,
+  User,
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/PageHeader";
@@ -51,27 +64,22 @@ type CtaState =
 
 function Home() {
   const DISCOVER = [
-    {
-      to: "/about",
-      icon: Info,
-      color: "text-emerald-500",
-      title: "About",
-      desc: "Who we are and why.",
-    },
-    {
-      to: "/how-it-works",
-      icon: ListChecks,
-      color: "text-orange-500",
-      title: "How it works",
-      desc: "Answer. Build. Train.",
-    },
-    {
-      to: "/faq",
-      icon: HelpCircle,
-      color: "text-sky-500",
-      title: "FAQ",
-      desc: "Common questions.",
-    },
+    { to: "/wod", icon: CalendarCheck, title: "Workout of the Day", desc: "Two fresh workouts daily." },
+    { to: "/about", icon: Info, title: "About", desc: "Who we are and why." },
+    { to: "/how-it-works", icon: ListChecks, title: "How it works", desc: "Answer. Build. Train." },
+    { to: "/exercise-library", icon: Dumbbell, title: "Exercise Library", desc: "1,300+ demonstrations." },
+    { to: "/pricing", icon: Crown, title: "Pricing", desc: "One simple plan." },
+    { to: "/tools", icon: Wrench, title: "Tools", desc: "Timer, rounds, 1RM." },
+    { to: "/faq", icon: HelpCircle, title: "FAQ", desc: "Common questions." },
+    { to: "/contact", icon: Mail, title: "Contact", desc: "Talk to us." },
+  ] as const;
+
+  const MY_APP = [
+    { to: "/coach", icon: Sparkles, title: "Smarty Coach", desc: "Create your workout." },
+    { to: "/logbook", icon: BookOpen, title: "Logbook", desc: "History and schedule." },
+    { to: "/progress", icon: ClipboardList, title: "Progress", desc: "Your training stats." },
+    { to: "/profile", icon: Info, title: "Training profile", desc: "Keep your data fresh." },
+    { to: "/account", icon: User, title: "My account", desc: "Plan and settings." },
   ] as const;
 
   const { user, loading } = useAuth();
@@ -105,7 +113,7 @@ function Home() {
 
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:py-12">
+    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:py-12 lg:px-8 lg:py-16">
       <PageHeader
         title={
           <>
@@ -132,18 +140,44 @@ function Home() {
         </Link>
       </div>
 
-      <div className="mx-auto mt-8 grid max-w-xl grid-cols-3 gap-3">
-        {DISCOVER.map((d) => (
-          <Link
-            key={d.to}
-            to={d.to}
-            className="flex flex-col items-center gap-1 rounded-2xl border-2 border-blue-400 bg-card px-3 py-4 text-center transition hover:bg-blue-50 dark:hover:bg-blue-500/10"
-          >
-            <d.icon className="h-5 w-5 text-primary" />
-            <p className="text-sm font-bold leading-5">{d.title}</p>
-            <p className="hidden text-xs leading-5 text-muted-foreground sm:block">{d.desc}</p>
-          </Link>
-        ))}
+      {user && (
+        <div className="mt-10">
+          <h2 className="mb-3 text-center text-xs font-semibold uppercase tracking-wider text-primary">
+            My app
+          </h2>
+          <div className="mx-auto grid max-w-xl grid-cols-3 gap-3 sm:max-w-3xl sm:grid-cols-4 lg:max-w-5xl lg:grid-cols-5 lg:gap-5">
+            {MY_APP.map((d) => (
+              <Link
+                key={d.to}
+                to={d.to}
+                className="flex flex-col items-center gap-1 rounded-2xl border-2 border-blue-400 bg-card px-3 py-4 text-center transition hover:bg-blue-50 lg:py-6 dark:hover:bg-blue-500/10"
+              >
+                <d.icon className="h-5 w-5 text-primary lg:h-6 lg:w-6" />
+                <p className="text-sm font-bold leading-5">{d.title}</p>
+                <p className="hidden text-xs leading-5 text-muted-foreground sm:block">{d.desc}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="mt-10">
+        <h2 className="mb-3 text-center text-xs font-semibold uppercase tracking-wider text-primary">
+          Discover
+        </h2>
+        <div className="mx-auto grid max-w-xl grid-cols-3 gap-3 sm:max-w-3xl sm:grid-cols-4 lg:max-w-5xl lg:gap-5">
+          {DISCOVER.map((d) => (
+            <Link
+              key={d.to}
+              to={d.to}
+              className="flex flex-col items-center gap-1 rounded-2xl border-2 border-blue-400 bg-card px-3 py-4 text-center transition hover:bg-blue-50 lg:py-6 dark:hover:bg-blue-500/10"
+            >
+              <d.icon className="h-5 w-5 text-primary lg:h-6 lg:w-6" />
+              <p className="text-sm font-bold leading-5">{d.title}</p>
+              <p className="hidden text-xs leading-5 text-muted-foreground sm:block">{d.desc}</p>
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );

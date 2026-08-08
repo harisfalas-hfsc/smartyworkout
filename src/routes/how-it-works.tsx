@@ -47,7 +47,7 @@ const STEPS = [
 
 function HowItWorks() {
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:py-12">
+    <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">
       <PageHeader
         eyebrow="How it works"
         title={

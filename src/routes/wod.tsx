@@ -187,7 +187,7 @@ function WodPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-xl space-y-5 px-4 py-8 sm:py-12">
+    <div className="mx-auto w-full max-w-xl space-y-5 px-4 py-8 sm:py-12 lg:max-w-5xl lg:px-8 lg:py-16">
       <PageHeader
         className="mb-2"
         eyebrow="Smarty Coach"
@@ -242,9 +242,10 @@ function WodPage() {
 
 
 
-      <section>
+      <section className="lg:flex lg:flex-col lg:items-center">
         {workouts.length ? (
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid w-full gap-3 sm:grid-cols-2 lg:gap-5">
+
             {workouts.map((w) => (
               <WorkoutCard key={w.id} workout={w} />
             ))}
@@ -254,7 +255,7 @@ function WodPage() {
         {user && access?.profileComplete && access.healthAcknowledged && access.premium ? (
           <Button
             variant={subscribed ? "secondary" : "default"}
-            className={`${workouts.length ? "mt-3 " : ""}h-12 w-full rounded-lg text-[15px] font-extrabold`}
+            className={`${workouts.length ? "mt-3 " : ""}h-12 w-full rounded-lg text-[15px] font-extrabold lg:w-80`}
             disabled={busy}
             onClick={() => void toggleSub(!subscribed)}
           >
@@ -264,13 +265,13 @@ function WodPage() {
             </span>
           </Button>
         ) : !user ? (
-          <Button asChild className="h-12 w-full rounded-lg text-[15px] font-extrabold">
+          <Button asChild className="h-12 w-full rounded-lg text-[15px] font-extrabold lg:w-80">
             <Link to="/auth" search={{ next: "/wod", mode: "signup" }}>
               Create an account
             </Link>
           </Button>
         ) : !access?.profileComplete || !access.healthAcknowledged ? (
-          <div className="rounded-xl border border-border bg-card p-4 text-center">
+          <div className="w-full max-w-xl rounded-xl border border-border bg-card p-4 text-center">
             <UserRound className="mx-auto h-6 w-6 text-primary" />
             <p className="mt-2 font-extrabold">Complete your Training Profile first</p>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
@@ -281,7 +282,7 @@ function WodPage() {
             </Button>
           </div>
         ) : (
-          <div className="rounded-xl border border-border bg-card p-4 text-center">
+          <div className="w-full max-w-xl rounded-xl border border-border bg-card p-4 text-center">
             <Crown className="mx-auto h-6 w-6 text-primary" />
             <p className="mt-2 font-extrabold">Premium membership required</p>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">

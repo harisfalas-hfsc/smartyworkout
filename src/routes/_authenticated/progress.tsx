@@ -121,7 +121,7 @@ function Progress() {
   const favourite = Array.from(counts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:py-12">
+    <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">
       <PageHeader
         className="mb-2"
         eyebrow="Your training"
