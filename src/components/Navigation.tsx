@@ -123,11 +123,21 @@ export function Navigation() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link to="/plans">My plans</Link>
+                  <Link to="/coach">Smarty Coach</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/questionnaire">New plan</Link>
+                  <Link to="/logbook">Logbook</Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/progress">Progress</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/profile">Training profile</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/plans">My plans</Link>
+                </DropdownMenuItem>
+
                 {isAdmin && (
                   <DropdownMenuItem asChild>
                     <Link to="/admin">
@@ -178,8 +188,12 @@ function NavDrawer({ onClose, isAuthed, isAdmin }: { onClose: () => void; isAuth
           {
             heading: "App",
             items: [
+              { to: "/coach", label: "Smarty Coach", Icon: Sparkles },
+              { to: "/logbook", label: "Logbook", Icon: BookOpen },
+              { to: "/progress", label: "Progress", Icon: ClipboardList },
+              { to: "/profile", label: "Training profile", Icon: Info },
               { to: "/plans", label: "My plans", Icon: ClipboardList },
-              { to: "/questionnaire", label: "New plan", Icon: Sparkles },
+
               ...(isAdmin ? [{ to: "/admin", label: "Admin", Icon: Shield }] : []),
             ],
           },
