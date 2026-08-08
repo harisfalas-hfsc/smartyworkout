@@ -6,7 +6,41 @@ export type AccessState = {
   readinessComplete: boolean;
   premium: boolean;
   missingProfileFields: string[];
+  /** Manual (coach) generations already used today. */
+  generationsUsedToday: number;
+  /** Manual generations included per day with an active membership. */
+  generationsLimit: number;
+  generationsLeftToday: number;
 };
+
+/** Membership includes two coach generations per day (Workout of the Day is extra). */
+export const DAILY_GENERATION_LIMIT = 2;
+
+function startOfLocalDayIso(timezone: string): string {
+  const now = new Date();
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(now);
+  const get = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? 0);
+  const localMs = Date.UTC(
+    get("year"),
+    get("month") - 1,
+    get("day"),
+    get("hour") % 24,
+    get("minute"),
+    get("second"),
+  );
+  const offset = localMs - Math.floor(now.getTime() / 1000) * 1000;
+  const startLocal = Date.UTC(get("year"), get("month") - 1, get("day"), 0, 0, 0);
+  return new Date(startLocal - offset).toISOString();
+}
 
 const REQUIRED_PROFILE_FIELDS = [
   ["age", "age"],
@@ -25,7 +59,7 @@ export async function getAccessStateForUser(
       db
         .from("profiles")
         .select(
-          "onboarded,health_acknowledged_at,readiness_answers,readiness_warning_acknowledged_at,age,fitness_level,primary_goal,preferred_environment,preferred_equipment,typical_duration_min",
+          "onboarded,health_acknowledged_at,readiness_answers,readiness_warning_acknowledged_at,age,fitness_level,primary_goal,preferred_environment,preferred_equipment,typical_duration_min,timezone",
         )
         .eq("id", userId)
         .maybeSingle(),
@@ -71,10 +105,37 @@ export async function getAccessStateForUser(
     subscription && (!periodEnd || Number.isNaN(periodEnd) || periodEnd > Date.now()),
   );
 
-  return { profileComplete, healthAcknowledged, readinessComplete, premium, missingProfileFields };
+  const timezone = (row?.["timezone"] as string) || "Europe/Athens";
+  let generationsUsedToday = 0;
+  try {
+    const { count } = await db
+      .from("workouts")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("is_wod", false)
+      .gte("created_at", startOfLocalDayIso(timezone));
+    generationsUsedToday = count ?? 0;
+  } catch {
+    generationsUsedToday = 0;
+  }
+
+  return {
+    profileComplete,
+    healthAcknowledged,
+    readinessComplete,
+    premium,
+    missingProfileFields,
+    generationsUsedToday,
+    generationsLimit: DAILY_GENERATION_LIMIT,
+    generationsLeftToday: Math.max(0, DAILY_GENERATION_LIMIT - generationsUsedToday),
+  };
 }
 
-export async function requireWorkoutAccess(db: SupabaseClient, userId: string) {
+export async function requireWorkoutAccess(
+  db: SupabaseClient,
+  userId: string,
+  options: { countsAgainstDailyQuota?: boolean } = {},
+) {
   const access = await getAccessStateForUser(db, userId);
   if (!access.healthAcknowledged) {
     throw new Error("Accept the health and safety acknowledgement in your Training Profile first.");
@@ -87,6 +148,11 @@ export async function requireWorkoutAccess(db: SupabaseClient, userId: string) {
   }
   if (!access.premium) {
     throw new Error("An active Smarty Workout membership is required.");
+  }
+  if (options.countsAgainstDailyQuota && access.generationsLeftToday <= 0) {
+    throw new Error(
+      `Your membership includes ${DAILY_GENERATION_LIMIT} workout generations per day. You've used both today — your Workout of the Day is still available, and your allowance resets tomorrow.`,
+    );
   }
   return access;
 }
