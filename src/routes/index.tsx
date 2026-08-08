@@ -131,9 +131,9 @@ function Home() {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col px-4 pb-8 pt-0 sm:pb-12">
-      {/* MOBILE HERO CARD — matches SmartyMove mobile layout */}
+      {/* MOBILE HERO CARD */}
       <section
-        className="mt-4 mb-4 overflow-hidden rounded-[15px] border-[1.5px] border-sky-300/70 bg-cover bg-[68%_center] bg-no-repeat p-5 shadow-[0_12px_36px_-28px_rgba(0,0,0,0.8)] sm:hidden"
+        className="mt-4 mb-4 overflow-hidden rounded-[15px] border-[1.5px] border-sky-300/70 bg-cover bg-[68%_center] bg-no-repeat p-5 text-center shadow-[0_12px_36px_-28px_rgba(0,0,0,0.8)] sm:hidden"
         style={{
           backgroundImage: `linear-gradient(to bottom, rgba(4,10,18,0.55), rgba(4,10,18,0.88)), url(${heroTraining})`,
         }}
@@ -143,7 +143,7 @@ function Home() {
           <br />
           <span className="text-primary">built in minutes.</span>
         </h1>
-        <p className="mt-3 text-[15px] leading-relaxed text-[rgba(232,238,247,0.82)]">
+        <p className="mx-auto mt-3 max-w-sm text-[15px] leading-relaxed text-[rgba(232,238,247,0.82)]">
           Answer a smart questionnaire. Get a full tailor-made workout built
           around your body, goals, equipment and constraints.
         </p>
@@ -159,35 +159,33 @@ function Home() {
         >
           How it works
         </Link>
-
       </section>
 
       {/* FULL-BLEED HERO — desktop/tablet */}
       <section className="relative left-1/2 mb-8 hidden w-screen -translate-x-1/2 overflow-hidden sm:mb-14 sm:block">
         <img
           src={heroTraining}
-          alt="Fresh healthy food ingredients arranged for a personalized training plan"
+          alt="Athlete training with dumbbells for a personalized workout plan"
           width={1920}
           height={1080}
           fetchPriority="high"
           decoding="async"
           className="absolute inset-0 h-full w-full object-cover object-[60%_center]"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/92 via-black/75 to-black/25" />
+        <div className="absolute inset-0 bg-black/75" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/25 to-transparent" />
-        <div className="relative mx-auto w-full max-w-6xl px-5 py-16 lg:px-6 lg:py-36">
-
-          <div className="max-w-xl">
+        <div className="relative mx-auto w-full max-w-6xl px-5 py-16 text-center lg:px-6 lg:py-36">
+          <div className="mx-auto max-w-2xl">
             <h1 className="text-[34px] font-extrabold leading-[1.05] tracking-tight text-white sm:text-[44px] lg:text-[60px]">
               Your personal workout,
               <br />
               <span className="text-primary">built in minutes.</span>
             </h1>
-            <p className="mt-5 text-base leading-relaxed text-white/80 lg:mt-6 lg:text-lg">
+            <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-white/80 lg:mt-6 lg:text-lg">
               Answer a smart questionnaire. Get a full tailor-made workout built
               around your body, goals, equipment and constraints.
             </p>
-            <div className="mt-7 flex flex-wrap items-center gap-3">
+            <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
               <Link
                 to={heroCtaTo}
                 className="inline-flex h-12 items-center rounded-full bg-primary px-8 text-base font-bold text-primary-foreground hover:opacity-95"
@@ -201,67 +199,37 @@ function Home() {
                 How it works
               </Link>
             </div>
-
           </div>
         </div>
       </section>
 
-
-
-      {/* Single info card */}
+      {/* Discover card — three quick links */}
       <section className="mx-auto w-full max-w-4xl">
         <SmartyCard
           tone="green"
-          eyebrow="How it works"
-          eyebrowIcon="🏋️"
-          cornerIcon={Sparkles}
-          title="From questionnaire"
-          accent="to workout."
-          description="You answer. Smarty Coach builds. You train."
+          eyebrow="Discover"
+          eyebrowIcon="🧭"
+          cornerIcon={Compass}
+          title="Get to know"
+          accent="Smarty Workout."
+          description="Everything you need, one tap away."
         >
-          <div className="mt-2 grid gap-6 sm:grid-cols-3 sm:gap-4">
-            {STEPS.map((s) => (
-              <div
-                key={s.n}
-                className="flex flex-col items-center text-center"
+          <div className="mt-2 grid gap-3 sm:grid-cols-3">
+            {DISCOVER.map((d) => (
+              <Link
+                key={d.to}
+                to={d.to}
+                className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-card/60 px-4 py-6 text-center transition hover:border-primary hover:bg-primary/5"
               >
-                <div
-                  className={`text-5xl font-black leading-none ${s.color}`}
-                >
-                  {s.n}
-                </div>
-                <div className="mt-3 text-base font-bold">
-                  {s.title}
-                </div>
-                <div className="mt-1 text-sm text-muted-foreground">
-                  {s.desc}
-                </div>
-              </div>
+                <d.icon className={`h-7 w-7 ${d.color}`} />
+                <span className="text-sm font-bold">{d.title}</span>
+                <span className="text-xs text-muted-foreground">{d.desc}</span>
+              </Link>
             ))}
           </div>
-
-          <div className="mt-8 border-t border-border pt-8">
-            <h3 className="text-center text-lg font-bold">What&apos;s included</h3>
-            <ul className="mx-auto mt-5 grid max-w-lg gap-3 sm:grid-cols-2">
-              {INCLUDES.map((it) => (
-                <li key={it} className="flex items-center gap-3 text-sm">
-                  <CheckCircle2 className="h-5 w-5 flex-none text-primary" />
-                  <span>{it}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="mt-8 border-t border-border pt-8 text-center">
-            <div className="flex justify-center">{primary}</div>
-            <p className="mt-3 text-xs text-muted-foreground">
-              Not medical advice. Consult a professional for medical
-              conditions.
-            </p>
-          </div>
-
         </SmartyCard>
       </section>
     </div>
   );
 }
+
