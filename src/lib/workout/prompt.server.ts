@@ -59,6 +59,50 @@ const FOCUS_RULES: Record<StrengthFocus, string> = {
     "ALLOWED: anti-rotation, planks, dead bugs, pallof press, bird dogs, hip thrusts, glute bridges, banded work, kickbacks, clamshells. FORBIDDEN: squats, bench, rows, shoulder press, big compounds, arm isolation.",
 };
 
+export type AthleteContext = {
+  name?: string | null;
+  age?: number | null;
+  gender?: string | null;
+  height_cm?: number | null;
+  weight_kg?: number | null;
+  fitness_level?: string | null;
+  primary_goal?: string | null;
+  secondary_goal?: string | null;
+  training_frequency?: number | null;
+  preferred_categories?: string[] | null;
+  preferred_environment?: string | null;
+  favorite_exercises?: string[] | null;
+  disliked_exercises?: string[] | null;
+  limitations?: string[] | null;
+  location?: string | null;
+  mood?: string | null;
+};
+
+function athleteBlock(a?: AthleteContext): string {
+  if (!a) return "";
+  const lines: string[] = [];
+  const bio = [
+    a.age ? `${a.age} yrs` : "",
+    a.gender || "",
+    a.height_cm ? `${a.height_cm} cm` : "",
+    a.weight_kg ? `${a.weight_kg} kg` : "",
+  ].filter(Boolean).join(", ");
+  if (bio) lines.push(`Biometrics: ${bio}`);
+  if (a.fitness_level) lines.push(`Fitness level: ${a.fitness_level}`);
+  if (a.primary_goal) lines.push(`Primary goal: ${a.primary_goal}`);
+  if (a.secondary_goal) lines.push(`Secondary goal: ${a.secondary_goal}`);
+  if (a.training_frequency) lines.push(`Trains ${a.training_frequency}x per week`);
+  if (a.preferred_categories?.length) lines.push(`Preferred workout categories: ${a.preferred_categories.join(", ")}`);
+  if (a.preferred_environment) lines.push(`Usual training environment: ${a.preferred_environment}`);
+  if (a.location) lines.push(`Training today at: ${a.location}`);
+  if (a.mood) lines.push(`Feeling today: ${a.mood}`);
+  if (a.favorite_exercises?.length) lines.push(`FAVOURITE exercises (prioritise close library matches): ${a.favorite_exercises.join(", ")}`);
+  if (a.disliked_exercises?.length) lines.push(`DISLIKED exercises (never program these or close variations): ${a.disliked_exercises.join(", ")}`);
+  if (a.limitations?.length) lines.push(`INJURIES / LIMITATIONS (must be respected, choose safe alternatives): ${a.limitations.join(", ")}`);
+  if (!lines.length) return "";
+  return `ATHLETE PROFILE — read this before writing a single line. The session must respect every point.\n${lines.map((l) => `- ${l}`).join("\n")}\n`;
+}
+
 export type PromptInput = {
   category: Category;
   format: Format;
@@ -69,6 +113,7 @@ export type PromptInput = {
   duration: string;
   focus?: StrengthFocus | null;
   note?: string;
+  athlete?: AthleteContext;
   pool: PoolExercise[];
   bannedNames: string[];
 };
@@ -143,6 +188,8 @@ Difficulty: ${input.stars} stars (${input.level.toUpperCase()}) — do not mix l
 Format: ${input.format}
 Duration: ${input.duration}${input.focus ? `\nFocus: ${input.focus}` : ""}
 ${input.note ? `Athlete note: ${input.note}` : ""}
+
+${athleteBlock(input.athlete)}
 
 CATEGORY COACHING RULES
 ${CATEGORY_COACHING[input.category]}

@@ -2,7 +2,17 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Sparkles, Wand2 } from "lucide-react";
+import {
+  Loader2,
+  Sparkles,
+  Wand2,
+  Target,
+  HeartPulse,
+  Clock,
+  MapPin,
+  Dumbbell,
+  MessageSquare,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { generateWorkout } from "@/lib/coach.functions";
@@ -37,10 +47,10 @@ function Chip({
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
+      className={`min-h-12 rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
         active
-          ? "border-primary bg-primary text-primary-foreground shadow"
-          : "border-border bg-card text-foreground hover:border-primary/50"
+          ? "border-primary bg-primary text-primary-foreground shadow-sm"
+          : "border-border bg-background text-foreground hover:border-primary/50"
       }`}
     >
       {children}
@@ -48,15 +58,40 @@ function Chip({
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function QuestionCard({
+  step,
+  icon: Icon,
+  title,
+  hint,
+  children,
+}: {
+  step: number;
+  icon: React.ElementType;
+  title: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="space-y-3">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-        {title}
-      </h2>
-      <div className="flex flex-wrap gap-2">{children}</div>
-    </div>
+    <section className="rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-6">
+      <div className="mb-4 flex items-start gap-3">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <Icon className="h-5 w-5" />
+        </span>
+        <div className="min-w-0">
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">
+            Step {step}
+          </p>
+          <h2 className="text-lg font-extrabold leading-tight">{title}</h2>
+          {hint ? <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p> : null}
+        </div>
+      </div>
+      {children}
+    </section>
   );
+}
+
+function Grid({ children }: { children: React.ReactNode }) {
+  return <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">{children}</div>;
 }
 
 function CoachPage() {
@@ -80,7 +115,12 @@ function CoachPage() {
         .select("display_name,preferred_environment,preferred_equipment,typical_duration_min")
         .eq("id", auth.user.id)
         .maybeSingle();
-      const p = data as any;
+      const p = data as {
+        display_name?: string | null;
+        preferred_environment?: string | null;
+        preferred_equipment?: string[] | null;
+        typical_duration_min?: number | null;
+      } | null;
       if (!p) return;
       setName(p.display_name ?? "");
       if (p.preferred_environment) setLocation(p.preferred_environment);
@@ -90,9 +130,7 @@ function CoachPage() {
   }, []);
 
   function toggleEquipment(id: string) {
-    setEquipment((prev) =>
-      prev.includes(id) ? prev.filter((e) => e !== id) : [...prev, id],
-    );
+    setEquipment((prev) => (prev.includes(id) ? prev.filter((e) => e !== id) : [...prev, id]));
   }
 
   async function generate(surprise = false) {
@@ -120,7 +158,7 @@ function CoachPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:py-12">
-      <div className="mb-8 text-center">
+      <div className="mb-6 text-center">
         <p className="text-sm font-semibold uppercase tracking-[0.25em] text-primary">
           Smarty Coach
         </p>
@@ -128,83 +166,120 @@ function CoachPage() {
           {name ? `${name}, what's your workout today?` : "What's your workout today?"}
         </h1>
         <p className="mt-2 text-muted-foreground">
-          You don't choose a workout — Smarty Coach creates the one you need today.
+          Smarty Coach already knows your profile. Answer below — or let it decide for you.
         </p>
       </div>
 
-      <div className="space-y-7 rounded-3xl border border-border bg-card p-5 sm:p-7">
-        <Section title="Goal">
-          {GOALS.map((g) => (
-            <Chip key={g.id} active={goal === g.id} onClick={() => setGoal(g.id)}>
-              {g.label}
-            </Chip>
-          ))}
-        </Section>
+      <div className="mb-6 rounded-3xl border-2 border-primary/40 bg-primary/5 p-5 text-center">
+        <p className="text-sm font-semibold">Don't feel like choosing?</p>
+        <Button
+          size="lg"
+          className="mt-3 h-14 w-full rounded-2xl text-base font-extrabold"
+          disabled={busy}
+          onClick={() => generate(true)}
+        >
+          {busy ? (
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+          ) : (
+            <Wand2 className="mr-2 h-5 w-5" />
+          )}
+          Surprise me
+        </Button>
+        <p className="mt-2 text-xs text-muted-foreground">
+          A different pick every day, chosen from what suits you.
+        </p>
+      </div>
 
-        <Section title="How are you feeling today?">
-          {MOODS.map((m) => (
-            <Chip key={m.id} active={mood === m.id} onClick={() => setMood(m.id)}>
-              {m.label}
-            </Chip>
-          ))}
-        </Section>
+      <div className="space-y-4">
+        <QuestionCard step={1} icon={Target} title="What's your goal today?">
+          <Grid>
+            {GOALS.map((g) => (
+              <Chip key={g.id} active={goal === g.id} onClick={() => setGoal(g.id)}>
+                {g.label}
+              </Chip>
+            ))}
+          </Grid>
+        </QuestionCard>
 
-        <Section title="Time available">
-          {TIMES.map((t) => (
-            <Chip key={t} active={minutes === t} onClick={() => setMinutes(t)}>
-              {t} min
-            </Chip>
-          ))}
-        </Section>
+        <QuestionCard step={2} icon={HeartPulse} title="How are you feeling today?">
+          <Grid>
+            {MOODS.map((m) => (
+              <Chip key={m.id} active={mood === m.id} onClick={() => setMood(m.id)}>
+                {m.label}
+              </Chip>
+            ))}
+          </Grid>
+        </QuestionCard>
 
-        <Section title="Where are you training?">
-          {LOCATIONS.map((l) => (
-            <Chip key={l.id} active={location === l.id} onClick={() => setLocation(l.id)}>
-              {l.label}
-            </Chip>
-          ))}
-        </Section>
+        <QuestionCard step={3} icon={Clock} title="Time available">
+          <Grid>
+            {TIMES.map((t) => (
+              <Chip key={t} active={minutes === t} onClick={() => setMinutes(t)}>
+                {t} min
+              </Chip>
+            ))}
+          </Grid>
+        </QuestionCard>
 
-        <Section title="Equipment available">
-          {EQUIPMENT.map((e) => (
-            <Chip
-              key={e.id}
-              active={equipment.includes(e.id)}
-              onClick={() => toggleEquipment(e.id)}
-            >
-              {e.label}
-            </Chip>
-          ))}
-        </Section>
+        <QuestionCard step={4} icon={MapPin} title="Where are you training?">
+          <Grid>
+            {LOCATIONS.map((l) => (
+              <Chip key={l.id} active={location === l.id} onClick={() => setLocation(l.id)}>
+                {l.label}
+              </Chip>
+            ))}
+          </Grid>
+        </QuestionCard>
 
-        <div className="space-y-2">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Anything else? (optional)
-          </h2>
+        <QuestionCard
+          step={5}
+          icon={Dumbbell}
+          title="Equipment available"
+          hint="Only what you pick will appear in your workout."
+        >
+          <Grid>
+            {EQUIPMENT.map((e) => (
+              <Chip
+                key={e.id}
+                active={equipment.includes(e.id)}
+                onClick={() => toggleEquipment(e.id)}
+              >
+                {e.label}
+              </Chip>
+            ))}
+          </Grid>
+        </QuestionCard>
+
+        <QuestionCard
+          step={6}
+          icon={MessageSquare}
+          title="Anything else?"
+          hint="Optional — Smarty Coach reads this too."
+        >
           <Textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="e.g. shoulder is a bit sore, I'd love something for legs"
-            rows={2}
+            rows={3}
+            className="rounded-2xl"
           />
-        </div>
+        </QuestionCard>
+      </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <Button size="lg" className="flex-1" disabled={busy} onClick={() => generate(false)}>
-            {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-            {busy ? "Smarty Coach is thinking…" : "Create my workout"}
-          </Button>
-          <Button
-            size="lg"
-            variant="secondary"
-            className="flex-1"
-            disabled={busy}
-            onClick={() => generate(true)}
-          >
-            <Wand2 className="mr-2 h-4 w-4" />
-            Surprise me
-          </Button>
-        </div>
+      <div className="sticky bottom-4 mt-6">
+        <Button
+          size="lg"
+          className="h-16 w-full rounded-2xl text-base font-extrabold shadow-lg"
+          disabled={busy}
+          onClick={() => generate(false)}
+        >
+          {busy ? (
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+          ) : (
+            <Sparkles className="mr-2 h-5 w-5" />
+          )}
+          {busy ? "Smarty Coach is thinking…" : "Create my workout"}
+        </Button>
       </div>
     </div>
   );
