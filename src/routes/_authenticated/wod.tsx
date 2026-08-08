@@ -35,7 +35,7 @@ function DaySlide({ day, label, active }: { day: DayInfo; label: string; active:
 
   return (
     <div
-      className={`w-[72%] shrink-0 snap-center rounded-lg border-2 px-3 py-4 text-center transition-all sm:w-[46%] ${
+      className={`w-[72%] shrink-0 snap-center rounded-2xl border-2 px-3 py-4 text-center transition-all sm:w-[46%] ${
         active
           ? "border-primary bg-primary/10 opacity-100"
           : "border-border bg-muted/40 opacity-60"
@@ -182,25 +182,26 @@ function WodPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-xl space-y-5 px-4 py-6 sm:py-10">
-      <header>
-        <h1 className="text-3xl font-black">Workout of the Day</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+    <div className="mx-auto max-w-xl space-y-5 px-4 py-8 sm:py-12">
+      <div className="mb-2 text-center">
+        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-primary">
+          Smarty Coach
+        </p>
+        <h1 className="mt-2 text-3xl font-black sm:text-4xl">Workout of the Day</h1>
+        <p className="mt-2 text-muted-foreground">
           Your daily programme, chosen for you by Smarty Coach.
         </p>
-      </header>
+      </div>
 
-      <section className="rounded-lg border-2 border-primary/60 bg-card px-5 py-6 text-center shadow-sm sm:px-8">
-        <p className="text-[14px] leading-6 text-muted-foreground">
+      <section className="rounded-2xl border-2 border-primary/40 bg-card px-5 py-6 shadow-sm sm:px-8">
+        <p className="text-center text-[14px] leading-6 text-muted-foreground">
           Get <strong className="text-foreground">two workouts</strong> every day: one bodyweight
           and one using your equipment. <strong className="text-primary">Smarty Coach</strong>{" "}
           follows a balanced periodization plan and adapts every workout to your profile. It is
           like having a personal trainer choose the best workout for you.
         </p>
-      </section>
 
-      <section className="rounded-lg border border-border bg-card py-3 shadow-sm">
-        <div className="flex items-center justify-center gap-5 py-1 text-xs font-medium text-muted-foreground">
+        <div className="mt-6 flex items-center justify-center gap-5 text-xs font-medium text-muted-foreground">
           <ChevronLeft className="h-5 w-5" />
           <span>Swipe to explore</span>
           <ChevronRight className="h-5 w-5" />
@@ -208,7 +209,7 @@ function WodPage() {
         <div
           ref={trackRef}
           onScroll={onTrackScroll}
-          className="mt-2 flex snap-x snap-mandatory gap-3 overflow-x-auto px-[14%] pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:px-[27%] [&::-webkit-scrollbar]:hidden"
+          className="-mx-5 mt-2 flex snap-x snap-mandatory gap-3 overflow-x-auto px-[16%] pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:-mx-8 sm:px-[27%] [&::-webkit-scrollbar]:hidden"
         >
           {daySlides.map((item, index) => (
             <DaySlide
@@ -230,6 +231,7 @@ function WodPage() {
           ))}
         </div>
       </section>
+
 
 
       <section>
