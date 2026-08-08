@@ -29,6 +29,7 @@ import { Route as TrainingIntelligenceRouteImport } from './routes/training-inte
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedCoachRouteImport } from './routes/_authenticated/coach'
 import { Route as AuthenticatedLogbookRouteImport } from './routes/_authenticated/logbook'
+import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedProgressRouteImport } from './routes/_authenticated/progress'
 import { Route as AuthenticatedWodRouteImport } from './routes/_authenticated/wod'
@@ -140,6 +141,12 @@ const AuthenticatedLogbookRoute = AuthenticatedLogbookRouteImport.update({
   path: '/logbook',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedNotificationsRoute =
+  AuthenticatedNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -217,6 +224,7 @@ export interface FileRoutesByFullPath {
   '/account': typeof AuthenticatedAccountRoute
   '/coach': typeof AuthenticatedCoachRoute
   '/logbook': typeof AuthenticatedLogbookRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/progress': typeof AuthenticatedProgressRoute
   '/wod': typeof AuthenticatedWodRoute
@@ -249,6 +257,7 @@ export interface FileRoutesByTo {
   '/account': typeof AuthenticatedAccountRoute
   '/coach': typeof AuthenticatedCoachRoute
   '/logbook': typeof AuthenticatedLogbookRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/progress': typeof AuthenticatedProgressRoute
   '/wod': typeof AuthenticatedWodRoute
@@ -283,6 +292,7 @@ export interface FileRoutesById {
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/coach': typeof AuthenticatedCoachRoute
   '/_authenticated/logbook': typeof AuthenticatedLogbookRoute
+  '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/progress': typeof AuthenticatedProgressRoute
   '/_authenticated/wod': typeof AuthenticatedWodRoute
@@ -317,6 +327,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/coach'
     | '/logbook'
+    | '/notifications'
     | '/profile'
     | '/progress'
     | '/wod'
@@ -349,6 +360,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/coach'
     | '/logbook'
+    | '/notifications'
     | '/profile'
     | '/progress'
     | '/wod'
@@ -382,6 +394,7 @@ export interface FileRouteTypes {
     | '/_authenticated/account'
     | '/_authenticated/coach'
     | '/_authenticated/logbook'
+    | '/_authenticated/notifications'
     | '/_authenticated/profile'
     | '/_authenticated/progress'
     | '/_authenticated/wod'
@@ -564,6 +577,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLogbookRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/notifications': {
+      id: '/_authenticated/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/profile': {
       id: '/_authenticated/profile'
       path: '/profile'
@@ -648,6 +668,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
   AuthenticatedCoachRoute: typeof AuthenticatedCoachRoute
   AuthenticatedLogbookRoute: typeof AuthenticatedLogbookRoute
+  AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedProgressRoute: typeof AuthenticatedProgressRoute
   AuthenticatedWodRoute: typeof AuthenticatedWodRoute
@@ -658,6 +679,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountRoute: AuthenticatedAccountRoute,
   AuthenticatedCoachRoute: AuthenticatedCoachRoute,
   AuthenticatedLogbookRoute: AuthenticatedLogbookRoute,
+  AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedProgressRoute: AuthenticatedProgressRoute,
   AuthenticatedWodRoute: AuthenticatedWodRoute,

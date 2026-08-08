@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
-import { Bell } from "lucide-react";
+import { Bell, MailOpen } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,14 +39,14 @@ export function NotificationBell() {
     };
   }, [load]);
 
-  function onOpenChange(open: boolean) {
-    if (!open || !unread) return;
+  function markAllRead() {
     setUnread(0);
+    setItems((prev) => prev.map((n) => ({ ...n, read_at: n.read_at ?? new Date().toISOString() })));
     void markRead({}).catch(() => undefined);
   }
 
   return (
-    <DropdownMenu onOpenChange={onOpenChange}>
+    <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
           type="button"
@@ -61,36 +61,47 @@ export function NotificationBell() {
           )}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80">
-        <DropdownMenuLabel>Smarty Coach</DropdownMenuLabel>
+      <DropdownMenuContent align="end" className="w-[19rem]">
+        <DropdownMenuLabel className="flex items-center gap-2">
+          <span className="flex-1">Notifications</span>
+          {unread > 0 && (
+            <button
+              type="button"
+              onClick={markAllRead}
+              className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold text-primary hover:bg-primary/10"
+            >
+              <MailOpen className="h-3.5 w-3.5" /> Mark all read
+            </button>
+          )}
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {items.length === 0 ? (
           <p className="px-2 py-4 text-center text-sm text-muted-foreground">
             Nothing yet. Your morning message lands here.
           </p>
         ) : (
-          items.slice(0, 8).map((n) => (
+          items.slice(0, 5).map((n) => (
             <DropdownMenuItem key={n.id} asChild className="whitespace-normal">
-              {n.workout_id ? (
-                <Link to="/workout/$workoutId" params={{ workoutId: n.workout_id }}>
-                  <span className="block">
-                    <span className="block text-sm font-semibold">{n.title}</span>
-                    {n.body ? (
-                      <span className="block text-xs text-muted-foreground">{n.body}</span>
-                    ) : null}
+              <Link to="/notifications">
+                <span className="block">
+                  <span className="block text-sm font-semibold">
+                    {!n.read_at && <span className="mr-1 text-primary">•</span>}
+                    {n.title}
                   </span>
-                </Link>
-              ) : (
-                <div>
-                  <span className="block text-sm font-semibold">{n.title}</span>
                   {n.body ? (
-                    <span className="block text-xs text-muted-foreground">{n.body}</span>
+                    <span className="block line-clamp-2 text-xs text-muted-foreground">{n.body}</span>
                   ) : null}
-                </div>
-              )}
+                </span>
+              </Link>
             </DropdownMenuItem>
           ))
         )}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link to="/notifications" className="justify-center text-sm font-bold text-primary">
+            See all notifications
+          </Link>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
