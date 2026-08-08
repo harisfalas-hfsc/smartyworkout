@@ -48,6 +48,17 @@ export const EQUIPMENT = [
   { id: "other", label: "Other" },
 ] as const;
 
+export const LEVELS = [
+  { id: "auto", label: "Let Smarty decide", hint: "Uses your profile + today's mood" },
+  { id: "beginner", label: "Beginner", hint: "Simple movements, longer rest" },
+  { id: "intermediate", label: "Intermediate", hint: "Solid volume, moderate complexity" },
+  { id: "advanced", label: "Advanced", hint: "High volume, complex work, short rest" },
+] as const;
+
+/** Moods where an "Advanced" pick should be double-checked with the athlete. */
+export const LOW_ENERGY_MOODS = ["tired", "stressed", "low", "sore"];
+
+
 export type WorkoutItem = {
   exercise_id?: string | null;
   name: string;
