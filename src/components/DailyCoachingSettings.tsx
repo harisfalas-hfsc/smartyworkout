@@ -114,41 +114,46 @@ export function DailyCoachingSettings({ premium = false }: { premium?: boolean }
           </div>
         ) : null}
 
-        <div className="h-px bg-border" />
+        {premium ? (
+          <>
+            <div className="h-px bg-border" />
 
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-sm font-semibold">Workout ready every day</p>
-            <p className="text-xs text-muted-foreground">
-              Smarty Coach builds your session before you ask for it.
-            </p>
-          </div>
-          <Switch
-            checked={settings.auto_workout_enabled}
-            onCheckedChange={(v) => patch({ auto_workout_enabled: v })}
-          />
-        </div>
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold">Workout ready every day</p>
+                <p className="text-xs text-muted-foreground">
+                  Smarty Coach builds your session before you ask for it.
+                </p>
+              </div>
+              <Switch
+                checked={settings.auto_workout_enabled}
+                onCheckedChange={(v) => patch({ auto_workout_enabled: v })}
+              />
+            </div>
 
-        {settings.auto_workout_enabled ? (
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm">Have it ready by</p>
-            <Select
-              value={String(settings.auto_workout_hour)}
-              onValueChange={(v) => patch({ auto_workout_hour: Number(v) })}
-            >
-              <SelectTrigger className="h-10 w-28 rounded-xl">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {HOURS.map((h) => (
-                  <SelectItem key={h} value={String(h)}>
-                    {hourLabel(h)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+            {settings.auto_workout_enabled ? (
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm">Have it ready by</p>
+                <Select
+                  value={String(settings.auto_workout_hour)}
+                  onValueChange={(v) => patch({ auto_workout_hour: Number(v) })}
+                >
+                  <SelectTrigger className="h-10 w-28 rounded-xl">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {HOURS.map((h) => (
+                      <SelectItem key={h} value={String(h)}>
+                        {hourLabel(h)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : null}
+          </>
         ) : null}
+
 
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm">Time zone</p>
