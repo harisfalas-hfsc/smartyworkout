@@ -8,6 +8,8 @@ export const generateWorkout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: CoachRequest) => input)
   .handler(async ({ data, context }) => {
+    const { requireWorkoutAccess } = await import("@/lib/eligibility.server");
+    await requireWorkoutAccess(context.supabase as never, context.userId);
     const { createWorkoutForUser } = await import("@/lib/workout/create.server");
     const built = await createWorkoutForUser(context.supabase as never, context.userId, data);
     return { id: built.id };

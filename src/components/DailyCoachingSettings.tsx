@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { BellRing, CalendarCheck, Loader2, Save } from "lucide-react";
+import { BellRing, Loader2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -168,19 +168,6 @@ export function DailyCoachingSettings() {
           </Select>
         </div>
 
-        <div className="h-px bg-border" />
-
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="flex items-center gap-1.5 text-sm font-semibold">
-              <CalendarCheck className="h-4 w-4 text-primary" /> Workout of the Day mode
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Follow the 84-day periodization cycle. Manual generation is locked while this is on.
-            </p>
-          </div>
-          <Switch checked={settings.wod_mode} onCheckedChange={(v) => patch({ wod_mode: v })} />
-        </div>
       </div>
 
       <Button className="mt-5 h-12 w-full rounded-2xl" disabled={saving} onClick={() => void commit()}>
