@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
+import { Brain } from "lucide-react";
+import { SmartyCard, SmartyRow } from "@/components/SmartyCard";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
@@ -27,43 +29,45 @@ export const Route = createFileRoute("/about")({
 const POINTS = [
   {
     icon: "🧠",
+    tone: "purple" as const,
     title: "SMART",
     text: "Understands you, your goals and your training history.",
-    border: "border-violet-400",
-    tint: "text-violet-500 dark:text-violet-300",
   },
   {
     icon: "🎯",
+    tone: "orange" as const,
     title: "PERSONALIZED",
-    text: "Considers your mood, time, equipment, location and fitness level.",
-    border: "border-orange-400",
-    tint: "text-orange-500 dark:text-orange-300",
+    text: "Your mood, time, equipment, location and level.",
   },
   {
     icon: "🔬",
+    tone: "cyan" as const,
     title: "SCIENCE-INFORMED",
-    text: "Built around sports science, safety, health and performance.",
-    border: "border-sky-400",
-    tint: "text-sky-500 dark:text-sky-300",
+    text: "Sports science, safety, health and performance.",
   },
   {
     icon: "🔄",
+    tone: "green" as const,
     title: "ADAPTIVE",
-    text: "Learns from your workouts and feedback to improve future sessions.",
-    border: "border-emerald-400",
-    tint: "text-emerald-500 dark:text-emerald-300",
+    text: "Learns from your workouts and feedback.",
   },
 ];
 
 function AboutPage() {
   return (
-    <div className="mx-auto flex w-full max-w-md flex-col gap-4 px-4 py-4">
-      <header>
-        <h1 className="text-[26px] font-extrabold uppercase leading-[1.05] tracking-tight">
-          Not another <span className="text-primary">workout app.</span>
+    <div className="mx-auto w-full max-w-md px-4 py-4">
+      <SmartyCard
+        tone="purple"
+        eyebrow="About"
+        eyebrowIcon="💪"
+        cornerIcon={Brain}
+        className="p-5 sm:p-6"
+      >
+        <h1 className="-mt-7 text-2xl font-extrabold uppercase leading-[1.05] tracking-tight">
+          Not another <span className="text-violet-500 dark:text-violet-300">workout app.</span>
         </h1>
-        <p className="mt-1 text-sm font-semibold text-muted-foreground">Meet Smarty Coach.</p>
-        <p className="mt-2 text-[13px] leading-snug text-muted-foreground">
+        <p className="mt-1.5 text-sm font-bold">Meet Smarty Coach.</p>
+        <p className="mt-1.5 text-[13px] leading-snug text-muted-foreground">
           An intelligent AI fitness coach trained around the sports science and training philosophy
           of{" "}
           <a
@@ -76,32 +80,35 @@ function AboutPage() {
           </a>
           .
         </p>
-      </header>
 
-      <ul className="grid grid-cols-2 gap-2.5">
-        {POINTS.map((p) => (
-          <li
-            key={p.title}
-            className={`rounded-2xl border-2 bg-card p-3 shadow-soft ${p.border}`}
-          >
-            <span className="text-lg leading-none">{p.icon}</span>
-            <p className={`mt-1 text-[11px] font-extrabold uppercase tracking-wide ${p.tint}`}>
-              {p.title}
-            </p>
-            <p className="mt-1 text-[11px] leading-snug text-muted-foreground">{p.text}</p>
-          </li>
-        ))}
-      </ul>
+        <div className="mt-4 space-y-1">
+          {POINTS.map((p) => (
+            <SmartyRow
+              key={p.title}
+              tone={p.tone}
+              icon={p.icon}
+              title={p.title}
+              subtitle={p.text}
+            />
+          ))}
+        </div>
 
-      <p className="text-center text-sm font-bold leading-snug">
-        You don&apos;t choose a workout.
-        <br />
-        <span className="text-primary">Smarty Coach creates the workout you need today.</span>
-      </p>
+        <p className="mt-4 text-center text-[13px] font-bold leading-snug">
+          You don&apos;t choose a workout.
+          <br />
+          <span className="text-violet-500 dark:text-violet-300">
+            Smarty Coach creates the workout you need today.
+          </span>
+        </p>
 
-      <Button asChild size="lg" className="w-full rounded-full text-sm font-extrabold uppercase">
-        <Link to="/coach">Meet Smarty Coach</Link>
-      </Button>
+        <Button
+          asChild
+          size="lg"
+          className="mt-4 w-full rounded-full text-sm font-extrabold uppercase"
+        >
+          <Link to="/coach">Meet Smarty Coach</Link>
+        </Button>
+      </SmartyCard>
     </div>
   );
 }
