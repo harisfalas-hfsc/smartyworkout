@@ -139,14 +139,13 @@ function Home() {
         }}
       >
         <h1 className="text-[30px] font-black leading-[1.08] tracking-tight text-[#E8EEF7]">
-          Your personal training plan,
+          Your personal workout,
           <br />
           <span className="text-primary">built in minutes.</span>
         </h1>
         <p className="mt-3 text-[15px] leading-relaxed text-[rgba(232,238,247,0.82)]">
-          Answer a smart questionnaire. Get a full 1, 2 or 4-week workout plan
-          tailored to your body, goals, equipment and constraints. Free — no card
-          required.
+          Answer a smart questionnaire. Get a full tailor-made workout built
+          around your body, goals, equipment and constraints.
         </p>
         <Link
           to={heroCtaTo}
@@ -160,9 +159,7 @@ function Home() {
         >
           How it works
         </Link>
-        <p className="mt-3 text-center text-[13px] text-[rgba(232,238,247,0.6)]">
-          Includes 1 initial plan + 2 refinements. No subscription.
-        </p>
+
       </section>
 
       {/* FULL-BLEED HERO — desktop/tablet */}
