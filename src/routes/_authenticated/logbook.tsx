@@ -327,7 +327,7 @@ function Logbook() {
   const saveMeta = useServerFn(setWorkoutMeta);
 
   const active = useMemo(
-    () => filter.split(",").filter((f) => FILTER_IDS.includes(f)) as Filter[],
+    () => filter.split(",").filter((f: string) => FILTER_IDS.includes(f)) as Filter[],
     [filter],
   );
 
