@@ -10,19 +10,33 @@ export const Route = createFileRoute("/api/public/hooks/daily-run")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const apiKey =
-          request.headers.get("apikey") ??
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+        // Shared-secret auth. The publishable key is public, so it is NOT accepted here.
+        const presented =
+          request.headers.get("x-daily-secret") ??
           request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ??
           "";
-        const expected = process.env["SUPABASE_PUBLISHABLE_KEY"] ?? process.env["SUPABASE_ANON_KEY"] ?? "";
-        if (!expected || apiKey !== expected) {
+        let authorized = false;
+        const envSecret = process.env["DAILY_RUN_SECRET"] ?? "";
+        if (envSecret && presented === envSecret) authorized = true;
+        if (!authorized && presented) {
+          const { data: row } = await supabaseAdmin
+            .from("app_settings")
+            .select("value")
+            .eq("key", "daily_run_token")
+            .maybeSingle();
+          const token = (row as { value?: { token?: string } } | null)?.value?.token ?? "";
+          if (token && presented === token) authorized = true;
+        }
+        if (!authorized) {
           return new Response(JSON.stringify({ error: "Unauthorized" }), {
             status: 401,
             headers: { "Content-Type": "application/json" },
           });
         }
 
-        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
         const { localHour, localDateISO } = await import("@/lib/wod-cycle");
         const { DAILY_PROFILE_COLUMNS, runMotivationForUser, runWodForUser } = await import(
           "@/lib/daily.server"
