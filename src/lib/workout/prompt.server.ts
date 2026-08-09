@@ -70,10 +70,7 @@ export type AthleteContext = {
   primary_goal?: string | null;
   secondary_goal?: string | null;
   training_frequency?: number | null;
-  preferred_categories?: string[] | null;
   preferred_environment?: string | null;
-  favorite_exercises?: string[] | null;
-  disliked_exercises?: string[] | null;
   /** Exact library names resolved from the athlete's picked favourite ids. */
   favorite_library?: string[] | null;
   /** Exact library names resolved from the athlete's picked disliked ids. */
@@ -101,7 +98,6 @@ function athleteBlock(a?: AthleteContext): string {
   if (a.primary_goal) lines.push(`Primary goal: ${a.primary_goal}`);
   if (a.secondary_goal) lines.push(`Secondary goal: ${a.secondary_goal}`);
   if (a.training_frequency) lines.push(`Trains ${a.training_frequency}x per week`);
-  if (a.preferred_categories?.length) lines.push(`Preferred workout categories: ${a.preferred_categories.join(", ")}`);
   if (a.preferred_environment) lines.push(`Usual training environment: ${a.preferred_environment}`);
   if (a.location) lines.push(`Training today at: ${a.location}`);
   if (a.mood) lines.push(`Feeling today: ${a.mood}`);
@@ -109,14 +105,10 @@ function athleteBlock(a?: AthleteContext): string {
     lines.push(
       `FAVOURITE library exercises (exact matches the athlete picked — program at least one when it fits the category, focus and equipment): ${a.favorite_library.join(", ")}`,
     );
-  if (a.favorite_exercises?.length)
-    lines.push(`Movement styles they enjoy: ${a.favorite_exercises.join(", ")}`);
   if (a.disliked_library?.length)
     lines.push(
       `BANNED library exercises (already removed from your vocabulary — never write them or a close variation): ${a.disliked_library.join(", ")}`,
     );
-  if (a.disliked_exercises?.length)
-    lines.push(`Movement styles they dislike (avoid): ${a.disliked_exercises.join(", ")}`);
   if (a.limitations?.length)
     lines.push(
       `INJURIES / LIMITATIONS (must be respected, choose safe alternatives): ${a.limitations.join(", ")}`,

@@ -203,12 +203,7 @@ export async function createWorkoutForUser(
     const seedSource = `${userId}:${new Date().toISOString().slice(0, 10)}`;
     let seed = 0;
     for (let i = 0; i < seedSource.length; i++) seed = (seed * 31 + seedSource.charCodeAt(i)) >>> 0;
-    const preferred = (prof?.["preferred_categories"] as string[] | null) ?? [];
-    const pool = (
-      preferred.length
-        ? preferred.map((g) => GOAL_TO_CATEGORY[g]).filter(Boolean)
-        : Object.values(GOAL_TO_CATEGORY)
-    ) as Category[];
+    const pool = Object.values(GOAL_TO_CATEGORY) as Category[];
     const recentCats = new Set(history.slice(0, 2).map((h) => h.category));
     const fresh = pool.filter((c) => !recentCats.has(c));
     const choices = fresh.length ? fresh : pool;
@@ -260,10 +255,7 @@ export async function createWorkoutForUser(
         primary_goal: (prof?.["primary_goal"] as string) ?? null,
         secondary_goal: (prof?.["secondary_goal"] as string) ?? null,
         training_frequency: (prof?.["training_frequency"] as number) ?? null,
-        preferred_categories: (prof?.["preferred_categories"] as string[]) ?? null,
         preferred_environment: (prof?.["preferred_environment"] as string) ?? null,
-        favorite_exercises: useLibraryPrefs ? ((prof?.["favorite_exercises"] as string[]) ?? null) : null,
-        disliked_exercises: useLibraryPrefs ? ((prof?.["disliked_exercises"] as string[]) ?? null) : null,
         favorite_library: favoriteLibrary,
         disliked_library: dislikedLibrary,
         recent_performance: performanceLines,
