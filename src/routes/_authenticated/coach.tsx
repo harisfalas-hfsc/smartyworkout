@@ -211,12 +211,17 @@ function CoachPage() {
   }
 
   function requestGenerate(surprise: boolean) {
+    if (parqFlags.length > 0 && !parqConsent) {
+      toast.error("Confirm the health warning below, or update your PAR-Q answers first.");
+      return;
+    }
     if (!surprise && level === "advanced" && LOW_ENERGY_MOODS.includes(mood)) {
       setConfirmHard(true);
       return;
     }
     void generate(surprise);
   }
+
 
   if (profileReady === false) {
     return (
