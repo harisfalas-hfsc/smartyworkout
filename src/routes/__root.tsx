@@ -16,6 +16,7 @@ import { SiteFooter } from "../components/SiteFooter";
 import { Toaster } from "../components/ui/sonner";
 import { SisterAppsPopup } from "../components/growth/SisterAppsPopup";
 import { BottomNav } from "../components/BottomNav";
+import { ThemeProvider, THEME_INIT_SCRIPT } from "../lib/theme";
 
 const SITE_URL = "https://smartyworkout.com";
 const OG_IMAGE = "https://smartyworkout.com/og-social.jpg";
@@ -312,8 +313,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="dark" style={{ colorScheme: "dark" }}>
+    <html lang="en" className="dark" style={{ colorScheme: "dark" }} suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <HeadContent />
       </head>
       <body>
@@ -329,16 +331,18 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="flex min-h-screen flex-col bg-background">
-        <Navigation />
-        <main>
-          <Outlet />
-        </main>
-        <SiteFooter />
-        <Toaster />
-        <SisterAppsPopup />
-        <BottomNav />
-      </div>
+      <ThemeProvider>
+        <div className="flex min-h-screen flex-col bg-background">
+          <Navigation />
+          <main>
+            <Outlet />
+          </main>
+          <SiteFooter />
+          <Toaster />
+          <SisterAppsPopup />
+          <BottomNav />
+        </div>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

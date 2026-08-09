@@ -21,7 +21,7 @@ import { ExerciseMediaProvider } from "./ExerciseMediaProvider";
 import { WorkoutPlayerDialog } from "./WorkoutPlayerDialog";
 import { parseWorkoutSteps } from "@/lib/workout/parse-steps";
 import { uniqueTokenIds } from "@/lib/workout/tokens";
-import { difficultyLabel } from "@/lib/workout/spec";
+import { difficultyLabel, MAX_STARS, normalizeStars } from "@/lib/workout/spec";
 import { setWorkoutMeta } from "@/lib/coach.functions";
 
 export type WorkoutRow = {
@@ -49,12 +49,13 @@ export type WorkoutRow = {
 };
 
 function Stars({ n }: { n: number }) {
+  const filled = normalizeStars(n);
   return (
     <span className="inline-flex items-center gap-0.5">
-      {Array.from({ length: 6 }).map((_, i) => (
+      {Array.from({ length: MAX_STARS }).map((_, i) => (
         <Star
           key={i}
-          className={`h-4 w-4 ${i < n ? "fill-primary text-primary" : "text-muted-foreground/40"}`}
+          className={`h-4 w-4 ${i < filled ? "fill-primary text-primary" : "text-muted-foreground/40"}`}
         />
       ))}
     </span>
@@ -77,7 +78,7 @@ export function WorkoutDisplay({
 
   const [openExercise, setOpenExercise] = useState<string | null>(null);
   const [reader, setReader] = useState(false);
-  const [fontSize, setFontSize] = useState(18);
+  const [fontSize, setFontSize] = useState(16);
   const [player, setPlayer] = useState(false);
   const [favorite, setFavorite] = useState(Boolean(workout.is_favorite));
 
@@ -196,44 +197,45 @@ export function WorkoutDisplay({
       />
 
       <Dialog open={reader} onOpenChange={setReader}>
-        <DialogContent className="h-[100dvh] max-w-none overflow-y-auto border-0 bg-neutral-950 p-0 text-neutral-100 [&>button]:hidden sm:h-[92vh] sm:max-w-2xl sm:rounded-3xl">
+        <DialogContent className="h-[100dvh] w-full max-w-none overflow-x-hidden overflow-y-auto border-0 bg-background p-0 text-foreground [&>button]:hidden sm:h-[92vh] sm:max-w-2xl sm:rounded-3xl">
           <DialogTitle className="sr-only">{workout.name} reader mode</DialogTitle>
-          <div className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-neutral-800 bg-neutral-950/95 px-4 py-3 backdrop-blur">
-            <p className="truncate font-semibold">{workout.name}</p>
-            <div className="flex items-center gap-1">
+          <div className="sticky top-0 z-10 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-border bg-background/95 px-3 py-2 backdrop-blur sm:px-4 sm:py-3">
+            <p className="min-w-0 truncate text-sm font-semibold sm:text-base">{workout.name}</p>
+            <div className="flex shrink-0 items-center gap-0.5">
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-neutral-300"
-                onClick={() => setFontSize((s) => Math.max(14, s - 2))}
+                aria-label="Decrease text size"
+                className="h-8 w-8 text-muted-foreground"
+                onClick={() => setFontSize((s) => Math.max(12, s - 2))}
               >
                 <Minus className="h-4 w-4" />
               </Button>
-              <span className="w-8 text-center text-xs text-neutral-400">{fontSize}</span>
+              <span className="w-6 text-center text-xs text-muted-foreground">{fontSize}</span>
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-neutral-300"
+                aria-label="Increase text size"
+                className="h-8 w-8 text-muted-foreground"
                 onClick={() => setFontSize((s) => Math.min(30, s + 2))}
               >
                 <Plus className="h-4 w-4" />
               </Button>
               <Button
                 size="sm"
-                className="ml-1 rounded-full bg-white px-3 font-bold text-neutral-900 hover:bg-neutral-200"
+                className="ml-1 h-8 rounded-full px-3 font-bold"
                 onClick={() => setReader(false)}
               >
                 <X className="mr-1 h-4 w-4" /> Close
               </Button>
             </div>
           </div>
-          <div className="workout-html reader px-5 py-6" style={{ fontSize }}>
+          <div
+            className="workout-html reader w-full max-w-full overflow-x-hidden px-4 py-6 sm:px-6"
+            style={{ fontSize }}
+          >
             <ExerciseHTMLContent html={html} onOpenExercise={setOpenExercise} />
-            <Button
-              className="mt-8 w-full rounded-2xl bg-white font-bold text-neutral-900 hover:bg-neutral-200"
-              size="lg"
-              onClick={() => setReader(false)}
-            >
+            <Button className="mt-8 w-full rounded-2xl font-bold" size="lg" onClick={() => setReader(false)}>
               Exit reader mode
             </Button>
           </div>

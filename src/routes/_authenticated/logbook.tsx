@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useServerFn } from "@tanstack/react-start";
 import { setWorkoutMeta } from "@/lib/coach.functions";
 import { toast } from "sonner";
+import { MAX_STARS, normalizeStars } from "@/lib/workout/spec";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -124,11 +125,13 @@ function WorkoutCard({
             {r.duration_min} min
           </span>
           <span className="inline-flex items-center gap-0.5">
-            {Array.from({ length: 6 }).map((_, i) => (
+            {Array.from({ length: MAX_STARS }).map((_, i) => (
               <Star
                 key={i}
                 className={`h-3 w-3 ${
-                  i < r.difficulty_stars ? "fill-primary text-primary" : "text-muted-foreground/30"
+                  i < normalizeStars(r.difficulty_stars)
+                    ? "fill-primary text-primary"
+                    : "text-muted-foreground/30"
                 }`}
               />
             ))}

@@ -19,9 +19,12 @@ import {
   User,
   Dumbbell,
   CalendarCheck,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/lib/theme";
 import { supabase } from "@/integrations/supabase/client";
 import { isAdminEmail } from "@/lib/admin";
 import { NotificationBell } from "@/components/NotificationBell";
@@ -37,6 +40,7 @@ import {
 
 export function Navigation() {
   const { user, displayName, loading } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const router = useRouter();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -151,6 +155,19 @@ export function Navigation() {
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    toggleTheme();
+                  }}
+                >
+                  {theme === "dark" ? (
+                    <><Sun className="h-4 w-4 mr-2" /> Light mode</>
+                  ) : (
+                    <><Moon className="h-4 w-4 mr-2" /> Dark mode</>
+                  )}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>
                   <LogOut className="h-4 w-4 mr-2" /> Sign out
                 </DropdownMenuItem>
@@ -178,6 +195,20 @@ export function Navigation() {
                     Create account
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    toggleTheme();
+                  }}
+                >
+                  {theme === "dark" ? (
+                    <><Sun className="h-4 w-4 mr-2" /> Light mode</>
+                  ) : (
+                    <><Moon className="h-4 w-4 mr-2" /> Dark mode</>
+                  )}
+                </DropdownMenuItem>
+
               </DropdownMenuContent>
             </DropdownMenu>
           )}
