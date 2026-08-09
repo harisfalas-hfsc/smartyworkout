@@ -19,8 +19,27 @@ import {
   Activity,
 } from "lucide-react";
 import { toast } from "sonner";
-import { EQUIPMENT, GOALS, LOCATIONS } from "@/lib/coach-options";
+import {
+  EQUIPMENT,
+  GOALS,
+  LOCATIONS,
+  GENDERS,
+  FITNESS_LEVELS,
+  SESSIONS_PER_WEEK,
+  DURATIONS,
+  PROFILE_GOALS,
+  MOVEMENT_DISLIKES,
+  LIMITATIONS,
+} from "@/lib/coach-options";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { PageHeader } from "@/components/PageHeader";
+
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
@@ -281,11 +300,18 @@ function ProfilePage() {
               />
             </Field>
             <Field label="Gender">
-              <Input
-                className="h-12 rounded-2xl"
+              <select
+                className={selectClass}
                 value={p.gender ?? ""}
                 onChange={(e) => set("gender", e.target.value)}
-              />
+              >
+                <option value="">Select…</option>
+                {GENDERS.map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.label}
+                  </option>
+                ))}
+              </select>
             </Field>
             <Field label="Height (cm)">
               <Input
@@ -317,53 +343,71 @@ function ProfilePage() {
                   set("experience", e.target.value);
                 }}
               >
-                {LEVELS.map((l) => (
-                  <option key={l} value={l}>
-                    {l}
+                {FITNESS_LEVELS.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {l.label}
                   </option>
                 ))}
               </select>
             </Field>
             <Field label="Sessions per week">
-              <Input
-                className="h-12 rounded-2xl"
-                type="number"
-                value={p.training_frequency ?? ""}
-                onChange={(e) =>
-                  set("training_frequency", e.target.value ? Number(e.target.value) : null)
-                }
-              />
+              <select
+                className={selectClass}
+                value={String(p.training_frequency ?? 3)}
+                onChange={(e) => set("training_frequency", Number(e.target.value))}
+              >
+                {SESSIONS_PER_WEEK.map((n) => (
+                  <option key={n} value={n}>
+                    {n} {n === 1 ? "session" : "sessions"}
+                  </option>
+                ))}
+              </select>
             </Field>
-            <Field label="Typical duration (min)">
-              <Input
-                className="h-12 rounded-2xl"
-                type="number"
-                value={p.typical_duration_min ?? ""}
-                onChange={(e) =>
-                  set("typical_duration_min", e.target.value ? Number(e.target.value) : null)
-                }
-              />
+            <Field label="Typical duration (approx.)">
+              <select
+                className={selectClass}
+                value={String(p.typical_duration_min ?? 30)}
+                onChange={(e) => set("typical_duration_min", Number(e.target.value))}
+              >
+                {DURATIONS.map((n) => (
+                  <option key={n} value={n}>
+                    ~{n} minutes
+                  </option>
+                ))}
+              </select>
             </Field>
           </div>
         </SectionCard>
 
-        <SectionCard icon={Target} title="Your goals">
+        <SectionCard icon={Target} title="Your goals" hint="Pick from the list — no typing">
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Primary goal">
-              <Input
-                className="h-12 rounded-2xl"
+              <select
+                className={selectClass}
                 value={p.primary_goal ?? ""}
                 onChange={(e) => set("primary_goal", e.target.value)}
-                placeholder="e.g. build muscle"
-              />
+              >
+                <option value="">Select…</option>
+                {PROFILE_GOALS.map((g) => (
+                  <option key={g.id} value={g.label}>
+                    {g.label}
+                  </option>
+                ))}
+              </select>
             </Field>
-            <Field label="Secondary goal">
-              <Input
-                className="h-12 rounded-2xl"
+            <Field label="Secondary goal (optional)">
+              <select
+                className={selectClass}
                 value={p.secondary_goal ?? ""}
                 onChange={(e) => set("secondary_goal", e.target.value)}
-                placeholder="e.g. stay lean"
-              />
+              >
+                <option value="">None</option>
+                {PROFILE_GOALS.map((g) => (
+                  <option key={g.id} value={g.label}>
+                    {g.label}
+                  </option>
+                ))}
+              </select>
             </Field>
           </div>
         </SectionCard>
@@ -408,14 +452,13 @@ function ProfilePage() {
 
         <SectionCard
           icon={Heart}
-          title="Favourite exercises"
-          hint="Comma separated — Smarty Coach will prioritise these"
+          title="Movements you love"
+          hint="Smarty Coach will prioritise these when they fit"
         >
-          <Textarea
-            className="rounded-2xl"
-            rows={2}
-            value={(p.favorite_exercises ?? []).join(", ")}
-            onChange={(e) => set("favorite_exercises", toList(e.target.value))}
+          <Pills
+            options={MOVEMENT_DISLIKES.map((m) => ({ id: m.label, label: m.label }))}
+            value={p.favorite_exercises ?? []}
+            onToggle={(id) => toggleList("favorite_exercises", id)}
           />
         </SectionCard>
 
@@ -492,27 +535,25 @@ function ProfilePage() {
 
         <SectionCard
           icon={ThumbsDown}
-          title="Exercises you dislike"
-          hint="Comma separated — these will never appear"
+          title="Movements you dislike"
+          hint="Tap to exclude — these will never be programmed"
         >
-          <Textarea
-            className="rounded-2xl"
-            rows={2}
-            value={(p.disliked_exercises ?? []).join(", ")}
-            onChange={(e) => set("disliked_exercises", toList(e.target.value))}
+          <Pills
+            options={MOVEMENT_DISLIKES.map((m) => ({ id: m.label, label: m.label }))}
+            value={p.disliked_exercises ?? []}
+            onToggle={(id) => toggleList("disliked_exercises", id)}
           />
         </SectionCard>
 
         <SectionCard
           icon={ShieldAlert}
           title="Injuries & limitations"
-          hint="Comma separated — always respected when building your workout"
+          hint="Always respected when building your workout"
         >
-          <Textarea
-            className="rounded-2xl"
-            rows={2}
-            value={(p.limitations ?? []).join(", ")}
-            onChange={(e) => set("limitations", toList(e.target.value))}
+          <Pills
+            options={LIMITATIONS.map((l) => ({ id: l.label, label: l.label }))}
+            value={p.limitations ?? []}
+            onToggle={(id) => toggleList("limitations", id)}
           />
         </SectionCard>
       </div>
