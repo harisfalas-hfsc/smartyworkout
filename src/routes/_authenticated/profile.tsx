@@ -190,9 +190,15 @@ function ProfilePage() {
         .select("*")
         .eq("id", auth.user.id)
         .maybeSingle();
-      const row = { ...EMPTY, ...((data as unknown as Partial<Profile>) ?? {}) };
+      const incoming = (data as unknown as Partial<Profile>) ?? {};
+      // Drop nulls so dropdown defaults in EMPTY stay in sync with what is displayed.
+      const clean = Object.fromEntries(
+        Object.entries(incoming).filter(([, v]) => v !== null && v !== undefined),
+      ) as Partial<Profile>;
+      const row = { ...EMPTY, ...clean };
       setWasOnboarded(Boolean(row.onboarded));
       setP(row);
+
     })();
   }, []);
 
