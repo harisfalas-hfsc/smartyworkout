@@ -131,8 +131,11 @@ export function enforceWorkout(
         return false;
       });
       if (!/<li/.test(body)) {
-        warnings.push("Activation was emptied by the movement-prep rules and needs review.");
+        body =
+          '<ul class="tiptap-bullet-list"><li class="tiptap-list-item"><p class="tiptap-paragraph">10 reps Bodyweight glute bridge — squeeze 1 sec at the top</p></li><li class="tiptap-list-item"><p class="tiptap-paragraph">10 reps Scapular wall slide — keep ribs down</p></li><li class="tiptap-list-item"><p class="tiptap-paragraph">8 reps each side World\u2019s greatest stretch — slow and controlled</p></li><li class="tiptap-list-item"><p class="tiptap-paragraph">20 sec Dead bug hold — breathe, no arching</p></li></ul>';
+        warnings.push("Rebuilt Activation with compliant bodyweight movement prep.");
       }
+
     }
 
 
