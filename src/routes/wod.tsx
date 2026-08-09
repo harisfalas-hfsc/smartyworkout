@@ -103,11 +103,22 @@ function WorkoutCard({ workout }: { workout: WodWorkout }) {
 function WodPage() {
   const { user, loading: authLoading } = useAuth();
   const load = useServerFn(getDailyHub);
+  const loadPublic = useServerFn(getPublicWodDays);
   const setSub = useServerFn(setWodSubscription);
   const [hub, setHub] = useState<Hub | null>(null);
+  const [publicCycle, setPublicCycle] = useState<Awaited<
+    ReturnType<typeof getPublicWodDays>
+  > | null>(null);
   const [busy, setBusy] = useState(false);
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(1);
+
+  useEffect(() => {
+    void loadPublic({})
+      .then(setPublicCycle)
+      .catch(() => setPublicCycle(null));
+  }, [loadPublic]);
+
 
   const onSelect = useCallback(() => {
     if (!api) return;
