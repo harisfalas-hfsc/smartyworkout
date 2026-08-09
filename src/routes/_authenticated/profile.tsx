@@ -9,10 +9,8 @@ import {
   User,
   Gauge,
   Target,
-  LayoutGrid,
   Dumbbell,
   MapPin,
-  Heart,
   ThumbsDown,
   ShieldAlert,
   CheckCircle2,
@@ -29,7 +27,6 @@ import {
   SESSIONS_PER_WEEK,
   DURATIONS,
   PROFILE_GOALS,
-  MOVEMENT_DISLIKES,
   LIMITATIONS,
 } from "@/lib/coach-options";
 import {
@@ -71,12 +68,8 @@ type Profile = {
   secondary_goal: string | null;
   training_frequency: number | null;
   typical_duration_min: number | null;
-  preferred_categories: string[] | null;
   preferred_equipment: string[] | null;
   preferred_environment: string | null;
-  favorite_exercises: string[] | null;
-  disliked_exercises: string[] | null;
-  favorite_exercise_ids: string[];
   disliked_exercise_ids: string[];
   use_library_preferences: boolean;
 
@@ -99,12 +92,8 @@ const EMPTY: Profile = {
   secondary_goal: "",
   training_frequency: 3,
   typical_duration_min: 30,
-  preferred_categories: [],
   preferred_equipment: [],
   preferred_environment: "home",
-  favorite_exercises: [],
-  disliked_exercises: [],
-  favorite_exercise_ids: [],
   disliked_exercise_ids: [],
   use_library_preferences: true,
 
@@ -223,7 +212,7 @@ function ProfilePage() {
     setP((prev) => (prev ? { ...prev, [key]: value } : prev));
   }
 
-  function toggle(key: "preferred_categories" | "preferred_equipment", id: string) {
+  function toggle(key: "preferred_equipment", id: string) {
     setP((prev) => {
       if (!prev) return prev;
       const cur = prev[key] ?? [];
@@ -232,7 +221,7 @@ function ProfilePage() {
   }
 
   function toggleList(
-    key: "favorite_exercises" | "disliked_exercises" | "limitations",
+    key: "limitations",
     id: string,
   ) {
     setP((prev) => {
