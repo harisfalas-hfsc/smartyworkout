@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { isAdminEmail } from "@/lib/admin";
+import type { Category } from "@/lib/workout/spec";
+import type { WorkoutRules } from "@/lib/settings.server";
 
 async function assertAdmin(ctx: { supabase: any; userId: string; claims: any }) {
   const email = ctx.claims?.email as string | undefined;
@@ -26,6 +28,11 @@ export type AdminUserRow = {
   is_admin: boolean;
   has_active_subscription: boolean;
   subscription_status: string | null;
+  subscription_provider: string | null;
+  current_period_end: string | null;
+  workouts: number;
+  wod_subscribed: boolean;
+  profile_complete: boolean;
 };
 
 export const adminListUsers = createServerFn({ method: "POST" })
@@ -51,7 +58,9 @@ export const adminListUsers = createServerFn({ method: "POST" })
 
       const { data: profiles, error: pErr } = await supabaseAdmin
         .from("profiles")
-        .select("id, display_name, bonus_credits, created_at")
+        .select(
+          "id, display_name, bonus_credits, created_at, age, onboarded, wod_mode, fitness_level, primary_goal, preferred_environment, typical_duration_min, preferred_equipment",
+        )
         .order("created_at", { ascending: false })
         .limit(500);
       if (pErr) return { error: pErr.message };
@@ -59,17 +68,17 @@ export const adminListUsers = createServerFn({ method: "POST" })
       const ids = (profiles ?? []).map((p: any) => p.id);
       const filterIds = ids.length ? ids : ["00000000-0000-0000-0000-000000000000"];
 
-      const [{ data: roles }, { data: sessions }, { data: questionnaires }] = await Promise.all([
-        supabaseAdmin.from("user_roles").select("user_id, role").in("user_id", filterIds),
-        supabaseAdmin
-          .from("generation_sessions")
-          .select("user_id, status")
-          .in("user_id", filterIds),
-        supabaseAdmin
-          .from("questionnaires")
-          .select("user_id, data")
-          .in("user_id", filterIds),
-      ]);
+      const [{ data: roles }, { data: sessions }, { data: subs }, { data: workouts }] =
+        await Promise.all([
+          supabaseAdmin.from("user_roles").select("user_id, role").in("user_id", filterIds),
+          supabaseAdmin.from("generation_sessions").select("user_id, status").in("user_id", filterIds),
+          supabaseAdmin
+            .from("subscriptions")
+            .select("user_id, status, provider, current_period_end, updated_at")
+            .in("user_id", filterIds)
+            .order("updated_at", { ascending: false }),
+          supabaseAdmin.from("workouts").select("user_id").in("user_id", filterIds).limit(20000),
+        ]);
 
       const adminByUser = new Set<string>();
       for (const r of (roles ?? []) as any[]) if (r.role === "admin") adminByUser.add(r.user_id);
@@ -81,36 +90,319 @@ export const adminListUsers = createServerFn({ method: "POST" })
         }
       }
 
-      const ageByUser = new Map<string, number>();
-      for (const q of (questionnaires ?? []) as any[]) {
-        const age = q?.data?.age;
-        if (typeof age === "number" && !ageByUser.has(q.user_id)) ageByUser.set(q.user_id, age);
+      const workoutsByUser = new Map<string, number>();
+      for (const w of (workouts ?? []) as any[]) {
+        workoutsByUser.set(w.user_id, (workoutsByUser.get(w.user_id) ?? 0) + 1);
       }
 
-      let users: AdminUserRow[] = (profiles ?? []).map((p: any) => {
+      const subByUser = new Map<string, any>();
+      for (const s of (subs ?? []) as any[]) if (!subByUser.has(s.user_id)) subByUser.set(s.user_id, s);
+
+      const users: AdminUserRow[] = (profiles ?? []).map((p: any) => {
         const auth = authUsersMap.get(p.id);
+        const sub = subByUser.get(p.id);
+        const periodEnd = sub?.current_period_end ? new Date(sub.current_period_end).getTime() : null;
+        const active =
+          Boolean(sub) &&
+          ["active", "trialing"].includes(sub.status) &&
+          (!periodEnd || periodEnd > Date.now());
         return {
           id: p.id,
           email: auth?.email ?? "",
           name: p.display_name ?? "",
-          age: ageByUser.get(p.id) ?? null,
+          age: p.age ?? null,
           credits: p.bonus_credits ?? 0,
           purchases: purchasesByUser.get(p.id) ?? 0,
           created_at: p.created_at,
           is_admin: isAdminEmail(auth?.email) || adminByUser.has(p.id),
-          has_active_subscription: false,
-          subscription_status: null,
+          has_active_subscription: active,
+          subscription_status: sub?.status ?? null,
+          subscription_provider: sub?.provider ?? null,
+          current_period_end: sub?.current_period_end ?? null,
+          workouts: workoutsByUser.get(p.id) ?? 0,
+          wod_subscribed: Boolean(p.wod_mode),
+          profile_complete: Boolean(
+            p.onboarded &&
+              p.age &&
+              p.fitness_level &&
+              p.primary_goal &&
+              p.preferred_environment &&
+              p.typical_duration_min &&
+              Array.isArray(p.preferred_equipment) &&
+              p.preferred_equipment.length,
+          ),
         };
       });
 
-      if (data.search) {
-        const q = data.search.trim().toLowerCase();
-        users = users.filter((u) => u.email.toLowerCase().includes(q));
-      }
+      const q = data.search?.trim().toLowerCase();
+      const filtered = q
+        ? users.filter((u) => u.email.toLowerCase().includes(q) || u.name.toLowerCase().includes(q))
+        : users;
 
-      return { users };
+      return { users: filtered };
     } catch (e) {
       return { error: e instanceof Error ? e.message : "Failed to list users" };
+    }
+  });
+
+export type AdminStats = {
+  totalUsers: number;
+  newUsers30d: number;
+  activeSubscribers: number;
+  canceledSubscribers: number;
+  wodSubscribers: number;
+  mrrEur: number;
+  workoutsTotal: number;
+  workoutsToday: number;
+  workoutsCompleted: number;
+  wodWorkouts: number;
+  admins: number;
+};
+
+export const adminGetStats = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ stats: AdminStats } | { error: string }> => {
+    try {
+      await assertAdmin(context as any);
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { getWorkoutRules } = await import("@/lib/settings.server");
+      const rules = await getWorkoutRules();
+
+      const since30 = new Date(Date.now() - 30 * 86_400_000).toISOString();
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+
+      const count = (q: any) => q.then((r: any) => r.count ?? 0);
+      const [
+        totalUsers,
+        newUsers30d,
+        wodSubscribers,
+        workoutsTotal,
+        workoutsToday,
+        workoutsCompleted,
+        wodWorkouts,
+        admins,
+      ] = await Promise.all([
+        count(supabaseAdmin.from("profiles").select("id", { count: "exact", head: true })),
+        count(
+          supabaseAdmin
+            .from("profiles")
+            .select("id", { count: "exact", head: true })
+            .gte("created_at", since30),
+        ),
+        count(
+          supabaseAdmin
+            .from("profiles")
+            .select("id", { count: "exact", head: true })
+            .eq("wod_mode", true),
+        ),
+        count(supabaseAdmin.from("workouts").select("id", { count: "exact", head: true })),
+        count(
+          supabaseAdmin
+            .from("workouts")
+            .select("id", { count: "exact", head: true })
+            .gte("created_at", startOfToday.toISOString()),
+        ),
+        count(
+          supabaseAdmin
+            .from("workouts")
+            .select("id", { count: "exact", head: true })
+            .eq("status", "completed"),
+        ),
+        count(
+          supabaseAdmin
+            .from("workouts")
+            .select("id", { count: "exact", head: true })
+            .eq("is_wod", true),
+        ),
+        count(supabaseAdmin.from("user_roles").select("id", { count: "exact", head: true }).eq("role", "admin")),
+      ]);
+
+      const { data: subs } = await supabaseAdmin
+        .from("subscriptions")
+        .select("user_id, status, current_period_end")
+        .limit(5000);
+      const activeUsers = new Set<string>();
+      const canceledUsers = new Set<string>();
+      for (const s of (subs ?? []) as any[]) {
+        const end = s.current_period_end ? new Date(s.current_period_end).getTime() : null;
+        if (["active", "trialing"].includes(s.status) && (!end || end > Date.now()))
+          activeUsers.add(s.user_id);
+        else canceledUsers.add(s.user_id);
+      }
+      for (const id of activeUsers) canceledUsers.delete(id);
+
+      return {
+        stats: {
+          totalUsers,
+          newUsers30d,
+          activeSubscribers: activeUsers.size,
+          canceledSubscribers: canceledUsers.size,
+          wodSubscribers,
+          mrrEur: Number((activeUsers.size * rules.membershipPriceEur).toFixed(2)),
+          workoutsTotal,
+          workoutsToday,
+          workoutsCompleted,
+          wodWorkouts,
+          admins,
+        },
+      };
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : "Failed to load stats" };
+    }
+  });
+
+export type AdminPayment = {
+  id: string;
+  amount: number;
+  currency: string;
+  created: string;
+  email: string | null;
+  status: string;
+  refunded: boolean;
+};
+
+export type AdminRevenue = {
+  environment: "live" | "sandbox";
+  currency: string;
+  total: number;
+  last30: number;
+  byMonth: { month: string; amount: number }[];
+  payments: AdminPayment[];
+};
+
+export const adminGetRevenue = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { environment?: "live" | "sandbox" }) => data)
+  .handler(async ({ context, data }): Promise<{ revenue: AdminRevenue } | { error: string }> => {
+    try {
+      await assertAdmin(context as any);
+      const environment = data.environment ?? "live";
+      const { createStripeClient, getStripeErrorMessage } = await import("@/lib/stripe.server");
+      try {
+        const stripe = createStripeClient(environment);
+        const charges = await stripe.charges.list({ limit: 100 });
+        const rows = charges.data.filter((c) => c.status === "succeeded");
+        const currency = (rows[0]?.currency ?? "eur").toUpperCase();
+        const since30 = Date.now() - 30 * 86_400_000;
+        const byMonth = new Map<string, number>();
+        let total = 0;
+        let last30 = 0;
+        const payments: AdminPayment[] = [];
+        for (const c of rows) {
+          const net = (c.amount - (c.amount_refunded ?? 0)) / 100;
+          total += net;
+          const createdMs = c.created * 1000;
+          if (createdMs >= since30) last30 += net;
+          const month = new Date(createdMs).toISOString().slice(0, 7);
+          byMonth.set(month, Number(((byMonth.get(month) ?? 0) + net).toFixed(2)));
+          payments.push({
+            id: c.id,
+            amount: net,
+            currency: c.currency.toUpperCase(),
+            created: new Date(createdMs).toISOString(),
+            email: c.billing_details?.email ?? c.receipt_email ?? null,
+            status: c.status,
+            refunded: Boolean(c.amount_refunded),
+          });
+        }
+        return {
+          revenue: {
+            environment,
+            currency,
+            total: Number(total.toFixed(2)),
+            last30: Number(last30.toFixed(2)),
+            byMonth: [...byMonth.entries()]
+              .sort((a, b) => (a[0] < b[0] ? 1 : -1))
+              .slice(0, 12)
+              .map(([month, amount]) => ({ month, amount })),
+            payments: payments.slice(0, 50),
+          },
+        };
+      } catch (stripeError) {
+        return { error: getStripeErrorMessage(stripeError) };
+      }
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : "Failed to load revenue" };
+    }
+  });
+
+/** Gives a member premium access for a number of months, without charging them. */
+export const adminGrantPremium = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { userId: string; months: number }) => data)
+  .handler(async ({ context, data }): Promise<{ ok: true; until: string } | { error: string }> => {
+    try {
+      await assertAdmin(context as any);
+      const months = Math.max(1, Math.min(36, Math.round(Number(data.months) || 1)));
+      if (!data.userId) return { error: "Missing user" };
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+      const { data: existing } = await supabaseAdmin
+        .from("subscriptions")
+        .select("id, current_period_end")
+        .eq("user_id", data.userId)
+        .eq("provider", "admin_grant")
+        .maybeSingle();
+
+      const base =
+        existing?.current_period_end && new Date(existing.current_period_end).getTime() > Date.now()
+          ? new Date(existing.current_period_end)
+          : new Date();
+      const until = new Date(base);
+      until.setMonth(until.getMonth() + months);
+
+      if (existing) {
+        const { error } = await supabaseAdmin
+          .from("subscriptions")
+          .update({
+            status: "active",
+            current_period_end: until.toISOString(),
+            cancel_at_period_end: false,
+          } as never)
+          .eq("id", (existing as any).id);
+        if (error) return { error: error.message };
+      } else {
+        const { error } = await supabaseAdmin.from("subscriptions").insert({
+          user_id: data.userId,
+          provider: "admin_grant",
+          status: "active",
+          environment: "live",
+          current_period_start: new Date().toISOString(),
+          current_period_end: until.toISOString(),
+        } as never);
+        if (error) return { error: error.message };
+      }
+      return { ok: true, until: until.toISOString() };
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : "Failed to grant premium" };
+    }
+  });
+
+/** Revokes app-side premium access. Stripe billing itself is managed in Stripe. */
+export const adminRevokePremium = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { userId: string }) => data)
+  .handler(async ({ context, data }): Promise<{ ok: true } | { error: string }> => {
+    try {
+      await assertAdmin(context as any);
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { error } = await supabaseAdmin
+        .from("subscriptions")
+        .update({
+          status: "canceled",
+          current_period_end: new Date().toISOString(),
+          cancel_at_period_end: true,
+        } as never)
+        .eq("user_id", data.userId);
+      if (error) return { error: error.message };
+      await supabaseAdmin
+        .from("profiles")
+        .update({ wod_mode: false, auto_workout_enabled: false } as never)
+        .eq("id", data.userId);
+      return { ok: true };
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : "Failed to revoke premium" };
     }
   });
 
@@ -164,5 +456,86 @@ export const adminSetRole = createServerFn({ method: "POST" })
       return { ok: true };
     } catch (e) {
       return { error: e instanceof Error ? e.message : "Failed" };
+    }
+  });
+
+export type AdminCycleDay = {
+  day: number;
+  category: string;
+  difficulty: string | null;
+  stars: [number, number] | null;
+  strengthFocus?: string;
+  overridden: boolean;
+};
+
+export const adminGetSettings = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(
+    async ({
+      context,
+    }): Promise<{ rules: WorkoutRules; cycle: AdminCycleDay[] } | { error: string }> => {
+      try {
+        await assertAdmin(context as any);
+        const { getWorkoutRules, resolveFullCycle, getCycleOverrides } = await import(
+          "@/lib/settings.server"
+        );
+        const [rules, cycle, overrides] = await Promise.all([
+          getWorkoutRules(),
+          resolveFullCycle(),
+          getCycleOverrides(),
+        ]);
+        return {
+          rules,
+          cycle: cycle.map((d) => ({
+            day: d.day,
+            category: d.category,
+            difficulty: d.difficulty,
+            stars: d.stars,
+            ...(d.strengthFocus ? { strengthFocus: d.strengthFocus } : {}),
+            overridden: Boolean(overrides[String(d.day)]),
+          })),
+        };
+      } catch (e) {
+        return { error: e instanceof Error ? e.message : "Failed to load settings" };
+      }
+    },
+  );
+
+export const adminSaveRules = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: Partial<WorkoutRules>) => data)
+  .handler(async ({ context, data }): Promise<{ rules: WorkoutRules } | { error: string }> => {
+    try {
+      await assertAdmin(context as any);
+      const { saveWorkoutRules } = await import("@/lib/settings.server");
+      return { rules: await saveWorkoutRules(data) };
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : "Failed to save rules" };
+    }
+  });
+
+export const adminSaveCycleDay = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (data: {
+      day: number;
+      category?: Category;
+      difficulty?: "Beginner" | "Intermediate" | "Advanced" | null;
+      reset?: boolean;
+    }) => data,
+  )
+  .handler(async ({ context, data }): Promise<{ ok: true } | { error: string }> => {
+    try {
+      await assertAdmin(context as any);
+      const { saveCycleOverride } = await import("@/lib/settings.server");
+      if (data.reset) await saveCycleOverride(data.day, null);
+      else
+        await saveCycleOverride(data.day, {
+          ...(data.category ? { category: data.category } : {}),
+          ...(data.difficulty !== undefined ? { difficulty: data.difficulty } : {}),
+        });
+      return { ok: true };
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : "Failed to save cycle day" };
     }
   });

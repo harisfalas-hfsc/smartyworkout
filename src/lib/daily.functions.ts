@@ -2,7 +2,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
   difficultyLabelWithLevel,
-  getCycleDay,
   getDayIn84Cycle,
   localDateISO,
   starsForCycleDayWithLevel,
@@ -55,15 +54,16 @@ export const getDailyHub = createServerFn({ method: "GET" })
     const settings: DailySettings = { ...DEFAULTS, ...(row ?? {}) };
     settings.wod_level = (settings.wod_level ?? "cycle") as WodLevel;
     const today = localDateISO(new Date(), settings.timezone);
-    const cycleDay = getCycleDay(today);
+    const { resolveCycleDay } = await import("@/lib/settings.server");
+    const cycleDay = await resolveCycleDay(today);
 
     const shift = (days: number) => {
       const d = new Date(`${today}T12:00:00Z`);
       d.setUTCDate(d.getUTCDate() + days);
       return d.toISOString().slice(0, 10);
     };
-    const dayInfo = (iso: string) => {
-      const c = getCycleDay(iso);
+    const dayInfo = async (iso: string) => {
+      const c = await resolveCycleDay(iso);
       return {
         date: iso,
         category: c.category,
@@ -107,9 +107,9 @@ export const getDailyHub = createServerFn({ method: "GET" })
         isRecovery: cycleDay.category === "RECOVERY",
       },
       days: {
-        yesterday: dayInfo(shift(-1)),
-        today: dayInfo(today),
-        tomorrow: dayInfo(shift(1)),
+        yesterday: await dayInfo(shift(-1)),
+        today: await dayInfo(today),
+        tomorrow: await dayInfo(shift(1)),
       },
       workouts,
       workout: workouts[0] ?? null,

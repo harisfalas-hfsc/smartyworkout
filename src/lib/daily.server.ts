@@ -1,6 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
-  getCycleDay,
   getDayIn84Cycle,
   localDateISO,
   starsForCycleDayWithLevel,
@@ -84,7 +83,12 @@ export async function runWodForUser(
   }
   const timeZone = prof?.timezone || "Europe/Athens";
   const today = localDateISO(new Date(), timeZone);
-  const cycleDay = getCycleDay(today);
+  const { getWorkoutRules, resolveCycleDay } = await import("@/lib/settings.server");
+  const rules = await getWorkoutRules();
+  if (!rules.wodEnabled) {
+    throw new Error("The Workout of the Day programme is paused right now.");
+  }
+  const cycleDay = await resolveCycleDay(today);
   const recovery = cycleDay.category === "RECOVERY";
 
   const { data: existingRows } = await db

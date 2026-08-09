@@ -124,6 +124,9 @@ export async function generateWorkoutContent(
   const duration = durationLabel(input.minutes);
   const promptPool = samplePool(pool);
 
+  const { getWorkoutRules } = await import("@/lib/settings.server");
+  const extraRules = (await getWorkoutRules()).extraCoachRules.trim();
+
   let lastError = "";
   for (let attempt = 0; attempt < 3; attempt++) {
     const { system, user } = buildWorkoutPrompt({
@@ -143,7 +146,7 @@ export async function generateWorkoutContent(
     });
 
     const payload = await askModel(
-      system,
+      extraRules ? `${system}\n\nADDITIONAL COACH RULES (highest priority)\n${extraRules}` : system,
       attempt === 0
         ? user
         : `${user}\n\nPREVIOUS ATTEMPT REJECTED: ${lastError}\nFix it and return valid JSON.`,
