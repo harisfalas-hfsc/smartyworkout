@@ -1,6 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
-  getCycleDay,
   getDayIn84Cycle,
   localDateISO,
   starsForCycleDayWithLevel,
