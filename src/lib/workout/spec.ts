@@ -51,11 +51,28 @@ export const CATEGORY_FORMATS: Record<Category, Format[]> = {
 
 export type DifficultyLevel = "all" | "beginner" | "intermediate" | "advanced";
 
+/** One star per level. Legacy 1-6 values are folded into the 3-star scale. */
+export const MAX_STARS = 3;
+
+export function normalizeStars(stars: number): number {
+  if (!stars || stars <= 0) return 0;
+  const n = stars > MAX_STARS ? Math.ceil(stars / 2) : Math.round(stars);
+  return Math.max(1, Math.min(MAX_STARS, n));
+}
+
 export function starsToLevel(stars: number): DifficultyLevel {
-  if (!stars || stars <= 0) return "all";
-  if (stars <= 2) return "beginner";
-  if (stars <= 4) return "intermediate";
+  const n = normalizeStars(stars);
+  if (n === 0) return "all";
+  if (n === 1) return "beginner";
+  if (n === 2) return "intermediate";
   return "advanced";
+}
+
+export function levelToStars(level: DifficultyLevel): number {
+  if (level === "beginner") return 1;
+  if (level === "intermediate") return 2;
+  if (level === "advanced") return 3;
+  return 0;
 }
 
 export function difficultyLabel(stars: number): string {
@@ -64,18 +81,17 @@ export function difficultyLabel(stars: number): string {
   return level.charAt(0).toUpperCase() + level.slice(1);
 }
 
-/**
- * Six stars, three levels. Within each level the lower star is the gentler
- * version and the upper star is the demanding version of that same level.
- */
+/** Three stars, three levels — one star is exactly one level, no half steps. */
 export function intensityNote(stars: number): string {
   const level = starsToLevel(stars);
   if (level === "all") return "Mixed intensity.";
-  const upper = stars % 2 === 0;
-  return upper
-    ? `Upper half of ${level}: the demanding end of ${level} — more volume, longer work blocks, shorter rests, harder variations, but never step into the next level.`
-    : `Lower half of ${level}: the gentler end of ${level} — moderate volume, generous rest, the simplest safe variations, but never easier than ${level}.`;
+  if (level === "beginner")
+    return "Beginner: moderate volume, generous rest, the simplest safe variations. Never step up into intermediate work.";
+  if (level === "intermediate")
+    return "Intermediate: solid volume, moderate rest, standard variations. Never step down to beginner or up to advanced.";
+  return "Advanced: high volume, short rest, demanding variations under fatigue. Still technically safe and never reckless.";
 }
+
 
 
 export const SECTION_ORDER = [
