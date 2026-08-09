@@ -505,23 +505,41 @@ function ProfilePage() {
             ))}
           </div>
           {Object.values(p.readiness_answers ?? {}).some(Boolean) ? (
-            <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-2xl border border-destructive/50 bg-destructive/10 p-4 text-sm leading-5">
-              <input
-                type="checkbox"
-                className="mt-0.5 h-5 w-5 shrink-0 accent-primary"
-                checked={Boolean(p.readiness_warning_acknowledged_at)}
-                onChange={(event) =>
-                  set(
-                    "readiness_warning_acknowledged_at",
-                    event.target.checked ? new Date().toISOString() : null,
-                  )
-                }
-              />
-              <span>
-                A response indicates exercise may not be appropriate without professional advice. I have read this warning, understand the risk, and choose to continue.
-              </span>
-            </label>
-          ) : null}
+            <div className="mt-4 space-y-3 rounded-2xl border border-destructive/50 bg-destructive/10 p-4">
+              <p className="text-sm font-bold">You answered yes to at least one question</p>
+              <p className="text-sm leading-5">
+                Please speak to your doctor before you start training, and tell them which
+                question you answered yes to. Smarty Workout is not medical advice. If you choose
+                to train anyway you do so at your own responsibility — start easy, stop
+                immediately if you feel pain, chest tightness, dizziness or breathlessness, and
+                get medical help if symptoms continue.
+              </p>
+              <label className="flex cursor-pointer items-start gap-3 text-sm leading-5">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 h-5 w-5 shrink-0 accent-primary"
+                  checked={Boolean(p.readiness_warning_acknowledged_at)}
+                  onChange={(event) =>
+                    set(
+                      "readiness_warning_acknowledged_at",
+                      event.target.checked ? new Date().toISOString() : null,
+                    )
+                  }
+                />
+                <span>
+                  I have read this warning, I take full responsibility, and I choose to continue.
+                </span>
+              </label>
+            </div>
+          ) : (
+            Object.keys(p.readiness_answers ?? {}).length === 5 && (
+              <p className="mt-4 rounded-2xl border border-border bg-background p-4 text-sm leading-5 text-muted-foreground">
+                All answers are no — you are clear to train. Keep it sensible and stop if anything
+                feels wrong.
+              </p>
+            )
+          )}
+
         </SectionCard>
 
         <SectionCard
