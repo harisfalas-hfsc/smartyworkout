@@ -131,7 +131,59 @@ function ExerciseLibraryPage() {
     difficulties: string[];
   }>({ bodyParts: [], equipment: [], targets: [], difficulties: [] });
 
+  const { user } = useAuth();
+  const [prefs, setPrefs] = useState<ExercisePreferences | null>(null);
+  const [savingId, setSavingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      setPrefs(null);
+      return;
+    }
+    let active = true;
+    getExercisePreferences()
+      .then((p) => {
+        if (active) setPrefs(p);
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [user]);
+
+  const stateFor = (id: string): "like" | "dislike" | "none" =>
+    prefs?.favoriteIds.includes(id) ? "like" : prefs?.dislikedIds.includes(id) ? "dislike" : "none";
+
+  async function mark(id: string, next: "like" | "dislike") {
+    if (!user) {
+      toast.error("Sign in to save your liked and disliked exercises.");
+      return;
+    }
+    if (!prefs?.premium) {
+      toast.error("Liking and disliking exercises is part of the premium membership.");
+      return;
+    }
+    const state = stateFor(id) === next ? "none" : next;
+    setSavingId(id);
+    try {
+      const updated = await setExercisePreference({ data: { exerciseId: id, state } });
+      setPrefs(updated);
+      toast.success(
+        state === "none"
+          ? "Preference cleared."
+          : state === "like"
+            ? "Added to your liked exercises."
+            : "Added to your disliked exercises.",
+      );
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not save that.");
+    } finally {
+      setSavingId(null);
+    }
+  }
+
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+
 
   useEffect(() => {
     let active = true;
