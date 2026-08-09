@@ -455,6 +455,29 @@ function CoachPage() {
 
         <QuestionCard
           step={7}
+          icon={Heart}
+          title="Use my library preferences?"
+          hint="Your liked exercises get priority, your disliked ones are left out."
+        >
+          <Grid>
+            <Chip active={useLibraryPreferences} onClick={() => setUseLibraryPreferences(true)}>
+              Yes
+            </Chip>
+            <Chip active={!useLibraryPreferences} onClick={() => setUseLibraryPreferences(false)}>
+              No
+            </Chip>
+          </Grid>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Mark exercises in the{" "}
+            <Link to="/exercise-library" className="font-semibold text-primary">
+              Exercise Library
+            </Link>
+            .
+          </p>
+        </QuestionCard>
+
+        <QuestionCard
+          step={8}
           icon={MessageSquare}
           title="Anything else?"
           hint="Optional — Smarty Coach reads this too."
@@ -467,6 +490,7 @@ function CoachPage() {
             className="rounded-2xl"
           />
         </QuestionCard>
+
       </div>
 
       <div className="sticky bottom-4 mt-6">
