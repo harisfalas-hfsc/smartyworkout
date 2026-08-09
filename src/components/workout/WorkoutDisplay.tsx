@@ -78,7 +78,7 @@ export function WorkoutDisplay({
 
   const [openExercise, setOpenExercise] = useState<string | null>(null);
   const [reader, setReader] = useState(false);
-  const [fontSize, setFontSize] = useState(18);
+  const [fontSize, setFontSize] = useState(16);
   const [player, setPlayer] = useState(false);
   const [favorite, setFavorite] = useState(Boolean(workout.is_favorite));
 
