@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -14,7 +14,12 @@ import {
   CarouselPrevious,
   type CarouselApi,
 } from "@/components/ui/carousel";
-import { getDailyHub, getPublicWodDays, setWodSubscription } from "@/lib/daily.functions";
+import {
+  generateTodayWod,
+  getDailyHub,
+  getPublicWodDays,
+  setWodSubscription,
+} from "@/lib/daily.functions";
 
 import { useAuth } from "@/hooks/useAuth";
 import { PageHeader } from "@/components/PageHeader";
@@ -146,11 +151,14 @@ function WodPage() {
   const load = useServerFn(getDailyHub);
   const loadPublic = useServerFn(getPublicWodDays);
   const setSub = useServerFn(setWodSubscription);
+  const gen = useServerFn(generateTodayWod);
+  const navigate = useNavigate();
   const [hub, setHub] = useState<Hub | null>(null);
   const [publicCycle, setPublicCycle] = useState<Awaited<
     ReturnType<typeof getPublicWodDays>
   > | null>(null);
   const [busy, setBusy] = useState(false);
+  const [building, setBuilding] = useState(false);
   const [parqConsent, setParqConsent] = useState(false);
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(1);
