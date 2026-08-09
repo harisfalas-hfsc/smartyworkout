@@ -144,6 +144,13 @@ function Home() {
             <p className="mt-4 text-sm text-white/60">
               One membership. Two personalized workouts every day.
             </p>
+            <Link
+              to="/founder-note"
+              className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-primary underline underline-offset-4"
+            >
+              <PenLine className="h-4 w-4" />
+              A note from the founder
+            </Link>
           </div>
         </div>
       </section>
