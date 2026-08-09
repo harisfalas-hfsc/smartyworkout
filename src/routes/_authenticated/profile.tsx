@@ -447,18 +447,6 @@ function ProfilePage() {
         </SectionCard>
 
         <SectionCard
-          icon={LayoutGrid}
-          title="Preferred workout categories"
-          hint="Used for Surprise Me and weekly balance"
-        >
-          <Pills
-            options={GOALS.map((g) => ({ id: g.id, label: g.label }))}
-            value={p.preferred_categories ?? []}
-            onToggle={(id) => toggle("preferred_categories", id)}
-          />
-        </SectionCard>
-
-        <SectionCard
           icon={Dumbbell}
           title="Equipment you usually use"
           hint="Nothing outside this list will be programmed"
@@ -501,32 +489,8 @@ function ProfilePage() {
             <Link to="/exercise-library" className="font-semibold text-primary">
               Exercise Library
             </Link>{" "}
-            or with the pickers below.
+            or with the picker below.
           </p>
-        </SectionCard>
-
-
-        <SectionCard
-          icon={Heart}
-          title="Exercises you love"
-          hint="Picked straight from the library — Smarty Coach programs them whenever they fit"
-        >
-          <ExercisePicker
-            title="Choose the exercises you love"
-            emptyHint="Nothing picked yet. Choose a body part, then tap the exercises you want to see often."
-            value={p.favorite_exercise_ids ?? []}
-            onChange={(ids) => set("favorite_exercise_ids", ids)}
-          />
-          <div className="mt-4">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Movement styles you enjoy
-            </p>
-            <Pills
-              options={MOVEMENT_DISLIKES.map((m) => ({ id: m.label, label: m.label }))}
-              value={p.favorite_exercises ?? []}
-              onToggle={(id) => toggleList("favorite_exercises", id)}
-            />
-          </div>
         </SectionCard>
 
 
@@ -631,16 +595,6 @@ function ProfilePage() {
             onChange={(ids: string[]) => set("disliked_exercise_ids", ids)}
             max={40}
           />
-          <div className="mt-4">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Movement styles you dislike
-            </p>
-            <Pills
-              options={MOVEMENT_DISLIKES.map((m) => ({ id: m.label, label: m.label }))}
-              value={p.disliked_exercises ?? []}
-              onToggle={(id) => toggleList("disliked_exercises", id)}
-            />
-          </div>
 
         </SectionCard>
 
