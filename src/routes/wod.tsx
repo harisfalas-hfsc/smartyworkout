@@ -14,8 +14,8 @@ import {
   CarouselPrevious,
   type CarouselApi,
 } from "@/components/ui/carousel";
-import { getDailyHub, setWodSubscription } from "@/lib/daily.functions";
-import { getCycleDay, localDateISO, starsForCycleDay } from "@/lib/wod-cycle";
+import { getDailyHub, getPublicWodDays, setWodSubscription } from "@/lib/daily.functions";
+
 import { useAuth } from "@/hooks/useAuth";
 import { PageHeader } from "@/components/PageHeader";
 
