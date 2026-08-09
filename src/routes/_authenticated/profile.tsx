@@ -598,6 +598,33 @@ function ProfilePage() {
           Save profile
         </Button>
       </div>
+
+      <Dialog open={saved} onOpenChange={setSaved}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Training profile saved</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Smarty Coach reads this profile every single time it builds a workout for you — your
+            own workouts and your Workout of the Day. Change it whenever you like and the next
+            workout follows the new answers.
+          </p>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => setSaved(false)}>
+              Keep editing
+            </Button>
+            <Button
+              onClick={() => {
+                setSaved(false);
+                navigate({ to: wasOnboarded ? "/coach" : "/pricing" });
+              }}
+            >
+              {wasOnboarded ? "Create a workout" : "Continue"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
