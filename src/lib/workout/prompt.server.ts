@@ -74,11 +74,18 @@ export type AthleteContext = {
   preferred_environment?: string | null;
   favorite_exercises?: string[] | null;
   disliked_exercises?: string[] | null;
+  /** Exact library names resolved from the athlete's picked favourite ids. */
+  favorite_library?: string[] | null;
+  /** Exact library names resolved from the athlete's picked disliked ids. */
+  disliked_library?: string[] | null;
+  /** Logged sets from previous sessions, used for progressive overload. */
+  recent_performance?: string[] | null;
   limitations?: string[] | null;
   location?: string | null;
   mood?: string | null;
   recent_feedback?: string[] | null;
 };
+
 
 function athleteBlock(a?: AthleteContext): string {
   if (!a) return "";
