@@ -73,6 +73,9 @@ type Profile = {
   preferred_environment: string | null;
   favorite_exercises: string[] | null;
   disliked_exercises: string[] | null;
+  favorite_exercise_ids: string[];
+  disliked_exercise_ids: string[];
+
   limitations: string[] | null;
   health_acknowledged_at: string | null;
   onboarded: boolean;
