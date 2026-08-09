@@ -190,7 +190,9 @@ function ProfilePage() {
         .select("*")
         .eq("id", auth.user.id)
         .maybeSingle();
-      setP({ ...EMPTY, ...((data as unknown as Partial<Profile>) ?? {}) });
+      const row = { ...EMPTY, ...((data as unknown as Partial<Profile>) ?? {}) };
+      setWasOnboarded(Boolean(row.onboarded));
+      setP(row);
     })();
   }, []);
 
@@ -199,6 +201,17 @@ function ProfilePage() {
   }
 
   function toggle(key: "preferred_categories" | "preferred_equipment", id: string) {
+    setP((prev) => {
+      if (!prev) return prev;
+      const cur = prev[key] ?? [];
+      return { ...prev, [key]: cur.includes(id) ? cur.filter((v) => v !== id) : [...cur, id] };
+    });
+  }
+
+  function toggleList(
+    key: "favorite_exercises" | "disliked_exercises" | "limitations",
+    id: string,
+  ) {
     setP((prev) => {
       if (!prev) return prev;
       const cur = prev[key] ?? [];
@@ -251,12 +264,14 @@ function ProfilePage() {
       .update({ ...p, onboarded: true } as never)
       .eq("id", auth.user.id);
     setSaving(false);
-    if (error) toast.error(error.message);
-    else {
-      toast.success("Profile complete — Smarty Coach can now personalize your workouts.");
-      navigate({ to: "/pricing" });
+    if (error) {
+      toast.error(error.message);
+      return;
     }
+    toast.success("Training profile saved.");
+    setSaved(true);
   }
+
 
   if (!p)
     return (
