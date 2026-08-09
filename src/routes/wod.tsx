@@ -117,6 +117,7 @@ function WodPage() {
     ReturnType<typeof getPublicWodDays>
   > | null>(null);
   const [busy, setBusy] = useState(false);
+  const [parqConsent, setParqConsent] = useState(false);
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(1);
 
