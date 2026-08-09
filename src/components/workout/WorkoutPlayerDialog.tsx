@@ -228,6 +228,36 @@ export function WorkoutPlayerDialog({
             </p>
           )}
 
+          {slide?.kind === "exercise" ? (
+            <div className="flex items-center gap-2">
+              <Input
+                inputMode="numeric"
+                placeholder="Reps"
+                value={reps}
+                onChange={(e) => setReps(e.target.value)}
+                className="h-11 flex-1 border-neutral-700 bg-neutral-900 text-neutral-50 placeholder:text-neutral-500"
+              />
+              <Input
+                inputMode="decimal"
+                placeholder="kg"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                className="h-11 flex-1 border-neutral-700 bg-neutral-900 text-neutral-50 placeholder:text-neutral-500"
+              />
+              <Button
+                variant="secondary"
+                className="h-11 shrink-0"
+                disabled={savingSet}
+                onClick={logSet}
+              >
+                <Check className="mr-1.5 h-4 w-4" />
+                Log set {(logged[index] ?? 0) + 1}
+              </Button>
+            </div>
+          ) : null}
+
+
+
           <div className="flex items-center justify-between gap-2">
             <Button
               variant="ghost"
