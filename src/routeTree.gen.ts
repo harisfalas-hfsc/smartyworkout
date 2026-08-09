@@ -17,6 +17,7 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DisclaimerRouteImport } from './routes/disclaimer'
 import { Route as ExerciseLibraryRouteImport } from './routes/exercise-library'
 import { Route as FaqRouteImport } from './routes/faq'
+import { Route as FounderNoteRouteImport } from './routes/founder-note'
 import { Route as GlossaryRouteImport } from './routes/glossary'
 import { Route as HarisFalasRouteImport } from './routes/haris-falas'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
@@ -81,6 +82,11 @@ const ExerciseLibraryRoute = ExerciseLibraryRouteImport.update({
 const FaqRoute = FaqRouteImport.update({
   id: '/faq',
   path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FounderNoteRoute = FounderNoteRouteImport.update({
+  id: '/founder-note',
+  path: '/founder-note',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GlossaryRoute = GlossaryRouteImport.update({
@@ -226,6 +232,7 @@ export interface FileRoutesByFullPath {
   '/disclaimer': typeof DisclaimerRoute
   '/exercise-library': typeof ExerciseLibraryRoute
   '/faq': typeof FaqRoute
+  '/founder-note': typeof FounderNoteRoute
   '/glossary': typeof GlossaryRoute
   '/haris-falas': typeof HarisFalasRoute
   '/how-it-works': typeof HowItWorksRoute
@@ -261,6 +268,7 @@ export interface FileRoutesByTo {
   '/disclaimer': typeof DisclaimerRoute
   '/exercise-library': typeof ExerciseLibraryRoute
   '/faq': typeof FaqRoute
+  '/founder-note': typeof FounderNoteRoute
   '/glossary': typeof GlossaryRoute
   '/haris-falas': typeof HarisFalasRoute
   '/how-it-works': typeof HowItWorksRoute
@@ -298,6 +306,7 @@ export interface FileRoutesById {
   '/disclaimer': typeof DisclaimerRoute
   '/exercise-library': typeof ExerciseLibraryRoute
   '/faq': typeof FaqRoute
+  '/founder-note': typeof FounderNoteRoute
   '/glossary': typeof GlossaryRoute
   '/haris-falas': typeof HarisFalasRoute
   '/how-it-works': typeof HowItWorksRoute
@@ -335,6 +344,7 @@ export interface FileRouteTypes {
     | '/disclaimer'
     | '/exercise-library'
     | '/faq'
+    | '/founder-note'
     | '/glossary'
     | '/haris-falas'
     | '/how-it-works'
@@ -370,6 +380,7 @@ export interface FileRouteTypes {
     | '/disclaimer'
     | '/exercise-library'
     | '/faq'
+    | '/founder-note'
     | '/glossary'
     | '/haris-falas'
     | '/how-it-works'
@@ -406,6 +417,7 @@ export interface FileRouteTypes {
     | '/disclaimer'
     | '/exercise-library'
     | '/faq'
+    | '/founder-note'
     | '/glossary'
     | '/haris-falas'
     | '/how-it-works'
@@ -443,6 +455,7 @@ export interface RootRouteChildren {
   DisclaimerRoute: typeof DisclaimerRoute
   ExerciseLibraryRoute: typeof ExerciseLibraryRoute
   FaqRoute: typeof FaqRoute
+  FounderNoteRoute: typeof FounderNoteRoute
   GlossaryRoute: typeof GlossaryRoute
   HarisFalasRoute: typeof HarisFalasRoute
   HowItWorksRoute: typeof HowItWorksRoute
@@ -518,6 +531,13 @@ declare module '@tanstack/react-router' {
       path: '/faq'
       fullPath: '/faq'
       preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/founder-note': {
+      id: '/founder-note'
+      path: '/founder-note'
+      fullPath: '/founder-note'
+      preLoaderRoute: typeof FounderNoteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/glossary': {
@@ -752,6 +772,7 @@ const rootRouteChildren: RootRouteChildren = {
   DisclaimerRoute: DisclaimerRoute,
   ExerciseLibraryRoute: ExerciseLibraryRoute,
   FaqRoute: FaqRoute,
+  FounderNoteRoute: FounderNoteRoute,
   GlossaryRoute: GlossaryRoute,
   HarisFalasRoute: HarisFalasRoute,
   HowItWorksRoute: HowItWorksRoute,
@@ -773,13 +794,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

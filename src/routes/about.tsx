@@ -71,11 +71,10 @@ function AboutPage() {
             philosophy of{" "}
             <Link
               to="/haris-falas"
-              className="font-semibold text-primary underline underline-offset-2"
+              className="whitespace-nowrap font-semibold text-primary underline underline-offset-2"
             >
               Sports Scientist Haris Falas
             </Link>
-            .
           </>
         }
       />
