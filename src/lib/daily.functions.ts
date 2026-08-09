@@ -34,7 +34,36 @@ function clampHour(h: unknown) {
   return Math.max(0, Math.min(23, Math.round(n)));
 }
 
+/** Public 3-day cycle preview (yesterday / today / tomorrow) with admin overrides applied. */
+export const getPublicWodDays = createServerFn({ method: "GET" }).handler(async () => {
+  const { resolveCycleDay } = await import("@/lib/settings.server");
+  const today = localDateISO(new Date());
+  const shift = (days: number) => {
+    const d = new Date(`${today}T12:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + days);
+    return d.toISOString().slice(0, 10);
+  };
+  const info = async (iso: string) => {
+    const c = await resolveCycleDay(iso);
+    return {
+      date: iso,
+      category: c.category as string,
+      difficulty: (c.difficulty ?? "Recovery") as string,
+      stars: starsForCycleDayWithLevel(c, "cycle"),
+      focus: (c.strengthFocus ?? null) as string | null,
+      isRecovery: c.category === "RECOVERY",
+    };
+  };
+  const [yesterday, todayInfo, tomorrow] = await Promise.all([
+    info(shift(-1)),
+    info(today),
+    info(shift(1)),
+  ]);
+  return { yesterday, today: todayInfo, tomorrow };
+});
+
 export const getDailyHub = createServerFn({ method: "GET" })
+
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;

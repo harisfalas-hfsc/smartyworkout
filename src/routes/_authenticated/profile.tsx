@@ -19,8 +19,27 @@ import {
   Activity,
 } from "lucide-react";
 import { toast } from "sonner";
-import { EQUIPMENT, GOALS, LOCATIONS } from "@/lib/coach-options";
+import {
+  EQUIPMENT,
+  GOALS,
+  LOCATIONS,
+  GENDERS,
+  FITNESS_LEVELS,
+  SESSIONS_PER_WEEK,
+  DURATIONS,
+  PROFILE_GOALS,
+  MOVEMENT_DISLIKES,
+  LIMITATIONS,
+} from "@/lib/coach-options";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { PageHeader } from "@/components/PageHeader";
+
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
@@ -154,17 +173,13 @@ function Pills({
   );
 }
 
-function toList(s: string) {
-  return s
-    .split(",")
-    .map((v) => v.trim())
-    .filter(Boolean);
-}
-
 function ProfilePage() {
   const navigate = useNavigate();
   const [p, setP] = useState<Profile | null>(null);
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [wasOnboarded, setWasOnboarded] = useState(false);
+
 
   useEffect(() => {
     (async () => {
@@ -175,7 +190,21 @@ function ProfilePage() {
         .select("*")
         .eq("id", auth.user.id)
         .maybeSingle();
-      setP({ ...EMPTY, ...((data as unknown as Partial<Profile>) ?? {}) });
+      const incoming = (data as unknown as Partial<Profile>) ?? {};
+      // Drop nulls so dropdown defaults in EMPTY stay in sync with what is displayed.
+      const clean = Object.fromEntries(
+        Object.entries(incoming).filter(
+          ([k, v]) =>
+            v !== null &&
+            v !== undefined &&
+            !(v === "" && k !== "display_name" && k !== "secondary_goal"),
+        ),
+      ) as Partial<Profile>;
+
+      const row = { ...EMPTY, ...clean };
+      setWasOnboarded(Boolean(row.onboarded));
+      setP(row);
+
     })();
   }, []);
 
@@ -184,6 +213,17 @@ function ProfilePage() {
   }
 
   function toggle(key: "preferred_categories" | "preferred_equipment", id: string) {
+    setP((prev) => {
+      if (!prev) return prev;
+      const cur = prev[key] ?? [];
+      return { ...prev, [key]: cur.includes(id) ? cur.filter((v) => v !== id) : [...cur, id] };
+    });
+  }
+
+  function toggleList(
+    key: "favorite_exercises" | "disliked_exercises" | "limitations",
+    id: string,
+  ) {
     setP((prev) => {
       if (!prev) return prev;
       const cur = prev[key] ?? [];
@@ -236,12 +276,14 @@ function ProfilePage() {
       .update({ ...p, onboarded: true } as never)
       .eq("id", auth.user.id);
     setSaving(false);
-    if (error) toast.error(error.message);
-    else {
-      toast.success("Profile complete — Smarty Coach can now personalize your workouts.");
-      navigate({ to: "/pricing" });
+    if (error) {
+      toast.error(error.message);
+      return;
     }
+    toast.success("Training profile saved.");
+    setSaved(true);
   }
+
 
   if (!p)
     return (
@@ -281,11 +323,18 @@ function ProfilePage() {
               />
             </Field>
             <Field label="Gender">
-              <Input
-                className="h-12 rounded-2xl"
+              <select
+                className={selectClass}
                 value={p.gender ?? ""}
                 onChange={(e) => set("gender", e.target.value)}
-              />
+              >
+                <option value="">Select…</option>
+                {GENDERS.map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.label}
+                  </option>
+                ))}
+              </select>
             </Field>
             <Field label="Height (cm)">
               <Input
@@ -317,53 +366,71 @@ function ProfilePage() {
                   set("experience", e.target.value);
                 }}
               >
-                {LEVELS.map((l) => (
-                  <option key={l} value={l}>
-                    {l}
+                {FITNESS_LEVELS.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {l.label}
                   </option>
                 ))}
               </select>
             </Field>
             <Field label="Sessions per week">
-              <Input
-                className="h-12 rounded-2xl"
-                type="number"
-                value={p.training_frequency ?? ""}
-                onChange={(e) =>
-                  set("training_frequency", e.target.value ? Number(e.target.value) : null)
-                }
-              />
+              <select
+                className={selectClass}
+                value={String(p.training_frequency ?? 3)}
+                onChange={(e) => set("training_frequency", Number(e.target.value))}
+              >
+                {SESSIONS_PER_WEEK.map((n) => (
+                  <option key={n} value={n}>
+                    {n} {n === 1 ? "session" : "sessions"}
+                  </option>
+                ))}
+              </select>
             </Field>
-            <Field label="Typical duration (min)">
-              <Input
-                className="h-12 rounded-2xl"
-                type="number"
-                value={p.typical_duration_min ?? ""}
-                onChange={(e) =>
-                  set("typical_duration_min", e.target.value ? Number(e.target.value) : null)
-                }
-              />
+            <Field label="Typical duration (approx.)">
+              <select
+                className={selectClass}
+                value={String(p.typical_duration_min ?? 30)}
+                onChange={(e) => set("typical_duration_min", Number(e.target.value))}
+              >
+                {DURATIONS.map((n) => (
+                  <option key={n} value={n}>
+                    ~{n} minutes
+                  </option>
+                ))}
+              </select>
             </Field>
           </div>
         </SectionCard>
 
-        <SectionCard icon={Target} title="Your goals">
+        <SectionCard icon={Target} title="Your goals" hint="Pick from the list — no typing">
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Primary goal">
-              <Input
-                className="h-12 rounded-2xl"
+              <select
+                className={selectClass}
                 value={p.primary_goal ?? ""}
                 onChange={(e) => set("primary_goal", e.target.value)}
-                placeholder="e.g. build muscle"
-              />
+              >
+                <option value="">Select…</option>
+                {PROFILE_GOALS.map((g) => (
+                  <option key={g.id} value={g.label}>
+                    {g.label}
+                  </option>
+                ))}
+              </select>
             </Field>
-            <Field label="Secondary goal">
-              <Input
-                className="h-12 rounded-2xl"
+            <Field label="Secondary goal (optional)">
+              <select
+                className={selectClass}
                 value={p.secondary_goal ?? ""}
                 onChange={(e) => set("secondary_goal", e.target.value)}
-                placeholder="e.g. stay lean"
-              />
+              >
+                <option value="">None</option>
+                {PROFILE_GOALS.map((g) => (
+                  <option key={g.id} value={g.label}>
+                    {g.label}
+                  </option>
+                ))}
+              </select>
             </Field>
           </div>
         </SectionCard>
@@ -408,14 +475,13 @@ function ProfilePage() {
 
         <SectionCard
           icon={Heart}
-          title="Favourite exercises"
-          hint="Comma separated — Smarty Coach will prioritise these"
+          title="Movements you love"
+          hint="Smarty Coach will prioritise these when they fit"
         >
-          <Textarea
-            className="rounded-2xl"
-            rows={2}
-            value={(p.favorite_exercises ?? []).join(", ")}
-            onChange={(e) => set("favorite_exercises", toList(e.target.value))}
+          <Pills
+            options={MOVEMENT_DISLIKES.map((m) => ({ id: m.label, label: m.label }))}
+            value={p.favorite_exercises ?? []}
+            onToggle={(id) => toggleList("favorite_exercises", id)}
           />
         </SectionCard>
 
@@ -451,23 +517,41 @@ function ProfilePage() {
             ))}
           </div>
           {Object.values(p.readiness_answers ?? {}).some(Boolean) ? (
-            <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-2xl border border-destructive/50 bg-destructive/10 p-4 text-sm leading-5">
-              <input
-                type="checkbox"
-                className="mt-0.5 h-5 w-5 shrink-0 accent-primary"
-                checked={Boolean(p.readiness_warning_acknowledged_at)}
-                onChange={(event) =>
-                  set(
-                    "readiness_warning_acknowledged_at",
-                    event.target.checked ? new Date().toISOString() : null,
-                  )
-                }
-              />
-              <span>
-                A response indicates exercise may not be appropriate without professional advice. I have read this warning, understand the risk, and choose to continue.
-              </span>
-            </label>
-          ) : null}
+            <div className="mt-4 space-y-3 rounded-2xl border border-destructive/50 bg-destructive/10 p-4">
+              <p className="text-sm font-bold">You answered yes to at least one question</p>
+              <p className="text-sm leading-5">
+                Please speak to your doctor before you start training, and tell them which
+                question you answered yes to. Smarty Workout is not medical advice. If you choose
+                to train anyway you do so at your own responsibility — start easy, stop
+                immediately if you feel pain, chest tightness, dizziness or breathlessness, and
+                get medical help if symptoms continue.
+              </p>
+              <label className="flex cursor-pointer items-start gap-3 text-sm leading-5">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 h-5 w-5 shrink-0 accent-primary"
+                  checked={Boolean(p.readiness_warning_acknowledged_at)}
+                  onChange={(event) =>
+                    set(
+                      "readiness_warning_acknowledged_at",
+                      event.target.checked ? new Date().toISOString() : null,
+                    )
+                  }
+                />
+                <span>
+                  I have read this warning, I take full responsibility, and I choose to continue.
+                </span>
+              </label>
+            </div>
+          ) : (
+            Object.keys(p.readiness_answers ?? {}).length === 5 && (
+              <p className="mt-4 rounded-2xl border border-border bg-background p-4 text-sm leading-5 text-muted-foreground">
+                All answers are no — you are clear to train. Keep it sensible and stop if anything
+                feels wrong.
+              </p>
+            )
+          )}
+
         </SectionCard>
 
         <SectionCard
@@ -492,27 +576,25 @@ function ProfilePage() {
 
         <SectionCard
           icon={ThumbsDown}
-          title="Exercises you dislike"
-          hint="Comma separated — these will never appear"
+          title="Movements you dislike"
+          hint="Tap to exclude — these will never be programmed"
         >
-          <Textarea
-            className="rounded-2xl"
-            rows={2}
-            value={(p.disliked_exercises ?? []).join(", ")}
-            onChange={(e) => set("disliked_exercises", toList(e.target.value))}
+          <Pills
+            options={MOVEMENT_DISLIKES.map((m) => ({ id: m.label, label: m.label }))}
+            value={p.disliked_exercises ?? []}
+            onToggle={(id) => toggleList("disliked_exercises", id)}
           />
         </SectionCard>
 
         <SectionCard
           icon={ShieldAlert}
           title="Injuries & limitations"
-          hint="Comma separated — always respected when building your workout"
+          hint="Always respected when building your workout"
         >
-          <Textarea
-            className="rounded-2xl"
-            rows={2}
-            value={(p.limitations ?? []).join(", ")}
-            onChange={(e) => set("limitations", toList(e.target.value))}
+          <Pills
+            options={LIMITATIONS.map((l) => ({ id: l.label, label: l.label }))}
+            value={p.limitations ?? []}
+            onToggle={(id) => toggleList("limitations", id)}
           />
         </SectionCard>
       </div>
@@ -528,6 +610,33 @@ function ProfilePage() {
           Save profile
         </Button>
       </div>
+
+      <Dialog open={saved} onOpenChange={setSaved}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Training profile saved</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Smarty Coach reads this profile every single time it builds a workout for you — your
+            own workouts and your Workout of the Day. Change it whenever you like and the next
+            workout follows the new answers.
+          </p>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => setSaved(false)}>
+              Keep editing
+            </Button>
+            <Button
+              onClick={() => {
+                setSaved(false);
+                navigate({ to: wasOnboarded ? "/coach" : "/pricing" });
+              }}
+            >
+              {wasOnboarded ? "Create a workout" : "Continue"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
