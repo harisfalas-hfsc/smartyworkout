@@ -200,7 +200,8 @@ The "main_workout" field contains ALL sections joined in order.`;
 Category: ${input.category}
 Available equipment (strict allowlist): ${[...input.selectedEquipment.filter((x) => x !== "other"), ...(input.customEquipment ?? [])].join(", ")}
 Never use any apparatus outside this list, even during Activation or Cool Down.
-Difficulty: ${input.stars} stars (${input.level.toUpperCase()}) — do not mix levels
+Difficulty: ${input.stars} of 6 stars (${input.level.toUpperCase()}) — do not mix levels
+Intensity within the level: ${intensityNote(input.stars)}
 Format: ${input.format}
 Duration: ${input.duration}${input.focus ? `\nFocus: ${input.focus}` : ""}
 ${input.note ? `Athlete note: ${input.note}` : ""}
