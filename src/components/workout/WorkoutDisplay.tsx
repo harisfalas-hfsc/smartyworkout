@@ -49,12 +49,13 @@ export type WorkoutRow = {
 };
 
 function Stars({ n }: { n: number }) {
+  const filled = normalizeStars(n);
   return (
     <span className="inline-flex items-center gap-0.5">
-      {Array.from({ length: 6 }).map((_, i) => (
+      {Array.from({ length: MAX_STARS }).map((_, i) => (
         <Star
           key={i}
-          className={`h-4 w-4 ${i < n ? "fill-primary text-primary" : "text-muted-foreground/40"}`}
+          className={`h-4 w-4 ${i < filled ? "fill-primary text-primary" : "text-muted-foreground/40"}`}
         />
       ))}
     </span>
