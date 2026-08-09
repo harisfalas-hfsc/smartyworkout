@@ -193,8 +193,14 @@ function ProfilePage() {
       const incoming = (data as unknown as Partial<Profile>) ?? {};
       // Drop nulls so dropdown defaults in EMPTY stay in sync with what is displayed.
       const clean = Object.fromEntries(
-        Object.entries(incoming).filter(([, v]) => v !== null && v !== undefined),
+        Object.entries(incoming).filter(
+          ([k, v]) =>
+            v !== null &&
+            v !== undefined &&
+            !(v === "" && k !== "display_name" && k !== "secondary_goal"),
+        ),
       ) as Partial<Profile>;
+
       const row = { ...EMPTY, ...clean };
       setWasOnboarded(Boolean(row.onboarded));
       setP(row);
