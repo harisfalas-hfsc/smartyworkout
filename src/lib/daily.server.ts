@@ -109,61 +109,58 @@ export async function runWodForUser(
         { key: "equipment", equipment: equipmentListFor(prof) },
       ];
 
-  const ids: string[] = [];
-  let created = 0;
-
-  for (const variant of variants) {
-    const known = byVariant.get(variant.key);
-    if (known) {
-      ids.push(known);
-      continue;
-    }
-    let built: { id: string; name: string; category: string };
-    try {
-      built = await createWorkoutForUser(db as never, userId, {
-        minutes,
-        mood: "normal",
-        location: variant.key === "bodyweight" ? "home" : prof?.preferred_environment ?? "home",
-        equipment: variant.equipment,
-        wod: {
-          category: cycleDay.category,
-          stars,
-          focus: cycleDay.strengthFocus ?? null,
-          date: today,
-          cycleDay: getDayIn84Cycle(today),
-          variant: variant.key,
-        },
-      });
-    } catch (e) {
-      // A parallel request already claimed this variant (unique index) — reuse it.
-      const { data: raced } = await db
-        .from("workouts")
-        .select("id")
-        .eq("user_id", userId)
-        .eq("is_wod", true)
-        .eq("wod_date", today)
-        .eq("wod_variant", variant.key)
-        .maybeSingle();
-      const racedId = (raced as { id: string } | null)?.id;
-      if (racedId) {
-        ids.push(racedId);
-        continue;
+  // Both variants are built at the same time — the athlete waits for one workout, not two.
+  const results = await Promise.all(
+    variants.map(async (variant): Promise<{ id: string; created: boolean }> => {
+      const known = byVariant.get(variant.key);
+      if (known) return { id: known, created: false };
+      let built: { id: string; name: string; category: string };
+      try {
+        built = await createWorkoutForUser(db as never, userId, {
+          minutes,
+          mood: "normal",
+          location: variant.key === "bodyweight" ? "home" : prof?.preferred_environment ?? "home",
+          equipment: variant.equipment,
+          wod: {
+            category: cycleDay.category,
+            stars,
+            focus: cycleDay.strengthFocus ?? null,
+            date: today,
+            cycleDay: getDayIn84Cycle(today),
+            variant: variant.key,
+          },
+        });
+      } catch (e) {
+        // A parallel request already claimed this variant (unique index) — reuse it.
+        const { data: raced } = await db
+          .from("workouts")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("is_wod", true)
+          .eq("wod_date", today)
+          .eq("wod_variant", variant.key)
+          .maybeSingle();
+        const racedId = (raced as { id: string } | null)?.id;
+        if (racedId) return { id: racedId, created: false };
+        throw e;
       }
-      throw e;
-    }
-    await db.from("notifications").insert({
-      user_id: userId,
-      kind: "wod",
-      title:
-        variant.key === "bodyweight"
-          ? "Your bodyweight Workout of the Day is ready"
-          : "Your equipment Workout of the Day is ready",
-      body: `${built.category} — ${built.name}`,
-      workout_id: built.id,
-    } as never);
-    ids.push(built.id);
-    created += 1;
-  }
+      await db.from("notifications").insert({
+        user_id: userId,
+        kind: "wod",
+        title:
+          variant.key === "bodyweight"
+            ? "Your bodyweight Workout of the Day is ready"
+            : "Your equipment Workout of the Day is ready",
+        body: `${built.category} — ${built.name}`,
+        workout_id: built.id,
+      } as never);
+      return { id: built.id, created: true };
+    }),
+  );
+
+  const ids = results.map((r) => r.id);
+  const created = results.filter((r) => r.created).length;
+
 
 
   if (created) {
