@@ -128,6 +128,8 @@ function CoachPage() {
   const [equipment, setEquipment] = useState<string[]>(["bodyweight"]);
   const [otherEquipment, setOtherEquipment] = useState("");
   const [note, setNote] = useState("");
+  const [useLibraryPreferences, setUseLibraryPreferences] = useState(true);
+
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState<string>("");
   const [level, setLevel] = useState<string>("auto");
