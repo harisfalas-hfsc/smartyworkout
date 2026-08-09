@@ -89,7 +89,12 @@ export type PoolFilter = {
   customEquipment?: string[];
   level: DifficultyLevel;
   focus?: StrengthFocus | null;
+  /** Library ids the athlete banned — removed before the model sees anything. */
+  dislikedIds?: string[];
+  /** Library ids the athlete loves — kept in the sample and surfaced to the model. */
+  favoriteIds?: string[];
 };
+
 
 const isBodyweight = (e: PoolExercise) => (e.equipment ?? "").toLowerCase().includes("body weight");
 
