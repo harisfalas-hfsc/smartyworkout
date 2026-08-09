@@ -24,7 +24,57 @@ export const Route = createFileRoute("/tools/")({
       { property: "og:url", content: "https://smartyworkout.com/tools" },
     ],
     links: [{ rel: "canonical", href: "https://smartyworkout.com/tools" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "CollectionPage",
+              url: "https://smartyworkout.com/tools",
+              name: "SmartyWorkout Tools",
+              description:
+                "Free SmartyWorkout training tools: interval workout timer, big-button rounds tracker and Brzycki 1RM calculator.",
+              inLanguage: "en",
+              isPartOf: { "@id": "https://smartyworkout.com/#website" },
+              mainEntity: {
+                "@type": "ItemList",
+                itemListElement: [
+                  {
+                    "@type": "ListItem",
+                    position: 1,
+                    name: "Workout Timer",
+                    url: "https://smartyworkout.com/tools/workout-timer",
+                  },
+                  {
+                    "@type": "ListItem",
+                    position: 2,
+                    name: "Rounds Tracker",
+                    url: "https://smartyworkout.com/tools/rounds-tracker",
+                  },
+                  {
+                    "@type": "ListItem",
+                    position: 3,
+                    name: "1RM Calculator",
+                    url: "https://smartyworkout.com/tools/1rm-calculator",
+                  },
+                ],
+              },
+            },
+            {
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                { "@type": "ListItem", position: 1, name: "Home", item: "https://smartyworkout.com/" },
+                { "@type": "ListItem", position: 2, name: "Tools", item: "https://smartyworkout.com/tools" },
+              ],
+            },
+          ],
+        }),
+      },
+    ],
   }),
+
   component: ToolsPage,
 });
 
