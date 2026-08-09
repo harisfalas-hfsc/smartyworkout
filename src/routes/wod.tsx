@@ -28,16 +28,50 @@ export const Route = createFileRoute("/wod")({
         content:
           "Two Workouts of the Day — one bodyweight, one with equipment — built automatically for your profile every night at midnight.",
       },
-      { name: "robots", content: "noindex" },
       { property: "og:title", content: "Workout of the Day — Smarty Workout" },
       {
         property: "og:description",
         content: "A balanced daily workout programme adapted to your profile by Smarty Coach.",
       },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
+      { property: "og:url", content: "https://smartyworkout.com/wod" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+    links: [{ rel: "canonical", href: "https://smartyworkout.com/wod" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "WebPage",
+              url: "https://smartyworkout.com/wod",
+              name: "Workout of the Day — Smarty Workout",
+              description:
+                "Two Workouts of the Day — one bodyweight, one with equipment — built automatically for your profile every night at midnight.",
+              inLanguage: "en",
+              isPartOf: { "@id": "https://smartyworkout.com/#website" },
+              about: { "@id": "https://smartyworkout.com/#software" },
+            },
+            {
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                { "@type": "ListItem", position: 1, name: "Home", item: "https://smartyworkout.com/" },
+                {
+                  "@type": "ListItem",
+                  position: 2,
+                  name: "Workout of the Day",
+                  item: "https://smartyworkout.com/wod",
+                },
+              ],
+            },
+          ],
+        }),
+      },
     ],
   }),
+
   component: WodPage,
 });
 

@@ -26,7 +26,37 @@ export const Route = createFileRoute("/tools/rounds-tracker")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "canonical", href: URL }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "WebApplication",
+              name: "Rounds Tracker",
+              url: URL,
+              applicationCategory: "HealthApplication",
+              operatingSystem: "Web",
+              description: DESCRIPTION,
+              isAccessibleForFree: true,
+              offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
+              publisher: { "@id": "https://smartyworkout.com/#organization" },
+            },
+            {
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                { "@type": "ListItem", position: 1, name: "Home", item: "https://smartyworkout.com/" },
+                { "@type": "ListItem", position: 2, name: "Tools", item: "https://smartyworkout.com/tools" },
+                { "@type": "ListItem", position: 3, name: "Rounds Tracker", item: URL },
+              ],
+            },
+          ],
+        }),
+      },
+    ],
   }),
+
   component: RoundsTrackerPage,
 });
 

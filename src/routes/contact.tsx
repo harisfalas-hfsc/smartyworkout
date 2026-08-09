@@ -32,9 +32,28 @@ export const Route = createFileRoute("/contact")({
         content: "Questions, feedback, or support? We reply within 24–48 hours.",
       },
       { property: "og:url", content: "https://smartyworkout.com/contact" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "canonical", href: "https://smartyworkout.com/contact" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "ContactPage",
+          url: "https://smartyworkout.com/contact",
+          name: "Contact SmartyWorkout",
+          description:
+            "Get in touch with the SmartyWorkout team. Questions, feedback, partnership, support — we reply within 24–48 hours.",
+          inLanguage: "en",
+          isPartOf: { "@id": "https://smartyworkout.com/#website" },
+          mainEntity: { "@id": "https://smartyworkout.com/#organization" },
+        }),
+      },
+    ],
   }),
+
   component: Contact,
 });
 

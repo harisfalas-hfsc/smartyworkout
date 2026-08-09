@@ -24,7 +24,49 @@ export const Route = createFileRoute("/pricing")({
       { property: "og:url", content: "https://smartyworkout.com/pricing" },
     ],
     links: [{ rel: "canonical", href: "https://smartyworkout.com/pricing" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Product",
+              name: "SmartyWorkout Subscription",
+              description:
+                "One SmartyWorkout subscription: 2 AI workouts a day, the full exercise library, all training tools, your logbook and every past workout.",
+              brand: { "@id": "https://smartyworkout.com/#organization" },
+              category: "Fitness subscription",
+              image: "https://smartyworkout.com/og-social.jpg",
+              offers: {
+                "@type": "Offer",
+                price: "9.99",
+                priceCurrency: "EUR",
+                availability: "https://schema.org/InStock",
+                url: "https://smartyworkout.com/pricing",
+                category: "subscription",
+                priceSpecification: {
+                  "@type": "UnitPriceSpecification",
+                  price: "9.99",
+                  priceCurrency: "EUR",
+                  billingIncrement: 1,
+                  unitCode: "MON",
+                },
+              },
+            },
+            {
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                { "@type": "ListItem", position: 1, name: "Home", item: "https://smartyworkout.com/" },
+                { "@type": "ListItem", position: 2, name: "Pricing", item: "https://smartyworkout.com/pricing" },
+              ],
+            },
+          ],
+        }),
+      },
+    ],
   }),
+
   component: PricingPage,
 });
 

@@ -22,7 +22,49 @@ export const Route = createFileRoute("/haris-falas")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "canonical", href: URL }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Person",
+              "@id": `${URL}#person`,
+              name: "Haris Falas",
+              url: URL,
+              jobTitle: "Sports Scientist & Strength Coach",
+              description: DESCRIPTION,
+              knowsAbout: [
+                "Strength and conditioning",
+                "Football performance",
+                "Sports science",
+                "Workout programming",
+                "Athletic development",
+              ],
+              worksFor: { "@id": "https://smartyworkout.com/#organization" },
+            },
+            {
+              "@type": "ProfilePage",
+              url: URL,
+              name: TITLE,
+              description: DESCRIPTION,
+              mainEntity: { "@id": `${URL}#person` },
+              isPartOf: { "@id": "https://smartyworkout.com/#website" },
+            },
+            {
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                { "@type": "ListItem", position: 1, name: "Home", item: "https://smartyworkout.com/" },
+                { "@type": "ListItem", position: 2, name: "Haris Falas", item: URL },
+              ],
+            },
+          ],
+        }),
+      },
+    ],
   }),
+
   component: CoachProfilePage,
 });
 

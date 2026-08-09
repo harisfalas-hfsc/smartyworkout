@@ -39,7 +39,39 @@ export const Route = createFileRoute("/exercise-library")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "canonical", href: URL }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "CollectionPage",
+              url: URL,
+              name: TITLE,
+              description: DESCRIPTION,
+              inLanguage: "en",
+              isPartOf: { "@id": "https://smartyworkout.com/#website" },
+              about: {
+                "@type": "Thing",
+                name: "Exercise database",
+                description:
+                  "A curated library of over 1,300 resistance, bodyweight and conditioning exercises with animated demonstrations.",
+              },
+            },
+            {
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                { "@type": "ListItem", position: 1, name: "Home", item: "https://smartyworkout.com/" },
+                { "@type": "ListItem", position: 2, name: "Exercise Library", item: URL },
+              ],
+            },
+          ],
+        }),
+      },
+    ],
   }),
+
   component: ExerciseLibraryPage,
 });
 

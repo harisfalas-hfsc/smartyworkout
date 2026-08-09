@@ -18,7 +18,68 @@ export const Route = createFileRoute("/how-it-works")({
       { property: "og:url", content: "https://smartyworkout.com/how-it-works" },
     ],
     links: [{ rel: "canonical", href: "https://smartyworkout.com/how-it-works" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "HowTo",
+              name: "How to get a personalized workout with SmartyWorkout",
+              description:
+                "Four steps from your goal to a complete personalized workout built by Smarty Coach.",
+              totalTime: "PT2M",
+              step: [
+                {
+                  "@type": "HowToStep",
+                  position: 1,
+                  name: "You answer",
+                  text: "Set your goal, mood, available time, training location and equipment.",
+                },
+                {
+                  "@type": "HowToStep",
+                  position: 2,
+                  name: "Smarty Coach analyses",
+                  text: "Your training profile and today's answers are merged and matched against the exercise library.",
+                },
+                {
+                  "@type": "HowToStep",
+                  position: 3,
+                  name: "Your workout is built",
+                  text: "A full session with warm-up, activation, main work, finisher and cool-down, including sets, reps, tempo and rest.",
+                },
+                {
+                  "@type": "HowToStep",
+                  position: 4,
+                  name: "You train and log it",
+                  text: "Follow the guided player, then log the session so the next workout adapts to your feedback.",
+                },
+              ],
+            },
+            {
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                {
+                  "@type": "ListItem",
+                  position: 1,
+                  name: "Home",
+                  item: "https://smartyworkout.com/",
+                },
+                {
+                  "@type": "ListItem",
+                  position: 2,
+                  name: "How it works",
+                  item: "https://smartyworkout.com/how-it-works",
+                },
+              ],
+            },
+          ],
+        }),
+      },
+    ],
   }),
+
   component: HowItWorks,
 });
 

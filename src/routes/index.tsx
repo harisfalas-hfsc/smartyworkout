@@ -27,17 +27,34 @@ export const Route = createFileRoute("/")({
       { property: "og:url", content: "https://smartyworkout.com/" },
       {
         property: "og:image",
-        content:
-          "https://smartyworkout.com/__l5e/assets-v1/d1e59921-5974-44b4-96d8-9bfbec15c871/smartydiet-social.png",
+        content: "https://smartyworkout.com/og-social.jpg",
       },
       {
         name: "twitter:image",
-        content:
-          "https://smartyworkout.com/__l5e/assets-v1/d1e59921-5974-44b4-96d8-9bfbec15c871/smartydiet-social.png",
+        content: "https://smartyworkout.com/og-social.jpg",
       },
     ],
     links: [{ rel: "canonical", href: "https://smartyworkout.com/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "@id": "https://smartyworkout.com/#webpage",
+          url: "https://smartyworkout.com/",
+          name: "SmartyWorkout — Your personal workout, anytime, anywhere",
+          description:
+            "Answer a smart questionnaire and get a full tailor-made workout built around your body, goals, equipment and constraints.",
+          inLanguage: "en",
+          isPartOf: { "@id": "https://smartyworkout.com/#website" },
+          about: { "@id": "https://smartyworkout.com/#software" },
+          primaryImageOfPage: "https://smartyworkout.com/og-social.jpg",
+        }),
+      },
+    ],
   }),
+
   component: Home,
 });
 
