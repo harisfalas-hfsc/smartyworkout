@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { PenLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import harisPhoto from "@/assets/haris-falas-coach.png";
@@ -198,6 +199,13 @@ function CoachProfilePage() {
         <Button asChild size="lg" className="font-extrabold uppercase">
           <Link to="/coach">Create your workout</Link>
         </Button>
+        <Link
+          to="/founder-note"
+          className="inline-flex items-center gap-2 text-sm font-bold text-primary underline underline-offset-4"
+        >
+          <PenLine className="h-4 w-4" />
+          A note from the founder
+        </Link>
         <p className="text-sm text-muted-foreground">
           Train with confidence under expert guidance
         </p>
