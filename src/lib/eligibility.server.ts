@@ -105,6 +105,10 @@ export async function getAccessStateForUser(
     subscription && (!periodEnd || Number.isNaN(periodEnd) || periodEnd > Date.now()),
   );
 
+  const { getWorkoutRules } = await import("@/lib/settings.server");
+  const rules = await getWorkoutRules();
+  const dailyLimit = rules.dailyGenerationLimit;
+
   const timezone = (row?.["timezone"] as string) || "Europe/Athens";
   let generationsUsedToday = 0;
   try {
@@ -126,8 +130,8 @@ export async function getAccessStateForUser(
     premium,
     missingProfileFields,
     generationsUsedToday,
-    generationsLimit: DAILY_GENERATION_LIMIT,
-    generationsLeftToday: Math.max(0, DAILY_GENERATION_LIMIT - generationsUsedToday),
+    generationsLimit: dailyLimit,
+    generationsLeftToday: Math.max(0, dailyLimit - generationsUsedToday),
   };
 }
 
@@ -151,7 +155,7 @@ export async function requireWorkoutAccess(
   }
   if (options.countsAgainstDailyQuota && access.generationsLeftToday <= 0) {
     throw new Error(
-      `Your membership includes ${DAILY_GENERATION_LIMIT} workout generations per day. You've used both today — your Workout of the Day is still available, and your allowance resets tomorrow.`,
+      `Your membership includes ${access.generationsLimit} workout generations per day. You've used both today — your Workout of the Day is still available, and your allowance resets tomorrow.`,
     );
   }
   return access;
