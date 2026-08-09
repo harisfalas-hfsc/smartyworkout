@@ -16,6 +16,7 @@ import { SiteFooter } from "../components/SiteFooter";
 import { Toaster } from "../components/ui/sonner";
 import { SisterAppsPopup } from "../components/growth/SisterAppsPopup";
 import { BottomNav } from "../components/BottomNav";
+import { ThemeProvider, THEME_INIT_SCRIPT } from "../lib/theme";
 
 const SITE_URL = "https://smartyworkout.com";
 const OG_IMAGE = "https://smartyworkout.com/og-social.jpg";
