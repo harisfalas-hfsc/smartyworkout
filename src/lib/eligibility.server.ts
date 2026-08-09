@@ -146,6 +146,8 @@ export async function getAccessStateForUser(
       (key) => readinessAnswers[key] === true,
     ).map((key) => READINESS_LABELS[key] as string),
     premium,
+    missingProfileFields,
+
 
     generationsUsedToday,
     generationsLimit: dailyLimit,
