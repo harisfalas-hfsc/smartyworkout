@@ -596,14 +596,27 @@ function ProfilePage() {
 
         <SectionCard
           icon={ThumbsDown}
-          title="Movements you dislike"
-          hint="Tap to exclude — these will never be programmed"
+          title="Exercises you dislike"
+          hint="Picked from the library — these and their close variations are removed before your workout is written"
         >
-          <Pills
-            options={MOVEMENT_DISLIKES.map((m) => ({ id: m.label, label: m.label }))}
-            value={p.disliked_exercises ?? []}
-            onToggle={(id) => toggleList("disliked_exercises", id)}
+          <ExercisePicker
+            title="Choose the exercises to exclude"
+            emptyHint="Nothing excluded yet. Choose a body part, then tap anything you never want to see."
+            value={p.disliked_exercise_ids ?? []}
+            onChange={(ids: string[]) => set("disliked_exercise_ids", ids)}
+            max={40}
           />
+          <div className="mt-4">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Movement styles you dislike
+            </p>
+            <Pills
+              options={MOVEMENT_DISLIKES.map((m) => ({ id: m.label, label: m.label }))}
+              value={p.disliked_exercises ?? []}
+              onToggle={(id) => toggleList("disliked_exercises", id)}
+            />
+          </div>
+
         </SectionCard>
 
         <SectionCard
