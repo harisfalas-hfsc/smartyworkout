@@ -46,21 +46,35 @@ export const GOAL_TO_CATEGORY: Record<string, Category> = {
 
 const BODYWEIGHT_ONLY = new Set(["bodyweight"]);
 
+/** Six stars, three levels: 1-2 beginner, 3-4 intermediate, 5-6 advanced. */
+const LEVEL_BANDS: Record<string, [number, number]> = {
+  beginner: [1, 2],
+  intermediate: [3, 4],
+  advanced: [5, 6],
+};
+
 function starsFor(
   profile: { experience?: string | null; fitness_level?: string | null } | null,
   mood: string,
   requested?: string,
 ) {
-  // Explicit choice wins and is NOT softened by mood — the athlete already confirmed it.
-  if (requested === "beginner") return 2;
-  if (requested === "intermediate") return 4;
-  if (requested === "advanced") return 6;
   const level = (profile?.fitness_level ?? profile?.experience ?? "").toLowerCase();
-  let stars = level.includes("adv") ? 5 : level.includes("inter") ? 4 : 2;
-  if (mood === "tired" || mood === "low" || mood === "sore") stars = Math.max(1, stars - 1);
-  if (mood === "push" || mood === "energized") stars = Math.min(6, stars + 1);
-  return stars;
+  const key =
+    requested && LEVEL_BANDS[requested]
+      ? requested
+      : level.includes("adv")
+        ? "advanced"
+        : level.includes("inter")
+          ? "intermediate"
+          : "beginner";
+  const [low, high] = LEVEL_BANDS[key]!;
+  // Mood only moves the athlete inside their own level, never across levels.
+  let stars = high;
+  if (mood === "tired" || mood === "low" || mood === "sore") stars = low;
+  if (mood === "push" || mood === "energized") stars = high;
+  return Math.max(low, Math.min(high, stars));
 }
+
 
 /**
  * Builds and stores a workout for one athlete.
