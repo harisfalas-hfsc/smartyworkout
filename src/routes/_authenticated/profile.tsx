@@ -100,6 +100,9 @@ const EMPTY: Profile = {
   preferred_environment: "home",
   favorite_exercises: [],
   disliked_exercises: [],
+  favorite_exercise_ids: [],
+  disliked_exercise_ids: [],
+
   limitations: [],
   health_acknowledged_at: null,
   onboarded: false,
