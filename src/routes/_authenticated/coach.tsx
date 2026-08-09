@@ -133,16 +133,20 @@ function CoachPage() {
   const [resuming, setResuming] = useState(false);
   const [wodMode, setWodMode] = useState(false);
   const [profileReady, setProfileReady] = useState<boolean | null>(null);
+  const [parqFlags, setParqFlags] = useState<string[]>([]);
+  const [parqConsent, setParqConsent] = useState(false);
 
   useEffect(() => {
     void getMyAccessState()
-      .then((access) =>
+      .then((access) => {
         setProfileReady(
           access.profileComplete && access.healthAcknowledged && access.readinessComplete,
-        ),
-      )
+        );
+        setParqFlags(access.readinessFlagged ? access.readinessFlags : []);
+      })
       .catch(() => setProfileReady(null));
   }, []);
+
 
 
   useEffect(() => {
