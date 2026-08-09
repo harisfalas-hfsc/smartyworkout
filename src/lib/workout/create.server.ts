@@ -47,11 +47,11 @@ export const GOAL_TO_CATEGORY: Record<string, Category> = {
 
 const BODYWEIGHT_ONLY = new Set(["bodyweight"]);
 
-/** Six stars, three levels: 1-2 beginner, 3-4 intermediate, 5-6 advanced. */
-const LEVEL_BANDS: Record<string, [number, number]> = {
-  beginner: [1, 2],
-  intermediate: [3, 4],
-  advanced: [5, 6],
+/** Three stars, three levels: 1 beginner, 2 intermediate, 3 advanced. */
+const LEVEL_STARS: Record<string, number> = {
+  beginner: 1,
+  intermediate: 2,
+  advanced: 3,
 };
 
 function starsFor(
@@ -61,20 +61,19 @@ function starsFor(
 ) {
   const level = (profile?.fitness_level ?? profile?.experience ?? "").toLowerCase();
   const key =
-    requested && LEVEL_BANDS[requested]
+    requested && LEVEL_STARS[requested]
       ? requested
       : level.includes("adv")
         ? "advanced"
         : level.includes("inter")
           ? "intermediate"
           : "beginner";
-  const [low, high] = LEVEL_BANDS[key]!;
-  // Mood only moves the athlete inside their own level, never across levels.
-  let stars = high;
-  if (mood === "tired" || mood === "low" || mood === "sore") stars = low;
-  if (mood === "push" || mood === "energized") stars = high;
-  return Math.max(low, Math.min(high, stars));
+  const base = LEVEL_STARS[key]!;
+  // Mood softens a hard day by one level, never below beginner.
+  const tired = mood === "tired" || mood === "low" || mood === "sore";
+  return Math.max(1, Math.min(3, tired ? base - 1 || 1 : base));
 }
+
 
 
 /**
