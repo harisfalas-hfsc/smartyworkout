@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { BellRing, Loader2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getDailyHub, saveDailySettings, type DailySettings } from "@/lib/daily.functions";
+import {
+  getDailyHub,
+  saveDailySettings,
+  setWodSubscription,
+  type DailySettings,
+} from "@/lib/daily.functions";
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const ZONES = [
@@ -33,14 +39,36 @@ function hourLabel(h: number) {
 export function DailyCoachingSettings({ premium = false }: { premium?: boolean }) {
   const load = useServerFn(getDailyHub);
   const save = useServerFn(saveDailySettings);
+  const setSub = useServerFn(setWodSubscription);
   const [settings, setSettings] = useState<DailySettings | null>(null);
   const [saving, setSaving] = useState(false);
+  const [wodBusy, setWodBusy] = useState(false);
 
   useEffect(() => {
     void load({})
       .then((hub) => setSettings(hub.settings))
       .catch(() => undefined);
   }, [load]);
+
+  async function toggleWod(subscribe: boolean) {
+    if (wodBusy) return;
+    setWodBusy(true);
+    try {
+      await setSub({ data: { subscribe } });
+      const hub = await load({});
+      setSettings(hub.settings);
+      toast.success(
+        subscribe
+          ? "Subscribed. Today's two workouts are in your account."
+          : "Unsubscribed from the Workout of the Day.",
+      );
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not update your subscription.");
+    } finally {
+      setWodBusy(false);
+    }
+  }
+
 
   function patch(next: Partial<DailySettings>) {
     setSettings((prev) => (prev ? { ...prev, ...next } : prev));
@@ -114,10 +142,40 @@ export function DailyCoachingSettings({ premium = false }: { premium?: boolean }
           </div>
         ) : null}
 
-        {premium ? (
-          <>
-            <div className="h-px bg-border" />
+        <div className="h-px bg-border" />
 
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold">Workout of the Day</p>
+            <p className="text-xs text-muted-foreground">
+              {premium
+                ? settings.wod_mode
+                  ? "You are subscribed. Two workouts land in your account every morning."
+                  : "Subscribe to get two workouts (bodyweight and equipment) every morning."
+                : "Members only. Join Smarty Workout to receive the daily programme."}
+            </p>
+          </div>
+          {premium ? (
+            <Button
+              variant={settings.wod_mode ? "outline" : "default"}
+              className="h-10 shrink-0 rounded-xl"
+              disabled={wodBusy}
+              onClick={() => void toggleWod(!settings.wod_mode)}
+            >
+              {wodBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : settings.wod_mode ? "Unsubscribe" : "Subscribe"}
+            </Button>
+          ) : (
+            <Link
+              to="/pricing"
+              className="flex h-10 shrink-0 items-center rounded-xl bg-primary px-4 text-xs font-bold text-primary-foreground"
+            >
+              See plans
+            </Link>
+          )}
+        </div>
+
+        {premium && settings.wod_mode ? (
+          <>
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-sm font-semibold">Workout ready every day</p>

@@ -118,23 +118,39 @@ export async function runWodForUser(
       ids.push(known);
       continue;
     }
-    const built = await createWorkoutForUser(db as never, userId, {
-      minutes,
-      mood: "normal",
-      location: variant.key === "bodyweight" ? "home" : prof?.preferred_environment ?? "home",
-      equipment: variant.equipment,
-      wod: {
-        category: cycleDay.category,
-        stars,
-        focus: cycleDay.strengthFocus ?? null,
-        date: today,
-        cycleDay: getDayIn84Cycle(today),
-      },
-    });
-    await db
-      .from("workouts")
-      .update({ wod_variant: variant.key } as never)
-      .eq("id", built.id);
+    let built: { id: string; name: string; category: string };
+    try {
+      built = await createWorkoutForUser(db as never, userId, {
+        minutes,
+        mood: "normal",
+        location: variant.key === "bodyweight" ? "home" : prof?.preferred_environment ?? "home",
+        equipment: variant.equipment,
+        wod: {
+          category: cycleDay.category,
+          stars,
+          focus: cycleDay.strengthFocus ?? null,
+          date: today,
+          cycleDay: getDayIn84Cycle(today),
+          variant: variant.key,
+        },
+      });
+    } catch (e) {
+      // A parallel request already claimed this variant (unique index) — reuse it.
+      const { data: raced } = await db
+        .from("workouts")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("is_wod", true)
+        .eq("wod_date", today)
+        .eq("wod_variant", variant.key)
+        .maybeSingle();
+      const racedId = (raced as { id: string } | null)?.id;
+      if (racedId) {
+        ids.push(racedId);
+        continue;
+      }
+      throw e;
+    }
     await db.from("notifications").insert({
       user_id: userId,
       kind: "wod",
@@ -148,6 +164,7 @@ export async function runWodForUser(
     ids.push(built.id);
     created += 1;
   }
+
 
   if (created) {
     await db

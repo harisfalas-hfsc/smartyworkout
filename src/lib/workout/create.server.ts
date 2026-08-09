@@ -27,6 +27,7 @@ export type CoachRequest = {
     focus?: StrengthFocus | null;
     date: string;
     cycleDay: number;
+    variant?: string;
   };
 };
 
@@ -241,6 +242,7 @@ export async function createWorkoutForUser(
       is_wod: Boolean(data.wod),
       wod_date: data.wod?.date ?? null,
       wod_cycle_day: data.wod?.cycleDay ?? null,
+      wod_variant: data.wod?.variant ?? null,
     } as never)
     .select("id,name")
     .single();
