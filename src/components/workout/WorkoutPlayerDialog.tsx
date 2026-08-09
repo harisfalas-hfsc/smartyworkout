@@ -7,10 +7,14 @@ import {
   CarouselItem,
   type CarouselApi,
 } from "@/components/ui/carousel";
-import { ChevronLeft, ChevronRight, Dumbbell, Pause, Play, RotateCcw, X } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Dumbbell, Pause, Play, RotateCcw, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { useKeepScreenAwake } from "@/hooks/useKeepScreenAwake";
 import { buildSlides, parseStepTiming, type WorkoutStep } from "@/lib/workout/parse-steps";
 import { useExerciseMedia } from "./ExerciseMediaProvider";
+
 
 function fmt(total: number) {
   const m = Math.floor(total / 60);
