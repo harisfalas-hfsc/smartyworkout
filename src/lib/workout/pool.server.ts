@@ -197,7 +197,22 @@ export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
     }
   }
 
+  // 6. Hard ban: exercises the athlete picked as dislikes, plus their variations.
+  if (f.dislikedIds?.length) {
+    const banned = new Set(f.dislikedIds);
+    const stems = new Set(
+      all.filter((e) => banned.has(e.id)).map((e) => nameStem(e.name)).filter((s) => s.length > 3),
+    );
+    pool = pool.filter((e) => !banned.has(e.id) && !stems.has(nameStem(e.name)));
+  }
+
   return pool;
+}
+
+/** "barbell full squat" -> "squat": the last two words carry the movement. */
+export function nameStem(name: string): string {
+  const words = name.toLowerCase().replace(/[^a-z\s-]/g, "").split(/\s+/).filter(Boolean);
+  return words.slice(-2).join(" ");
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -209,17 +224,27 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-/** Balanced sample so every body part is represented in the prompt vocabulary. */
-export function samplePool(pool: PoolExercise[], max = 260): PoolExercise[] {
+/**
+ * Balanced sample so every body part is represented in the prompt vocabulary.
+ * Favourite ids are always carried through, whatever the sample size.
+ */
+export function samplePool(pool: PoolExercise[], max = 260, favoriteIds: string[] = []): PoolExercise[] {
   if (pool.length <= max) return pool;
+  const favourites = favoriteIds.length
+    ? pool.filter((e) => favoriteIds.includes(e.id))
+    : [];
+  const rest = pool.filter((e) => !favourites.includes(e));
   const byPart = new Map<string, PoolExercise[]>();
-  for (const e of pool) {
+  for (const e of rest) {
     const key = e.body_part ?? "other";
     if (!byPart.has(key)) byPart.set(key, []);
     byPart.get(key)!.push(e);
   }
-  const per = Math.max(8, Math.ceil(max / Math.max(1, byPart.size)));
+  const budget = Math.max(0, max - favourites.length);
+  const per = Math.max(8, Math.ceil(budget / Math.max(1, byPart.size)));
   const out: PoolExercise[] = [];
   for (const list of byPart.values()) out.push(...shuffle(list).slice(0, per));
-  return shuffle(out).slice(0, max);
+  return [...favourites, ...shuffle(out).slice(0, budget)];
+}
+
 }
