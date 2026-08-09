@@ -114,10 +114,40 @@ export function DailyCoachingSettings({ premium = false }: { premium?: boolean }
           </div>
         ) : null}
 
-        {premium ? (
-          <>
-            <div className="h-px bg-border" />
+        <div className="h-px bg-border" />
 
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold">Workout of the Day</p>
+            <p className="text-xs text-muted-foreground">
+              {premium
+                ? settings.wod_mode
+                  ? "You are subscribed. Two workouts land in your account every morning."
+                  : "Subscribe to get two workouts (bodyweight and equipment) every morning."
+                : "Members only. Join Smarty Workout to receive the daily programme."}
+            </p>
+          </div>
+          {premium ? (
+            <Button
+              variant={settings.wod_mode ? "outline" : "default"}
+              className="h-10 shrink-0 rounded-xl"
+              disabled={wodBusy}
+              onClick={() => void toggleWod(!settings.wod_mode)}
+            >
+              {wodBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : settings.wod_mode ? "Unsubscribe" : "Subscribe"}
+            </Button>
+          ) : (
+            <Link
+              to="/pricing"
+              className="flex h-10 shrink-0 items-center rounded-xl bg-primary px-4 text-xs font-bold text-primary-foreground"
+            >
+              See plans
+            </Link>
+          )}
+        </div>
+
+        {premium && settings.wod_mode ? (
+          <>
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-sm font-semibold">Workout ready every day</p>
