@@ -42,7 +42,14 @@ export const Route = createFileRoute("/wod")({
 });
 
 type Hub = Awaited<ReturnType<typeof getDailyHub>>;
-type DayInfo = Hub["days"]["today"];
+type DayInfo = {
+  date: string;
+  category: string;
+  difficulty: string;
+  stars: number;
+  focus: string | null;
+  isRecovery: boolean;
+};
 type WodWorkout = Hub["workouts"][number];
 
 function DaySlide({ day, label }: { day: DayInfo; label: string }) {
@@ -173,21 +180,16 @@ function WodPage() {
     );
   }
 
-  const publicDays: (DayInfo | undefined)[] = [
-    publicCycle?.yesterday,
-    publicCycle?.today,
-    publicCycle?.tomorrow,
-  ];
 
   const days = hub?.days;
   const workouts = hub?.workouts ?? [];
   const subscribed = hub?.settings.wod_mode ?? false;
   const access = hub?.access;
   const daySlides = [
-    { day: days?.yesterday ?? publicDays[0], label: "Yesterday" },
-    { day: days?.today ?? publicDays[1], label: "Today" },
-    { day: days?.tomorrow ?? publicDays[2], label: "Tomorrow" },
-  ];
+    { day: (days?.yesterday ?? publicCycle?.yesterday) as DayInfo | undefined, label: "Yesterday" },
+    { day: (days?.today ?? publicCycle?.today) as DayInfo | undefined, label: "Today" },
+    { day: (days?.tomorrow ?? publicCycle?.tomorrow) as DayInfo | undefined, label: "Tomorrow" },
+  ].filter((s): s is { day: DayInfo; label: string } => Boolean(s.day));
 
   return (
     <div className="mx-auto w-full max-w-xl space-y-5 px-4 py-8 sm:py-12 lg:max-w-5xl lg:px-8 lg:py-16">
