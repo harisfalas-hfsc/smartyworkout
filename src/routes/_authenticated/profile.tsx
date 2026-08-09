@@ -475,15 +475,27 @@ function ProfilePage() {
 
         <SectionCard
           icon={Heart}
-          title="Movements you love"
-          hint="Smarty Coach will prioritise these when they fit"
+          title="Exercises you love"
+          hint="Picked straight from the library — Smarty Coach programs them whenever they fit"
         >
-          <Pills
-            options={MOVEMENT_DISLIKES.map((m) => ({ id: m.label, label: m.label }))}
-            value={p.favorite_exercises ?? []}
-            onToggle={(id) => toggleList("favorite_exercises", id)}
+          <ExercisePicker
+            title="Choose the exercises you love"
+            emptyHint="Nothing picked yet. Choose a body part, then tap the exercises you want to see often."
+            value={p.favorite_exercise_ids ?? []}
+            onChange={(ids) => set("favorite_exercise_ids", ids)}
           />
+          <div className="mt-4">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Movement styles you enjoy
+            </p>
+            <Pills
+              options={MOVEMENT_DISLIKES.map((m) => ({ id: m.label, label: m.label }))}
+              value={p.favorite_exercises ?? []}
+              onToggle={(id) => toggleList("favorite_exercises", id)}
+            />
+          </div>
         </SectionCard>
+
 
         <SectionCard
           icon={Activity}
