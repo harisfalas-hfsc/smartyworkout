@@ -86,10 +86,52 @@ export function WorkoutPlayerDialog({
     setRunning(false);
     setPhase("work");
     setRound(1);
+    setReps("");
+    setWeight("");
     if (timing.mode === "timed") setRemaining(timing.seconds);
     else if (timing.mode === "tabata") setRemaining(timing.work);
     else setRemaining(0);
   }, [index, timing]);
+
+  async function logSet() {
+    if (!slide || slide.kind !== "exercise") return;
+    const repsValue = reps.trim() ? Number(reps) : null;
+    const weightValue = weight.trim() ? Number(weight) : null;
+    const secondsValue = timing.mode === "timed" ? timing.seconds : null;
+    if (repsValue === null && weightValue === null && secondsValue === null) {
+      toast.error("Add reps or weight first.");
+      return;
+    }
+    setSavingSet(true);
+    const { data: auth } = await supabase.auth.getUser();
+    if (!auth.user) {
+      setSavingSet(false);
+      return;
+    }
+    const setNumber = (logged[index] ?? 0) + 1;
+    const { error } = await supabase.from("set_logs").insert({
+      user_id: auth.user.id,
+      workout_id: workoutId,
+      step_index: index,
+      exercise_id: slide.step.exerciseId || null,
+      exercise_name: slide.step.name,
+      section: slide.step.section ?? null,
+      set_number: setNumber,
+      reps: repsValue,
+      weight_kg: weightValue,
+      seconds: secondsValue,
+    } as never);
+    setSavingSet(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setLogged((prev) => ({ ...prev, [index]: setNumber }));
+    setReps("");
+    setWeight("");
+    toast.success(`Set ${setNumber} logged.`);
+  }
+
 
   useEffect(() => {
     if (!running || timing.mode === "manual") return;
