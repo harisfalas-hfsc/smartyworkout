@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import {
   ShieldAlert,
   CheckCircle2,
   Activity,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -77,6 +78,7 @@ type Profile = {
   disliked_exercises: string[] | null;
   favorite_exercise_ids: string[];
   disliked_exercise_ids: string[];
+  use_library_preferences: boolean;
 
   limitations: string[] | null;
   health_acknowledged_at: string | null;
@@ -104,6 +106,7 @@ const EMPTY: Profile = {
   disliked_exercises: [],
   favorite_exercise_ids: [],
   disliked_exercise_ids: [],
+  use_library_preferences: true,
 
   limitations: [],
   health_acknowledged_at: null,
@@ -480,6 +483,28 @@ function ProfilePage() {
             ))}
           </select>
         </SectionCard>
+        <SectionCard
+          icon={Sparkles}
+          title="Use my library preferences"
+          hint="Should Smarty Coach take your liked and disliked exercises into account?"
+        >
+          <select
+            className={selectClass}
+            value={p.use_library_preferences === false ? "no" : "yes"}
+            onChange={(e) => set("use_library_preferences", e.target.value === "yes")}
+          >
+            <option value="yes">Yes — prioritise my likes, avoid my dislikes</option>
+            <option value="no">No — ignore them and program freely</option>
+          </select>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Applies to every workout and to your Workout of the Day. Mark exercises in the{" "}
+            <Link to="/exercise-library" className="font-semibold text-primary">
+              Exercise Library
+            </Link>{" "}
+            or with the pickers below.
+          </p>
+        </SectionCard>
+
 
         <SectionCard
           icon={Heart}
