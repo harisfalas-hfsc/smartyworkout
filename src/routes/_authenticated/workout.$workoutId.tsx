@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2, CalendarClock, CheckCircle2, RotateCcw } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { setWorkoutStatus } from "@/lib/coach.functions";
+import { getMyAccessState } from "@/lib/access.functions";
 import { toast } from "sonner";
 import { WorkoutDisplay, type WorkoutRow } from "@/components/workout/WorkoutDisplay";
 
@@ -62,6 +63,7 @@ function WorkoutPage() {
   const { workoutId } = Route.useParams();
   const [w, setW] = useState<WorkoutRow | null>(null);
   const [loading, setLoading] = useState(true);
+  const [locked, setLocked] = useState(false);
   const [done, setDone] = useState(false);
   const [saved, setSaved] = useState(false);
   const [difficulty, setDifficulty] = useState("Just Right");
@@ -78,6 +80,10 @@ function WorkoutPage() {
       const { data } = await supabase.from("workouts").select("*").eq("id", workoutId).maybeSingle();
       const row = (data as unknown as WorkoutRow) ?? null;
       setW(row);
+      if ((row as { is_wod?: boolean } | null)?.is_wod) {
+        const access = await getMyAccessState({}).catch(() => null);
+        setLocked(!access?.premium);
+      }
       if (row?.status === "completed") setDone(true);
       const sched = (data as { scheduled_at?: string | null } | null)?.scheduled_at;
       if (sched) setScheduledAt(new Date(sched).toISOString().slice(0, 16));
@@ -142,6 +148,20 @@ function WorkoutPage() {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+
+  if (w && locked)
+    return (
+      <div className="mx-auto max-w-xl px-4 py-16 text-center">
+        <h1 className="text-xl font-extrabold uppercase tracking-tight">Members only</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          The Workout of the Day is part of the Smarty Workout membership. Join to open today's two
+          workouts and get a new pair every morning.
+        </p>
+        <Button asChild className="mt-4 h-12 rounded-2xl">
+          <Link to="/pricing">See plans</Link>
+        </Button>
       </div>
     );
 
