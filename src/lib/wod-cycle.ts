@@ -134,9 +134,11 @@ export function getCycleDay(dateISO: string): CycleDay {
   return PERIODIZATION_84DAY[getDayIn84Cycle(dateISO) - 1]!;
 }
 
+/** Three-star scale: 1 beginner, 2 intermediate, 3 advanced. */
 export function starsForCycleDay(day: CycleDay): number {
-  if (!day.stars) return 1;
-  return day.stars[1];
+  if (day.difficulty === "Advanced") return 3;
+  if (day.difficulty === "Intermediate") return 2;
+  return 1;
 }
 
 export function cycleBlock(dayIn84: number): number {
@@ -146,10 +148,11 @@ export function cycleBlock(dayIn84: number): number {
 export type WodLevel = "cycle" | "beginner" | "intermediate" | "advanced";
 
 const LEVEL_STARS: Record<Exclude<WodLevel, "cycle">, number> = {
-  beginner: 2,
-  intermediate: 4,
-  advanced: 6,
+  beginner: 1,
+  intermediate: 2,
+  advanced: 3,
 };
+
 
 /** Stars for a cycle day, honouring a fixed level preference when set. */
 export function starsForCycleDayWithLevel(day: CycleDay, level: WodLevel = "cycle"): number {

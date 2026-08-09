@@ -39,6 +39,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { PageHeader } from "@/components/PageHeader";
+import { ExercisePicker } from "@/components/ExercisePicker";
+
 
 
 export const Route = createFileRoute("/_authenticated/profile")({
@@ -73,6 +75,9 @@ type Profile = {
   preferred_environment: string | null;
   favorite_exercises: string[] | null;
   disliked_exercises: string[] | null;
+  favorite_exercise_ids: string[];
+  disliked_exercise_ids: string[];
+
   limitations: string[] | null;
   health_acknowledged_at: string | null;
   onboarded: boolean;
@@ -97,6 +102,9 @@ const EMPTY: Profile = {
   preferred_environment: "home",
   favorite_exercises: [],
   disliked_exercises: [],
+  favorite_exercise_ids: [],
+  disliked_exercise_ids: [],
+
   limitations: [],
   health_acknowledged_at: null,
   onboarded: false,
@@ -475,15 +483,27 @@ function ProfilePage() {
 
         <SectionCard
           icon={Heart}
-          title="Movements you love"
-          hint="Smarty Coach will prioritise these when they fit"
+          title="Exercises you love"
+          hint="Picked straight from the library — Smarty Coach programs them whenever they fit"
         >
-          <Pills
-            options={MOVEMENT_DISLIKES.map((m) => ({ id: m.label, label: m.label }))}
-            value={p.favorite_exercises ?? []}
-            onToggle={(id) => toggleList("favorite_exercises", id)}
+          <ExercisePicker
+            title="Choose the exercises you love"
+            emptyHint="Nothing picked yet. Choose a body part, then tap the exercises you want to see often."
+            value={p.favorite_exercise_ids ?? []}
+            onChange={(ids) => set("favorite_exercise_ids", ids)}
           />
+          <div className="mt-4">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Movement styles you enjoy
+            </p>
+            <Pills
+              options={MOVEMENT_DISLIKES.map((m) => ({ id: m.label, label: m.label }))}
+              value={p.favorite_exercises ?? []}
+              onToggle={(id) => toggleList("favorite_exercises", id)}
+            />
+          </div>
         </SectionCard>
+
 
         <SectionCard
           icon={Activity}
@@ -576,14 +596,27 @@ function ProfilePage() {
 
         <SectionCard
           icon={ThumbsDown}
-          title="Movements you dislike"
-          hint="Tap to exclude — these will never be programmed"
+          title="Exercises you dislike"
+          hint="Picked from the library — these and their close variations are removed before your workout is written"
         >
-          <Pills
-            options={MOVEMENT_DISLIKES.map((m) => ({ id: m.label, label: m.label }))}
-            value={p.disliked_exercises ?? []}
-            onToggle={(id) => toggleList("disliked_exercises", id)}
+          <ExercisePicker
+            title="Choose the exercises to exclude"
+            emptyHint="Nothing excluded yet. Choose a body part, then tap anything you never want to see."
+            value={p.disliked_exercise_ids ?? []}
+            onChange={(ids: string[]) => set("disliked_exercise_ids", ids)}
+            max={40}
           />
+          <div className="mt-4">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Movement styles you dislike
+            </p>
+            <Pills
+              options={MOVEMENT_DISLIKES.map((m) => ({ id: m.label, label: m.label }))}
+              value={p.disliked_exercises ?? []}
+              onToggle={(id) => toggleList("disliked_exercises", id)}
+            />
+          </div>
+
         </SectionCard>
 
         <SectionCard

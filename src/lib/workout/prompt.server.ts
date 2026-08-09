@@ -74,11 +74,18 @@ export type AthleteContext = {
   preferred_environment?: string | null;
   favorite_exercises?: string[] | null;
   disliked_exercises?: string[] | null;
+  /** Exact library names resolved from the athlete's picked favourite ids. */
+  favorite_library?: string[] | null;
+  /** Exact library names resolved from the athlete's picked disliked ids. */
+  disliked_library?: string[] | null;
+  /** Logged sets from previous sessions, used for progressive overload. */
+  recent_performance?: string[] | null;
   limitations?: string[] | null;
   location?: string | null;
   mood?: string | null;
   recent_feedback?: string[] | null;
 };
+
 
 function athleteBlock(a?: AthleteContext): string {
   if (!a) return "";
@@ -98,9 +105,29 @@ function athleteBlock(a?: AthleteContext): string {
   if (a.preferred_environment) lines.push(`Usual training environment: ${a.preferred_environment}`);
   if (a.location) lines.push(`Training today at: ${a.location}`);
   if (a.mood) lines.push(`Feeling today: ${a.mood}`);
-  if (a.favorite_exercises?.length) lines.push(`FAVOURITE exercises (prioritise close library matches): ${a.favorite_exercises.join(", ")}`);
-  if (a.disliked_exercises?.length) lines.push(`DISLIKED exercises (never program these or close variations): ${a.disliked_exercises.join(", ")}`);
-  if (a.limitations?.length) lines.push(`INJURIES / LIMITATIONS (must be respected, choose safe alternatives): ${a.limitations.join(", ")}`);
+  if (a.favorite_library?.length)
+    lines.push(
+      `FAVOURITE library exercises (exact matches the athlete picked — program at least one when it fits the category, focus and equipment): ${a.favorite_library.join(", ")}`,
+    );
+  if (a.favorite_exercises?.length)
+    lines.push(`Movement styles they enjoy: ${a.favorite_exercises.join(", ")}`);
+  if (a.disliked_library?.length)
+    lines.push(
+      `BANNED library exercises (already removed from your vocabulary — never write them or a close variation): ${a.disliked_library.join(", ")}`,
+    );
+  if (a.disliked_exercises?.length)
+    lines.push(`Movement styles they dislike (avoid): ${a.disliked_exercises.join(", ")}`);
+  if (a.limitations?.length)
+    lines.push(
+      `INJURIES / LIMITATIONS (must be respected, choose safe alternatives): ${a.limitations.join(", ")}`,
+    );
+  if (a.recent_performance?.length)
+    lines.push(
+      `LOGGED PERFORMANCE (what they actually completed recently — apply progressive overload: add reps, load or a harder variation when the same movement returns, never regress without a reason):\n${a.recent_performance
+        .map((p) => `  · ${p}`)
+        .join("\n")}`,
+    );
+
   if (a.recent_feedback?.length)
     lines.push(
       `FEEDBACK FROM RECENT SESSIONS (adapt to it — if the athlete said "Too Easy" progress the load/volume, if "Very Hard" or "Exhausted" pull it back, avoid what they did not enjoy or would not repeat, and honour anything written in their comments):\n${a.recent_feedback
@@ -201,7 +228,7 @@ The "main_workout" field contains ALL sections joined in order.`;
 Category: ${input.category}
 Available equipment (strict allowlist): ${[...input.selectedEquipment.filter((x) => x !== "other"), ...(input.customEquipment ?? [])].join(", ")}
 Never use any apparatus outside this list, even during Activation or Cool Down.
-Difficulty: ${input.stars} of 6 stars (${input.level.toUpperCase()}) — do not mix levels
+Difficulty: ${input.stars} of 3 stars (${input.level.toUpperCase()}) — one star is one level, do not mix levels
 Intensity within the level: ${intensityNote(input.stars)}
 Format: ${input.format}
 Duration: ${input.duration}${input.focus ? `\nFocus: ${input.focus}` : ""}

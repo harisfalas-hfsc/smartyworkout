@@ -7,10 +7,14 @@ import {
   CarouselItem,
   type CarouselApi,
 } from "@/components/ui/carousel";
-import { ChevronLeft, ChevronRight, Dumbbell, Pause, Play, RotateCcw, X } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Dumbbell, Pause, Play, RotateCcw, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { useKeepScreenAwake } from "@/hooks/useKeepScreenAwake";
 import { buildSlides, parseStepTiming, type WorkoutStep } from "@/lib/workout/parse-steps";
 import { useExerciseMedia } from "./ExerciseMediaProvider";
+
 
 function fmt(total: number) {
   const m = Math.floor(total / 60);
@@ -23,12 +27,14 @@ export function WorkoutPlayerDialog({
   onOpenChange,
   steps,
   workoutName,
+  workoutId,
   onFinish,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   steps: WorkoutStep[];
   workoutName: string;
+  workoutId: string;
   onFinish: () => void;
 }) {
   const slides = useMemo(() => buildSlides(steps), [steps]);
@@ -39,9 +45,14 @@ export function WorkoutPlayerDialog({
   const [phase, setPhase] = useState<"work" | "rest">("work");
   const [remaining, setRemaining] = useState(0);
   const [round, setRound] = useState(1);
+  const [logged, setLogged] = useState<Record<number, number>>({});
+  const [reps, setReps] = useState("");
+  const [weight, setWeight] = useState("");
+  const [savingSet, setSavingSet] = useState(false);
   const beepRef = useRef<number>(0);
 
   useKeepScreenAwake(open);
+
 
   useEffect(() => {
     if (!api) return;
@@ -75,10 +86,52 @@ export function WorkoutPlayerDialog({
     setRunning(false);
     setPhase("work");
     setRound(1);
+    setReps("");
+    setWeight("");
     if (timing.mode === "timed") setRemaining(timing.seconds);
     else if (timing.mode === "tabata") setRemaining(timing.work);
     else setRemaining(0);
   }, [index, timing]);
+
+  async function logSet() {
+    if (!slide || slide.kind !== "exercise") return;
+    const repsValue = reps.trim() ? Number(reps) : null;
+    const weightValue = weight.trim() ? Number(weight) : null;
+    const secondsValue = timing.mode === "timed" ? timing.seconds : null;
+    if (repsValue === null && weightValue === null && secondsValue === null) {
+      toast.error("Add reps or weight first.");
+      return;
+    }
+    setSavingSet(true);
+    const { data: auth } = await supabase.auth.getUser();
+    if (!auth.user) {
+      setSavingSet(false);
+      return;
+    }
+    const setNumber = (logged[index] ?? 0) + 1;
+    const { error } = await supabase.from("set_logs").insert({
+      user_id: auth.user.id,
+      workout_id: workoutId,
+      step_index: index,
+      exercise_id: slide.step.exerciseId || null,
+      exercise_name: slide.step.name,
+      section: slide.step.section ?? null,
+      set_number: setNumber,
+      reps: repsValue,
+      weight_kg: weightValue,
+      seconds: secondsValue,
+    } as never);
+    setSavingSet(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setLogged((prev) => ({ ...prev, [index]: setNumber }));
+    setReps("");
+    setWeight("");
+    toast.success(`Set ${setNumber} logged.`);
+  }
+
 
   useEffect(() => {
     if (!running || timing.mode === "manual") return;
@@ -174,6 +227,36 @@ export function WorkoutPlayerDialog({
               Complete the prescribed reps, then swipe.
             </p>
           )}
+
+          {slide?.kind === "exercise" ? (
+            <div className="flex items-center gap-2">
+              <Input
+                inputMode="numeric"
+                placeholder="Reps"
+                value={reps}
+                onChange={(e) => setReps(e.target.value)}
+                className="h-11 flex-1 border-neutral-700 bg-neutral-900 text-neutral-50 placeholder:text-neutral-500"
+              />
+              <Input
+                inputMode="decimal"
+                placeholder="kg"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                className="h-11 flex-1 border-neutral-700 bg-neutral-900 text-neutral-50 placeholder:text-neutral-500"
+              />
+              <Button
+                variant="secondary"
+                className="h-11 shrink-0"
+                disabled={savingSet}
+                onClick={logSet}
+              >
+                <Check className="mr-1.5 h-4 w-4" />
+                Log set {(logged[index] ?? 0) + 1}
+              </Button>
+            </div>
+          ) : null}
+
+
 
           <div className="flex items-center justify-between gap-2">
             <Button

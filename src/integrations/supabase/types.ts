@@ -235,10 +235,12 @@ export type Database = {
           avatar_url: string | null
           bonus_credits: number
           created_at: string
+          disliked_exercise_ids: string[]
           disliked_exercises: string[]
           display_name: string | null
           email: string | null
           experience: string | null
+          favorite_exercise_ids: string[]
           favorite_exercises: string[]
           fitness_level: string | null
           gender: string | null
@@ -275,10 +277,12 @@ export type Database = {
           avatar_url?: string | null
           bonus_credits?: number
           created_at?: string
+          disliked_exercise_ids?: string[]
           disliked_exercises?: string[]
           display_name?: string | null
           email?: string | null
           experience?: string | null
+          favorite_exercise_ids?: string[]
           favorite_exercises?: string[]
           fitness_level?: string | null
           gender?: string | null
@@ -315,10 +319,12 @@ export type Database = {
           avatar_url?: string | null
           bonus_credits?: number
           created_at?: string
+          disliked_exercise_ids?: string[]
           disliked_exercises?: string[]
           display_name?: string | null
           email?: string | null
           experience?: string | null
+          favorite_exercise_ids?: string[]
           favorite_exercises?: string[]
           fitness_level?: string | null
           gender?: string | null
@@ -379,6 +385,62 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      set_logs: {
+        Row: {
+          completed_at: string
+          created_at: string
+          exercise_id: string | null
+          exercise_name: string
+          id: string
+          reps: number | null
+          seconds: number | null
+          section: string | null
+          set_number: number
+          step_index: number
+          user_id: string
+          weight_kg: number | null
+          workout_id: string
+        }
+        Insert: {
+          completed_at?: string
+          created_at?: string
+          exercise_id?: string | null
+          exercise_name: string
+          id?: string
+          reps?: number | null
+          seconds?: number | null
+          section?: string | null
+          set_number?: number
+          step_index?: number
+          user_id: string
+          weight_kg?: number | null
+          workout_id: string
+        }
+        Update: {
+          completed_at?: string
+          created_at?: string
+          exercise_id?: string | null
+          exercise_name?: string
+          id?: string
+          reps?: number | null
+          seconds?: number | null
+          section?: string | null
+          set_number?: number
+          step_index?: number
+          user_id?: string
+          weight_kg?: number | null
+          workout_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "set_logs_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscriptions: {
         Row: {

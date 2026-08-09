@@ -47,11 +47,11 @@ export const GOAL_TO_CATEGORY: Record<string, Category> = {
 
 const BODYWEIGHT_ONLY = new Set(["bodyweight"]);
 
-/** Six stars, three levels: 1-2 beginner, 3-4 intermediate, 5-6 advanced. */
-const LEVEL_BANDS: Record<string, [number, number]> = {
-  beginner: [1, 2],
-  intermediate: [3, 4],
-  advanced: [5, 6],
+/** Three stars, three levels: 1 beginner, 2 intermediate, 3 advanced. */
+const LEVEL_STARS: Record<string, number> = {
+  beginner: 1,
+  intermediate: 2,
+  advanced: 3,
 };
 
 function starsFor(
@@ -61,20 +61,19 @@ function starsFor(
 ) {
   const level = (profile?.fitness_level ?? profile?.experience ?? "").toLowerCase();
   const key =
-    requested && LEVEL_BANDS[requested]
+    requested && LEVEL_STARS[requested]
       ? requested
       : level.includes("adv")
         ? "advanced"
         : level.includes("inter")
           ? "intermediate"
           : "beginner";
-  const [low, high] = LEVEL_BANDS[key]!;
-  // Mood only moves the athlete inside their own level, never across levels.
-  let stars = high;
-  if (mood === "tired" || mood === "low" || mood === "sore") stars = low;
-  if (mood === "push" || mood === "energized") stars = high;
-  return Math.max(low, Math.min(high, stars));
+  const base = LEVEL_STARS[key]!;
+  // Mood softens a hard day by one level, never below beginner.
+  const tired = mood === "tired" || mood === "low" || mood === "sore";
+  return Math.max(1, Math.min(3, tired ? base - 1 || 1 : base));
 }
+
 
 
 /**
@@ -103,21 +102,29 @@ export async function createWorkoutForUser(
 
   let category: Category = GOAL_TO_CATEGORY[goal] ?? "STRENGTH";
 
-  const [{ data: profile }, { data: recent }, { data: feedback }] = await Promise.all([
-    db.from("profiles").select("*").eq("id", userId).maybeSingle(),
-    db
-      .from("workouts")
-      .select("name,category,created_at")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(120),
-    db
-      .from("workout_feedback")
-      .select("difficulty_rating,feeling,enjoyed,would_repeat,comment,created_at,workouts(name,category)")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(8),
-  ]);
+  const [{ data: profile }, { data: recent }, { data: feedback }, { data: setLogs }] =
+    await Promise.all([
+      db.from("profiles").select("*").eq("id", userId).maybeSingle(),
+      db
+        .from("workouts")
+        .select("name,category,created_at")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(120),
+      db
+        .from("workout_feedback")
+        .select("difficulty_rating,feeling,enjoyed,would_repeat,comment,created_at,workouts(name,category)")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(8),
+      db
+        .from("set_logs")
+        .select("exercise_name,set_number,reps,weight_kg,seconds,completed_at")
+        .eq("user_id", userId)
+        .order("completed_at", { ascending: false })
+        .limit(60),
+    ]);
+
 
   const prof = (profile ?? null) as Record<string, unknown> | null;
   const history = (recent as { name: string; category: string }[] | null) ?? [];
@@ -143,6 +150,45 @@ export async function createWorkoutForUser(
     ].filter(Boolean);
     return `${w?.category ?? "workout"} — ${w?.name ?? "session"}: ${bits.join(", ")}`;
   });
+
+  // Progressive overload: best logged set per movement, most recent first.
+  const perfRows =
+    (setLogs as Array<{
+      exercise_name: string;
+      set_number: number;
+      reps: number | null;
+      weight_kg: number | null;
+      seconds: number | null;
+      completed_at: string;
+    }> | null) ?? [];
+  const bestByExercise = new Map<string, string>();
+  for (const row of perfRows) {
+    if (bestByExercise.has(row.exercise_name)) continue;
+    const bits = [
+      row.reps ? `${row.reps} reps` : null,
+      row.weight_kg ? `${row.weight_kg} kg` : null,
+      row.seconds ? `${row.seconds} sec` : null,
+    ].filter(Boolean);
+    if (!bits.length) continue;
+    bestByExercise.set(
+      row.exercise_name,
+      `${row.exercise_name}: last logged ${bits.join(" @ ")} (set ${row.set_number}, ${row.completed_at.slice(0, 10)})`,
+    );
+  }
+  const performanceLines = [...bestByExercise.values()].slice(0, 12);
+
+  const favoriteIds = ((prof?.["favorite_exercise_ids"] as string[] | null) ?? []).slice(0, 25);
+  const dislikedIds = ((prof?.["disliked_exercise_ids"] as string[] | null) ?? []).slice(0, 40);
+  const pickedIds = [...favoriteIds, ...dislikedIds];
+  const libraryNames = new Map<string, string>();
+  if (pickedIds.length) {
+    const { data: picked } = await db.from("exercises").select("id,name").in("id", pickedIds);
+    for (const row of (picked as Array<{ id: string; name: string }> | null) ?? [])
+      libraryNames.set(row.id, row.name);
+  }
+  const favoriteLibrary = favoriteIds.map((id) => libraryNames.get(id)).filter(Boolean) as string[];
+  const dislikedLibrary = dislikedIds.map((id) => libraryNames.get(id)).filter(Boolean) as string[];
+
 
   if (data.surprise) {
     // Deterministic per user per day, and never the same category as the last 2 workouts.
@@ -194,6 +240,8 @@ export async function createWorkoutForUser(
       minutes,
       focus,
       ...(data.note ? { note: String(data.note).slice(0, 500) } : {}),
+      favoriteIds,
+      dislikedIds,
       athlete: {
         name: (prof?.["display_name"] as string) ?? null,
         age: (prof?.["age"] as number) ?? null,
@@ -208,11 +256,15 @@ export async function createWorkoutForUser(
         preferred_environment: (prof?.["preferred_environment"] as string) ?? null,
         favorite_exercises: (prof?.["favorite_exercises"] as string[]) ?? null,
         disliked_exercises: (prof?.["disliked_exercises"] as string[]) ?? null,
+        favorite_library: favoriteLibrary,
+        disliked_library: dislikedLibrary,
+        recent_performance: performanceLines,
         limitations: (prof?.["limitations"] as string[]) ?? null,
         location: String(data.location ?? "anywhere"),
         mood,
         recent_feedback: feedbackLines,
       },
+
     },
     usedNames,
   );

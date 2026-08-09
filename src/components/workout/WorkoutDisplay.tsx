@@ -187,6 +187,8 @@ export function WorkoutDisplay({
         onOpenChange={setPlayer}
         steps={steps}
         workoutName={workout.name}
+        workoutId={workout.id}
+
         onFinish={() => {
           setPlayer(false);
           onComplete();
