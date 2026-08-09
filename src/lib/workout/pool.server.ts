@@ -246,5 +246,3 @@ export function samplePool(pool: PoolExercise[], max = 260, favoriteIds: string[
   for (const list of byPart.values()) out.push(...shuffle(list).slice(0, per));
   return [...favourites, ...shuffle(out).slice(0, budget)];
 }
-
-}
