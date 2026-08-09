@@ -1,6 +1,7 @@
 import type { PoolExercise } from "./pool.server";
 import {
   BANNED_NAME_WORDS,
+  intensityNote,
   type Category,
   type DifficultyLevel,
   type EquipmentMode,
