@@ -115,7 +115,52 @@ function normalize(term: string): string[] {
   return [...v];
 }
 
+function PreferenceButtons({
+  state,
+  busy,
+  onLike,
+  onDislike,
+}: {
+  state: "like" | "dislike" | "none";
+  busy: boolean;
+  onLike: () => void;
+  onDislike: () => void;
+}) {
+  return (
+    <div className="mt-2 flex items-center gap-2">
+      <button
+        type="button"
+        disabled={busy}
+        onClick={onLike}
+        aria-label="Like this exercise"
+        className={`inline-flex h-8 w-8 items-center justify-center rounded-full border transition-colors ${
+          state === "like"
+            ? "border-primary bg-primary/10 text-primary"
+            : "border-border text-muted-foreground hover:text-primary"
+        }`}
+      >
+        <Heart className={`h-4 w-4 ${state === "like" ? "fill-current" : ""}`} />
+      </button>
+      <button
+        type="button"
+        disabled={busy}
+        onClick={onDislike}
+        aria-label="Dislike this exercise"
+        className={`inline-flex h-8 w-8 items-center justify-center rounded-full border transition-colors ${
+          state === "dislike"
+            ? "border-destructive bg-destructive/10 text-destructive"
+            : "border-border text-muted-foreground hover:text-destructive"
+        }`}
+      >
+        <ThumbsDown className="h-4 w-4" />
+      </button>
+      {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" /> : null}
+    </div>
+  );
+}
+
 function ExerciseLibraryPage() {
+
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
   const [nameSearch, setNameSearch] = useState("");
