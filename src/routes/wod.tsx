@@ -162,20 +162,12 @@ function WodPage() {
     );
   }
 
-  const publicDays: DayInfo[] = ([-1, 0, 1] as const).map((offset) => {
-    const date = new Date();
-    date.setUTCDate(date.getUTCDate() + offset);
-    const dateISO = localDateISO(date);
-    const cycle = getCycleDay(dateISO);
-    return {
-      date: dateISO,
-      category: cycle.category,
-      difficulty: cycle.difficulty ?? "Recovery",
-      stars: starsForCycleDay(cycle),
-      focus: cycle.strengthFocus ?? null,
-      isRecovery: cycle.category === "RECOVERY",
-    };
-  });
+  const publicDays: (DayInfo | undefined)[] = [
+    publicCycle?.yesterday,
+    publicCycle?.today,
+    publicCycle?.tomorrow,
+  ];
+
   const days = hub?.days;
   const workouts = hub?.workouts ?? [];
   const subscribed = hub?.settings.wod_mode ?? false;
