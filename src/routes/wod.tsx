@@ -189,8 +189,24 @@ function WodPage() {
     setHub(await load({}));
   }
 
+  async function handleSubscribeClick() {
+    if (!user) {
+      void navigate({ to: "/auth", search: { next: "/wod", mode: "signup" } });
+      return;
+    }
+    if (!access?.profileComplete || !access.healthAcknowledged) {
+      void navigate({ to: "/profile" });
+      return;
+    }
+    if (!access.premium) {
+      void navigate({ to: "/checkout" });
+      return;
+    }
+    await toggleSub(!subscribed);
+  }
+
   async function toggleSub(subscribe: boolean) {
-    if (busy) return;
+    if (busy || building) return;
     if (subscribe && (hub?.access?.readinessFlagged ?? false) && !parqConsent) {
       toast.error("Confirm the health warning first, or update your PAR-Q answers.");
       return;
@@ -200,17 +216,30 @@ function WodPage() {
     try {
       await setSub({ data: { subscribe } });
       await refresh();
-      toast.success(
-        subscribe
-          ? "You're in. Today's two workouts are in your account already."
-          : "Unsubscribed. You can create your own workouts again.",
-      );
+      if (!subscribe) {
+        toast.success("Unsubscribed. You can create your own workouts again.");
+        return;
+      }
+      toast.success("You're in. Building today's two workouts now…");
+      setBuilding(true);
+      void gen({})
+        .then(async () => {
+          await refresh();
+          toast.success("Today's two workouts are ready.");
+        })
+        .catch((e: unknown) => {
+          toast.error(
+            e instanceof Error ? e.message : "Today's workouts could not be built yet.",
+          );
+        })
+        .finally(() => setBuilding(false));
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not update your subscription.");
     } finally {
       setBusy(false);
     }
   }
+
 
   if (authLoading || (user && !hub)) {
     return (
