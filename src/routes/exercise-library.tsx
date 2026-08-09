@@ -347,25 +347,35 @@ function ExerciseLibraryPage() {
             ) : (
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {exercises.map((ex) => (
-                  <button
+                  <div
                     key={ex.id}
-                    onClick={() => setSelected(ex)}
                     className="flex items-start gap-3 rounded-2xl border bg-card p-3 text-left transition-colors hover:border-primary"
                   >
-                    <ExerciseGif path={ex.gif_path} alt={ex.name} />
+                    <button onClick={() => setSelected(ex)} className="shrink-0" aria-label={`Open ${ex.name}`}>
+                      <ExerciseGif path={ex.gif_path} alt={ex.name} />
+                    </button>
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm font-bold capitalize leading-snug">{ex.name}</div>
-                      <div className="mt-1 flex flex-wrap gap-1">
-                        {[ex.body_part, ex.equipment].filter(Boolean).map((tag) => (
-                          <Badge key={tag as string} variant="secondary" className="capitalize">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
+                      <button onClick={() => setSelected(ex)} className="block w-full text-left">
+                        <span className="block text-sm font-bold capitalize leading-snug">{ex.name}</span>
+                        <span className="mt-1 flex flex-wrap gap-1">
+                          {[ex.body_part, ex.equipment].filter(Boolean).map((tag) => (
+                            <Badge key={tag as string} variant="secondary" className="capitalize">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </span>
+                      </button>
+                      <PreferenceButtons
+                        state={stateFor(ex.id)}
+                        busy={savingId === ex.id}
+                        onLike={() => mark(ex.id, "like")}
+                        onDislike={() => mark(ex.id, "dislike")}
+                      />
                     </div>
-                  </button>
+                  </div>
                 ))}
               </div>
+
             )}
           </div>
         </CardContent>
