@@ -149,7 +149,11 @@ function CoachPage() {
         setParqFlags(access.readinessFlagged ? access.readinessFlags : []);
       })
       .catch(() => setProfileReady(null));
+    void getExercisePreferences()
+      .then((p) => setUseLibraryPreferences(p.useLibraryPreferences))
+      .catch(() => undefined);
   }, []);
+
 
 
 
