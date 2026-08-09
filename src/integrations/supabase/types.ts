@@ -264,6 +264,7 @@ export type Database = {
           training_frequency: number | null
           typical_duration_min: number | null
           updated_at: string
+          use_library_preferences: boolean
           weight_kg: number | null
           wod_level: string
           wod_mode: boolean
@@ -306,6 +307,7 @@ export type Database = {
           training_frequency?: number | null
           typical_duration_min?: number | null
           updated_at?: string
+          use_library_preferences?: boolean
           weight_kg?: number | null
           wod_level?: string
           wod_mode?: boolean
@@ -348,6 +350,7 @@ export type Database = {
           training_frequency?: number | null
           typical_duration_min?: number | null
           updated_at?: string
+          use_library_preferences?: boolean
           weight_kg?: number | null
           wod_level?: string
           wod_mode?: boolean

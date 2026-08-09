@@ -1,0 +1,2 @@
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS use_library_preferences boolean NOT NULL DEFAULT true;
