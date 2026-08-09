@@ -77,6 +77,7 @@ type Profile = {
   disliked_exercises: string[] | null;
   favorite_exercise_ids: string[];
   disliked_exercise_ids: string[];
+  use_library_preferences: boolean;
 
   limitations: string[] | null;
   health_acknowledged_at: string | null;
@@ -104,6 +105,7 @@ const EMPTY: Profile = {
   disliked_exercises: [],
   favorite_exercise_ids: [],
   disliked_exercise_ids: [],
+  use_library_preferences: true,
 
   limitations: [],
   health_acknowledged_at: null,
