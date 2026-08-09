@@ -5,19 +5,15 @@ import { PageHeader } from "@/components/PageHeader";
 import {
   User,
   Dumbbell,
-  Clock,
-  HeartPulse,
-  ShieldCheck,
-  BookOpen,
-  Sparkles,
-  CheckCircle2,
-  Target,
-  Zap,
   Calendar,
   TrendingUp,
-  Smartphone,
-  Ban,
   Bot,
+  CheckCircle2,
+  Sparkles,
+  Target,
+  ShieldCheck,
+  BookOpen,
+  Zap,
   Coins,
 } from "lucide-react";
 
@@ -43,9 +39,7 @@ export const Route = createFileRoute("/founder-note")({
 });
 
 function Brand({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="font-extrabold text-primary">{children}</span>
-  );
+  return <span className="font-extrabold text-primary">{children}</span>;
 }
 
 function H({ children }: { children: React.ReactNode }) {
@@ -56,9 +50,20 @@ function H({ children }: { children: React.ReactNode }) {
   );
 }
 
-function P({ children }: { children: React.ReactNode }) {
+function P({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <p className="mt-4 text-sm leading-7 text-muted-foreground sm:text-base">
+    <p
+      className={
+        "mt-4 text-sm leading-7 text-muted-foreground sm:text-base" +
+        (className ? " " + className : "")
+      }
+    >
       {children}
     </p>
   );
@@ -72,7 +77,11 @@ function Lead({ children }: { children: React.ReactNode }) {
   );
 }
 
-function List({ items }: { items: { icon: React.ReactNode; text: React.ReactNode }[] }) {
+function List({
+  items,
+}: {
+  items: { icon: React.ReactNode; text: React.ReactNode }[];
+}) {
   return (
     <ul className="mt-5 space-y-4">
       {items.map((it, i) => (
@@ -275,7 +284,7 @@ function FounderNotePage() {
             text: (
               <>
                 <strong>Generate a workout.</strong> You answer a short
-                questionnaire about today. The AI merges this with your
+                questionnaire about today. The trained agent merges this with your
                 profile, filters the exercise library, and writes a workout.
               </>
             ),
