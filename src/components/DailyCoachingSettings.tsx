@@ -39,14 +39,36 @@ function hourLabel(h: number) {
 export function DailyCoachingSettings({ premium = false }: { premium?: boolean }) {
   const load = useServerFn(getDailyHub);
   const save = useServerFn(saveDailySettings);
+  const setSub = useServerFn(setWodSubscription);
   const [settings, setSettings] = useState<DailySettings | null>(null);
   const [saving, setSaving] = useState(false);
+  const [wodBusy, setWodBusy] = useState(false);
 
   useEffect(() => {
     void load({})
       .then((hub) => setSettings(hub.settings))
       .catch(() => undefined);
   }, [load]);
+
+  async function toggleWod(subscribe: boolean) {
+    if (wodBusy) return;
+    setWodBusy(true);
+    try {
+      await setSub({ data: { subscribe } });
+      const hub = await load({});
+      setSettings(hub.settings);
+      toast.success(
+        subscribe
+          ? "Subscribed. Today's two workouts are in your account."
+          : "Unsubscribed from the Workout of the Day.",
+      );
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not update your subscription.");
+    } finally {
+      setWodBusy(false);
+    }
+  }
+
 
   function patch(next: Partial<DailySettings>) {
     setSettings((prev) => (prev ? { ...prev, ...next } : prev));
