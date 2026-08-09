@@ -37,6 +37,10 @@ export type GenerateInput = {
   note?: string;
   location?: string;
   mood?: string;
+  /** Library ids picked as favourites / dislikes in the training profile. */
+  favoriteIds?: string[];
+  dislikedIds?: string[];
+
   athlete?: AthleteContext;
 };
 
