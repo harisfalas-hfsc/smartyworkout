@@ -201,6 +201,8 @@ function CoachPage() {
           equipment: equipment.length ? equipment : ["bodyweight"],
           equipmentOther: equipment.includes("other") ? otherEquipment.trim() : "",
           note: note.trim(),
+          useLibraryPreferences,
+
           level: surprise ? "auto" : (levelOverride ?? level),
           surprise,
         },
