@@ -141,8 +141,12 @@ export async function getAccessStateForUser(
     profileComplete,
     healthAcknowledged,
     readinessComplete,
+    readinessFlagged: hasReadinessWarning,
+    readinessFlags: Object.keys(READINESS_LABELS).filter(
+      (key) => readinessAnswers[key] === true,
+    ).map((key) => READINESS_LABELS[key] as string),
     premium,
-    missingProfileFields,
+
     generationsUsedToday,
     generationsLimit: dailyLimit,
     generationsLeftToday: Math.max(0, dailyLimit - generationsUsedToday),
