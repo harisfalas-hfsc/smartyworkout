@@ -117,6 +117,16 @@ function athleteBlock(a?: AthleteContext): string {
     );
   if (a.disliked_exercises?.length)
     lines.push(`Movement styles they dislike (avoid): ${a.disliked_exercises.join(", ")}`);
+  if (a.limitations?.length)
+    lines.push(
+      `INJURIES / LIMITATIONS (must be respected, choose safe alternatives): ${a.limitations.join(", ")}`,
+    );
+  if (a.recent_performance?.length)
+    lines.push(
+      `LOGGED PERFORMANCE (what they actually completed recently — apply progressive overload: add reps, load or a harder variation when the same movement returns, never regress without a reason):\n${a.recent_performance
+        .map((p) => `  · ${p}`)
+        .join("\n")}`,
+    );
 
   if (a.recent_feedback?.length)
     lines.push(
