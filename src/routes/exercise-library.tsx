@@ -400,7 +400,14 @@ function ExerciseLibraryPage() {
                 alt={selected.name}
                 className="h-64 w-full rounded-2xl object-contain"
               />
+              <PreferenceButtons
+                state={stateFor(selected.id)}
+                busy={savingId === selected.id}
+                onLike={() => mark(selected.id, "like")}
+                onDislike={() => mark(selected.id, "dislike")}
+              />
               <div className="flex flex-wrap gap-1">
+
                 {[selected.body_part, selected.equipment, selected.target_muscle, selected.difficulty]
                   .filter(Boolean)
                   .map((tag) => (
