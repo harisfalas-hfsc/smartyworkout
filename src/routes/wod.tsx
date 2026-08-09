@@ -250,7 +250,37 @@ function WodPage() {
         </div>
       </section>
 
-
+      {user && access?.readinessFlagged ? (
+        <div className="rounded-2xl border-2 border-destructive bg-destructive/10 p-4 text-sm">
+          <p className="font-extrabold uppercase tracking-[0.14em] text-destructive">
+            Health warning
+          </p>
+          <p className="mt-1 text-muted-foreground">
+            Your readiness questionnaire (PAR-Q) has a YES answer:
+          </p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
+            {access.readinessFlags.map((flag) => (
+              <li key={flag}>{flag}</li>
+            ))}
+          </ul>
+          <p className="mt-2 text-muted-foreground">
+            Smarty Coach is not a doctor. Speak to a medical professional before training. Either{" "}
+            <Link to="/profile" className="font-semibold text-primary underline">
+              update your PAR-Q answers
+            </Link>{" "}
+            or confirm below to train on your own responsibility.
+          </p>
+          <label className="mt-3 flex items-start gap-2 font-semibold">
+            <input
+              type="checkbox"
+              checked={parqConsent}
+              onChange={(e) => setParqConsent(e.target.checked)}
+              className="mt-0.5 h-5 w-5 accent-[hsl(var(--destructive))]"
+            />
+            <span>I train at my own responsibility.</span>
+          </label>
+        </div>
+      ) : null}
 
 
       <section className="lg:flex lg:flex-col lg:items-center">
