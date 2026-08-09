@@ -18,9 +18,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Search, X, Dumbbell } from "lucide-react";
+import { Loader2, Search, X, Dumbbell, Heart, ThumbsDown } from "lucide-react";
+import { toast } from "sonner";
 import { ExerciseGif } from "@/components/ExerciseGif";
 import { PageHeader } from "@/components/PageHeader";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  getExercisePreferences,
+  setExercisePreference,
+  type ExercisePreferences,
+} from "@/lib/preferences.functions";
+
 
 const URL = "https://smartyworkout.com/exercise-library";
 const TITLE = "Exercise Library — 1,300+ exercise demonstrations | SmartyWorkout";
@@ -107,7 +115,52 @@ function normalize(term: string): string[] {
   return [...v];
 }
 
+function PreferenceButtons({
+  state,
+  busy,
+  onLike,
+  onDislike,
+}: {
+  state: "like" | "dislike" | "none";
+  busy: boolean;
+  onLike: () => void;
+  onDislike: () => void;
+}) {
+  return (
+    <div className="mt-2 flex items-center gap-2">
+      <button
+        type="button"
+        disabled={busy}
+        onClick={onLike}
+        aria-label="Like this exercise"
+        className={`inline-flex h-8 w-8 items-center justify-center rounded-full border transition-colors ${
+          state === "like"
+            ? "border-primary bg-primary/10 text-primary"
+            : "border-border text-muted-foreground hover:text-primary"
+        }`}
+      >
+        <Heart className={`h-4 w-4 ${state === "like" ? "fill-current" : ""}`} />
+      </button>
+      <button
+        type="button"
+        disabled={busy}
+        onClick={onDislike}
+        aria-label="Dislike this exercise"
+        className={`inline-flex h-8 w-8 items-center justify-center rounded-full border transition-colors ${
+          state === "dislike"
+            ? "border-destructive bg-destructive/10 text-destructive"
+            : "border-border text-muted-foreground hover:text-destructive"
+        }`}
+      >
+        <ThumbsDown className="h-4 w-4" />
+      </button>
+      {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" /> : null}
+    </div>
+  );
+}
+
 function ExerciseLibraryPage() {
+
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
   const [nameSearch, setNameSearch] = useState("");
@@ -123,7 +176,59 @@ function ExerciseLibraryPage() {
     difficulties: string[];
   }>({ bodyParts: [], equipment: [], targets: [], difficulties: [] });
 
+  const { user } = useAuth();
+  const [prefs, setPrefs] = useState<ExercisePreferences | null>(null);
+  const [savingId, setSavingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      setPrefs(null);
+      return;
+    }
+    let active = true;
+    getExercisePreferences()
+      .then((p) => {
+        if (active) setPrefs(p);
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [user]);
+
+  const stateFor = (id: string): "like" | "dislike" | "none" =>
+    prefs?.favoriteIds.includes(id) ? "like" : prefs?.dislikedIds.includes(id) ? "dislike" : "none";
+
+  async function mark(id: string, next: "like" | "dislike") {
+    if (!user) {
+      toast.error("Sign in to save your liked and disliked exercises.");
+      return;
+    }
+    if (!prefs?.premium) {
+      toast.error("Liking and disliking exercises is part of the premium membership.");
+      return;
+    }
+    const state = stateFor(id) === next ? "none" : next;
+    setSavingId(id);
+    try {
+      const updated = await setExercisePreference({ data: { exerciseId: id, state } });
+      setPrefs(updated);
+      toast.success(
+        state === "none"
+          ? "Preference cleared."
+          : state === "like"
+            ? "Added to your liked exercises."
+            : "Added to your disliked exercises.",
+      );
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not save that.");
+    } finally {
+      setSavingId(null);
+    }
+  }
+
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+
 
   useEffect(() => {
     let active = true;
@@ -287,25 +392,35 @@ function ExerciseLibraryPage() {
             ) : (
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {exercises.map((ex) => (
-                  <button
+                  <div
                     key={ex.id}
-                    onClick={() => setSelected(ex)}
                     className="flex items-start gap-3 rounded-2xl border bg-card p-3 text-left transition-colors hover:border-primary"
                   >
-                    <ExerciseGif path={ex.gif_path} alt={ex.name} />
+                    <button onClick={() => setSelected(ex)} className="shrink-0" aria-label={`Open ${ex.name}`}>
+                      <ExerciseGif path={ex.gif_path} alt={ex.name} />
+                    </button>
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm font-bold capitalize leading-snug">{ex.name}</div>
-                      <div className="mt-1 flex flex-wrap gap-1">
-                        {[ex.body_part, ex.equipment].filter(Boolean).map((tag) => (
-                          <Badge key={tag as string} variant="secondary" className="capitalize">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
+                      <button onClick={() => setSelected(ex)} className="block w-full text-left">
+                        <span className="block text-sm font-bold capitalize leading-snug">{ex.name}</span>
+                        <span className="mt-1 flex flex-wrap gap-1">
+                          {[ex.body_part, ex.equipment].filter(Boolean).map((tag) => (
+                            <Badge key={tag as string} variant="secondary" className="capitalize">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </span>
+                      </button>
+                      <PreferenceButtons
+                        state={stateFor(ex.id)}
+                        busy={savingId === ex.id}
+                        onLike={() => mark(ex.id, "like")}
+                        onDislike={() => mark(ex.id, "dislike")}
+                      />
                     </div>
-                  </button>
+                  </div>
                 ))}
               </div>
+
             )}
           </div>
         </CardContent>
@@ -330,7 +445,14 @@ function ExerciseLibraryPage() {
                 alt={selected.name}
                 className="h-64 w-full rounded-2xl object-contain"
               />
+              <PreferenceButtons
+                state={stateFor(selected.id)}
+                busy={savingId === selected.id}
+                onLike={() => mark(selected.id, "like")}
+                onDislike={() => mark(selected.id, "dislike")}
+              />
               <div className="flex flex-wrap gap-1">
+
                 {[selected.body_part, selected.equipment, selected.target_muscle, selected.difficulty]
                   .filter(Boolean)
                   .map((tag) => (

@@ -13,10 +13,16 @@ import {
   Dumbbell,
   MessageSquare,
   Flame,
+  Heart,
+
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { generateWorkout } from "@/lib/coach.functions";
+import {
+  getExercisePreferences,
+  setUseLibraryPreferences as saveUseLibraryPreferences,
+} from "@/lib/preferences.functions";
 import { Link } from "@tanstack/react-router";
 import {
   EQUIPMENT,
@@ -126,6 +132,8 @@ function CoachPage() {
   const [equipment, setEquipment] = useState<string[]>(["bodyweight"]);
   const [otherEquipment, setOtherEquipment] = useState("");
   const [note, setNote] = useState("");
+  const [useLibraryPreferences, setUseLibraryPreferences] = useState(true);
+
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState<string>("");
   const [level, setLevel] = useState<string>("auto");
@@ -145,7 +153,11 @@ function CoachPage() {
         setParqFlags(access.readinessFlagged ? access.readinessFlags : []);
       })
       .catch(() => setProfileReady(null));
+    void getExercisePreferences()
+      .then((p) => setUseLibraryPreferences(p.useLibraryPreferences))
+      .catch(() => undefined);
   }, []);
+
 
 
 
@@ -197,6 +209,8 @@ function CoachPage() {
           equipment: equipment.length ? equipment : ["bodyweight"],
           equipmentOther: equipment.includes("other") ? otherEquipment.trim() : "",
           note: note.trim(),
+          useLibraryPreferences,
+
           level: surprise ? "auto" : (levelOverride ?? level),
           surprise,
         },
@@ -455,6 +469,35 @@ function CoachPage() {
 
         <QuestionCard
           step={7}
+          icon={Heart}
+          title="Use my library preferences?"
+          hint="Your liked exercises get priority, your disliked ones are left out."
+        >
+          <Grid>
+            <Chip active={useLibraryPreferences} onClick={() => {
+                setUseLibraryPreferences(true);
+                void saveUseLibraryPreferences({ data: { enabled: true } }).catch(() => undefined);
+              }}>
+              Yes
+            </Chip>
+            <Chip active={!useLibraryPreferences} onClick={() => {
+                setUseLibraryPreferences(false);
+                void saveUseLibraryPreferences({ data: { enabled: false } }).catch(() => undefined);
+              }}>
+              No
+            </Chip>
+          </Grid>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Mark exercises in the{" "}
+            <Link to="/exercise-library" className="font-semibold text-primary">
+              Exercise Library
+            </Link>
+            .
+          </p>
+        </QuestionCard>
+
+        <QuestionCard
+          step={8}
           icon={MessageSquare}
           title="Anything else?"
           hint="Optional — Smarty Coach reads this too."
@@ -467,6 +510,7 @@ function CoachPage() {
             className="rounded-2xl"
           />
         </QuestionCard>
+
       </div>
 
       <div className="sticky bottom-4 mt-6">
