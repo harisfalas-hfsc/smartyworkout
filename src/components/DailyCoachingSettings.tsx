@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { BellRing, Loader2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getDailyHub, saveDailySettings, type DailySettings } from "@/lib/daily.functions";
+import {
+  getDailyHub,
+  saveDailySettings,
+  setWodSubscription,
+  type DailySettings,
+} from "@/lib/daily.functions";
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const ZONES = [
