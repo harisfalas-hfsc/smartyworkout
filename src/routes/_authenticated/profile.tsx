@@ -39,6 +39,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { PageHeader } from "@/components/PageHeader";
+import { ExercisePicker } from "@/components/ExercisePicker";
+
 
 
 export const Route = createFileRoute("/_authenticated/profile")({
