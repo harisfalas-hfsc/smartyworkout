@@ -24,7 +24,6 @@ import {
   LOCATIONS,
   GENDERS,
   FITNESS_LEVELS,
-  SESSIONS_PER_WEEK,
   DURATIONS,
   PROFILE_GOALS,
   LIMITATIONS,
@@ -66,7 +65,6 @@ type Profile = {
   fitness_level: string | null;
   primary_goal: string | null;
   secondary_goal: string | null;
-  training_frequency: number | null;
   typical_duration_min: number | null;
   preferred_equipment: string[] | null;
   preferred_environment: string | null;
@@ -90,7 +88,6 @@ const EMPTY: Profile = {
   fitness_level: "intermediate",
   primary_goal: "",
   secondary_goal: "",
-  training_frequency: 3,
   typical_duration_min: 30,
   preferred_equipment: [],
   preferred_environment: "home",
@@ -369,19 +366,6 @@ function ProfilePage() {
                 {FITNESS_LEVELS.map((l) => (
                   <option key={l.id} value={l.id}>
                     {l.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Sessions per week">
-              <select
-                className={selectClass}
-                value={String(p.training_frequency ?? 3)}
-                onChange={(e) => set("training_frequency", Number(e.target.value))}
-              >
-                {SESSIONS_PER_WEEK.map((n) => (
-                  <option key={n} value={n}>
-                    {n} {n === 1 ? "session" : "sessions"}
                   </option>
                 ))}
               </select>

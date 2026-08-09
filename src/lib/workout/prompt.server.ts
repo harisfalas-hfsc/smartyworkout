@@ -69,7 +69,6 @@ export type AthleteContext = {
   fitness_level?: string | null;
   primary_goal?: string | null;
   secondary_goal?: string | null;
-  training_frequency?: number | null;
   preferred_environment?: string | null;
   /** Exact library names resolved from the athlete's picked favourite ids. */
   favorite_library?: string[] | null;
@@ -97,7 +96,6 @@ function athleteBlock(a?: AthleteContext): string {
   if (a.fitness_level) lines.push(`Fitness level: ${a.fitness_level}`);
   if (a.primary_goal) lines.push(`Primary goal: ${a.primary_goal}`);
   if (a.secondary_goal) lines.push(`Secondary goal: ${a.secondary_goal}`);
-  if (a.training_frequency) lines.push(`Trains ${a.training_frequency}x per week`);
   if (a.preferred_environment) lines.push(`Usual training environment: ${a.preferred_environment}`);
   if (a.location) lines.push(`Training today at: ${a.location}`);
   if (a.mood) lines.push(`Feeling today: ${a.mood}`);

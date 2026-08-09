@@ -37,7 +37,6 @@ export interface QuestionnaireData {
   activity: {
     trains: boolean;
     trainingType?: string;
-    trainingFrequency?: number;
     trainingDurationMin?: number;
     trainingIntensity?: "low" | "medium" | "high";
     activityLevel: ActivityLevel;

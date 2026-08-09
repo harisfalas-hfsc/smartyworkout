@@ -98,7 +98,6 @@ export const FITNESS_LEVELS = [
   { id: "advanced", label: "Advanced" },
 ] as const;
 
-export const SESSIONS_PER_WEEK = [1, 2, 3, 4, 5, 6, 7];
 
 /** Approximate session lengths (minutes). */
 export const DURATIONS = [10, 15, 20, 30, 40, 45, 60, 75, 90];
