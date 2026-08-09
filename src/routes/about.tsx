@@ -21,7 +21,35 @@ export const Route = createFileRoute("/about")({
       { property: "og:url", content: "https://smartyworkout.com/about" },
     ],
     links: [{ rel: "canonical", href: "https://smartyworkout.com/about" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "AboutPage",
+              url: "https://smartyworkout.com/about",
+              name: "About Smarty Workout — Your AI Fitness Coach",
+              description:
+                "Smarty Workout is not another workout app. Smarty Coach is an AI fitness coach built around the sports science of Haris Falas.",
+              inLanguage: "en",
+              isPartOf: { "@id": "https://smartyworkout.com/#website" },
+              mainEntity: { "@id": "https://smartyworkout.com/#organization" },
+            },
+            {
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                { "@type": "ListItem", position: 1, name: "Home", item: "https://smartyworkout.com/" },
+                { "@type": "ListItem", position: 2, name: "About", item: "https://smartyworkout.com/about" },
+              ],
+            },
+          ],
+        }),
+      },
+    ],
   }),
+
   component: AboutPage,
 });
 
