@@ -106,7 +106,7 @@ function FounderNotePage() {
         <div className="mx-auto mb-6 h-28 w-28 overflow-hidden rounded-full border-4 border-primary sm:h-36 sm:w-36">
           <img
             src={harisPhoto}
-            alt="Charis Falas — founder of Smarty Workout"
+            alt="Haris Falas — founder of Smarty Workout"
             className="h-full w-full object-cover object-center"
             width={320}
             height={320}
@@ -119,7 +119,7 @@ function FounderNotePage() {
           eyebrow="A note from the founder"
           title={
             <>
-              Charis <span className="text-primary">Falas</span>
+              Haris <span className="text-primary">Falas</span>
             </>
           }
           subtitle={
@@ -139,7 +139,7 @@ function FounderNotePage() {
 
       <P>
         <Brand>Smarty Workout</Brand> is a powerful AI fitness coach — but it is
-        not just another chatbot. It has been trained by me, Charis Falas, a
+        not just another chatbot. It has been trained by me, Haris Falas, a
         sports scientist, so it thinks the way I think about programme design,
         progression, safety, and real human movement. It does not invent
         exercises from the internet. It does not hand you a generic “Monday
@@ -362,7 +362,7 @@ function FounderNotePage() {
           Yours in good health,
         </p>
         <p className="mt-1 text-base font-extrabold text-foreground sm:text-lg">
-          Charis Falas
+          Haris Falas
         </p>
         <p className="text-sm text-muted-foreground">
           BSc Sports Science, EXO Specialist, CSCS
@@ -377,7 +377,7 @@ function FounderNotePage() {
           to="/haris-falas"
           className="text-sm font-semibold text-primary underline underline-offset-2"
         >
-          More about Charis Falas
+          More about Haris Falas
         </Link>
       </div>
     </main>
