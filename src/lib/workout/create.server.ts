@@ -241,6 +241,8 @@ export async function createWorkoutForUser(
       minutes,
       focus,
       ...(data.note ? { note: String(data.note).slice(0, 500) } : {}),
+      favoriteIds,
+      dislikedIds,
       athlete: {
         name: (prof?.["display_name"] as string) ?? null,
         age: (prof?.["age"] as number) ?? null,
@@ -255,11 +257,15 @@ export async function createWorkoutForUser(
         preferred_environment: (prof?.["preferred_environment"] as string) ?? null,
         favorite_exercises: (prof?.["favorite_exercises"] as string[]) ?? null,
         disliked_exercises: (prof?.["disliked_exercises"] as string[]) ?? null,
+        favorite_library: favoriteLibrary,
+        disliked_library: dislikedLibrary,
+        recent_performance: performanceLines,
         limitations: (prof?.["limitations"] as string[]) ?? null,
         location: String(data.location ?? "anywhere"),
         mood,
         recent_feedback: feedbackLines,
       },
+
     },
     usedNames,
   );
