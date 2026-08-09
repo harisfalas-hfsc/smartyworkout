@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -14,7 +14,12 @@ import {
   CarouselPrevious,
   type CarouselApi,
 } from "@/components/ui/carousel";
-import { getDailyHub, getPublicWodDays, setWodSubscription } from "@/lib/daily.functions";
+import {
+  generateTodayWod,
+  getDailyHub,
+  getPublicWodDays,
+  setWodSubscription,
+} from "@/lib/daily.functions";
 
 import { useAuth } from "@/hooks/useAuth";
 import { PageHeader } from "@/components/PageHeader";
@@ -146,11 +151,14 @@ function WodPage() {
   const load = useServerFn(getDailyHub);
   const loadPublic = useServerFn(getPublicWodDays);
   const setSub = useServerFn(setWodSubscription);
+  const gen = useServerFn(generateTodayWod);
+  const navigate = useNavigate();
   const [hub, setHub] = useState<Hub | null>(null);
   const [publicCycle, setPublicCycle] = useState<Awaited<
     ReturnType<typeof getPublicWodDays>
   > | null>(null);
   const [busy, setBusy] = useState(false);
+  const [building, setBuilding] = useState(false);
   const [parqConsent, setParqConsent] = useState(false);
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(1);
@@ -189,8 +197,24 @@ function WodPage() {
     setHub(await load({}));
   }
 
+  async function handleSubscribeClick() {
+    if (!user) {
+      void navigate({ to: "/auth", search: { next: "/wod", mode: "signup" } });
+      return;
+    }
+    if (!access?.profileComplete || !access.healthAcknowledged) {
+      void navigate({ to: "/profile" });
+      return;
+    }
+    if (!access.premium) {
+      void navigate({ to: "/checkout" });
+      return;
+    }
+    await toggleSub(!subscribed);
+  }
+
   async function toggleSub(subscribe: boolean) {
-    if (busy) return;
+    if (busy || building) return;
     if (subscribe && (hub?.access?.readinessFlagged ?? false) && !parqConsent) {
       toast.error("Confirm the health warning first, or update your PAR-Q answers.");
       return;
@@ -200,17 +224,30 @@ function WodPage() {
     try {
       await setSub({ data: { subscribe } });
       await refresh();
-      toast.success(
-        subscribe
-          ? "You're in. Today's two workouts are in your account already."
-          : "Unsubscribed. You can create your own workouts again.",
-      );
+      if (!subscribe) {
+        toast.success("Unsubscribed. You can create your own workouts again.");
+        return;
+      }
+      toast.success("You're in. Building today's two workouts now…");
+      setBuilding(true);
+      void gen({})
+        .then(async () => {
+          await refresh();
+          toast.success("Today's two workouts are ready.");
+        })
+        .catch((e: unknown) => {
+          toast.error(
+            e instanceof Error ? e.message : "Today's workouts could not be built yet.",
+          );
+        })
+        .finally(() => setBuilding(false));
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not update your subscription.");
     } finally {
       setBusy(false);
     }
   }
+
 
   if (authLoading || (user && !hub)) {
     return (
@@ -327,25 +364,26 @@ function WodPage() {
           </div>
         ) : null}
 
-        {user && access?.profileComplete && access.healthAcknowledged && access.premium ? (
-          <Button
-            variant={subscribed ? "secondary" : "default"}
-            className={`${workouts.length ? "mt-3 " : ""}h-12 w-full rounded-lg text-[15px] font-extrabold lg:w-80`}
-            disabled={busy}
-            onClick={() => void toggleSub(!subscribed)}
-          >
-            {busy ? <Loader2 className="mr-2 h-4 w-4 shrink-0 animate-spin" /> : null}
-            <span className="truncate">
-              {busy ? "Please wait…" : subscribed ? "Unsubscribe" : "Subscribe"}
-            </span>
-          </Button>
-        ) : !user ? (
-          <Button asChild className="h-12 w-full rounded-lg text-[15px] font-extrabold lg:w-80">
-            <Link to="/auth" search={{ next: "/wod", mode: "signup" }}>
-              Create an account
-            </Link>
-          </Button>
-        ) : !access?.profileComplete || !access.healthAcknowledged ? (
+        <Button
+          variant={subscribed ? "secondary" : "default"}
+          className={`${workouts.length ? "mt-3 " : ""}h-12 w-full rounded-lg text-[15px] font-extrabold lg:w-80`}
+          disabled={busy || building}
+          onClick={() => void handleSubscribeClick()}
+        >
+          {busy || building ? <Loader2 className="mr-2 h-4 w-4 shrink-0 animate-spin" /> : null}
+          <span className="truncate">
+            {building
+              ? "Building today's workouts…"
+              : busy
+                ? "Please wait…"
+                : subscribed
+                  ? "Unsubscribe"
+                  : "Subscribe"}
+          </span>
+        </Button>
+
+        {!user ? null : !access?.profileComplete || !access.healthAcknowledged ? (
+
           <div className="w-full max-w-xl rounded-xl border border-border bg-card p-4 text-center">
             <UserRound className="mx-auto h-6 w-6 text-primary" />
             <p className="mt-2 font-extrabold">Complete your Training Profile first</p>

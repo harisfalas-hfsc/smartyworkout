@@ -269,14 +269,9 @@ export const setWodSubscription = createServerFn({ method: "POST" })
       .update(patch as never)
       .eq("id", context.userId);
     if (error) throw new Error(error.message);
-
-    let created = 0;
-    if (data.subscribe) {
-      // Don't make the athlete wait until midnight — today's pair is built immediately.
-      const { runWodForUser } = await import("@/lib/daily.server");
-      const res = await runWodForUser(context.supabase as never, context.userId);
-      created = res.created;
-    }
-    return { ok: true, subscribed: data.subscribe, created };
+    // Subscribing returns immediately; today's pair is built by a follow-up
+    // call (generateTodayWod) so the athlete never waits on the AI here.
+    return { ok: true, subscribed: data.subscribe, created: 0 };
   });
+
 
