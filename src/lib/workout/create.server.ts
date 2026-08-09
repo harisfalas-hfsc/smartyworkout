@@ -152,6 +152,45 @@ export async function createWorkoutForUser(
     return `${w?.category ?? "workout"} — ${w?.name ?? "session"}: ${bits.join(", ")}`;
   });
 
+  // Progressive overload: best logged set per movement, most recent first.
+  const perfRows =
+    (setLogs as Array<{
+      exercise_name: string;
+      set_number: number;
+      reps: number | null;
+      weight_kg: number | null;
+      seconds: number | null;
+      completed_at: string;
+    }> | null) ?? [];
+  const bestByExercise = new Map<string, string>();
+  for (const row of perfRows) {
+    if (bestByExercise.has(row.exercise_name)) continue;
+    const bits = [
+      row.reps ? `${row.reps} reps` : null,
+      row.weight_kg ? `${row.weight_kg} kg` : null,
+      row.seconds ? `${row.seconds} sec` : null,
+    ].filter(Boolean);
+    if (!bits.length) continue;
+    bestByExercise.set(
+      row.exercise_name,
+      `${row.exercise_name}: last logged ${bits.join(" @ ")} (set ${row.set_number}, ${row.completed_at.slice(0, 10)})`,
+    );
+  }
+  const performanceLines = [...bestByExercise.values()].slice(0, 12);
+
+  const favoriteIds = ((prof?.["favorite_exercise_ids"] as string[] | null) ?? []).slice(0, 25);
+  const dislikedIds = ((prof?.["disliked_exercise_ids"] as string[] | null) ?? []).slice(0, 40);
+  const pickedIds = [...favoriteIds, ...dislikedIds];
+  const libraryNames = new Map<string, string>();
+  if (pickedIds.length) {
+    const { data: picked } = await db.from("exercises").select("id,name").in("id", pickedIds);
+    for (const row of (picked as Array<{ id: string; name: string }> | null) ?? [])
+      libraryNames.set(row.id, row.name);
+  }
+  const favoriteLibrary = favoriteIds.map((id) => libraryNames.get(id)).filter(Boolean) as string[];
+  const dislikedLibrary = dislikedIds.map((id) => libraryNames.get(id)).filter(Boolean) as string[];
+
+
   if (data.surprise) {
     // Deterministic per user per day, and never the same category as the last 2 workouts.
     const seedSource = `${userId}:${new Date().toISOString().slice(0, 10)}`;
