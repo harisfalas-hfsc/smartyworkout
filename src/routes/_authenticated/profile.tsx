@@ -173,17 +173,13 @@ function Pills({
   );
 }
 
-function toList(s: string) {
-  return s
-    .split(",")
-    .map((v) => v.trim())
-    .filter(Boolean);
-}
-
 function ProfilePage() {
   const navigate = useNavigate();
   const [p, setP] = useState<Profile | null>(null);
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [wasOnboarded, setWasOnboarded] = useState(false);
+
 
   useEffect(() => {
     (async () => {
