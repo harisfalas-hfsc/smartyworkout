@@ -482,6 +482,28 @@ function ProfilePage() {
             ))}
           </select>
         </SectionCard>
+        <SectionCard
+          icon={Sparkles}
+          title="Use my library preferences"
+          hint="Should Smarty Coach take your liked and disliked exercises into account?"
+        >
+          <select
+            className={selectClass}
+            value={p.use_library_preferences === false ? "no" : "yes"}
+            onChange={(e) => set("use_library_preferences", e.target.value === "yes")}
+          >
+            <option value="yes">Yes — prioritise my likes, avoid my dislikes</option>
+            <option value="no">No — ignore them and program freely</option>
+          </select>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Applies to every workout and to your Workout of the Day. Mark exercises in the{" "}
+            <Link to="/exercise-library" className="font-semibold text-primary">
+              Exercise Library
+            </Link>{" "}
+            or with the pickers below.
+          </p>
+        </SectionCard>
+
 
         <SectionCard
           icon={Heart}
