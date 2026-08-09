@@ -103,21 +103,29 @@ export async function createWorkoutForUser(
 
   let category: Category = GOAL_TO_CATEGORY[goal] ?? "STRENGTH";
 
-  const [{ data: profile }, { data: recent }, { data: feedback }] = await Promise.all([
-    db.from("profiles").select("*").eq("id", userId).maybeSingle(),
-    db
-      .from("workouts")
-      .select("name,category,created_at")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(120),
-    db
-      .from("workout_feedback")
-      .select("difficulty_rating,feeling,enjoyed,would_repeat,comment,created_at,workouts(name,category)")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(8),
-  ]);
+  const [{ data: profile }, { data: recent }, { data: feedback }, { data: setLogs }] =
+    await Promise.all([
+      db.from("profiles").select("*").eq("id", userId).maybeSingle(),
+      db
+        .from("workouts")
+        .select("name,category,created_at")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(120),
+      db
+        .from("workout_feedback")
+        .select("difficulty_rating,feeling,enjoyed,would_repeat,comment,created_at,workouts(name,category)")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(8),
+      db
+        .from("set_logs")
+        .select("exercise_name,set_number,reps,weight_kg,seconds,completed_at")
+        .eq("user_id", userId)
+        .order("completed_at", { ascending: false })
+        .limit(60),
+    ]);
+
 
   const prof = (profile ?? null) as Record<string, unknown> | null;
   const history = (recent as { name: string; category: string }[] | null) ?? [];
