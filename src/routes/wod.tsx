@@ -156,7 +156,12 @@ function WodPage() {
 
   async function toggleSub(subscribe: boolean) {
     if (busy) return;
+    if (subscribe && (hub?.access?.readinessFlagged ?? false) && !parqConsent) {
+      toast.error("Confirm the health warning first, or update your PAR-Q answers.");
+      return;
+    }
     setBusy(true);
+
     try {
       await setSub({ data: { subscribe } });
       await refresh();
