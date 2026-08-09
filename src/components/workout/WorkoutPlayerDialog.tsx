@@ -23,12 +23,14 @@ export function WorkoutPlayerDialog({
   onOpenChange,
   steps,
   workoutName,
+  workoutId,
   onFinish,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   steps: WorkoutStep[];
   workoutName: string;
+  workoutId: string;
   onFinish: () => void;
 }) {
   const slides = useMemo(() => buildSlides(steps), [steps]);
@@ -39,9 +41,14 @@ export function WorkoutPlayerDialog({
   const [phase, setPhase] = useState<"work" | "rest">("work");
   const [remaining, setRemaining] = useState(0);
   const [round, setRound] = useState(1);
+  const [logged, setLogged] = useState<Record<number, number>>({});
+  const [reps, setReps] = useState("");
+  const [weight, setWeight] = useState("");
+  const [savingSet, setSavingSet] = useState(false);
   const beepRef = useRef<number>(0);
 
   useKeepScreenAwake(open);
+
 
   useEffect(() => {
     if (!api) return;
