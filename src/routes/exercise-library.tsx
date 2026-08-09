@@ -18,9 +18,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Search, X, Dumbbell } from "lucide-react";
+import { Loader2, Search, X, Dumbbell, Heart, ThumbsDown } from "lucide-react";
+import { toast } from "sonner";
 import { ExerciseGif } from "@/components/ExerciseGif";
 import { PageHeader } from "@/components/PageHeader";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  getExercisePreferences,
+  setExercisePreference,
+  type ExercisePreferences,
+} from "@/lib/preferences.functions";
+
 
 const URL = "https://smartyworkout.com/exercise-library";
 const TITLE = "Exercise Library — 1,300+ exercise demonstrations | SmartyWorkout";
