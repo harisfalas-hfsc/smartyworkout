@@ -327,25 +327,26 @@ function WodPage() {
           </div>
         ) : null}
 
-        {user && access?.profileComplete && access.healthAcknowledged && access.premium ? (
-          <Button
-            variant={subscribed ? "secondary" : "default"}
-            className={`${workouts.length ? "mt-3 " : ""}h-12 w-full rounded-lg text-[15px] font-extrabold lg:w-80`}
-            disabled={busy}
-            onClick={() => void toggleSub(!subscribed)}
-          >
-            {busy ? <Loader2 className="mr-2 h-4 w-4 shrink-0 animate-spin" /> : null}
-            <span className="truncate">
-              {busy ? "Please wait…" : subscribed ? "Unsubscribe" : "Subscribe"}
-            </span>
-          </Button>
-        ) : !user ? (
-          <Button asChild className="h-12 w-full rounded-lg text-[15px] font-extrabold lg:w-80">
-            <Link to="/auth" search={{ next: "/wod", mode: "signup" }}>
-              Create an account
-            </Link>
-          </Button>
-        ) : !access?.profileComplete || !access.healthAcknowledged ? (
+        <Button
+          variant={subscribed ? "secondary" : "default"}
+          className={`${workouts.length ? "mt-3 " : ""}h-12 w-full rounded-lg text-[15px] font-extrabold lg:w-80`}
+          disabled={busy || building}
+          onClick={() => void handleSubscribeClick()}
+        >
+          {busy || building ? <Loader2 className="mr-2 h-4 w-4 shrink-0 animate-spin" /> : null}
+          <span className="truncate">
+            {building
+              ? "Building today's workouts…"
+              : busy
+                ? "Please wait…"
+                : subscribed
+                  ? "Unsubscribe"
+                  : "Subscribe"}
+          </span>
+        </Button>
+
+        {!user ? null : !access?.profileComplete || !access.healthAcknowledged ? (
+
           <div className="w-full max-w-xl rounded-xl border border-border bg-card p-4 text-center">
             <UserRound className="mx-auto h-6 w-6 text-primary" />
             <p className="mt-2 font-extrabold">Complete your Training Profile first</p>
