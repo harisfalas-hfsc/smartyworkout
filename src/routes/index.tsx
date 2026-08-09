@@ -90,6 +90,15 @@ function Home() {
         <p className="mt-4 text-center text-[13px] text-muted-foreground">
           One membership. Two personalized workouts every day.
         </p>
+        <div className="mt-4 flex justify-center">
+          <Link
+            to="/founder-note"
+            className="inline-flex items-center gap-2 rounded-full border-2 border-primary px-5 py-2.5 text-[13px] font-bold text-primary"
+          >
+            <PenLine className="h-4 w-4" />
+            A note from the founder
+          </Link>
+        </div>
       </section>
 
 
