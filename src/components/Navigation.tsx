@@ -191,12 +191,7 @@ export function Navigation() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onSelect={(e) => {
-                    e.preventDefault();
-                    toggleTheme();
-                  }}
-                >
+                <DropdownMenuItem onSelect={() => toggleTheme()}>
                   {theme === "dark" ? (
                     <><Sun className="h-4 w-4 mr-2" /> Light mode</>
                   ) : (
