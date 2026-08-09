@@ -109,6 +109,8 @@ export async function generateWorkoutContent(
   const customEquipment = input.customEquipmentRaw
     ? resolveCustomEquipment(all, input.customEquipmentRaw)
     : (input.customEquipment ?? []);
+  const favoriteIds = input.favoriteIds ?? [];
+  const dislikedIds = input.dislikedIds ?? [];
   const pool = filterPool(all, {
     category: input.category,
     equipmentMode: input.equipmentMode,
@@ -116,41 +118,67 @@ export async function generateWorkoutContent(
     customEquipment,
     level,
     focus: input.focus ?? null,
+    dislikedIds,
+    favoriteIds,
   });
   if (pool.length < 12) {
     throw new Error("Not enough exercises match those settings. Try different equipment.");
   }
 
   const duration = durationLabel(input.minutes);
-  const promptPool = samplePool(pool);
+  const promptPool = samplePool(pool, 260, favoriteIds);
 
   const { getWorkoutRules } = await import("@/lib/settings.server");
   const extraRules = (await getWorkoutRules()).extraCoachRules.trim();
 
+  const validateOpts = {
+    library: all,
+    pool,
+    category: input.category,
+    format,
+    level,
+    targetMinutes: input.minutes,
+    equipmentMode: input.equipmentMode,
+    selectedEquipment: input.selectedEquipment,
+    customEquipment,
+    dislikedIds,
+  };
+
+  const fallbackName = () =>
+    `${input.category.split(" ")[0]!.toLowerCase()} ${level} session`.replace(/\b\w/g, (c) =>
+      c.toUpperCase(),
+    );
+
   let lastError = "";
   for (let attempt = 0; attempt < 3; attempt++) {
-    const { system, user } = buildWorkoutPrompt({
-      category: input.category,
-      format,
-      equipmentMode: input.equipmentMode,
-      selectedEquipment: input.selectedEquipment,
-      ...(customEquipment.length ? { customEquipment } : {}),
-      level,
-      stars: input.stars,
-      duration,
-      focus: input.focus ?? null,
-      ...(input.note ? { note: input.note } : {}),
-      ...(input.athlete ? { athlete: input.athlete } : {}),
-      pool: promptPool,
-      bannedNames: usedNames,
-    });
+    let payload: Record<string, unknown>;
+    try {
+      const { system, user } = buildWorkoutPrompt({
+        category: input.category,
+        format,
+        equipmentMode: input.equipmentMode,
+        selectedEquipment: input.selectedEquipment,
+        ...(customEquipment.length ? { customEquipment } : {}),
+        level,
+        stars: input.stars,
+        duration,
+        focus: input.focus ?? null,
+        ...(input.note ? { note: input.note } : {}),
+        ...(input.athlete ? { athlete: input.athlete } : {}),
+        pool: promptPool,
+        bannedNames: usedNames,
+      });
 
-    const payload = await askModel(
-      extraRules ? `${system}\n\nADDITIONAL COACH RULES (highest priority)\n${extraRules}` : system,
-      attempt === 0
-        ? user
-        : `${user}\n\nPREVIOUS ATTEMPT REJECTED: ${lastError}\nFix it and return valid JSON.`,
-    );
+      payload = await askModel(
+        extraRules ? `${system}\n\nADDITIONAL COACH RULES (highest priority)\n${extraRules}` : system,
+        attempt === 0
+          ? user
+          : `${user}\n\nPREVIOUS ATTEMPT REJECTED: ${lastError}\nFix it and return valid JSON.`,
+      );
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : "model call failed";
+      continue;
+    }
 
     const html = String(payload["main_workout"] ?? "");
     const enforced = enforceWorkout(html, pool, {
@@ -165,11 +193,18 @@ export async function generateWorkoutContent(
       continue;
     }
 
+    // Deterministic validation — the last word on ids, equipment and dosing.
+    const validated = validateWorkout(enforced.html, validateOpts);
+    if (validated.errors.length) {
+      lastError = validated.errors.slice(0, 6).join(" ");
+      continue;
+    }
+
     let name = String(payload["name"] ?? "").trim();
+    const warnings = [...enforced.warnings, ...validated.warnings];
     if (!isValidName(name, usedNames)) {
-      name = `${input.category.split(" ")[0]!.toLowerCase()} ${level} session`
-        .replace(/\b\w/g, (c) => c.toUpperCase());
-      enforced.warnings.push("Workout name was replaced by a compliant fallback.");
+      name = fallbackName();
+      warnings.push("Workout name was replaced by a compliant fallback.");
     }
 
     return {
@@ -178,17 +213,60 @@ export async function generateWorkoutContent(
       main_workout: enforced.html,
       instructions_html: String(payload["instructions"] ?? ""),
       tips_html: String(payload["tips"] ?? ""),
-      warnings: enforced.warnings,
-      needs_review: enforced.warnings.length > 0,
+      warnings,
+      needs_review: warnings.length > 0,
       format,
       pool,
       duration,
     };
   }
 
-  throw new Error(
-    `Smarty Coach could not build a compliant workout (${lastError}). Please try again.`,
-  );
+  // ---- Reliability fallback: deterministic template engine ---------------------
+  const pack = buildPackWorkout(pool, all, {
+    category: input.category,
+    format,
+    level,
+    minutes: input.minutes,
+    focus: input.focus ?? null,
+    favoriteIds,
+  });
+  const enforcedPack = enforceWorkout(pack.html, pool, {
+    category: input.category,
+    format,
+    level,
+    targetMinutes: input.minutes,
+  });
+  const packValidation = validateWorkout(enforcedPack.html, validateOpts);
+  if (enforcedPack.errors.length || packValidation.errors.length) {
+    throw new Error(
+      `Smarty Coach could not build a compliant workout (${lastError}). Please try again.`,
+    );
+  }
+
+  const copy = packCopy({
+    category: input.category,
+    format,
+    level,
+    minutes: input.minutes,
+    focus: input.focus ?? null,
+  });
+  const name = isValidName(pack.name, usedNames) ? pack.name : fallbackName();
+
+  return {
+    name,
+    ...copy,
+    main_workout: enforcedPack.html,
+    warnings: [
+      `Built by the template engine after the AI attempts failed (${lastError}).`,
+      ...enforcedPack.warnings,
+      ...packValidation.warnings,
+    ],
+    needs_review: true,
+    format,
+    pool,
+    duration,
+  };
 }
+
 
 export { estimateWorkMinutes };
