@@ -4,6 +4,10 @@ export type AccessState = {
   profileComplete: boolean;
   healthAcknowledged: boolean;
   readinessComplete: boolean;
+  /** True when the athlete answered YES to at least one PAR-Q question. */
+  readinessFlagged: boolean;
+  /** Plain-language list of the PAR-Q answers that were YES. */
+  readinessFlags: string[];
   premium: boolean;
   missingProfileFields: string[];
   /** Manual (coach) generations already used today. */
@@ -12,6 +16,16 @@ export type AccessState = {
   generationsLimit: number;
   generationsLeftToday: number;
 };
+
+/** PAR-Q questions, keyed exactly as they are stored on the profile. */
+export const READINESS_LABELS: Record<string, string> = {
+  heart: "A doctor has said you have a heart condition",
+  chestPain: "You get chest pain during physical activity",
+  dizziness: "You lose balance from dizziness or lose consciousness",
+  jointProblem: "You have a bone or joint problem that activity could make worse",
+  otherReason: "You know of another reason why you should not exercise",
+};
+
 
 /** Membership includes two coach generations per day (Workout of the Day is extra). */
 export const DAILY_GENERATION_LIMIT = 2;
@@ -127,8 +141,14 @@ export async function getAccessStateForUser(
     profileComplete,
     healthAcknowledged,
     readinessComplete,
+    readinessFlagged: hasReadinessWarning,
+    readinessFlags: Object.keys(READINESS_LABELS).filter(
+      (key) => readinessAnswers[key] === true,
+    ).map((key) => READINESS_LABELS[key] as string),
     premium,
     missingProfileFields,
+
+
     generationsUsedToday,
     generationsLimit: dailyLimit,
     generationsLeftToday: Math.max(0, dailyLimit - generationsUsedToday),

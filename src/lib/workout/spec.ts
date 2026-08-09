@@ -64,6 +64,20 @@ export function difficultyLabel(stars: number): string {
   return level.charAt(0).toUpperCase() + level.slice(1);
 }
 
+/**
+ * Six stars, three levels. Within each level the lower star is the gentler
+ * version and the upper star is the demanding version of that same level.
+ */
+export function intensityNote(stars: number): string {
+  const level = starsToLevel(stars);
+  if (level === "all") return "Mixed intensity.";
+  const upper = stars % 2 === 0;
+  return upper
+    ? `Upper half of ${level}: the demanding end of ${level} — more volume, longer work blocks, shorter rests, harder variations, but never step into the next level.`
+    : `Lower half of ${level}: the gentler end of ${level} — moderate volume, generous rest, the simplest safe variations, but never easier than ${level}.`;
+}
+
+
 export const SECTION_ORDER = [
   "Soft Tissue Preparation",
   "Activation",
