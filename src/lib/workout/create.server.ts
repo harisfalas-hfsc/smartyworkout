@@ -18,6 +18,8 @@ export type CoachRequest = {
   focus?: string;
   format?: string;
   note?: string;
+  /** When false, the athlete's library likes/dislikes are ignored for this session. */
+  useLibraryPreferences?: boolean;
   level?: string;
   surprise?: boolean;
   /** Workout of the Day overrides — bypasses goal/level mapping. */
@@ -177,8 +179,14 @@ export async function createWorkoutForUser(
   }
   const performanceLines = [...bestByExercise.values()].slice(0, 12);
 
-  const favoriteIds = ((prof?.["favorite_exercise_ids"] as string[] | null) ?? []).slice(0, 25);
-  const dislikedIds = ((prof?.["disliked_exercise_ids"] as string[] | null) ?? []).slice(0, 40);
+  const useLibraryPrefs =
+    data.useLibraryPreferences ?? (prof?.["use_library_preferences"] as boolean | null) ?? true;
+  const favoriteIds = useLibraryPrefs
+    ? ((prof?.["favorite_exercise_ids"] as string[] | null) ?? []).slice(0, 25)
+    : [];
+  const dislikedIds = useLibraryPrefs
+    ? ((prof?.["disliked_exercise_ids"] as string[] | null) ?? []).slice(0, 40)
+    : [];
   const pickedIds = [...favoriteIds, ...dislikedIds];
   const libraryNames = new Map<string, string>();
   if (pickedIds.length) {
@@ -254,8 +262,8 @@ export async function createWorkoutForUser(
         training_frequency: (prof?.["training_frequency"] as number) ?? null,
         preferred_categories: (prof?.["preferred_categories"] as string[]) ?? null,
         preferred_environment: (prof?.["preferred_environment"] as string) ?? null,
-        favorite_exercises: (prof?.["favorite_exercises"] as string[]) ?? null,
-        disliked_exercises: (prof?.["disliked_exercises"] as string[]) ?? null,
+        favorite_exercises: useLibraryPrefs ? ((prof?.["favorite_exercises"] as string[]) ?? null) : null,
+        disliked_exercises: useLibraryPrefs ? ((prof?.["disliked_exercises"] as string[]) ?? null) : null,
         favorite_library: favoriteLibrary,
         disliked_library: dislikedLibrary,
         recent_performance: performanceLines,

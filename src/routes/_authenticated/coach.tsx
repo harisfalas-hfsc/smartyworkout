@@ -19,6 +19,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { generateWorkout } from "@/lib/coach.functions";
+import {
+  getExercisePreferences,
+  setUseLibraryPreferences as saveUseLibraryPreferences,
+} from "@/lib/preferences.functions";
 import { Link } from "@tanstack/react-router";
 import {
   EQUIPMENT,
@@ -470,10 +474,16 @@ function CoachPage() {
           hint="Your liked exercises get priority, your disliked ones are left out."
         >
           <Grid>
-            <Chip active={useLibraryPreferences} onClick={() => setUseLibraryPreferences(true)}>
+            <Chip active={useLibraryPreferences} onClick={() => {
+                setUseLibraryPreferences(true);
+                void saveUseLibraryPreferences({ data: { enabled: true } }).catch(() => undefined);
+              }}>
               Yes
             </Chip>
-            <Chip active={!useLibraryPreferences} onClick={() => setUseLibraryPreferences(false)}>
+            <Chip active={!useLibraryPreferences} onClick={() => {
+                setUseLibraryPreferences(false);
+                void saveUseLibraryPreferences({ data: { enabled: false } }).catch(() => undefined);
+              }}>
               No
             </Chip>
           </Grid>
