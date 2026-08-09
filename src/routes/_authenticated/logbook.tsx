@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useServerFn } from "@tanstack/react-start";
 import { setWorkoutMeta } from "@/lib/coach.functions";
 import { toast } from "sonner";
+import { MAX_STARS, normalizeStars } from "@/lib/workout/spec";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
