@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { PenLine } from "lucide-react";
+import { CalendarCheck, Dumbbell, PenLine } from "lucide-react";
 import heroTraining from "@/assets/hero-training.jpg";
 import { PageHeader } from "@/components/PageHeader";
 
