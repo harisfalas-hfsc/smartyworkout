@@ -277,14 +277,24 @@ function WodPage() {
         subtitle="Your daily programme, chosen for you by Smarty Coach."
       />
 
-      <section className="rounded-2xl border border-border bg-card px-5 py-5 shadow-sm sm:px-8">
+      <section className="space-y-3 rounded-2xl border border-border bg-card px-5 py-5 shadow-sm sm:px-8">
         <p className="text-center text-[14px] leading-6 text-muted-foreground">
-          Get <strong className="text-foreground">two workouts</strong> every day: one bodyweight
-          and one using your equipment. <strong className="text-primary">Smarty Coach</strong>{" "}
-          follows a balanced periodization plan and adapts every workout to your profile. It is
-          like having a personal trainer choose the best workout for you.
+          <strong className="text-foreground">Workout of the Day is two ready workouts every
+          day</strong> — one with equipment and one bodyweight only — built automatically around
+          your Training Profile, so you simply open one and train.
         </p>
-
+        <p className="text-center text-[14px] leading-6 text-muted-foreground">
+          Both follow a <strong className="text-foreground">scientific periodization plan</strong>:
+          strength, endurance, power, mobility and recovery days are sequenced across the cycle so
+          you never overtrain, never undertrain, and every fitness quality is developed in the right
+          order.
+        </p>
+        <p className="text-center text-[14px] leading-6 text-muted-foreground">
+          Instead of improvising a random workout each day, it is like having a{" "}
+          <strong className="text-primary">personal trainer</strong> who already knows what you must
+          do today, next week and next month — keeping you healthy, progressing and performing
+          better over the long run.
+        </p>
       </section>
 
       <section className="relative px-1 py-1">
