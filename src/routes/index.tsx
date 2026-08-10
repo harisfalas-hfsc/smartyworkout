@@ -77,9 +77,17 @@ function Home() {
         <div className="mx-auto flex max-w-xs flex-col gap-3">
           <Link
             to="/coach"
-            className="flex h-12 w-full items-center justify-center rounded-full bg-primary text-[15px] font-extrabold text-primary-foreground"
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary text-[15px] font-extrabold text-primary-foreground"
           >
+            <Dumbbell className="h-4 w-4 shrink-0" />
             Create your workout
+          </Link>
+          <Link
+            to="/wod"
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-full border-2 border-primary text-[15px] font-extrabold text-primary"
+          >
+            <CalendarCheck className="h-4 w-4 shrink-0" />
+            Follow Workout of the Day
           </Link>
           <Link
             to="/pricing"
