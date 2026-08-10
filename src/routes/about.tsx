@@ -135,7 +135,7 @@ function AboutPage() {
             right order. It is like having a personal trainer who already knows what you must do
             today, next week and next month.
           </p>
-          <Button asChild variant="outline" className="mt-4 w-full font-extrabold uppercase">
+          <Button asChild className="mt-4 w-full font-extrabold uppercase">
             <Link to="/wod">Follow Workout of the Day</Link>
           </Button>
         </div>
