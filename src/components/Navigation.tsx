@@ -236,9 +236,9 @@ function NavDrawer({ onClose, isAuthed, isAdmin }: { onClose: () => void; isAuth
       heading: "SmartyWorkout",
       items: [
         { to: "/", label: "Home", Icon: Home },
-        ...(isAuthed ? [] : [{ to: "/wod", label: "Workout of the Day", Icon: CalendarCheck }]),
         { to: "/about", label: "About", Icon: Info },
         { to: "/how-it-works", label: "How It Works", Icon: BookOpen },
+        ...(isAuthed ? [] : [{ to: "/wod", label: "Workout of the Day", Icon: CalendarCheck }]),
         { to: "/exercise-library", label: "Exercise Library", Icon: Dumbbell },
         { to: "/pricing", label: "Pricing", Icon: Crown },
         { to: "/tools", label: "Tools", Icon: Wrench },

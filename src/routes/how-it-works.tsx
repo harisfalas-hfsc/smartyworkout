@@ -211,7 +211,7 @@ function HowItWorks() {
         </p>
 
         <div className="mt-6 flex justify-center">
-          <Button asChild size="lg" variant="outline" className="font-extrabold uppercase">
+          <Button asChild size="lg" className="font-extrabold uppercase">
             <Link to="/wod">Follow Workout of the Day</Link>
           </Button>
         </div>
