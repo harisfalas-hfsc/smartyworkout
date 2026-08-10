@@ -100,13 +100,23 @@ export const Route = createFileRoute("/api/public/hooks/daily-run")({
           }
         }
 
+        let renewalReminders = 0;
+        try {
+          const { runRenewalReminders } = await import("@/lib/billing-notify.server");
+          renewalReminders = await runRenewalReminders(db);
+        } catch (e) {
+          failures.push(`renewals:${e instanceof Error ? e.message : "error"}`);
+        }
+
         return Response.json({
           ok: true,
           scanned: profiles.length,
           motivations,
           workouts,
+          renewalReminders,
           failures,
         });
+
       },
     },
   },
