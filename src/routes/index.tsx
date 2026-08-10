@@ -138,9 +138,17 @@ function Home() {
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <Link
                 to="/coach"
-                className="inline-flex h-12 items-center rounded-full bg-primary px-8 text-base font-bold text-primary-foreground hover:opacity-95"
+                className="inline-flex h-12 items-center gap-2 rounded-full bg-primary px-8 text-base font-bold text-primary-foreground hover:opacity-95"
               >
+                <Dumbbell className="h-4 w-4 shrink-0" />
                 Create your workout
+              </Link>
+              <Link
+                to="/wod"
+                className="inline-flex h-12 items-center gap-2 rounded-full border-2 border-primary px-8 text-base font-bold text-primary hover:bg-primary/10"
+              >
+                <CalendarCheck className="h-4 w-4 shrink-0" />
+                Follow Workout of the Day
               </Link>
               <Link
                 to="/pricing"
