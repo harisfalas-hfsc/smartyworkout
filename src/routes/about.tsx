@@ -103,10 +103,42 @@ function AboutPage() {
         <span className="text-primary">Smarty Coach creates the workout you need today.</span>
       </p>
 
-      <div className="mt-8 flex justify-center">
-        <Button asChild size="lg" className="font-extrabold uppercase">
-          <Link to="/coach">Create your workout</Link>
-        </Button>
+      <h2 className="mt-10 text-center text-xl font-extrabold uppercase sm:text-2xl">
+        Two ways to <span className="text-primary">benefit</span>
+      </h2>
+
+      <div className="mx-auto mt-4 grid max-w-xl gap-4 lg:max-w-5xl lg:grid-cols-2">
+        <div className="rounded-2xl border-2 border-blue-400 bg-card p-5">
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">
+            Create your workout
+          </p>
+          <p className="mt-2 text-base font-extrabold uppercase">On demand, whenever you want</p>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Answer a short questionnaire — goal, mood, time, place, equipment — and Smarty Coach
+            builds a complete one-off session around your Training Profile and your history. Ideal
+            when your day, your energy or your available gear changes.
+          </p>
+          <Button asChild className="mt-4 w-full font-extrabold uppercase">
+            <Link to="/coach">Create your workout</Link>
+          </Button>
+        </div>
+
+        <div className="rounded-2xl border-2 border-blue-400 bg-card p-5">
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">
+            Workout of the Day
+          </p>
+          <p className="mt-2 text-base font-extrabold uppercase">Planned for you, every day</p>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Subscribe once and receive two ready workouts every day — one with equipment, one
+            bodyweight only — adapted to your profile and sequenced by a scientific periodization
+            plan, so you never overtrain, never undertrain and develop every fitness quality in the
+            right order. It is like having a personal trainer who already knows what you must do
+            today, next week and next month.
+          </p>
+          <Button asChild variant="outline" className="mt-4 w-full font-extrabold uppercase">
+            <Link to="/wod">Follow Workout of the Day</Link>
+          </Button>
+        </div>
       </div>
     </div>
   );

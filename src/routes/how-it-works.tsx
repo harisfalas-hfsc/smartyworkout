@@ -106,6 +106,29 @@ const STEPS = [
   },
 ];
 
+const WOD_STEPS = [
+  {
+    n: "01",
+    title: "You subscribe",
+    desc: "Training Profile • Premium • One tap",
+  },
+  {
+    n: "02",
+    title: "The cycle decides",
+    desc: "Periodized calendar • Same day for everyone",
+  },
+  {
+    n: "03",
+    title: "Two workouts are built",
+    desc: "One with equipment • One bodyweight only",
+  },
+  {
+    n: "04",
+    title: "You just train",
+    desc: "Open, follow, log. Every single day.",
+  },
+];
+
 function HowItWorks() {
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">
@@ -116,31 +139,83 @@ function HowItWorks() {
             Simple &amp; <span className="text-primary">transparent</span>
           </>
         }
-        subtitle="You answer. Smarty Coach thinks. You train. No fluff. Just four steps."
+        subtitle="Two ways to train: create your own workout on demand, or follow the Workout of the Day."
       />
 
-      <div className="grid gap-6 sm:grid-cols-4 sm:gap-4">
-        {STEPS.map((s) => (
-          <div key={s.n} className="flex flex-col items-center text-center">
-            <div className="text-4xl font-black leading-none text-primary sm:text-5xl">
-              {s.n}
+      <section className="rounded-2xl border-2 border-blue-400 bg-card p-5 sm:p-8">
+        <p className="text-center text-[11px] font-bold uppercase tracking-[0.18em] text-primary">
+          Way 1 — Create any workout
+        </p>
+        <h2 className="mt-2 text-center text-xl font-extrabold uppercase sm:text-2xl">
+          You answer. Smarty Coach thinks. You train.
+        </h2>
+        <p className="mx-auto mt-2 max-w-2xl text-center text-sm leading-6 text-muted-foreground">
+          For the days you know what you want: your goal, your mood, your time, your equipment.
+          Smarty Coach builds a one-off session around exactly that.
+        </p>
+
+        <div className="mt-6 grid gap-6 sm:grid-cols-4 sm:gap-4">
+          {STEPS.map((s) => (
+            <div key={s.n} className="flex flex-col items-center text-center">
+              <div className="text-4xl font-black leading-none text-primary sm:text-5xl">
+                {s.n}
+              </div>
+              <div className="mt-3 text-base font-bold uppercase">{s.title}</div>
+              <div className="mt-1 text-sm text-muted-foreground">{s.desc}</div>
             </div>
-            <div className="mt-3 text-base font-bold uppercase">{s.title}</div>
-            <div className="mt-1 text-sm text-muted-foreground">{s.desc}</div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      <p className="mt-6 text-center text-sm font-semibold leading-snug text-muted-foreground">
-        Then you train, give feedback, and Smarty Coach uses your history to make your next
-        workout <span className="text-primary">even smarter.</span>
-      </p>
+        <p className="mt-6 text-center text-sm font-semibold leading-snug text-muted-foreground">
+          Then you train, give feedback, and Smarty Coach uses your history to make your next
+          workout <span className="text-primary">even smarter.</span>
+        </p>
 
-      <div className="mt-8 flex justify-center">
-        <Button asChild size="lg" className="font-extrabold uppercase">
-          <Link to="/coach">Create my workout</Link>
-        </Button>
-      </div>
+        <div className="mt-6 flex justify-center">
+          <Button asChild size="lg" className="font-extrabold uppercase">
+            <Link to="/coach">Create my workout</Link>
+          </Button>
+        </div>
+      </section>
+
+      <section className="mt-6 rounded-2xl border-2 border-blue-400 bg-card p-5 sm:p-8">
+        <p className="text-center text-[11px] font-bold uppercase tracking-[0.18em] text-primary">
+          Way 2 — Workout of the Day
+        </p>
+        <h2 className="mt-2 text-center text-xl font-extrabold uppercase sm:text-2xl">
+          You subscribe once. Your training is planned.
+        </h2>
+        <p className="mx-auto mt-2 max-w-2xl text-center text-sm leading-6 text-muted-foreground">
+          Every day you get two ready workouts — one with equipment, one bodyweight only — built
+          automatically around your Training Profile. Both follow a scientific periodization plan:
+          strength, endurance, power, mobility and recovery days are sequenced so you never
+          overtrain, never undertrain, and every fitness quality is developed in the right order.
+        </p>
+
+        <div className="mt-6 grid gap-6 sm:grid-cols-4 sm:gap-4">
+          {WOD_STEPS.map((s) => (
+            <div key={s.n} className="flex flex-col items-center text-center">
+              <div className="text-4xl font-black leading-none text-primary sm:text-5xl">
+                {s.n}
+              </div>
+              <div className="mt-3 text-base font-bold uppercase">{s.title}</div>
+              <div className="mt-1 text-sm text-muted-foreground">{s.desc}</div>
+            </div>
+          ))}
+        </div>
+
+        <p className="mt-6 text-center text-sm font-semibold leading-snug text-muted-foreground">
+          Instead of improvising something different every day, it is like having a{" "}
+          <span className="text-primary">personal trainer</span> who already knows what you must do
+          today, next week and next month.
+        </p>
+
+        <div className="mt-6 flex justify-center">
+          <Button asChild size="lg" variant="outline" className="font-extrabold uppercase">
+            <Link to="/wod">Follow Workout of the Day</Link>
+          </Button>
+        </div>
+      </section>
     </div>
   );
 }
