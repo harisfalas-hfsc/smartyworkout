@@ -106,6 +106,29 @@ const STEPS = [
   },
 ];
 
+const WOD_STEPS = [
+  {
+    n: "01",
+    title: "You subscribe",
+    desc: "Training Profile • Premium • One tap",
+  },
+  {
+    n: "02",
+    title: "The cycle decides",
+    desc: "Periodized calendar • Same day for everyone",
+  },
+  {
+    n: "03",
+    title: "Two workouts are built",
+    desc: "One with equipment • One bodyweight only",
+  },
+  {
+    n: "04",
+    title: "You just train",
+    desc: "Open, follow, log. Every single day.",
+  },
+];
+
 function HowItWorks() {
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">
