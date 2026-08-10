@@ -149,6 +149,7 @@ export type Database = {
         Row: {
           body: string | null
           created_at: string
+          dedupe_key: string | null
           id: string
           kind: string
           read_at: string | null
@@ -159,6 +160,7 @@ export type Database = {
         Insert: {
           body?: string | null
           created_at?: string
+          dedupe_key?: string | null
           id?: string
           kind?: string
           read_at?: string | null
@@ -169,6 +171,7 @@ export type Database = {
         Update: {
           body?: string | null
           created_at?: string
+          dedupe_key?: string | null
           id?: string
           kind?: string
           read_at?: string | null

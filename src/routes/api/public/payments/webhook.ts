@@ -68,6 +68,75 @@ async function markCanceled(subscription: any, env: StripeEnv) {
     .eq("environment", env);
 }
 
+function euro(amount: number | null | undefined, currency: string | null | undefined): string {
+  if (typeof amount !== "number") return "your membership";
+  const value = (amount / 100).toFixed(2);
+  return `${currency?.toUpperCase() === "EUR" ? "€" : `${currency?.toUpperCase() ?? ""} `}${value}`;
+}
+
+async function userIdForInvoice(invoice: any, env: StripeEnv): Promise<string | null> {
+  const customerId =
+    typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
+  if (!customerId) return null;
+  const { data } = await getSupabase()
+    .from("subscriptions")
+    .select("user_id")
+    .eq("provider_customer_id", customerId)
+    .eq("environment", env)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return (data as { user_id?: string } | null)?.user_id ?? null;
+}
+
+async function handleInvoicePaid(invoice: any, env: StripeEnv) {
+  if (!invoice.subscription && invoice.billing_reason === "manual") return;
+  const userId = await userIdForInvoice(invoice, env);
+  if (!userId) return;
+  const { notifyOnce } = await import("@/lib/billing-notify.server");
+  const amount = euro(invoice.amount_paid ?? invoice.total, invoice.currency);
+  const nextDate = invoice.lines?.data?.[0]?.period?.end
+    ? new Date(invoice.lines.data[0].period.end * 1000).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : null;
+  await notifyOnce(getSupabase(), {
+    userId,
+    kind: "billing",
+    title: "Thank you — your payment went through",
+    body: `We received ${amount} for your Smarty Workout membership.${
+      nextDate ? ` Your access is active until ${nextDate}.` : ""
+    } Thank you for training with us — your receipt is on its way by email.`,
+    dedupeKey: `invoice-paid:${invoice.id}`,
+  });
+}
+
+async function handleInvoiceFailed(invoice: any, env: StripeEnv) {
+  const userId = await userIdForInvoice(invoice, env);
+  if (!userId) return;
+  const { notifyOnce } = await import("@/lib/billing-notify.server");
+  const attempt = Number(invoice.attempt_count ?? 1);
+  const amount = euro(invoice.amount_due ?? invoice.total, invoice.currency);
+  const nextAttempt = invoice.next_payment_attempt
+    ? new Date(invoice.next_payment_attempt * 1000).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "long",
+      })
+    : null;
+  const body = nextAttempt
+    ? `We couldn't take ${amount} for your membership (attempt ${attempt}). This usually means the card expired, has insufficient funds, or the bank asked for confirmation. We'll try again automatically on ${nextAttempt}. To sort it out now — or to pay with a different card — open My account and update your payment method. Your access stays on in the meantime.`
+    : `We couldn't take ${amount} for your membership (attempt ${attempt}). This was the last automatic attempt, so your membership will pause unless the payment is completed. Open My account to update your card and restart it — nothing in your profile, logbook or progress is lost.`;
+  await notifyOnce(getSupabase(), {
+    userId,
+    kind: "billing",
+    title: nextAttempt ? "Payment didn't go through" : "Payment failed — action needed",
+    body,
+    dedupeKey: `invoice-failed:${invoice.id}:${attempt}`,
+  });
+}
+
 async function handleWebhook(req: Request, env: StripeEnv) {
   const event = await verifyWebhook(req, env);
 
@@ -79,10 +148,18 @@ async function handleWebhook(req: Request, env: StripeEnv) {
     case "customer.subscription.deleted":
       await markCanceled(event.data.object, env);
       break;
+    case "invoice.paid":
+    case "invoice.payment_succeeded":
+      await handleInvoicePaid(event.data.object, env);
+      break;
+    case "invoice.payment_failed":
+      await handleInvoiceFailed(event.data.object, env);
+      break;
     default:
       console.log("Unhandled event:", event.type);
   }
 }
+
 
 export const Route = createFileRoute("/api/public/payments/webhook")({
   server: {
