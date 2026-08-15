@@ -227,9 +227,59 @@ export function enforceWorkout(
     return { ...section, body };
   });
 
+  // ---- Layer 4b: never ship a workout without prep / cool-down --------------
+  const hasSection = (name: SectionName) => sections.some((s) => s.name === name);
+  const insertSection = (section: Section) => {
+    const order = SECTION_ORDER.indexOf(section.name);
+    const at = sections.findIndex((s) => SECTION_ORDER.indexOf(s.name) > order);
+    if (at === -1) sections.push(section);
+    else sections.splice(at, 0, section);
+  };
+
+  if (opts.category !== "MICRO-WORKOUTS" && !hasSection("Soft Tissue Preparation")) {
+    insertSection({
+      name: "Soft Tissue Preparation",
+      heading: `<p class="tiptap-paragraph">🧽 <strong><u>Soft Tissue Preparation</u></strong></p>`,
+      body: softTissueHtml(),
+    });
+    warnings.push("Added the standard Soft Tissue Preparation block.");
+  }
+
+  if (!hasSection("Activation") && !hasSection("Warm-up")) {
+    const picks = pickPrep(activationPool, 4, seed);
+    if (picks.length >= 3) {
+      insertSection({
+        name: "Activation",
+        heading: `<p class="tiptap-paragraph">🔥 <strong><u>Activation 5'</u></strong></p>`,
+        body: listHtml(picks.map((e) => `10 reps ${tokenOf(e)} — slow and controlled`)),
+      });
+      warnings.push("Added a library-backed Activation section.");
+    }
+  }
+
+  if (!hasSection("Cool-down")) {
+    const picks = pickPrep(cooldownPool, 3, seed + 17);
+    if (picks.length >= 3) {
+      insertSection({
+        name: "Cool-down",
+        heading: `<p class="tiptap-paragraph">🧘 <strong><u>Cool Down 5'</u></strong></p>`,
+        body: listHtml([
+          ...picks.map((e) => `45 sec ${tokenOf(e)} — breathe out into the position`),
+          BREATHING_LINE,
+        ]),
+      });
+      warnings.push("Added a library-backed Cool Down section.");
+    }
+  }
+
   // ---- Layer 5: structural quality gate --------------------------------------
   const counts = new Map<SectionName, number>();
   for (const s of sections) counts.set(s.name, findTokens(s.body).length);
+
+  const activationCount = (counts.get("Activation") ?? 0) + (counts.get("Warm-up") ?? 0);
+  if (activationCount < 3) warnings.push("Activation has fewer than 3 playable drills.");
+  if ((counts.get("Cool-down") ?? 0) < 3) warnings.push("Cool Down has fewer than 3 playable stretches.");
+
 
   const requiresFinisher = opts.category !== "RECOVERY" && opts.category !== "MICRO-WORKOUTS";
   const main = counts.get("Main Workout") ?? 0;
