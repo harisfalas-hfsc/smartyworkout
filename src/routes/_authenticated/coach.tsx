@@ -371,6 +371,24 @@ function CoachPage() {
           </Grid>
         </QuestionCard>
 
+        {showFocus ? (
+          <QuestionCard
+            step={2}
+            icon={Dumbbell}
+            title={goal === "muscle" ? "Which muscles today?" : "Which part of the body?"}
+            hint="Smarty Coach only picks exercises that train what you choose."
+          >
+            <Grid>
+              {BODY_FOCUS.map((f) => (
+                <Chip key={f.id} active={focus === f.id} onClick={() => setFocus(f.id)}>
+                  {f.label}
+                </Chip>
+              ))}
+            </Grid>
+          </QuestionCard>
+        ) : null}
+
+
         <QuestionCard step={showFocus ? 3 : 2} icon={HeartPulse} title="How are you feeling today?">
           <Grid>
             {MOODS.map((m) => (
