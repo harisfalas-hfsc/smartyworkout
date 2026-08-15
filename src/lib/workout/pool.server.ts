@@ -117,7 +117,38 @@ export type PoolFilter = {
   dislikedIds?: string[];
   /** Library ids the athlete loves — kept in the sample and surfaced to the model. */
   favoriteIds?: string[];
+  /** Free-text movements the athlete asked to avoid in today's note. */
+  bannedTerms?: string[];
 };
+
+const NOTE_STOPWORDS = new Set([
+  "the","a","an","any","my","me","to","do","doing","today","please","really","much","some",
+  "and","or","of","for","with","that","this","them","it","at","all","too","very","exercise",
+  "exercises","movement","movements","work","workout","today's","want","like","likes","dislike",
+  "dislikes","prefer","more","less","not","no","dont","don","t",
+]);
+
+/**
+ * Pulls the movements an athlete asked to avoid out of their free-text note
+ * ("no burpees", "avoid bicep curls", "without jumping") so the engine can
+ * remove them from the vocabulary instead of hoping the model complies.
+ */
+export function parseNoteExclusions(note: string): string[] {
+  const terms: string[] = [];
+  const re =
+    /\b(?:no|not|avoid|without|skip|hate|hates|exclude|except)\b\s+([a-z\s-]{3,40})|\b(?:i\s+)?(?:don'?t|do not|dont)\s+(?:like|want|do)\s+([a-z\s-]{3,40})/gi;
+  for (const m of note.toLowerCase().matchAll(re)) {
+    const phrase = (m[1] ?? m[2] ?? "")
+      .split(/\b(?:but|and then|because|please|,|\.|;)\b/)[0]!
+      .trim();
+    for (const word of phrase.split(/\s+/).slice(0, 3)) {
+      const w = word.replace(/[^a-z-]/g, "");
+      if (w.length > 3 && !NOTE_STOPWORDS.has(w)) terms.push(w.replace(/s$/, ""));
+    }
+  }
+  return [...new Set(terms)].slice(0, 12);
+}
+
 
 
 const isBodyweight = (e: PoolExercise) => (e.equipment ?? "").toLowerCase().includes("body weight");
