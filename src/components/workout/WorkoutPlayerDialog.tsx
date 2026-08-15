@@ -26,6 +26,7 @@ export function WorkoutPlayerDialog({
   open,
   onOpenChange,
   steps,
+  softTissue = [],
   workoutName,
   workoutId,
   onFinish,
@@ -33,11 +34,13 @@ export function WorkoutPlayerDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   steps: WorkoutStep[];
+  softTissue?: string[];
   workoutName: string;
   workoutId: string;
   onFinish: () => void;
 }) {
-  const slides = useMemo(() => buildSlides(steps), [steps]);
+  const slides = useMemo(() => buildSlides(steps, softTissue), [steps, softTissue]);
+
   const { details, ensure } = useExerciseMedia();
   const [api, setApi] = useState<CarouselApi>();
   const [index, setIndex] = useState(0);
