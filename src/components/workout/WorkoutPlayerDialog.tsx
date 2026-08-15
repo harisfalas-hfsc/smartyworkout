@@ -317,7 +317,32 @@ export function WorkoutPlayerDialog({
   );
 }
 
+function SoftTissueSlide({ lines }: { lines: string[] }) {
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-4 px-6 text-center">
+      <div className="flex h-40 w-40 items-center justify-center rounded-full bg-neutral-900">
+        <Cylinder className="h-16 w-16 text-primary" />
+      </div>
+      <h2 className="text-2xl font-black">Soft Tissue Preparation</h2>
+      <p className="text-sm text-neutral-400">
+        Foam roller, lacrosse or trigger ball. Take your time before you move.
+      </p>
+      <ul className="w-full space-y-2 text-left">
+        {lines.map((line, i) => (
+          <li
+            key={i}
+            className="rounded-xl border border-neutral-800 bg-neutral-900 px-4 py-2 text-sm text-neutral-200"
+          >
+            {line}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function PlayerSlideView({ step, gifUrl }: { step: WorkoutStep; gifUrl: string | null }) {
+
   return (
     <div className="flex h-full flex-col items-center justify-center gap-4 px-5 text-center">
       <div className="flex h-56 w-full items-center justify-center overflow-hidden rounded-2xl bg-neutral-900">
