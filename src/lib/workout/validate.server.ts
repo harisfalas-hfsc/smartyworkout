@@ -38,6 +38,7 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
   const warnings: string[] = [];
 
   const poolIds = new Set(opts.pool.map((e) => e.id));
+  const prepIds = new Set(opts.prepIds ?? []);
   const libraryById = new Map(opts.library.map((e) => [e.id, e]));
   const banned = new Set(opts.dislikedIds ?? []);
   const bannedStems = new Set(
@@ -64,18 +65,23 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
     if (row.name.toLowerCase().trim() !== token.name.toLowerCase().trim()) {
       warnings.push(`Exercise name for ${token.id} did not match the library entry.`);
     }
-    if (!poolIds.has(token.id)) {
-      errors.push(`"${row.name}" is outside the approved pool for this session.`);
-    }
-    // 2. Equipment allowlist — checked against the library row, not the text.
-    if (!matchesSelectedEquipment(row, opts.selectedEquipment, opts.customEquipment ?? [])) {
-      errors.push(`"${row.name}" needs ${row.equipment ?? "unlisted"} equipment, which is not available.`);
-    }
-    if (
-      opts.equipmentMode === "BODYWEIGHT" &&
-      !(row.equipment ?? "").toLowerCase().includes("body weight")
-    ) {
-      errors.push(`"${row.name}" is not a bodyweight exercise.`);
+    // Prep vocabulary (Activation / Cool Down) is bodyweight-first and lives
+    // outside the session pool on purpose — it only has to be a legal prep id.
+    const isPrep = prepIds.has(token.id);
+    if (!isPrep) {
+      if (!poolIds.has(token.id)) {
+        errors.push(`"${row.name}" is outside the approved pool for this session.`);
+      }
+      // 2. Equipment allowlist — checked against the library row, not the text.
+      if (!matchesSelectedEquipment(row, opts.selectedEquipment, opts.customEquipment ?? [])) {
+        errors.push(`"${row.name}" needs ${row.equipment ?? "unlisted"} equipment, which is not available.`);
+      }
+      if (
+        opts.equipmentMode === "BODYWEIGHT" &&
+        !(row.equipment ?? "").toLowerCase().includes("body weight")
+      ) {
+        errors.push(`"${row.name}" is not a bodyweight exercise.`);
+      }
     }
     // 3. Disliked exercises and their close variations.
     if (banned.has(row.id) || bannedStems.has(nameStem(row.name))) {
@@ -87,6 +93,8 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
   const steps = parseWorkoutSteps(html);
   const main = steps.filter((s) => s.section === "Main Workout");
   const finisher = steps.filter((s) => s.section === "Finisher");
+  const activation = steps.filter((s) => s.section === "Activation" || s.section === "Warm-up");
+  const cooldown = steps.filter((s) => s.section === "Cool-down");
   const requiresFinisher = opts.category !== "RECOVERY" && opts.category !== "MICRO-WORKOUTS";
 
   if (main.length < 4) {
@@ -97,6 +105,13 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
     if (!finisher.length) errors.push("Finisher section is missing.");
     else warnings.push(`Finisher has only ${finisher.length} exercises.`);
   }
+  if (activation.length < 3) {
+    warnings.push(`Activation has only ${activation.length} playable drills.`);
+  }
+  if (cooldown.length < 3) {
+    warnings.push(`Cool Down has only ${cooldown.length} playable stretches.`);
+  }
+
 
   for (const step of [...main, ...finisher]) {
     if (!/\d/.test(step.prescription)) {
