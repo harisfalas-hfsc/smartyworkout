@@ -6,12 +6,15 @@ import { validateWorkout } from "./validate.server";
 import { buildPackWorkout, packCopy } from "./pack.server";
 
 import {
+  buildActivationPool,
+  buildCooldownPool,
   filterPool,
   loadAllExercises,
   resolveCustomEquipment,
   samplePool,
   type PoolExercise,
 } from "./pool.server";
+
 import {
   BANNED_NAME_WORDS,
   CATEGORY_FORMATS,
