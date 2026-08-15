@@ -11,7 +11,10 @@ import {
 
 const CATEGORY_COACHING: Record<Category, string> = {
   STRENGTH:
-    "Heavy compound lifts first, then secondary, then accessory. Reps & sets only, long rest 90-180 sec. Bodyweight variant uses bodyweight progressions; equipment variant uses barbell/dumbbell/kettlebell/cable.",
+    "MAXIMAL STRENGTH, not hypertrophy. Heavy compound lifts first (squat, hinge, press, pull), then one or two secondary compounds, minimal isolation. 4-6 sets x 3-6 reps per main lift, load heavy, always leave 2-3 reps in reserve, NEVER train to failure. Tempo: controlled 2-sec lower, brief pause, explosive lift. Rest 150-180 sec between sets and write that rest on every line. Fewer exercises, higher quality, full recovery between sets. Bodyweight variant: the hardest safe progression the athlete can do for 3-6 reps (pistol squat, archer/one-arm push-up progression, pull-up variations, nordic curl) — never long high-rep sets.",
+  "MUSCLE BUILDING":
+    "HYPERTROPHY, not maximal strength. One or two compounds to open the session, then clear isolation and single-joint work for the target muscles. 3-4 sets x 8-12 reps on compounds, up to 15 reps on isolation, taken close to failure with 1-2 reps in reserve. Tempo: 3-sec lower, 1-sec squeeze at peak contraction, controlled lift — write the tempo on every line. Rest 60-90 sec and write it on every line. Prioritise total working sets, time under tension and a full stretch under load; use different angles for the same muscle. Bodyweight variant: higher reps, slower eccentrics, unilateral and pre-fatigue variations to reach the same effort.",
+
   "CALORIE BURNING":
     "Maximum energy expenditure with large muscle groups. Bodyweight: burpees, jump squats, mountain climbers, plyo push-ups, jumping lunges. Equipment: kettlebell swings, dumbbell thrusters, rowing intervals, sled push, battle ropes.",
   METABOLIC:
