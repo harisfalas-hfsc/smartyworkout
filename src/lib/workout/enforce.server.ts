@@ -1,6 +1,6 @@
 import { canonicalSection, minimumWorkMinutes, type Category, type DifficultyLevel, type Format, type SectionName } from "./spec";
 import { EXERCISE_TOKEN_RE, findTokens, isLibraryId, stripHtml } from "./tokens";
-import { STRETCH_RE, type PoolExercise } from "./pool.server";
+import { pickPrep, STRETCH_RE, type PoolExercise } from "./pool.server";
 import { parseStepTiming, parseWorkoutSteps } from "./parse-steps";
 
 export type EnforceResult = {
