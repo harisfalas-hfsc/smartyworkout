@@ -35,8 +35,8 @@ export type CoachRequest = {
 
 export const GOAL_TO_CATEGORY: Record<string, Category> = {
   strength: "STRENGTH",
-  muscle: "STRENGTH",
-  fullbody: "STRENGTH",
+  muscle: "MUSCLE BUILDING",
+
   calorie: "CALORIE BURNING",
   cardio: "CARDIO",
   metabolic: "METABOLIC",

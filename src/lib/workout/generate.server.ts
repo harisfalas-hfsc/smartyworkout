@@ -9,6 +9,8 @@ import {
   buildActivationPool,
   buildCooldownPool,
   filterPool,
+  parseNoteExclusions,
+
   loadAllExercises,
   resolveCustomEquipment,
   samplePool,
