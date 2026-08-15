@@ -209,6 +209,8 @@ function CoachPage() {
       const res = await run({
         data: {
           goal: surprise ? "custom" : goal,
+          ...(surprise || !showFocus ? {} : { focus }),
+
           mood,
           minutes,
           location,
