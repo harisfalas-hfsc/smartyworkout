@@ -539,3 +539,213 @@ export const adminSaveCycleDay = createServerFn({ method: "POST" })
       return { error: e instanceof Error ? e.message : "Failed to save cycle day" };
     }
   });
+
+/* ---------------------------------------------------------------------------
+ * Workout archive — every workout ever generated, for any member,
+ * by request or as Workout of the Day.
+ * ------------------------------------------------------------------------- */
+
+export type AdminWorkoutRow = {
+  id: string;
+  serial: number | null;
+  name: string;
+  category: string;
+  format: string | null;
+  focus: string | null;
+  difficulty_stars: number;
+  difficulty_label: string | null;
+  duration_min: number;
+  equipment: string[];
+  location: string | null;
+  mood: string | null;
+  status: string;
+  is_wod: boolean;
+  wod_date: string | null;
+  created_at: string;
+  completed_at: string | null;
+  user_id: string;
+  user_name: string;
+  user_email: string;
+};
+
+export type AdminWorkoutFilters = {
+  userId?: string;
+  search?: string;
+  category?: string;
+  focus?: string;
+  /** all | wod | request */
+  source?: string;
+  status?: string;
+  stars?: number;
+  equipment?: string;
+  /** all | short (<=15) | medium (16-35) | long (>35) */
+  duration?: string;
+  from?: string;
+  to?: string;
+  page?: number;
+  pageSize?: number;
+};
+
+export type AdminWorkoutFacets = {
+  categories: string[];
+  focuses: string[];
+  equipment: string[];
+  statuses: string[];
+};
+
+export const adminListWorkouts = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: AdminWorkoutFilters) => data)
+  .handler(
+    async ({
+      context,
+      data,
+    }): Promise<
+      | { workouts: AdminWorkoutRow[]; total: number; facets: AdminWorkoutFacets }
+      | { error: string }
+    > => {
+      try {
+        await assertAdmin(context as any);
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+        const page = Math.max(1, Math.round(Number(data.page) || 1));
+        const pageSize = Math.min(100, Math.max(10, Math.round(Number(data.pageSize) || 25)));
+
+        let q = supabaseAdmin
+          .from("workouts")
+          .select(
+            "id, serial, name, category, format, focus, difficulty_stars, difficulty_label, duration_min, equipment, location, mood, status, is_wod, wod_date, created_at, completed_at, user_id",
+            { count: "exact" },
+          )
+          .order("created_at", { ascending: false });
+
+        if (data.userId) q = q.eq("user_id", data.userId);
+        if (data.category && data.category !== "all") q = q.eq("category", data.category);
+        if (data.focus && data.focus !== "all") q = q.eq("focus", data.focus);
+        if (data.status && data.status !== "all") q = q.eq("status", data.status);
+        if (data.source === "wod") q = q.eq("is_wod", true);
+        if (data.source === "request") q = q.eq("is_wod", false);
+        if (data.stars) q = q.eq("difficulty_stars", data.stars);
+        if (data.equipment && data.equipment !== "all") q = q.contains("equipment", [data.equipment]);
+        if (data.duration === "short") q = q.lte("duration_min", 15);
+        if (data.duration === "medium") q = q.gte("duration_min", 16).lte("duration_min", 35);
+        if (data.duration === "long") q = q.gt("duration_min", 35);
+        if (data.from) q = q.gte("created_at", new Date(data.from).toISOString());
+        if (data.to) {
+          const end = new Date(data.to);
+          end.setHours(23, 59, 59, 999);
+          q = q.lte("created_at", end.toISOString());
+        }
+        const search = data.search?.trim();
+        if (search) q = q.ilike("name", `%${search}%`);
+
+        const { data: rows, error, count } = await q.range((page - 1) * pageSize, page * pageSize - 1);
+        if (error) return { error: error.message };
+
+        const list = (rows ?? []) as any[];
+        const userIds = [...new Set(list.map((w) => w.user_id))];
+        const nameById = new Map<string, { name: string; email: string }>();
+        if (userIds.length) {
+          const { data: profiles } = await supabaseAdmin
+            .from("profiles")
+            .select("id, display_name, email")
+            .in("id", userIds);
+          for (const p of (profiles ?? []) as any[])
+            nameById.set(p.id, { name: p.display_name ?? "", email: p.email ?? "" });
+        }
+
+        // Facet values across the whole archive so filters never show dead options.
+        const { data: facetRows } = await supabaseAdmin
+          .from("workouts")
+          .select("category, focus, equipment, status")
+          .limit(20000);
+        const categories = new Set<string>();
+        const focuses = new Set<string>();
+        const equipment = new Set<string>();
+        const statuses = new Set<string>();
+        for (const r of (facetRows ?? []) as any[]) {
+          if (r.category) categories.add(r.category);
+          if (r.focus) focuses.add(r.focus);
+          if (r.status) statuses.add(r.status);
+          for (const e of (r.equipment ?? []) as string[]) if (e) equipment.add(e);
+        }
+
+        return {
+          total: count ?? list.length,
+          facets: {
+            categories: [...categories].sort(),
+            focuses: [...focuses].sort(),
+            equipment: [...equipment].sort(),
+            statuses: [...statuses].sort(),
+          },
+          workouts: list.map((w) => ({
+            id: w.id,
+            serial: w.serial ?? null,
+            name: w.name,
+            category: w.category,
+            format: w.format ?? null,
+            focus: w.focus ?? null,
+            difficulty_stars: w.difficulty_stars ?? 0,
+            difficulty_label: w.difficulty_label ?? null,
+            duration_min: w.duration_min ?? 0,
+            equipment: (w.equipment ?? []) as string[],
+            location: w.location ?? null,
+            mood: w.mood ?? null,
+            status: w.status,
+            is_wod: Boolean(w.is_wod),
+            wod_date: w.wod_date ?? null,
+            created_at: w.created_at,
+            completed_at: w.completed_at ?? null,
+            user_id: w.user_id,
+            user_name: nameById.get(w.user_id)?.name ?? "",
+            user_email: nameById.get(w.user_id)?.email ?? "",
+          })),
+        };
+      } catch (e) {
+        return { error: e instanceof Error ? e.message : "Failed to load workouts" };
+      }
+    },
+  );
+
+export type AdminWorkoutDetail = AdminWorkoutRow & {
+  description_html: string | null;
+  instructions_html: string | null;
+  tips_html: string | null;
+  main_workout: string | null;
+  rationale: string | null;
+};
+
+export const adminGetWorkout = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { id: string }) => data)
+  .handler(
+    async ({ context, data }): Promise<{ workout: AdminWorkoutDetail } | { error: string }> => {
+      try {
+        await assertAdmin(context as any);
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { data: w, error } = await supabaseAdmin
+          .from("workouts")
+          .select("*")
+          .eq("id", data.id)
+          .maybeSingle();
+        if (error) return { error: error.message };
+        if (!w) return { error: "Workout not found" };
+        const row = w as any;
+        const { data: p } = await supabaseAdmin
+          .from("profiles")
+          .select("display_name, email")
+          .eq("id", row.user_id)
+          .maybeSingle();
+        return {
+          workout: {
+            ...row,
+            equipment: (row.equipment ?? []) as string[],
+            user_name: (p as any)?.display_name ?? "",
+            user_email: (p as any)?.email ?? "",
+          } as AdminWorkoutDetail,
+        };
+      } catch (e) {
+        return { error: e instanceof Error ? e.message : "Failed to load workout" };
+      }
+    },
+  );
