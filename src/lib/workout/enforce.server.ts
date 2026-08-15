@@ -44,14 +44,27 @@ function dropListItems(body: string, predicate: (itemHtml: string) => boolean): 
 const SOFT_TISSUE_ALLOWED =
   /^(foam[\s-]?roll|foam roller|lacrosse ball|tennis ball|trigger point|self-?massage|myofascial release)/i;
 
-/** Loaded apparatus that must never appear in Activation (movement prep only). */
-const ACTIVATION_BANNED_EQUIPMENT_RE =
-  /\b(barbell|dumbbell|kettlebell|machine|cable|smith|ez[\s-]?bar|olympic|sled|weighted|leverage|trap bar|hammer)\b/i;
+/** Standard, always-identical soft tissue block. Token-free by design. */
+export const SOFT_TISSUE_LINES = [
+  "60 sec Foam roll quadriceps — slow controlled passes",
+  "60 sec Foam roll thoracic spine — pause on tender spots",
+  "45 sec Lacrosse ball glute release — each side",
+  "45 sec Trigger ball plantar release — each foot",
+];
 
-/** Heavy strength / high-impact patterns that are not movement preparation. */
-const ACTIVATION_BANNED_PATTERN_RE =
-  /\b(deadlift|bench press|back squat|front squat|overhead press|push press|clean|snatch|jerk|thruster|deep push-?up|decline push-?up|weighted|pull-?up|chin-?up|muscle-?up|burpee|box jump|sprint|dip)\b/i;
+const softTissueHtml = () =>
+  `<ul class="tiptap-bullet-list">${SOFT_TISSUE_LINES.map(
+    (l) => `<li class="tiptap-list-item"><p class="tiptap-paragraph">${l}</p></li>`,
+  ).join("")}</ul>`;
 
+const listHtml = (lines: string[]) =>
+  `<ul class="tiptap-bullet-list">${lines
+    .map((l) => `<li class="tiptap-list-item"><p class="tiptap-paragraph">${l}</p></li>`)
+    .join("")}</ul>`;
+
+const tokenOf = (e: PoolExercise) => `{{exercise:${e.id}:${e.name}}}`;
+
+const BREATHING_LINE = "2 min Box breathing — 4 in, 4 hold, 4 out, 4 hold";
 
 /**
  * Layer 1-4 of the post-generation pipeline: token repair, section hygiene,
@@ -60,12 +73,29 @@ const ACTIVATION_BANNED_PATTERN_RE =
 export function enforceWorkout(
   rawHtml: string,
   pool: PoolExercise[],
-  opts: { category: Category; format: Format; level: DifficultyLevel; targetMinutes: number },
+  opts: {
+    category: Category;
+    format: Format;
+    level: DifficultyLevel;
+    targetMinutes: number;
+    /** Library-backed vocabulary for 🔥 Activation — guarantees playable slides. */
+    activationPool?: PoolExercise[];
+    /** Library-backed vocabulary for 🧘 Cool Down — guarantees playable slides. */
+    cooldownPool?: PoolExercise[];
+    seed?: number;
+  },
 ): EnforceResult {
   const warnings: string[] = [];
   const errors: string[] = [];
-  const byId = new Map(pool.map((e) => [e.id, e]));
-  const byName = new Map(pool.map((e) => [e.name.toLowerCase().trim(), e]));
+  const activationPool = opts.activationPool ?? [];
+  const cooldownPool = opts.cooldownPool ?? [];
+  const activationIds = new Set(activationPool.map((e) => e.id));
+  const cooldownIds = new Set(cooldownPool.map((e) => e.id));
+  const seed = opts.seed ?? rawHtml.length;
+  const known = [...pool, ...activationPool, ...cooldownPool];
+  const byId = new Map(known.map((e) => [e.id, e]));
+  const byName = new Map(known.map((e) => [e.name.toLowerCase().trim(), e]));
+
 
   // ---- Layer 1: token repair -------------------------------------------------
   let html = rawHtml.replace(new RegExp(EXERCISE_TOKEN_RE.source, "g"), (raw, id: string, name: string) => {
