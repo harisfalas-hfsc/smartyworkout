@@ -246,45 +246,102 @@ export async function createWorkoutForUser(
   const format =
     requestedFormat && CATEGORY_FORMATS[category].includes(requestedFormat) ? requestedFormat : null;
 
-  const built = await engine.generateWorkoutContent(
-    db as never,
-    {
-      category,
-      format,
-      equipmentMode,
-      selectedEquipment: equipmentIds,
-      ...(equipmentOther ? { customEquipmentRaw: equipmentOther } : {}),
-      stars,
-      minutes,
-      focus,
-      ...(data.note ? { note: String(data.note).slice(0, 500) } : {}),
-      favoriteIds,
-      dislikedIds,
-      recentIds,
-      location: String(data.location ?? "anywhere"),
-      mood,
-      athlete: {
-        name: (prof?.["display_name"] as string) ?? null,
-        age: (prof?.["age"] as number) ?? null,
-        gender: (prof?.["gender"] as string) ?? null,
-        height_cm: (prof?.["height_cm"] as number) ?? null,
-        weight_kg: (prof?.["weight_kg"] as number) ?? null,
-        fitness_level: (prof?.["fitness_level"] as string) ?? (prof?.["experience"] as string) ?? null,
-        primary_goal: (prof?.["primary_goal"] as string) ?? null,
-        secondary_goal: (prof?.["secondary_goal"] as string) ?? null,
-        preferred_environment: (prof?.["preferred_environment"] as string) ?? null,
-        favorite_library: favoriteLibrary,
-        disliked_library: dislikedLibrary,
-        recent_performance: performanceLines,
-        limitations: (prof?.["limitations"] as string[]) ?? null,
-        location: String(data.location ?? "anywhere"),
-        mood,
-        recent_feedback: feedbackLines,
-      },
+  const location = String(data.location ?? "anywhere");
 
-    },
-    usedNames,
-  );
+  /**
+   * Archive reuse: when another athlete already received a workout built from an
+   * identical brief, clone it instead of spending an AI generation. The athlete
+   * must never have had that workout before — no repeats, ever.
+   */
+  type ArchivedWorkout = {
+    name: string;
+    format: string | null;
+    duration_label: string | null;
+    description_html: string | null;
+    instructions_html: string | null;
+    tips_html: string | null;
+    main_workout: string | null;
+    equipment: string[] | null;
+    needs_review: boolean | null;
+    review_warnings: string[] | null;
+  };
+
+  let reused: ArchivedWorkout | null = null;
+  if (!data.note && !equipmentOther && !data.wod) {
+    const usedSet = new Set(usedNames);
+    const sameEquipment = [...equipmentIds].sort().join("|");
+    let candidates = db
+      .from("workouts")
+      .select(
+        "name,format,duration_label,description_html,instructions_html,tips_html,main_workout,equipment,needs_review,review_warnings",
+      )
+      .eq("category", category)
+      .eq("difficulty_stars", stars)
+      .eq("duration_min", minutes)
+      .eq("location", location)
+      .eq("needs_review", false)
+      .neq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(40);
+    candidates = focus ? candidates.eq("focus", focus) : candidates.is("focus", null);
+    if (format) candidates = candidates.eq("format", format);
+    const { data: pool } = await candidates;
+    reused =
+      ((pool as ArchivedWorkout[] | null) ?? []).find(
+        (w) =>
+          !usedSet.has(w.name) &&
+          Boolean(w.main_workout) &&
+          [...(w.equipment ?? [])].sort().join("|") === sameEquipment,
+      ) ?? null;
+  }
+
+  const built =
+    reused ??
+    (await engine.generateWorkoutContent(
+      db as never,
+      {
+        category,
+        format,
+        equipmentMode,
+        selectedEquipment: equipmentIds,
+        ...(equipmentOther ? { customEquipmentRaw: equipmentOther } : {}),
+        stars,
+        minutes,
+        focus,
+        ...(data.note ? { note: String(data.note).slice(0, 500) } : {}),
+        favoriteIds,
+        dislikedIds,
+        recentIds,
+        location,
+        mood,
+        athlete: {
+          name: (prof?.["display_name"] as string) ?? null,
+          age: (prof?.["age"] as number) ?? null,
+          gender: (prof?.["gender"] as string) ?? null,
+          height_cm: (prof?.["height_cm"] as number) ?? null,
+          weight_kg: (prof?.["weight_kg"] as number) ?? null,
+          fitness_level:
+            (prof?.["fitness_level"] as string) ?? (prof?.["experience"] as string) ?? null,
+          primary_goal: (prof?.["primary_goal"] as string) ?? null,
+          secondary_goal: (prof?.["secondary_goal"] as string) ?? null,
+          preferred_environment: (prof?.["preferred_environment"] as string) ?? null,
+          favorite_library: favoriteLibrary,
+          disliked_library: dislikedLibrary,
+          recent_performance: performanceLines,
+          limitations: (prof?.["limitations"] as string[]) ?? null,
+          location,
+          mood,
+          recent_feedback: feedbackLines,
+        },
+      },
+      usedNames,
+    ));
+
+  const anyBuilt = built as Record<string, unknown>;
+  const durationLabel = (anyBuilt["duration"] ?? anyBuilt["duration_label"] ?? null) as
+    | string
+    | null;
+  const warnings = (anyBuilt["warnings"] ?? anyBuilt["review_warnings"] ?? []) as string[];
 
   const { data: inserted, error } = await db
     .from("workouts")
@@ -297,16 +354,17 @@ export async function createWorkoutForUser(
       difficulty_stars: stars,
       difficulty_label: difficultyLabel(stars),
       duration_min: minutes,
-      duration_label: built.duration,
+      duration_label: durationLabel,
       equipment: equipmentIds,
-      location: String(data.location ?? "anywhere"),
+      location,
       mood,
       description_html: built.description_html,
       instructions_html: built.instructions_html,
       tips_html: built.tips_html,
       main_workout: built.main_workout,
-      needs_review: built.needs_review,
-      review_warnings: built.warnings,
+      needs_review: Boolean(anyBuilt["needs_review"]),
+      review_warnings: warnings,
+
       status: "created",
       is_wod: Boolean(data.wod),
       wod_date: data.wod?.date ?? null,
