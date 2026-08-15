@@ -6,12 +6,15 @@ import { validateWorkout } from "./validate.server";
 import { buildPackWorkout, packCopy } from "./pack.server";
 
 import {
+  buildActivationPool,
+  buildCooldownPool,
   filterPool,
   loadAllExercises,
   resolveCustomEquipment,
   samplePool,
   type PoolExercise,
 } from "./pool.server";
+
 import {
   BANNED_NAME_WORDS,
   CATEGORY_FORMATS,
@@ -135,8 +138,31 @@ export async function generateWorkoutContent(
   const duration = durationLabel(input.minutes);
   const promptPool = samplePool(pool, 260, favoriteIds);
 
+  // Activation and Cool Down get their own library-backed vocabulary so both
+  // sections always carry real exercise links and show up in the player.
+  const activationPool = buildActivationPool(all, {
+    selectedEquipment: input.selectedEquipment,
+    dislikedIds,
+  });
+  const cooldownPool = buildCooldownPool(all, {
+    selectedEquipment: input.selectedEquipment,
+    dislikedIds,
+  });
+  const prepIds = [...activationPool.map((e) => e.id), ...cooldownPool.map((e) => e.id)];
+  const seed = `${input.category}${input.minutes}${pool.length}`.length + Date.now() % 100000;
+
   const { getWorkoutRules } = await import("@/lib/settings.server");
   const extraRules = (await getWorkoutRules()).extraCoachRules.trim();
+
+  const enforceOpts = {
+    category: input.category,
+    format,
+    level,
+    targetMinutes: input.minutes,
+    activationPool,
+    cooldownPool,
+    seed,
+  };
 
   const validateOpts = {
     library: all,
@@ -149,7 +175,9 @@ export async function generateWorkoutContent(
     selectedEquipment: input.selectedEquipment,
     customEquipment,
     dislikedIds,
+    prepIds,
   };
+
 
   const fallbackName = () =>
     `${input.category.split(" ")[0]!.toLowerCase()} ${level} session`.replace(/\b\w/g, (c) =>
@@ -173,6 +201,8 @@ export async function generateWorkoutContent(
         ...(input.note ? { note: input.note } : {}),
         ...(input.athlete ? { athlete: input.athlete } : {}),
         pool: promptPool,
+        activationPool,
+        cooldownPool,
         bannedNames: usedNames,
       });
 
@@ -188,12 +218,8 @@ export async function generateWorkoutContent(
     }
 
     const html = String(payload["main_workout"] ?? "");
-    const enforced = enforceWorkout(html, pool, {
-      category: input.category,
-      format,
-      level,
-      targetMinutes: input.minutes,
-    });
+    const enforced = enforceWorkout(html, pool, enforceOpts);
+
 
     if (enforced.errors.length) {
       lastError = enforced.errors.join(" ");
@@ -236,13 +262,12 @@ export async function generateWorkoutContent(
     minutes: input.minutes,
     focus: input.focus ?? null,
     favoriteIds,
+    activationPool,
+    cooldownPool,
+    seed,
   });
-  const enforcedPack = enforceWorkout(pack.html, pool, {
-    category: input.category,
-    format,
-    level,
-    targetMinutes: input.minutes,
-  });
+  const enforcedPack = enforceWorkout(pack.html, pool, enforceOpts);
+
   const packValidation = validateWorkout(enforcedPack.html, validateOpts);
   if (enforcedPack.errors.length || packValidation.errors.length) {
     throw new Error(

@@ -3,7 +3,7 @@
 // involved. Used as the reliability fallback when the AI cannot produce a
 // workout that passes enforcement + validation.
 import type { PoolExercise } from "./pool.server";
-import { STRETCH_RE } from "./pool.server";
+import { pickPrep, STRETCH_RE } from "./pool.server";
 import type { Category, DifficultyLevel, Format, StrengthFocus } from "./spec";
 
 export type PackInput = {
@@ -13,7 +13,12 @@ export type PackInput = {
   minutes: number;
   focus?: StrengthFocus | null;
   favoriteIds?: string[];
+  /** Library-backed prep vocabulary; guarantees playable Activation / Cool Down. */
+  activationPool?: PoolExercise[];
+  cooldownPool?: PoolExercise[];
+  seed?: number;
 };
+
 
 export type PackResult = { html: string; name: string; blocks: string[] };
 
@@ -199,17 +204,23 @@ export function buildPackWorkout(
       : mainPicks.slice(0, 3);
   finisherPicks.forEach((e) => used.add(e.id));
 
-  const activationPicks = pickBalanced(library, 4, {
-    filter: (e) =>
-      isBodyweight(e) &&
-      ACTIVATION_OK_RE.test(e.name) &&
-      !ACTIVATION_BAN_RE.test(`${e.name} ${e.equipment ?? ""}`) &&
-      (e.difficulty ?? "").toLowerCase() !== "advanced",
-  });
+  const seed = input.seed ?? (mainPicks[0]?.id.length ?? 5) * 31 + input.minutes;
 
-  const cooldownPicks = pickBalanced(library, 3, {
-    filter: (e) => isBodyweight(e) && STRETCH_RE.test(e.name),
-  });
+  const activationPicks = (input.activationPool?.length
+    ? pickPrep(input.activationPool, 4, seed)
+    : pickBalanced(library, 4, {
+        filter: (e) =>
+          isBodyweight(e) &&
+          ACTIVATION_OK_RE.test(e.name) &&
+          !ACTIVATION_BAN_RE.test(`${e.name} ${e.equipment ?? ""}`) &&
+          (e.difficulty ?? "").toLowerCase() !== "advanced",
+      })) as PoolExercise[];
+
+  const cooldownPicks = (input.cooldownPool?.length
+    ? pickPrep(input.cooldownPool, 3, seed + 17)
+    : pickBalanced(library, 3, {
+        filter: (e) => isBodyweight(e) && STRETCH_RE.test(e.name),
+      })) as PoolExercise[];
 
   const blocks: string[] = [];
 
@@ -240,12 +251,13 @@ export function buildPackWorkout(
   }
 
   blocks.push(heading("🧘", "Cool Down"));
-  if (cooldownPicks.length >= 2) {
-    cooldownPicks.forEach((e) => blocks.push(li(`45 sec ${token(e)} — breathe out into the stretch`)));
+  if (cooldownPicks.length >= 3) {
+    cooldownPicks.forEach((e) => blocks.push(li(`45 sec ${token(e)} — breathe out into the position`)));
     blocks.push(li(COOLDOWN_FALLBACK[2]!));
   } else {
     COOLDOWN_FALLBACK.forEach((line) => blocks.push(li(line)));
   }
+
 
   const seedWord = NAME_LEFT[(mainPicks[0]?.id.length ?? 3) % NAME_LEFT.length]!;
   const name = `${seedWord} ${NAME_RIGHT[input.category] ?? "Session"}`;

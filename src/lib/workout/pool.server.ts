@@ -215,6 +215,106 @@ export function nameStem(name: string): string {
   return words.slice(-2).join(" ");
 }
 
+// ---------------------------------------------------------------------------
+// Preparation pools — Activation and Cool Down always come from the library so
+// every section is playable (each line carries an {{exercise:}} token).
+// ---------------------------------------------------------------------------
+
+/** Movement-prep vocabulary: dynamic mobility, activation and patterning. */
+export const ACTIVATION_OK_RE =
+  /\b(bridge|bird dog|dead bug|clamshell|circle|circles|leg swing|swing leg|march|walkout|inchworm|cat|scapular|wall slide|pull-?apart|hip opener|ankle|good morning|dynamic|rotation|twist|reach|crawl|glute|abduction|adduction|shoulder|hip|thoracic|lunge|squat|stretch|mobility|activation|band)\b/i;
+
+/** Never movement prep — load, impact, skill or maximal strength. */
+export const PREP_BAN_RE =
+  /\b(barbell|dumbbell|kettlebell|machine|cable|smith|ez[\s-]?bar|olympic|sled|weighted|leverage|trap bar|hammer|deadlift|bench press|back squat|front squat|overhead press|push press|clean|snatch|jerk|thruster|push-?up|pushup|pull-?up|chin-?up|muscle-?up|burpee|box jump|jump|jumping|sprint|dip|plyo|planche|lever|flag|handstand|sit-?up|crunch)\b/i;
+
+/** Static flexibility and breathing vocabulary for the Cool Down. */
+export const COOLDOWN_OK_RE =
+  /\b(stretch|stretching|cat-?cow|cobra|sphinx|child'?s pose|pigeon|butterfly|seated|supine|lying|standing|forward bend|split|straddle|twist|breathing|hang)\b/i;
+
+const isBand = (e: PoolExercise) => (e.equipment ?? "").toLowerCase().includes("band");
+
+/** Prep sections may always use bodyweight; bands only when the athlete has them. */
+function prepEquipmentOk(e: PoolExercise, selectedEquipment: string[]): boolean {
+  if (isBodyweight(e)) return true;
+  return isBand(e) && selectedEquipment.includes("bands");
+}
+
+function prepFilter(
+  all: PoolExercise[],
+  selectedEquipment: string[],
+  dislikedIds: string[],
+  match: RegExp,
+  strict: boolean,
+): PoolExercise[] {
+  const banned = new Set(dislikedIds);
+  return all.filter((e) => {
+    if (banned.has(e.id)) return false;
+    if (!prepEquipmentOk(e, selectedEquipment)) return false;
+    if (PREP_BAN_RE.test(text(e))) return false;
+    if (HOME_APPARATUS_RE.test(text(e))) return false;
+    if ((e.difficulty ?? "").toLowerCase() === "advanced") return false;
+    if (strict && !match.test(e.name)) return false;
+    return true;
+  });
+}
+
+/**
+ * The only vocabulary allowed in 🔥 Activation. Built from the whole library,
+ * independent of the session pool, so the section is never empty.
+ */
+export function buildActivationPool(
+  all: PoolExercise[],
+  opts: { selectedEquipment: string[]; dislikedIds?: string[] },
+): PoolExercise[] {
+  const disliked = opts.dislikedIds ?? [];
+  const strict = prepFilter(all, opts.selectedEquipment, disliked, ACTIVATION_OK_RE, true);
+  if (strict.length >= 8) return strict;
+  return prepFilter(all, opts.selectedEquipment, disliked, ACTIVATION_OK_RE, false);
+}
+
+/** The only vocabulary allowed in 🧘 Cool Down: static stretches and breathing. */
+export function buildCooldownPool(
+  all: PoolExercise[],
+  opts: { selectedEquipment: string[]; dislikedIds?: string[] },
+): PoolExercise[] {
+  const disliked = opts.dislikedIds ?? [];
+  const strict = prepFilter(all, opts.selectedEquipment, disliked, COOLDOWN_OK_RE, true).filter(
+    (e) => STRETCH_RE.test(e.name) || COOLDOWN_OK_RE.test(e.name),
+  );
+  if (strict.length >= 6) return strict;
+  return prepFilter(all, opts.selectedEquipment, disliked, COOLDOWN_OK_RE, false);
+}
+
+/** Deterministic, rotating selection so two sessions rarely open the same way. */
+export function pickPrep(pool: PoolExercise[], count: number, seed: number): PoolExercise[] {
+  if (!pool.length) return [];
+  const byPart = new Map<string, PoolExercise[]>();
+  for (const e of pool) {
+    const key = e.body_part ?? "other";
+    if (!byPart.has(key)) byPart.set(key, []);
+    byPart.get(key)!.push(e);
+  }
+  const parts = [...byPart.keys()];
+  const out: PoolExercise[] = [];
+  let s = Math.abs(seed) || 7;
+  let guard = 0;
+  while (out.length < count && guard < count * 20) {
+    guard += 1;
+    s = (s * 1103515245 + 12345) & 0x7fffffff;
+    const part = parts[s % parts.length]!;
+    const list = byPart.get(part)!;
+    if (!list.length) {
+      if (parts.every((p) => !byPart.get(p)!.length)) break;
+      continue;
+    }
+    const next = list.splice(s % list.length, 1)[0]!;
+    if (!out.some((e) => e.id === next.id)) out.push(next);
+  }
+  return out;
+}
+
+
 function shuffle<T>(arr: T[]): T[] {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {

@@ -7,7 +7,7 @@ import {
   CarouselItem,
   type CarouselApi,
 } from "@/components/ui/carousel";
-import { Check, ChevronLeft, ChevronRight, Dumbbell, Pause, Play, RotateCcw, X } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Cylinder, Dumbbell, Pause, Play, RotateCcw, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +26,7 @@ export function WorkoutPlayerDialog({
   open,
   onOpenChange,
   steps,
+  softTissue = [],
   workoutName,
   workoutId,
   onFinish,
@@ -33,11 +34,13 @@ export function WorkoutPlayerDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   steps: WorkoutStep[];
+  softTissue?: string[];
   workoutName: string;
   workoutId: string;
   onFinish: () => void;
 }) {
-  const slides = useMemo(() => buildSlides(steps), [steps]);
+  const slides = useMemo(() => buildSlides(steps, softTissue), [steps, softTissue]);
+
   const { details, ensure } = useExerciseMedia();
   const [api, setApi] = useState<CarouselApi>();
   const [index, setIndex] = useState(0);
@@ -197,7 +200,9 @@ export function WorkoutPlayerDialog({
           <CarouselContent className="ml-0 h-full">
             {slides.map((s, i) => (
               <CarouselItem key={i} className="pl-0">
-                {s.kind === "break" ? (
+                {s.kind === "soft-tissue" ? (
+                  <SoftTissueSlide lines={s.lines} />
+                ) : s.kind === "break" ? (
                   <div className="flex h-full flex-col items-center justify-center gap-3 px-8 text-center">
                     <p className="text-sm uppercase tracking-[0.3em] text-neutral-500">Next up</p>
                     <h2 className="text-3xl font-black">{s.next}</h2>
@@ -213,6 +218,7 @@ export function WorkoutPlayerDialog({
             ))}
           </CarouselContent>
         </Carousel>
+
 
         <div className="space-y-3 border-t border-neutral-800 px-4 py-4">
           {timing.mode !== "manual" ? (
@@ -314,7 +320,32 @@ export function WorkoutPlayerDialog({
   );
 }
 
+function SoftTissueSlide({ lines }: { lines: string[] }) {
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-4 px-6 text-center">
+      <div className="flex h-40 w-40 items-center justify-center rounded-full bg-neutral-900">
+        <Cylinder className="h-16 w-16 text-primary" />
+      </div>
+      <h2 className="text-2xl font-black">Soft Tissue Preparation</h2>
+      <p className="text-sm text-neutral-400">
+        Foam roller, lacrosse or trigger ball. Take your time before you move.
+      </p>
+      <ul className="w-full space-y-2 text-left">
+        {lines.map((line, i) => (
+          <li
+            key={i}
+            className="rounded-xl border border-neutral-800 bg-neutral-900 px-4 py-2 text-sm text-neutral-200"
+          >
+            {line}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function PlayerSlideView({ step, gifUrl }: { step: WorkoutStep; gifUrl: string | null }) {
+
   return (
     <div className="flex h-full flex-col items-center justify-center gap-4 px-5 text-center">
       <div className="flex h-56 w-full items-center justify-center overflow-hidden rounded-2xl bg-neutral-900">

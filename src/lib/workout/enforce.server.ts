@@ -1,6 +1,6 @@
-import { canonicalSection, minimumWorkMinutes, type Category, type DifficultyLevel, type Format, type SectionName } from "./spec";
+import { canonicalSection, minimumWorkMinutes, SECTION_ORDER, type Category, type DifficultyLevel, type Format, type SectionName } from "./spec";
 import { EXERCISE_TOKEN_RE, findTokens, isLibraryId, stripHtml } from "./tokens";
-import { STRETCH_RE, type PoolExercise } from "./pool.server";
+import { pickPrep, STRETCH_RE, type PoolExercise } from "./pool.server";
 import { parseStepTiming, parseWorkoutSteps } from "./parse-steps";
 
 export type EnforceResult = {
@@ -44,14 +44,27 @@ function dropListItems(body: string, predicate: (itemHtml: string) => boolean): 
 const SOFT_TISSUE_ALLOWED =
   /^(foam[\s-]?roll|foam roller|lacrosse ball|tennis ball|trigger point|self-?massage|myofascial release)/i;
 
-/** Loaded apparatus that must never appear in Activation (movement prep only). */
-const ACTIVATION_BANNED_EQUIPMENT_RE =
-  /\b(barbell|dumbbell|kettlebell|machine|cable|smith|ez[\s-]?bar|olympic|sled|weighted|leverage|trap bar|hammer)\b/i;
+/** Standard, always-identical soft tissue block. Token-free by design. */
+export const SOFT_TISSUE_LINES = [
+  "60 sec Foam roll quadriceps — slow controlled passes",
+  "60 sec Foam roll thoracic spine — pause on tender spots",
+  "45 sec Lacrosse ball glute release — each side",
+  "45 sec Trigger ball plantar release — each foot",
+];
 
-/** Heavy strength / high-impact patterns that are not movement preparation. */
-const ACTIVATION_BANNED_PATTERN_RE =
-  /\b(deadlift|bench press|back squat|front squat|overhead press|push press|clean|snatch|jerk|thruster|deep push-?up|decline push-?up|weighted|pull-?up|chin-?up|muscle-?up|burpee|box jump|sprint|dip)\b/i;
+const softTissueHtml = () =>
+  `<ul class="tiptap-bullet-list">${SOFT_TISSUE_LINES.map(
+    (l) => `<li class="tiptap-list-item"><p class="tiptap-paragraph">${l}</p></li>`,
+  ).join("")}</ul>`;
 
+const listHtml = (lines: string[]) =>
+  `<ul class="tiptap-bullet-list">${lines
+    .map((l) => `<li class="tiptap-list-item"><p class="tiptap-paragraph">${l}</p></li>`)
+    .join("")}</ul>`;
+
+const tokenOf = (e: PoolExercise) => `{{exercise:${e.id}:${e.name}}}`;
+
+const BREATHING_LINE = "2 min Box breathing — 4 in, 4 hold, 4 out, 4 hold";
 
 /**
  * Layer 1-4 of the post-generation pipeline: token repair, section hygiene,
@@ -60,12 +73,29 @@ const ACTIVATION_BANNED_PATTERN_RE =
 export function enforceWorkout(
   rawHtml: string,
   pool: PoolExercise[],
-  opts: { category: Category; format: Format; level: DifficultyLevel; targetMinutes: number },
+  opts: {
+    category: Category;
+    format: Format;
+    level: DifficultyLevel;
+    targetMinutes: number;
+    /** Library-backed vocabulary for 🔥 Activation — guarantees playable slides. */
+    activationPool?: PoolExercise[];
+    /** Library-backed vocabulary for 🧘 Cool Down — guarantees playable slides. */
+    cooldownPool?: PoolExercise[];
+    seed?: number;
+  },
 ): EnforceResult {
   const warnings: string[] = [];
   const errors: string[] = [];
-  const byId = new Map(pool.map((e) => [e.id, e]));
-  const byName = new Map(pool.map((e) => [e.name.toLowerCase().trim(), e]));
+  const activationPool = opts.activationPool ?? [];
+  const cooldownPool = opts.cooldownPool ?? [];
+  const activationIds = new Set(activationPool.map((e) => e.id));
+  const cooldownIds = new Set(cooldownPool.map((e) => e.id));
+  const seed = opts.seed ?? rawHtml.length;
+  const known = [...pool, ...activationPool, ...cooldownPool];
+  const byId = new Map(known.map((e) => [e.id, e]));
+  const byName = new Map(known.map((e) => [e.name.toLowerCase().trim(), e]));
+
 
   // ---- Layer 1: token repair -------------------------------------------------
   let html = rawHtml.replace(new RegExp(EXERCISE_TOKEN_RE.source, "g"), (raw, id: string, name: string) => {
@@ -102,41 +132,70 @@ export function enforceWorkout(
         return findTokens(item).length > 0 || !SOFT_TISSUE_ALLOWED.test(text);
       });
       if (!/<li/.test(body)) {
-        body =
-          '<ul class="tiptap-bullet-list"><li class="tiptap-list-item"><p class="tiptap-paragraph">60 sec Foam roll quadriceps — slow controlled passes</p></li><li class="tiptap-list-item"><p class="tiptap-paragraph">60 sec Foam roll thoracic spine — pause on tender spots</p></li><li class="tiptap-list-item"><p class="tiptap-paragraph">45 sec Lacrosse ball glute release — each side</p></li></ul>';
+        body = softTissueHtml();
         warnings.push("Rebuilt Soft Tissue Preparation with compliant entries.");
       }
     }
 
-    // ---- Layer 2b: Activation = movement prep only ----------------------------
+    // ---- Layer 2b: Activation — library movement prep, always playable -------
     if (section.name === "Activation") {
       body = dropListItems(body, (item) => {
         const tokens = findTokens(item);
-        if (!tokens.length) return false;
-        const text = stripHtml(item.replace(new RegExp(EXERCISE_TOKEN_RE.source, "g"), "$2"));
-        if (ACTIVATION_BANNED_PATTERN_RE.test(text)) {
-          warnings.push(`Removed "${tokens[0]!.name}" from Activation (strength movement, not prep).`);
-          return true;
-        }
-        const equipment = `${byId.get(tokens[0]!.id)?.equipment ?? ""} ${text}`;
-        if (ACTIVATION_BANNED_EQUIPMENT_RE.test(equipment)) {
-          warnings.push(`Removed "${tokens[0]!.name}" from Activation (loaded apparatus).`);
-          return true;
-        }
-        const difficulty = (byId.get(tokens[0]!.id)?.difficulty ?? "").toLowerCase();
-        if (difficulty.includes("advanced")) {
-          warnings.push(`Removed "${tokens[0]!.name}" from Activation (too advanced for prep).`);
+        if (!tokens.length) return true; // plain text is invisible to the player
+        const id = tokens[0]!.id;
+        if (activationIds.size && !activationIds.has(id)) {
+          warnings.push(`Removed "${tokens[0]!.name}" from Activation (not movement preparation).`);
           return true;
         }
         return false;
       });
-      if (!/<li/.test(body)) {
-        body =
-          '<ul class="tiptap-bullet-list"><li class="tiptap-list-item"><p class="tiptap-paragraph">10 reps Bodyweight glute bridge — squeeze 1 sec at the top</p></li><li class="tiptap-list-item"><p class="tiptap-paragraph">10 reps Scapular wall slide — keep ribs down</p></li><li class="tiptap-list-item"><p class="tiptap-paragraph">8 reps each side World\u2019s greatest stretch — slow and controlled</p></li><li class="tiptap-list-item"><p class="tiptap-paragraph">20 sec Dead bug hold — breathe, no arching</p></li></ul>';
-        warnings.push("Rebuilt Activation with compliant bodyweight movement prep.");
+      const count = findTokens(body).length;
+      if (count < 3) {
+        const picks = pickPrep(activationPool, 4, seed);
+        if (picks.length >= 3) {
+          body = listHtml(
+            picks.map((e, i) =>
+              i % 2 === 0
+                ? `10 reps ${tokenOf(e)} — slow and controlled`
+                : `30 sec ${tokenOf(e)} — easy range, breathe`,
+            ),
+          );
+          warnings.push("Rebuilt Activation from the library so every drill is playable.");
+        }
       }
-
     }
+
+    // ---- Layer 2c: Cool Down — library stretches, always playable ------------
+    if (section.name === "Cool-down") {
+      body = dropListItems(body, (item) => {
+        const tokens = findTokens(item);
+        if (!tokens.length) return true;
+        const id = tokens[0]!.id;
+        if (cooldownIds.size && !cooldownIds.has(id)) {
+          warnings.push(`Removed "${tokens[0]!.name}" from Cool Down (not a cool-down movement).`);
+          return true;
+        }
+        return false;
+      });
+      const count = findTokens(body).length;
+      if (count < 3) {
+        const picks = pickPrep(cooldownPool, 3, seed + 17);
+        if (picks.length >= 3) {
+          body = listHtml([
+            ...picks.map((e) => `45 sec ${tokenOf(e)} — breathe out into the position`),
+            BREATHING_LINE,
+          ]);
+          warnings.push("Rebuilt Cool Down from the library so every stretch is playable.");
+        }
+      } else if (!body.includes("Box breathing")) {
+        body = body.replace(
+          /<\/ul>\s*$/,
+          `<li class="tiptap-list-item"><p class="tiptap-paragraph">${BREATHING_LINE}</p></li></ul>`,
+        );
+      }
+    }
+
+
 
 
 
@@ -168,9 +227,59 @@ export function enforceWorkout(
     return { ...section, body };
   });
 
+  // ---- Layer 4b: never ship a workout without prep / cool-down --------------
+  const hasSection = (name: SectionName) => sections.some((s) => s.name === name);
+  const insertSection = (section: Section) => {
+    const order = SECTION_ORDER.indexOf(section.name);
+    const at = sections.findIndex((s) => SECTION_ORDER.indexOf(s.name) > order);
+    if (at === -1) sections.push(section);
+    else sections.splice(at, 0, section);
+  };
+
+  if (opts.category !== "MICRO-WORKOUTS" && !hasSection("Soft Tissue Preparation")) {
+    insertSection({
+      name: "Soft Tissue Preparation",
+      heading: `<p class="tiptap-paragraph">🧽 <strong><u>Soft Tissue Preparation</u></strong></p>`,
+      body: softTissueHtml(),
+    });
+    warnings.push("Added the standard Soft Tissue Preparation block.");
+  }
+
+  if (!hasSection("Activation") && !hasSection("Warm-up")) {
+    const picks = pickPrep(activationPool, 4, seed);
+    if (picks.length >= 3) {
+      insertSection({
+        name: "Activation",
+        heading: `<p class="tiptap-paragraph">🔥 <strong><u>Activation 5'</u></strong></p>`,
+        body: listHtml(picks.map((e) => `10 reps ${tokenOf(e)} — slow and controlled`)),
+      });
+      warnings.push("Added a library-backed Activation section.");
+    }
+  }
+
+  if (!hasSection("Cool-down")) {
+    const picks = pickPrep(cooldownPool, 3, seed + 17);
+    if (picks.length >= 3) {
+      insertSection({
+        name: "Cool-down",
+        heading: `<p class="tiptap-paragraph">🧘 <strong><u>Cool Down 5'</u></strong></p>`,
+        body: listHtml([
+          ...picks.map((e) => `45 sec ${tokenOf(e)} — breathe out into the position`),
+          BREATHING_LINE,
+        ]),
+      });
+      warnings.push("Added a library-backed Cool Down section.");
+    }
+  }
+
   // ---- Layer 5: structural quality gate --------------------------------------
   const counts = new Map<SectionName, number>();
   for (const s of sections) counts.set(s.name, findTokens(s.body).length);
+
+  const activationCount = (counts.get("Activation") ?? 0) + (counts.get("Warm-up") ?? 0);
+  if (activationCount < 3) warnings.push("Activation has fewer than 3 playable drills.");
+  if ((counts.get("Cool-down") ?? 0) < 3) warnings.push("Cool Down has fewer than 3 playable stretches.");
+
 
   const requiresFinisher = opts.category !== "RECOVERY" && opts.category !== "MICRO-WORKOUTS";
   const main = counts.get("Main Workout") ?? 0;

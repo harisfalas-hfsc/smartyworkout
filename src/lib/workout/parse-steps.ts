@@ -82,13 +82,34 @@ export function parseWorkoutSteps(html: string): WorkoutStep[] {
   return steps;
 }
 
+/**
+ * Pulls the plain-text Soft Tissue Preparation lines. That section never
+ * carries exercise tokens, so the player shows it as one standardised slide.
+ */
+export function extractSoftTissue(html: string): string[] {
+  if (!html) return [];
+  const start = html.search(/🧽/);
+  if (start === -1) return [];
+  const rest = html.slice(start);
+  const end = rest.search(/🔥|💪|⚡|🧘/);
+  const body = end === -1 ? rest : rest.slice(0, end);
+  const lines: string[] = [];
+  for (const m of body.matchAll(/<li\b[^>]*>([\s\S]*?)<\/li>/gi)) {
+    const text = stripTokens(stripHtml(m[1] ?? "")).trim();
+    if (text) lines.push(text);
+  }
+  return lines;
+}
+
 export type PlayerSlide =
+  | { kind: "soft-tissue"; lines: string[] }
   | { kind: "exercise"; step: WorkoutStep; stepIndex: number }
   | { kind: "break"; previous: SectionName; next: SectionName };
 
 /** Inserts a section-break slide whenever the section changes. */
-export function buildSlides(steps: WorkoutStep[]): PlayerSlide[] {
+export function buildSlides(steps: WorkoutStep[], softTissue: string[] = []): PlayerSlide[] {
   const slides: PlayerSlide[] = [];
+  if (softTissue.length) slides.push({ kind: "soft-tissue", lines: softTissue });
   steps.forEach((step, i) => {
     const prev = steps[i - 1];
     if (prev && prev.section !== step.section) {
@@ -98,6 +119,7 @@ export function buildSlides(steps: WorkoutStep[]): PlayerSlide[] {
   });
   return slides;
 }
+
 
 export type StepTiming =
   | { mode: "manual" }

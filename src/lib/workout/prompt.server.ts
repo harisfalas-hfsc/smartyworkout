@@ -142,8 +142,36 @@ export type PromptInput = {
   note?: string;
   athlete?: AthleteContext;
   pool: PoolExercise[];
+  /** Separate approved vocabulary for 🔥 Activation. */
+  activationPool?: PoolExercise[];
+  /** Separate approved vocabulary for 🧘 Cool Down. */
+  cooldownPool?: PoolExercise[];
   bannedNames: string[];
 };
+
+const poolTable = (list: PoolExercise[]) =>
+  list
+    .map(
+      (e) =>
+        `${e.id}|${e.name}|${e.body_part ?? "-"}|${e.target_muscle ?? "-"}|${e.equipment ?? "-"}|${e.difficulty ?? "-"}`,
+    )
+    .join("\n");
+
+/** Keeps prompt size sane while covering every body part. */
+function trimPrep(list: PoolExercise[], max: number): PoolExercise[] {
+  if (list.length <= max) return list;
+  const byPart = new Map<string, PoolExercise[]>();
+  for (const e of list) {
+    const key = e.body_part ?? "other";
+    if (!byPart.has(key)) byPart.set(key, []);
+    byPart.get(key)!.push(e);
+  }
+  const per = Math.max(4, Math.ceil(max / Math.max(1, byPart.size)));
+  const out: PoolExercise[] = [];
+  for (const items of byPart.values()) out.push(...items.slice(0, per));
+  return out.slice(0, max);
+}
+
 
 export function buildWorkoutPrompt(input: PromptInput): { system: string; user: string } {
   const isRecovery = input.category === "RECOVERY";
@@ -162,17 +190,14 @@ export function buildWorkoutPrompt(input: PromptInput): { system: string; user: 
 4. 🧘 Cool Down`
       : `MANDATORY STRUCTURE (5 sections, exact icons and order):
 1. 🧽 Soft Tissue Preparation — foam rolling only, NO {{exercise:}} tokens at all
-2. 🔥 Activation — library exercises with markup
+2. 🔥 Activation — 4 lines, EVERY line a token from the ACTIVATION LIST
 3. 💪 Main Workout — library exercises, minimum 4
 4. ⚡ Finisher — library exercises, minimum 3
-5. 🧘 Cool Down — library stretches and breathing`;
+5. 🧘 Cool Down — 3 lines, EVERY line a token from the COOL DOWN LIST, then one breathing line`;
 
-  const poolText = input.pool
-    .map(
-      (e) =>
-        `${e.id}|${e.name}|${e.body_part ?? "-"}|${e.target_muscle ?? "-"}|${e.equipment ?? "-"}|${e.difficulty ?? "-"}`,
-    )
-    .join("\n");
+  const poolText = poolTable(input.pool);
+  const activationText = poolTable(trimPrep(input.activationPool ?? [], 90));
+  const cooldownText = poolTable(trimPrep(input.cooldownPool ?? [], 70));
 
   const system = `You are a Sports Scientist (CSCS). You write precise, safe, professional training sessions.
 
@@ -193,10 +218,16 @@ EXERCISE LINE HTML (bullet lists only):
 SOFT TISSUE RULES — lines may only start with: Foam roll, Foam-roll, Foam roller, Lacrosse ball, Tennis ball, Trigger point, Self-massage, Myofascial release, or "... release". Forbidden there: tokens, stretch, circle, raise, swing, lunge, pose, march, bridge, squat, press, row, curl, twist, hydrant, cobra, cat-cow, sun salutation. Dynamic stretches belong in Activation, static stretches in Cool Down.
 
 ACTIVATION RULES (non-negotiable) — Activation is MOVEMENT PREPARATION, never training.
-- Bodyweight or light band only. NEVER dumbbell, kettlebell, barbell, cable, machine, Smith, EZ bar, sled or any external load, even if that equipment is available.
-- NEVER strength or high-impact movements: deadlift, squat/bench/overhead press variations, push-ups (any variation), pull-ups, dips, burpees, box jumps, sprints, Olympic lifts.
-- Use dynamic mobility, glute/scapular/core activation, light dynamic stretches and low-intensity patterning: 8-12 reps or 30-40 sec, never near failure, never Advanced-difficulty exercises.
-- Everything that loads a muscle for adaptation belongs in Main Workout or Finisher — never in Activation.
+- Use ONLY ids from the ACTIVATION LIST below. Ids from the main library are rejected there.
+- Exactly 4 bullets, every one carrying a token: "10 reps {{exercise:ID:Name}}" or "30 sec {{exercise:ID:Name}}". Plain-text drills are rejected.
+- Never near failure, never a strength or high-impact movement, no external load.
+
+COOL DOWN RULES (non-negotiable)
+- Use ONLY ids from the COOL DOWN LIST below. Ids from the main library are rejected there.
+- Exactly 3 token bullets ("45 sec {{exercise:ID:Name}} — breathe out into the position") followed by ONE plain breathing line.
+- Never a loaded, dynamic or conditioning movement.
+
+
 
 
 PRESCRIPTION RULES
@@ -235,6 +266,7 @@ ${input.focus ? `\nFOCUS SPLIT RULES\n${FOCUS_RULES[input.focus]}` : ""}
 
 QUALITY GATE (your workout is rejected if it fails)
 - Main Workout at least 4 exercises (hard floor 3); Finisher at least 3.
+- Activation exactly 4 token lines from the ACTIVATION LIST; Cool Down exactly 3 token lines from the COOL DOWN LIST.
 - Every token line in 💪 and ⚡ carries a dose BEFORE the token.
 - The protocol structure (minutes, rounds, cap, ladder, 20/10 x 8) must be declared in writing.
 - Advertised duration counts 💪 Main + ⚡ Finisher only and must reach the requested "${input.duration}".
@@ -242,10 +274,17 @@ QUALITY GATE (your workout is rejected if it fails)
 NAMES ALREADY USED (never reuse):
 ${input.bannedNames.slice(0, 120).join(", ") || "none"}
 
-APPROVED EXERCISE LIBRARY — the ONLY allowed vocabulary (id|name|body part|target|equipment|difficulty)
+APPROVED EXERCISE LIBRARY for 💪 Main Workout and ⚡ Finisher — the ONLY allowed vocabulary there (id|name|body part|target|equipment|difficulty)
 ${poolText}
 
+ACTIVATION LIST — the ONLY allowed vocabulary for 🔥 Activation
+${activationText || "none — write no Activation tokens"}
+
+COOL DOWN LIST — the ONLY allowed vocabulary for 🧘 Cool Down
+${cooldownText || "none — write no Cool Down tokens"}
+
 Return the JSON now.`;
+
 
   return { system, user };
 }

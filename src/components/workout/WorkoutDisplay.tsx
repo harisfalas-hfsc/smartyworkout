@@ -19,7 +19,7 @@ import { ExerciseHTMLContent } from "./ExerciseHTMLContent";
 import { ExerciseDetailDialog } from "./ExerciseDetailDialog";
 import { ExerciseMediaProvider } from "./ExerciseMediaProvider";
 import { WorkoutPlayerDialog } from "./WorkoutPlayerDialog";
-import { parseWorkoutSteps } from "@/lib/workout/parse-steps";
+import { extractSoftTissue, parseWorkoutSteps } from "@/lib/workout/parse-steps";
 import { uniqueTokenIds } from "@/lib/workout/tokens";
 import { difficultyLabel, MAX_STARS, normalizeStars } from "@/lib/workout/spec";
 import { setWorkoutMeta } from "@/lib/coach.functions";
@@ -74,6 +74,7 @@ export function WorkoutDisplay({
   const html = workout.main_workout ?? "";
   const ids = useMemo(() => uniqueTokenIds(html), [html]);
   const steps = useMemo(() => parseWorkoutSteps(html), [html]);
+  const softTissue = useMemo(() => extractSoftTissue(html), [html]);
   const saveMeta = useServerFn(setWorkoutMeta);
 
   const [openExercise, setOpenExercise] = useState<string | null>(null);
@@ -187,6 +188,7 @@ export function WorkoutDisplay({
         open={player}
         onOpenChange={setPlayer}
         steps={steps}
+        softTissue={softTissue}
         workoutName={workout.name}
         workoutId={workout.id}
 
