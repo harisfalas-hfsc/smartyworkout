@@ -14,6 +14,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ExerciseHTMLContent } from "@/components/workout/ExerciseHTMLContent";
 import { ExerciseMediaProvider } from "@/components/workout/ExerciseMediaProvider";
+import { uniqueTokenIds } from "@/lib/workout/tokens";
 import {
   adminListWorkouts,
   adminGetWorkout,
@@ -117,6 +118,23 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openId]);
+
+  const detailIds = useMemo(
+    () =>
+      detail
+        ? uniqueTokenIds(
+            [
+              detail.description_html,
+              detail.main_workout,
+              detail.instructions_html,
+              detail.tips_html,
+            ]
+              .filter(Boolean)
+              .join(" "),
+          )
+        : [],
+    [detail],
+  );
 
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const activeFilters = useMemo(
@@ -350,7 +368,7 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
             </div>
           ) : (
-            <ExerciseMediaProvider>
+            <ExerciseMediaProvider ids={detailIds}>
               <div className="space-y-4 text-sm">
                 <div className="flex flex-wrap gap-1.5">
                   <Badge variant="secondary">{detail.category}</Badge>
@@ -390,7 +408,7 @@ function Section({ title, html }: { title: string; html: string }) {
       <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         {title}
       </p>
-      <ExerciseHTMLContent html={html} />
+      <ExerciseHTMLContent html={html} onOpenExercise={() => {}} />
     </div>
   );
 }
