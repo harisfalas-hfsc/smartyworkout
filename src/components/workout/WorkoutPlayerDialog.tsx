@@ -197,7 +197,9 @@ export function WorkoutPlayerDialog({
           <CarouselContent className="ml-0 h-full">
             {slides.map((s, i) => (
               <CarouselItem key={i} className="pl-0">
-                {s.kind === "break" ? (
+                {s.kind === "soft-tissue" ? (
+                  <SoftTissueSlide lines={s.lines} />
+                ) : s.kind === "break" ? (
                   <div className="flex h-full flex-col items-center justify-center gap-3 px-8 text-center">
                     <p className="text-sm uppercase tracking-[0.3em] text-neutral-500">Next up</p>
                     <h2 className="text-3xl font-black">{s.next}</h2>
@@ -213,6 +215,7 @@ export function WorkoutPlayerDialog({
             ))}
           </CarouselContent>
         </Carousel>
+
 
         <div className="space-y-3 border-t border-neutral-800 px-4 py-4">
           {timing.mode !== "manual" ? (
