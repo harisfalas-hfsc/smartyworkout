@@ -2,21 +2,21 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/PageHeader";
 import { SmartyCard, SmartyRow } from "@/components/SmartyCard";
-import { Brain, Dumbbell, CalendarCheck, Sparkles, Compass, Clock } from "lucide-react";
+import { Brain, Compass, Clock, Sparkles, SlidersHorizontal, FlaskConical, RefreshCw } from "lucide-react";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About Smarty Workout — Your AI Fitness Coach" },
+      { title: "About Smarty Workout — Your Fitness Coach" },
       {
         name: "description",
         content:
-          "Smarty Workout is not another workout app. Smarty Coach is an AI fitness coach built around the sports science of Haris Falas.",
+          "Smarty Workout is not another workout app. Smarty Coach is a fitness coach built around the sports science of Haris Falas.",
       },
-      { property: "og:title", content: "About Smarty Workout — Your AI Fitness Coach" },
+      { property: "og:title", content: "About Smarty Workout — Your Fitness Coach" },
       {
         property: "og:description",
-        content: "An intelligent AI fitness coach. Smart, personalized, science-informed, adaptive.",
+        content: "A smart, personalized, science-informed, adaptive fitness coach.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -32,9 +32,9 @@ export const Route = createFileRoute("/about")({
             {
               "@type": "AboutPage",
               url: "https://smartyworkout.com/about",
-              name: "About Smarty Workout — Your AI Fitness Coach",
+              name: "About Smarty Workout — Your Fitness Coach",
               description:
-                "Smarty Workout is not another workout app. Smarty Coach is an AI fitness coach built around the sports science of Haris Falas.",
+                "Smarty Workout is not another workout app. Smarty Coach is a fitness coach built around the sports science of Haris Falas.",
               inLanguage: "en",
               isPartOf: { "@id": "https://smartyworkout.com/#website" },
               mainEntity: { "@id": "https://smartyworkout.com/#organization" },
@@ -64,13 +64,13 @@ function AboutPage() {
           <>
             Coaching expertise
             <br />
-            <span className="text-primary">AI precision</span>
+            <span className="text-primary">Precision</span>
           </>
         }
         subtitle={
           <>
-            An intelligent AI fitness coach trained around the sports science and training
-            philosophy of{" "}
+            An intelligent fitness coach trained around the sports science and training philosophy
+            of{" "}
             <Link
               to="/haris-falas"
               className="whitespace-nowrap font-semibold text-primary underline underline-offset-2"
@@ -90,16 +90,18 @@ function AboutPage() {
           eyebrowIcon={Brain}
           title={
             <>
-              Science-backed coaching,{" "}
-              <span className="text-primary">not random workouts</span>
+              A fitness coach built on{" "}
+              <span className="text-primary">real science</span>
             </>
           }
           description={
             <>
-              Smarty Workout is an AI fitness coach built on real Strength & Conditioning science. Every
-              session is structured around proven training principles — not a lucky shuffle of
-              exercises. That is the difference between a generic generator and a coach that thinks
-              like a sports scientist.
+              Smarty Workout is a fitness coach built on real Strength & Conditioning science. Every
+              session is structured around{" "}
+              <span className="font-semibold text-foreground">proven training principles</span> — not
+              a lucky shuffle of exercises. That is the difference between a generic generator and a
+              coach that thinks like a{" "}
+              <span className="font-semibold text-foreground">sports scientist</span>.
             </>
           }
           className="lg:min-h-[420px]"
@@ -118,9 +120,11 @@ function AboutPage() {
           description={
             <>
               Start from your Training Profile, then tell Smarty Coach how you feel today, how much
-              time you have, and what equipment is around. It recalculates sets, reps, rest, and
-              exercise selection in seconds — whether you are in a gym, a hotel, your living room, or
-              outdoors.
+              time you have, and what equipment is around. It{" "}
+              <span className="font-semibold text-foreground">recalculates</span> sets, reps, rest,
+              and exercise selection in seconds — whether you are in a{" "}
+              <span className="font-semibold text-foreground">gym, hotel, living room, or outdoors</span>
+              .
             </>
           }
           className="lg:min-h-[420px]"
@@ -139,32 +143,54 @@ function AboutPage() {
           description={
             <>
               Early morning, lunch break, late night, abroad, at the office, or on the road. Whenever
-              you need a session that actually fits your circumstances, Smarty Coach builds one that
-              respects your body, your schedule, and your available space.
+              you need a session that fits your circumstances, Smarty Coach builds one that respects
+              your <span className="font-semibold text-foreground">body, schedule, and space</span>.
             </>
           }
           className="lg:min-h-[420px]"
         />
       </div>
 
-      {/* Trust row */}
-      <div className="mx-auto mt-4 grid max-w-xl gap-3 sm:grid-cols-2 lg:max-w-5xl lg:grid-cols-4 lg:gap-5">
-        {[
-          { icon: "🧠", title: "SMART", subtitle: "Knows you and your history." },
-          { icon: "🎯", title: "PERSONALIZED", subtitle: "Mood, time, gear, level." },
-          { icon: "🔬", title: "SCIENCE-INFORMED", subtitle: "Safe, proven programming." },
-          { icon: "🔄", title: "ADAPTIVE", subtitle: "Learns from your feedback." },
-        ].map((f) => (
-          <div
-            key={f.title}
-            className="flex flex-col items-center gap-1 rounded-2xl border-2 border-blue-400 bg-card px-3 py-4 text-center"
-          >
-            <span className="text-lg leading-none">{f.icon}</span>
-            <p className="text-sm font-bold leading-5">{f.title}</p>
-            <p className="text-xs leading-5 text-muted-foreground">{f.subtitle}</p>
-          </div>
-        ))}
-      </div>
+      {/* Four pillars in one card */}
+      <SmartyCard
+        tone="blue"
+        eyebrow="Built to be"
+        eyebrowIcon={Sparkles}
+        title={
+          <>
+            Smart, Personal, Scientific,{" "}
+            <span className="text-primary">Adaptive</span>
+          </>
+        }
+        className="mx-auto mt-4 max-w-xl lg:max-w-5xl"
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <SmartyRow
+            icon={Brain}
+            title="Smart"
+            subtitle="Knows you and your history."
+            tone="blue"
+          />
+          <SmartyRow
+            icon={SlidersHorizontal}
+            title="Personalized"
+            subtitle="Mood, time, gear, level."
+            tone="blue"
+          />
+          <SmartyRow
+            icon={FlaskConical}
+            title="Science-informed"
+            subtitle="Safe, proven programming."
+            tone="blue"
+          />
+          <SmartyRow
+            icon={RefreshCw}
+            title="Adaptive"
+            subtitle="Learns from your feedback."
+            tone="blue"
+          />
+        </div>
+      </SmartyCard>
 
       <p className="mt-6 text-center text-sm font-bold leading-snug sm:text-base">
         You don&apos;t choose a workout.
