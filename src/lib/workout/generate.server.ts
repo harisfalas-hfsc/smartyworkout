@@ -138,8 +138,31 @@ export async function generateWorkoutContent(
   const duration = durationLabel(input.minutes);
   const promptPool = samplePool(pool, 260, favoriteIds);
 
+  // Activation and Cool Down get their own library-backed vocabulary so both
+  // sections always carry real exercise links and show up in the player.
+  const activationPool = buildActivationPool(all, {
+    selectedEquipment: input.selectedEquipment,
+    dislikedIds,
+  });
+  const cooldownPool = buildCooldownPool(all, {
+    selectedEquipment: input.selectedEquipment,
+    dislikedIds,
+  });
+  const prepIds = [...activationPool.map((e) => e.id), ...cooldownPool.map((e) => e.id)];
+  const seed = `${input.category}${input.minutes}${pool.length}`.length + Date.now() % 100000;
+
   const { getWorkoutRules } = await import("@/lib/settings.server");
   const extraRules = (await getWorkoutRules()).extraCoachRules.trim();
+
+  const enforceOpts = {
+    category: input.category,
+    format,
+    level,
+    targetMinutes: input.minutes,
+    activationPool,
+    cooldownPool,
+    seed,
+  };
 
   const validateOpts = {
     library: all,
@@ -152,7 +175,9 @@ export async function generateWorkoutContent(
     selectedEquipment: input.selectedEquipment,
     customEquipment,
     dislikedIds,
+    prepIds,
   };
+
 
   const fallbackName = () =>
     `${input.category.split(" ")[0]!.toLowerCase()} ${level} session`.replace(/\b\w/g, (c) =>
