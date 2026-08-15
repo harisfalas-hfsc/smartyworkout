@@ -74,6 +74,7 @@ export function WorkoutDisplay({
   const html = workout.main_workout ?? "";
   const ids = useMemo(() => uniqueTokenIds(html), [html]);
   const steps = useMemo(() => parseWorkoutSteps(html), [html]);
+  const softTissue = useMemo(() => extractSoftTissue(html), [html]);
   const saveMeta = useServerFn(setWorkoutMeta);
 
   const [openExercise, setOpenExercise] = useState<string | null>(null);
