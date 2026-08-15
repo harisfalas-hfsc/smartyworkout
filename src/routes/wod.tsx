@@ -279,12 +279,12 @@ function WodPage() {
 
       <section className="space-y-3 rounded-2xl border border-border bg-card px-5 py-5 shadow-sm sm:px-8">
         <p className="text-center text-[14px] leading-6 text-muted-foreground">
-          <strong className="text-foreground">Workout of the Day is two ready workouts every
+          <strong className="text-primary">Workout of the Day is two ready workouts every
           day</strong> — one with equipment and one bodyweight only — built automatically around
           your Training Profile, so you simply open one and train.
         </p>
         <p className="text-center text-[14px] leading-6 text-muted-foreground">
-          Both follow a <strong className="text-foreground">scientific periodization plan</strong>:
+          Both follow a <strong className="text-primary">scientific periodization plan</strong>:
           strength, endurance, power, mobility and recovery days are sequenced across the cycle so
           you never overtrain, never undertrain, and every fitness quality is developed in the right
           order.
