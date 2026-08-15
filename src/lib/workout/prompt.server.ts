@@ -1,4 +1,5 @@
 import type { PoolExercise } from "./pool.server";
+import { planPrompt, type SessionPlan } from "./programming";
 import {
   BANNED_NAME_WORDS,
   intensityNote,
@@ -165,6 +166,8 @@ export type PromptInput = {
   /** Separate approved vocabulary for 🧘 Cool Down. */
   cooldownPool?: PoolExercise[];
   bannedNames: string[];
+  /** Deterministic session blueprint the model must satisfy. */
+  plan?: SessionPlan;
 };
 
 const poolTable = (list: PoolExercise[]) =>
@@ -291,8 +294,11 @@ FORMAT WRITING RULES
 ${FORMAT_RULES[input.format]}
 ${input.focus ? `\nFOCUS SPLIT RULES\n${FOCUS_RULES[input.focus]}` : ""}
 
+${input.plan ? planPrompt(input.plan) : ""}
+
 QUALITY GATE (your workout is rejected if it fails)
-- Main Workout at least 4 exercises (hard floor 3); Finisher at least 3.
+- Every count, rep range, rest window and transition budget in the SESSION BLUEPRINT above.
+- Main Workout at least ${input.plan ? input.plan.mainCount[0] : 4} exercises; ${input.plan && !input.plan.finisher ? "no Finisher section at all" : `Finisher at least ${input.plan ? input.plan.finisherCount[0] : 3}`}.
 - Activation exactly 4 token lines from the ACTIVATION LIST; Cool Down exactly 3 token lines from the COOL DOWN LIST.
 - Every token line in 💪 and ⚡ carries a dose BEFORE the token.
 - The protocol structure (minutes, rounds, cap, ladder, 20/10 x 8) must be declared in writing.
