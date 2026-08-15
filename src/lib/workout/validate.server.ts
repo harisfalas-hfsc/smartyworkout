@@ -28,7 +28,10 @@ export type ValidateOptions = {
   selectedEquipment: string[];
   customEquipment?: string[];
   dislikedIds?: string[];
+  /** Ids allowed in 🔥 Activation / 🧘 Cool Down (prep vocabulary, bodyweight-first). */
+  prepIds?: string[];
 };
+
 
 export function validateWorkout(html: string, opts: ValidateOptions): ValidationResult {
   const errors: string[] = [];
