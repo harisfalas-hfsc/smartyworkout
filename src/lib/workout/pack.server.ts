@@ -3,7 +3,7 @@
 // involved. Used as the reliability fallback when the AI cannot produce a
 // workout that passes enforcement + validation.
 import type { PoolExercise } from "./pool.server";
-import { STRETCH_RE } from "./pool.server";
+import { pickPrep, STRETCH_RE } from "./pool.server";
 import type { Category, DifficultyLevel, Format, StrengthFocus } from "./spec";
 
 export type PackInput = {
@@ -13,7 +13,12 @@ export type PackInput = {
   minutes: number;
   focus?: StrengthFocus | null;
   favoriteIds?: string[];
+  /** Library-backed prep vocabulary; guarantees playable Activation / Cool Down. */
+  activationPool?: PoolExercise[];
+  cooldownPool?: PoolExercise[];
+  seed?: number;
 };
+
 
 export type PackResult = { html: string; name: string; blocks: string[] };
 
