@@ -262,13 +262,12 @@ export async function generateWorkoutContent(
     minutes: input.minutes,
     focus: input.focus ?? null,
     favoriteIds,
+    activationPool,
+    cooldownPool,
+    seed,
   });
-  const enforcedPack = enforceWorkout(pack.html, pool, {
-    category: input.category,
-    format,
-    level,
-    targetMinutes: input.minutes,
-  });
+  const enforcedPack = enforceWorkout(pack.html, pool, enforceOpts);
+
   const packValidation = validateWorkout(enforcedPack.html, validateOpts);
   if (enforcedPack.errors.length || packValidation.errors.length) {
     throw new Error(
