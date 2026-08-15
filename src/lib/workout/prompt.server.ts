@@ -266,6 +266,7 @@ ${input.focus ? `\nFOCUS SPLIT RULES\n${FOCUS_RULES[input.focus]}` : ""}
 
 QUALITY GATE (your workout is rejected if it fails)
 - Main Workout at least 4 exercises (hard floor 3); Finisher at least 3.
+- Activation exactly 4 token lines from the ACTIVATION LIST; Cool Down exactly 3 token lines from the COOL DOWN LIST.
 - Every token line in 💪 and ⚡ carries a dose BEFORE the token.
 - The protocol structure (minutes, rounds, cap, ladder, 20/10 x 8) must be declared in writing.
 - Advertised duration counts 💪 Main + ⚡ Finisher only and must reach the requested "${input.duration}".
@@ -273,10 +274,17 @@ QUALITY GATE (your workout is rejected if it fails)
 NAMES ALREADY USED (never reuse):
 ${input.bannedNames.slice(0, 120).join(", ") || "none"}
 
-APPROVED EXERCISE LIBRARY — the ONLY allowed vocabulary (id|name|body part|target|equipment|difficulty)
+APPROVED EXERCISE LIBRARY for 💪 Main Workout and ⚡ Finisher — the ONLY allowed vocabulary there (id|name|body part|target|equipment|difficulty)
 ${poolText}
 
+ACTIVATION LIST — the ONLY allowed vocabulary for 🔥 Activation
+${activationText || "none — write no Activation tokens"}
+
+COOL DOWN LIST — the ONLY allowed vocabulary for 🧘 Cool Down
+${cooldownText || "none — write no Cool Down tokens"}
+
 Return the JSON now.`;
+
 
   return { system, user };
 }
