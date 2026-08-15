@@ -132,41 +132,70 @@ export function enforceWorkout(
         return findTokens(item).length > 0 || !SOFT_TISSUE_ALLOWED.test(text);
       });
       if (!/<li/.test(body)) {
-        body =
-          '<ul class="tiptap-bullet-list"><li class="tiptap-list-item"><p class="tiptap-paragraph">60 sec Foam roll quadriceps — slow controlled passes</p></li><li class="tiptap-list-item"><p class="tiptap-paragraph">60 sec Foam roll thoracic spine — pause on tender spots</p></li><li class="tiptap-list-item"><p class="tiptap-paragraph">45 sec Lacrosse ball glute release — each side</p></li></ul>';
+        body = softTissueHtml();
         warnings.push("Rebuilt Soft Tissue Preparation with compliant entries.");
       }
     }
 
-    // ---- Layer 2b: Activation = movement prep only ----------------------------
+    // ---- Layer 2b: Activation — library movement prep, always playable -------
     if (section.name === "Activation") {
       body = dropListItems(body, (item) => {
         const tokens = findTokens(item);
-        if (!tokens.length) return false;
-        const text = stripHtml(item.replace(new RegExp(EXERCISE_TOKEN_RE.source, "g"), "$2"));
-        if (ACTIVATION_BANNED_PATTERN_RE.test(text)) {
-          warnings.push(`Removed "${tokens[0]!.name}" from Activation (strength movement, not prep).`);
-          return true;
-        }
-        const equipment = `${byId.get(tokens[0]!.id)?.equipment ?? ""} ${text}`;
-        if (ACTIVATION_BANNED_EQUIPMENT_RE.test(equipment)) {
-          warnings.push(`Removed "${tokens[0]!.name}" from Activation (loaded apparatus).`);
-          return true;
-        }
-        const difficulty = (byId.get(tokens[0]!.id)?.difficulty ?? "").toLowerCase();
-        if (difficulty.includes("advanced")) {
-          warnings.push(`Removed "${tokens[0]!.name}" from Activation (too advanced for prep).`);
+        if (!tokens.length) return true; // plain text is invisible to the player
+        const id = tokens[0]!.id;
+        if (activationIds.size && !activationIds.has(id)) {
+          warnings.push(`Removed "${tokens[0]!.name}" from Activation (not movement preparation).`);
           return true;
         }
         return false;
       });
-      if (!/<li/.test(body)) {
-        body =
-          '<ul class="tiptap-bullet-list"><li class="tiptap-list-item"><p class="tiptap-paragraph">10 reps Bodyweight glute bridge — squeeze 1 sec at the top</p></li><li class="tiptap-list-item"><p class="tiptap-paragraph">10 reps Scapular wall slide — keep ribs down</p></li><li class="tiptap-list-item"><p class="tiptap-paragraph">8 reps each side World\u2019s greatest stretch — slow and controlled</p></li><li class="tiptap-list-item"><p class="tiptap-paragraph">20 sec Dead bug hold — breathe, no arching</p></li></ul>';
-        warnings.push("Rebuilt Activation with compliant bodyweight movement prep.");
+      const count = findTokens(body).length;
+      if (count < 3) {
+        const picks = pickPrep(activationPool, 4, seed);
+        if (picks.length >= 3) {
+          body = listHtml(
+            picks.map((e, i) =>
+              i % 2 === 0
+                ? `10 reps ${tokenOf(e)} — slow and controlled`
+                : `30 sec ${tokenOf(e)} — easy range, breathe`,
+            ),
+          );
+          warnings.push("Rebuilt Activation from the library so every drill is playable.");
+        }
       }
-
     }
+
+    // ---- Layer 2c: Cool Down — library stretches, always playable ------------
+    if (section.name === "Cool-down") {
+      body = dropListItems(body, (item) => {
+        const tokens = findTokens(item);
+        if (!tokens.length) return true;
+        const id = tokens[0]!.id;
+        if (cooldownIds.size && !cooldownIds.has(id)) {
+          warnings.push(`Removed "${tokens[0]!.name}" from Cool Down (not a cool-down movement).`);
+          return true;
+        }
+        return false;
+      });
+      const count = findTokens(body).length;
+      if (count < 3) {
+        const picks = pickPrep(cooldownPool, 3, seed + 17);
+        if (picks.length >= 3) {
+          body = listHtml([
+            ...picks.map((e) => `45 sec ${tokenOf(e)} — breathe out into the position`),
+            BREATHING_LINE,
+          ]);
+          warnings.push("Rebuilt Cool Down from the library so every stretch is playable.");
+        }
+      } else if (!body.includes("Box breathing")) {
+        body = body.replace(
+          /<\/ul>\s*$/,
+          `<li class="tiptap-list-item"><p class="tiptap-paragraph">${BREATHING_LINE}</p></li></ul>`,
+        );
+      }
+    }
+
+
 
 
 
