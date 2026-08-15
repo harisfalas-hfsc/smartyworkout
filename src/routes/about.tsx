@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/PageHeader";
+import { SmartyCard, SmartyRow } from "@/components/SmartyCard";
+import { Brain, Dumbbell, CalendarCheck, Sparkles, Compass, Clock } from "lucide-react";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
@@ -75,11 +77,78 @@ function AboutPage() {
             >
               Sports Scientist Haris Falas
             </Link>
+            .
           </>
         }
       />
 
-      <div className="mx-auto grid max-w-xl gap-3 sm:grid-cols-2 lg:max-w-5xl lg:grid-cols-4 lg:gap-5">
+      {/* What / How / When — the core story */}
+      <div className="mx-auto grid max-w-xl gap-4 lg:max-w-5xl lg:grid-cols-3 lg:gap-5">
+        <SmartyCard
+          tone="blue"
+          eyebrow="What"
+          eyebrowIcon={Brain}
+          title={
+            <>
+              Science-backed coaching,{" "}
+              <span className="text-primary">not random workouts</span>
+            </>
+          }
+          description={
+            <>
+              Smarty Workout is an AI fitness coach built on real Strength & Conditioning science. Every
+              session is structured around proven training principles — not a lucky shuffle of
+              exercises. That is the difference between a generic generator and a coach that thinks
+              like a sports scientist.
+            </>
+          }
+          className="lg:min-h-[420px]"
+        />
+
+        <SmartyCard
+          tone="blue"
+          eyebrow="How"
+          eyebrowIcon={Compass}
+          title={
+            <>
+              Adapts to your{" "}
+              <span className="text-primary">mood, energy & gear</span>
+            </>
+          }
+          description={
+            <>
+              Start from your Training Profile, then tell Smarty Coach how you feel today, how much
+              time you have, and what equipment is around. It recalculates sets, reps, rest, and
+              exercise selection in seconds — whether you are in a gym, a hotel, your living room, or
+              outdoors.
+            </>
+          }
+          className="lg:min-h-[420px]"
+        />
+
+        <SmartyCard
+          tone="blue"
+          eyebrow="When"
+          eyebrowIcon={Clock}
+          title={
+            <>
+              Anywhere life takes{" "}
+              <span className="text-primary">you</span>
+            </>
+          }
+          description={
+            <>
+              Early morning, lunch break, late night, abroad, at the office, or on the road. Whenever
+              you need a session that actually fits your circumstances, Smarty Coach builds one that
+              respects your body, your schedule, and your available space.
+            </>
+          }
+          className="lg:min-h-[420px]"
+        />
+      </div>
+
+      {/* Trust row */}
+      <div className="mx-auto mt-4 grid max-w-xl gap-3 sm:grid-cols-2 lg:max-w-5xl lg:grid-cols-4 lg:gap-5">
         {[
           { icon: "🧠", title: "SMART", subtitle: "Knows you and your history." },
           { icon: "🎯", title: "PERSONALIZED", subtitle: "Mood, time, gear, level." },
