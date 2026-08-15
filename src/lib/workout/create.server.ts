@@ -227,6 +227,21 @@ export async function createWorkoutForUser(
 
   const usedNames = history.map((r) => r.name);
 
+  // Variety: exercises already programmed in the last few sessions.
+  const { data: recentHtml } = await db
+    .from("workouts")
+    .select("main_workout")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(4);
+  const recentIds = [
+    ...new Set(
+      ((recentHtml as Array<{ main_workout: string | null }> | null) ?? [])
+        .flatMap((r) => [...(r.main_workout ?? "").matchAll(/\{\{exercise:([^:}]+):/g)])
+        .map((m) => m[1]!),
+    ),
+  ].slice(0, 120);
+
   const requestedFormat = data.format as Format | undefined;
   const format =
     requestedFormat && CATEGORY_FORMATS[category].includes(requestedFormat) ? requestedFormat : null;
@@ -245,6 +260,9 @@ export async function createWorkoutForUser(
       ...(data.note ? { note: String(data.note).slice(0, 500) } : {}),
       favoriteIds,
       dislikedIds,
+      recentIds,
+      location: String(data.location ?? "anywhere"),
+      mood,
       athlete: {
         name: (prof?.["display_name"] as string) ?? null,
         age: (prof?.["age"] as number) ?? null,

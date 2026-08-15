@@ -80,6 +80,10 @@ export function enforceWorkout(
     targetMinutes: number;
     /** Library-backed vocabulary for 🔥 Activation — guarantees playable slides. */
     activationPool?: PoolExercise[];
+    /** Blueprint decision: does this duration / category carry a ⚡ Finisher? */
+    requireFinisher?: boolean;
+    /** Blueprint minimum for 💪 Main Workout. */
+    mainMin?: number;
     /** Library-backed vocabulary for 🧘 Cool Down — guarantees playable slides. */
     cooldownPool?: PoolExercise[];
     seed?: number;
@@ -281,11 +285,13 @@ export function enforceWorkout(
   if ((counts.get("Cool-down") ?? 0) < 3) warnings.push("Cool Down has fewer than 3 playable stretches.");
 
 
-  const requiresFinisher = opts.category !== "RECOVERY" && opts.category !== "MICRO-WORKOUTS";
+  const requiresFinisher =
+    opts.requireFinisher ?? (opts.category !== "RECOVERY" && opts.category !== "MICRO-WORKOUTS");
+  const mainMin = opts.mainMin ?? 4;
   const main = counts.get("Main Workout") ?? 0;
   const finisher = counts.get("Finisher") ?? 0;
-  if (main < 3) errors.push(`Main Workout has only ${main} exercises (minimum 4).`);
-  else if (main < 4) warnings.push("Main Workout is below the 4-exercise target.");
+  if (main < Math.min(3, mainMin)) errors.push(`Main Workout has only ${main} exercises (minimum ${mainMin}).`);
+  else if (main < mainMin) warnings.push(`Main Workout is below the ${mainMin}-exercise target.`);
   if (requiresFinisher && finisher < 3) {
     if (finisher === 0) errors.push("Finisher section is missing.");
     else warnings.push(`Finisher has only ${finisher} exercises (minimum 3).`);

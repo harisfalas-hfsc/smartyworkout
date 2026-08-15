@@ -1,4 +1,5 @@
 import type { PoolExercise } from "./pool.server";
+import { planPrompt, type SessionPlan } from "./programming";
 import {
   BANNED_NAME_WORDS,
   intensityNote,
@@ -165,6 +166,8 @@ export type PromptInput = {
   /** Separate approved vocabulary for 🧘 Cool Down. */
   cooldownPool?: PoolExercise[];
   bannedNames: string[];
+  /** Deterministic session blueprint the model must satisfy. */
+  plan?: SessionPlan;
 };
 
 const poolTable = (list: PoolExercise[]) =>
@@ -223,6 +226,14 @@ LIBRARY-FIRST RULE (non-negotiable)
 - Every exercise reference MUST be written as {{exercise:ID:Name}} using an ID and the EXACT name from the approved library below (e.g. {{exercise:0043:barbell full squat}}).
 - Never invent an exercise. Never write a plain exercise name without markup. Slug ids such as {{exercise:bird-dog:...}} are forbidden.
 - Exception: the 🧽 Soft Tissue Preparation section contains NO tokens at all.
+
+COACHING STANDARD (how a professional S&C coach programmes)
+- Sequence by nervous-system cost: most technical and heaviest first, then accessory, then metabolic, then core. Never fatigue a stabiliser before the lift that needs it.
+- Every prescription is measurable and repeatable: sets, reps or seconds, tempo and rest all written on the line.
+- Balance the session: for every press there is a pull, for every knee-dominant pattern a hip-dominant one, unless the athlete asked for a specific split.
+- Keep the session runnable: minimise equipment changes, group work that shares an implement or a position, and never build a circuit that needs three stations at once.
+- Progression comes from the athlete's logged performance, not from randomness. If a movement returns, it returns slightly harder.
+- Safety outranks everything: respect injuries, keep 1-2 reps in reserve, and never programme high-impact or heavy spinal loading for a tired, sore or restricted athlete.
 
 ${sections}
 
@@ -291,8 +302,11 @@ FORMAT WRITING RULES
 ${FORMAT_RULES[input.format]}
 ${input.focus ? `\nFOCUS SPLIT RULES\n${FOCUS_RULES[input.focus]}` : ""}
 
+${input.plan ? planPrompt(input.plan) : ""}
+
 QUALITY GATE (your workout is rejected if it fails)
-- Main Workout at least 4 exercises (hard floor 3); Finisher at least 3.
+- Every count, rep range, rest window and transition budget in the SESSION BLUEPRINT above.
+- Main Workout at least ${input.plan ? input.plan.mainCount[0] : 4} exercises; ${input.plan && !input.plan.finisher ? "no Finisher section at all" : `Finisher at least ${input.plan ? input.plan.finisherCount[0] : 3}`}.
 - Activation exactly 4 token lines from the ACTIVATION LIST; Cool Down exactly 3 token lines from the COOL DOWN LIST.
 - Every token line in 💪 and ⚡ carries a dose BEFORE the token.
 - The protocol structure (minutes, rounds, cap, ladder, 20/10 x 8) must be declared in writing.
