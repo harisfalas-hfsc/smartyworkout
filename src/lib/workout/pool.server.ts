@@ -62,11 +62,21 @@ const MICRO_BAN_RE =
 const RECOVERY_BAN_RE =
   /\b(jump|jumping|plyo|burpee|sprint|snatch|clean|jerk|thruster|crunch|sit-?up|deadlift|bench press|heavy)\b/i;
 
-const FOCUS_RULES: Record<StrengthFocus, { allow?: RegExp; deny?: RegExp }> = {
+/**
+ * A focus is a hard filter on the session pool. `parts` matches the library's
+ * own body_part tag, `targets` the target muscle, so the split follows the
+ * exercise library instead of guessing from the exercise name.
+ */
+const FOCUS_RULES: Record<
+  StrengthFocus,
+  { allow?: RegExp; deny?: RegExp; parts?: string[]; targets?: RegExp }
+> = {
   "LOWER BODY": {
+    parts: ["upper legs", "lower legs"],
     deny: /\b(press|push-?up|pushup|row|pull-?up|pulldown|curl|fly|dip|triceps|biceps|shoulder|chest|lat)\b/i,
   },
   "UPPER BODY": {
+    parts: ["chest", "back", "shoulders", "upper arms", "lower arms"],
     deny: /\b(squat|lunge|leg press|deadlift|hip thrust|leg curl|leg extension|calf|step-?up|glute bridge)\b/i,
   },
   "FULL BODY": {},
@@ -80,7 +90,21 @@ const FOCUS_RULES: Record<StrengthFocus, { allow?: RegExp; deny?: RegExp }> = {
     allow:
       /\b(plank|dead bug|pallof|bird dog|hip thrust|glute bridge|kickback|clamshell|anti-rotation|abdominal|core|oblique|glute)\b/i,
   },
+  PUSH: {
+    parts: ["chest", "shoulders", "upper arms"],
+    targets: /\b(pectorals|delts|triceps|serratus)\b/i,
+  },
+  PULL: {
+    parts: ["back", "upper arms", "lower arms"],
+    targets: /\b(lats|traps|upper back|biceps|forearms|rhomboids)\b/i,
+  },
+  CHEST: { parts: ["chest"] },
+  BACK: { parts: ["back"] },
+  SHOULDERS: { parts: ["shoulders"] },
+  ARMS: { parts: ["upper arms", "lower arms"] },
+  LEGS: { parts: ["upper legs", "lower legs"] },
 };
+
 
 export type PoolFilter = {
   category: Category;
