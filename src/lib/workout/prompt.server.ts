@@ -11,7 +11,10 @@ import {
 
 const CATEGORY_COACHING: Record<Category, string> = {
   STRENGTH:
-    "Heavy compound lifts first, then secondary, then accessory. Reps & sets only, long rest 90-180 sec. Bodyweight variant uses bodyweight progressions; equipment variant uses barbell/dumbbell/kettlebell/cable.",
+    "MAXIMAL STRENGTH, not hypertrophy. Heavy compound lifts first (squat, hinge, press, pull), then one or two secondary compounds, minimal isolation. 4-6 sets x 3-6 reps per main lift, load heavy, always leave 2-3 reps in reserve, NEVER train to failure. Tempo: controlled 2-sec lower, brief pause, explosive lift. Rest 150-180 sec between sets and write that rest on every line. Fewer exercises, higher quality, full recovery between sets. Bodyweight variant: the hardest safe progression the athlete can do for 3-6 reps (pistol squat, archer/one-arm push-up progression, pull-up variations, nordic curl) — never long high-rep sets.",
+  "MUSCLE BUILDING":
+    "HYPERTROPHY, not maximal strength. One or two compounds to open the session, then clear isolation and single-joint work for the target muscles. 3-4 sets x 8-12 reps on compounds, up to 15 reps on isolation, taken close to failure with 1-2 reps in reserve. Tempo: 3-sec lower, 1-sec squeeze at peak contraction, controlled lift — write the tempo on every line. Rest 60-90 sec and write it on every line. Prioritise total working sets, time under tension and a full stretch under load; use different angles for the same muscle. Bodyweight variant: higher reps, slower eccentrics, unilateral and pre-fatigue variations to reach the same effort.",
+
   "CALORIE BURNING":
     "Maximum energy expenditure with large muscle groups. Bodyweight: burpees, jump squats, mountain climbers, plyo push-ups, jumping lunges. Equipment: kettlebell swings, dumbbell thrusters, rowing intervals, sled push, battle ropes.",
   METABOLIC:
@@ -58,7 +61,22 @@ const FOCUS_RULES: Record<StrengthFocus, string> = {
     "ALLOWED: deadlifts, RDLs, leg curls, hinges, glute-ham raises, bench/shoulder press, push-ups, triceps, dips, flys. FORBIDDEN: squats, lunges, leg press, step-ups, rows, pull-ups, curls.",
   "CORE & GLUTES":
     "ALLOWED: anti-rotation, planks, dead bugs, pallof press, bird dogs, hip thrusts, glute bridges, banded work, kickbacks, clamshells. FORBIDDEN: squats, bench, rows, shoulder press, big compounds, arm isolation.",
+  PUSH:
+    "ALLOWED: chest presses and flys, shoulder presses and raises, triceps extensions, push-ups, dips. FORBIDDEN: any pulling (rows, pull-ups, pulldowns, curls, face pulls) and all leg work.",
+  PULL:
+    "ALLOWED: rows, pull-ups, chin-ups, pulldowns, pullovers, face pulls, shrugs, biceps and forearm work. FORBIDDEN: any pressing (bench, shoulder press, push-ups, dips, triceps) and all leg work.",
+  CHEST:
+    "ALLOWED: chest presses (flat, incline, decline), flys, cable crossovers, push-up variations, dips leaning forward. FORBIDDEN: back, legs and dedicated arm or shoulder isolation.",
+  BACK:
+    "ALLOWED: rows, pull-ups, chin-ups, pulldowns, pullovers, shrugs, back extensions, face pulls. FORBIDDEN: chest, shoulders pressing, legs and dedicated arm isolation.",
+  SHOULDERS:
+    "ALLOWED: overhead and landmine presses, lateral, front and rear raises, upright rows, face pulls, shrugs. FORBIDDEN: chest, back, legs and arm isolation.",
+  ARMS:
+    "ALLOWED: biceps curls in every variation, triceps extensions, pushdowns, skull crushers, close-grip pressing, forearm and wrist work. FORBIDDEN: legs, chest, back and shoulder training beyond what an arm exercise needs.",
+  LEGS:
+    "ALLOWED: squats, lunges, leg press, hinges, deadlifts, leg curls and extensions, hip thrusts, step-ups, calf raises. FORBIDDEN: all upper-body pressing, pulling and arm work.",
 };
+
 
 export type AthleteContext = {
   name?: string | null;
@@ -236,7 +254,7 @@ PRESCRIPTION RULES
 - Tempo and rest stay inline on the SAME list item as the token. Never create a bullet that only contains a tempo or "rest 90 sec".
 - Accepted units: reps, sec, min, m, km, cal, rounds, "N sets × N", "EMOM Minute N:".
 - Protocol headers look like "Main Workout (FORMAT)" and NEVER contain a duration.
-- Finisher header: "Finisher (REPS & SETS)" for STRENGTH / MOBILITY & STABILITY / PILATES, otherwise "Finisher (For Time)" or "Finisher (AMRAP)" with the cap or rounds in the paragraph below.
+- Finisher header: "Finisher (REPS & SETS)" for STRENGTH / MUSCLE BUILDING / MOBILITY & STABILITY / PILATES, otherwise "Finisher (For Time)" or "Finisher (AMRAP)" with the cap or rounds in the paragraph below.
 
 NAMING
 2-4 word creative name hinting at the category${input.focus ? " and focus" : ""}. Avoid these words: ${BANNED_NAME_WORDS.join(", ")}. Strictly forbidden: internal codes (CAL-813, BW1230, V2, #3), roman numerals, any digits, and 3-letter uppercase abbreviations with numbers.
@@ -253,7 +271,16 @@ Difficulty: ${input.stars} of 3 stars (${input.level.toUpperCase()}) — one sta
 Intensity within the level: ${intensityNote(input.stars)}
 Format: ${input.format}
 Duration: ${input.duration}${input.focus ? `\nFocus: ${input.focus}` : ""}
-${input.note ? `Athlete note: ${input.note}` : ""}
+${
+  input.note
+    ? `TODAY'S REQUEST FROM THE ATHLETE (highest priority after safety — obey it literally):
+"${input.note}"
+- Anything they asked to avoid is already removed from your vocabulary; never write it or a close variation.
+- Anything they said they prefer must appear in 💪 Main Workout or ⚡ Finisher when the category, focus and equipment allow it, without turning the whole session into that one thing.
+- Anything else they asked for (pace, feel, a body part, less jumping, more core) must be visibly reflected in the session.`
+    : ""
+}
+
 
 ${athleteBlock(input.athlete)}
 

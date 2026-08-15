@@ -27,6 +27,9 @@ import { Link } from "@tanstack/react-router";
 import {
   EQUIPMENT,
   GOALS,
+  BODY_FOCUS,
+  FOCUS_GOALS,
+
   LEVELS,
   LOCATIONS,
   LOW_ENERGY_MOODS,
@@ -125,7 +128,10 @@ function Grid({ children }: { children: React.ReactNode }) {
 function CoachPage() {
   const navigate = useNavigate();
   const run = useServerFn(generateWorkout);
-  const [goal, setGoal] = useState<string>("fullbody");
+  const [goal, setGoal] = useState<string>("strength");
+  const [focus, setFocus] = useState<string>("FULL BODY");
+  const showFocus = FOCUS_GOALS.includes(goal);
+
   const [mood, setMood] = useState<string>("normal");
   const [minutes, setMinutes] = useState<number>(30);
   const [location, setLocation] = useState<string>("home");
@@ -203,6 +209,8 @@ function CoachPage() {
       const res = await run({
         data: {
           goal: surprise ? "custom" : goal,
+          ...(surprise || !showFocus ? {} : { focus }),
+
           mood,
           minutes,
           location,
@@ -371,7 +379,25 @@ function CoachPage() {
           </Grid>
         </QuestionCard>
 
-        <QuestionCard step={2} icon={HeartPulse} title="How are you feeling today?">
+        {showFocus ? (
+          <QuestionCard
+            step={2}
+            icon={Dumbbell}
+            title={goal === "muscle" ? "Which muscles today?" : "Which part of the body?"}
+            hint="Smarty Coach only picks exercises that train what you choose."
+          >
+            <Grid>
+              {BODY_FOCUS.map((f) => (
+                <Chip key={f.id} active={focus === f.id} onClick={() => setFocus(f.id)}>
+                  {f.label}
+                </Chip>
+              ))}
+            </Grid>
+          </QuestionCard>
+        ) : null}
+
+
+        <QuestionCard step={showFocus ? 3 : 2} icon={HeartPulse} title="How are you feeling today?">
           <Grid>
             {MOODS.map((m) => (
               <Chip key={m.id} active={mood === m.id} onClick={() => setMood(m.id)}>
@@ -382,7 +408,7 @@ function CoachPage() {
         </QuestionCard>
 
         <QuestionCard
-          step={3}
+          step={showFocus ? 4 : 3}
           icon={Flame}
           title="How hard should it be?"
           hint="Auto blends your profile level with today's mood. Pick a level to override it."
@@ -411,7 +437,7 @@ function CoachPage() {
         </QuestionCard>
 
 
-        <QuestionCard step={4} icon={Clock} title="Time available">
+        <QuestionCard step={showFocus ? 5 : 4} icon={Clock} title="Time available">
           <Grid>
             {TIMES.map((t) => (
               <Chip key={t} active={minutes === t} onClick={() => setMinutes(t)}>
@@ -421,7 +447,7 @@ function CoachPage() {
           </Grid>
         </QuestionCard>
 
-        <QuestionCard step={5} icon={MapPin} title="Where are you training?">
+        <QuestionCard step={showFocus ? 6 : 5} icon={MapPin} title="Where are you training?">
           <Grid>
             {LOCATIONS.map((l) => (
               <Chip key={l.id} active={location === l.id} onClick={() => setLocation(l.id)}>
@@ -432,7 +458,7 @@ function CoachPage() {
         </QuestionCard>
 
         <QuestionCard
-          step={6}
+          step={showFocus ? 7 : 6}
           icon={Dumbbell}
           title="Equipment available"
           hint="Only what you pick will appear in your workout."
@@ -468,7 +494,7 @@ function CoachPage() {
         </QuestionCard>
 
         <QuestionCard
-          step={7}
+          step={showFocus ? 8 : 7}
           icon={Heart}
           title="Use my library preferences?"
           hint="Your liked exercises get priority, your disliked ones are left out."
@@ -497,7 +523,7 @@ function CoachPage() {
         </QuestionCard>
 
         <QuestionCard
-          step={8}
+          step={showFocus ? 9 : 8}
           icon={MessageSquare}
           title="Anything else?"
           hint="Optional — Smarty Coach reads this too."

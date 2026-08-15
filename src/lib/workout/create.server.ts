@@ -35,8 +35,8 @@ export type CoachRequest = {
 
 export const GOAL_TO_CATEGORY: Record<string, Category> = {
   strength: "STRENGTH",
-  muscle: "STRENGTH",
-  fullbody: "STRENGTH",
+  muscle: "MUSCLE BUILDING",
+
   calorie: "CALORIE BURNING",
   cardio: "CARDIO",
   metabolic: "METABOLIC",
@@ -91,7 +91,7 @@ export async function createWorkoutForUser(
   const db = supabase as unknown as SupabaseClient;
   const engine = await import("@/lib/workout/generate.server");
 
-  const goal = String(data.goal ?? "fullbody");
+  const goal = String(data.goal ?? "strength");
   const mood = String(data.mood ?? "normal");
   const minutes = Math.max(5, Math.min(120, Number(data.minutes) || 30));
   const equipmentIds = (Array.isArray(data.equipment) ? data.equipment : ["bodyweight"]).map(String);

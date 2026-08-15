@@ -62,11 +62,21 @@ const MICRO_BAN_RE =
 const RECOVERY_BAN_RE =
   /\b(jump|jumping|plyo|burpee|sprint|snatch|clean|jerk|thruster|crunch|sit-?up|deadlift|bench press|heavy)\b/i;
 
-const FOCUS_RULES: Record<StrengthFocus, { allow?: RegExp; deny?: RegExp }> = {
+/**
+ * A focus is a hard filter on the session pool. `parts` matches the library's
+ * own body_part tag, `targets` the target muscle, so the split follows the
+ * exercise library instead of guessing from the exercise name.
+ */
+const FOCUS_RULES: Record<
+  StrengthFocus,
+  { allow?: RegExp; deny?: RegExp; parts?: string[]; targets?: RegExp }
+> = {
   "LOWER BODY": {
+    parts: ["upper legs", "lower legs"],
     deny: /\b(press|push-?up|pushup|row|pull-?up|pulldown|curl|fly|dip|triceps|biceps|shoulder|chest|lat)\b/i,
   },
   "UPPER BODY": {
+    parts: ["chest", "back", "shoulders", "upper arms", "lower arms"],
     deny: /\b(squat|lunge|leg press|deadlift|hip thrust|leg curl|leg extension|calf|step-?up|glute bridge)\b/i,
   },
   "FULL BODY": {},
@@ -80,7 +90,21 @@ const FOCUS_RULES: Record<StrengthFocus, { allow?: RegExp; deny?: RegExp }> = {
     allow:
       /\b(plank|dead bug|pallof|bird dog|hip thrust|glute bridge|kickback|clamshell|anti-rotation|abdominal|core|oblique|glute)\b/i,
   },
+  PUSH: {
+    parts: ["chest", "shoulders", "upper arms"],
+    targets: /\b(pectorals|delts|triceps|serratus)\b/i,
+  },
+  PULL: {
+    parts: ["back", "upper arms", "lower arms"],
+    targets: /\b(lats|traps|upper back|biceps|forearms|rhomboids)\b/i,
+  },
+  CHEST: { parts: ["chest"] },
+  BACK: { parts: ["back"] },
+  SHOULDERS: { parts: ["shoulders"] },
+  ARMS: { parts: ["upper arms", "lower arms"] },
+  LEGS: { parts: ["upper legs", "lower legs"] },
 };
+
 
 export type PoolFilter = {
   category: Category;
@@ -93,7 +117,38 @@ export type PoolFilter = {
   dislikedIds?: string[];
   /** Library ids the athlete loves — kept in the sample and surfaced to the model. */
   favoriteIds?: string[];
+  /** Free-text movements the athlete asked to avoid in today's note. */
+  bannedTerms?: string[];
 };
+
+const NOTE_STOPWORDS = new Set([
+  "the","a","an","any","my","me","to","do","doing","today","please","really","much","some",
+  "and","or","of","for","with","that","this","them","it","at","all","too","very","exercise",
+  "exercises","movement","movements","work","workout","today's","want","like","likes","dislike",
+  "dislikes","prefer","more","less","not","no","dont","don","t",
+]);
+
+/**
+ * Pulls the movements an athlete asked to avoid out of their free-text note
+ * ("no burpees", "avoid bicep curls", "without jumping") so the engine can
+ * remove them from the vocabulary instead of hoping the model complies.
+ */
+export function parseNoteExclusions(note: string): string[] {
+  const terms: string[] = [];
+  const re =
+    /\b(?:no|not|avoid|without|skip|hate|hates|exclude|except)\b\s+([a-z\s-]{3,40})|\b(?:i\s+)?(?:don'?t|do not|dont)\s+(?:like|want|do)\s+([a-z\s-]{3,40})/gi;
+  for (const m of note.toLowerCase().matchAll(re)) {
+    const phrase = (m[1] ?? m[2] ?? "")
+      .split(/\b(?:but|and then|because|please|,|\.|;)\b/)[0]!
+      .trim();
+    for (const word of phrase.split(/\s+/).slice(0, 3)) {
+      const w = word.replace(/[^a-z-]/g, "");
+      if (w.length > 3 && !NOTE_STOPWORDS.has(w)) terms.push(w.replace(/s$/, ""));
+    }
+  }
+  return [...new Set(terms)].slice(0, 12);
+}
+
 
 
 const isBodyweight = (e: PoolExercise) => (e.equipment ?? "").toLowerCase().includes("body weight");
@@ -187,15 +242,25 @@ export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
   const momentum: Category[] = ["CARDIO", "CALORIE BURNING", "METABOLIC", "CHALLENGE"];
   if (momentum.includes(f.category)) pool = pool.filter((e) => !STATIC_HOLD_RE.test(e.name));
 
-  // 5. Strength focus split.
-  if (f.category === "STRENGTH" && f.focus) {
+  // 5. Body-part / split focus — applies to both strength categories.
+  if ((f.category === "STRENGTH" || f.category === "MUSCLE BUILDING") && f.focus) {
     const rule = FOCUS_RULES[f.focus];
+    if (rule.parts?.length) {
+      const parts = new Set(rule.parts);
+      const kept = pool.filter((e) => parts.has((e.body_part ?? "").toLowerCase().trim()));
+      if (kept.length >= 12) pool = kept;
+    }
+    if (rule.targets) {
+      const kept = pool.filter((e) => rule.targets!.test(e.target_muscle ?? ""));
+      if (kept.length >= 12) pool = kept;
+    }
     if (rule.deny) pool = pool.filter((e) => !rule.deny!.test(text(e)));
     if (rule.allow) {
       const kept = pool.filter((e) => rule.allow!.test(text(e)));
       if (kept.length >= 15) pool = kept;
     }
   }
+
 
   // 6. Hard ban: exercises the athlete picked as dislikes, plus their variations.
   if (f.dislikedIds?.length) {
@@ -205,6 +270,14 @@ export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
     );
     pool = pool.filter((e) => !banned.has(e.id) && !stems.has(nameStem(e.name)));
   }
+
+  // 7. Hard ban from today's note ("no burpees", "avoid bicep curls").
+  if (f.bannedTerms?.length) {
+    const kept = pool.filter((e) => !f.bannedTerms!.some((t) => text(e).includes(t)));
+    if (kept.length >= 12) pool = kept;
+  }
+
+
 
   return pool;
 }

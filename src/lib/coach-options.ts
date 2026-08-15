@@ -10,9 +10,26 @@ export const GOALS = [
   { id: "mobility", label: "Mobility & Stability" },
   { id: "pilates", label: "Pilates" },
   { id: "micro", label: "Micro Workout" },
-  { id: "fullbody", label: "Full Body" },
-  { id: "custom", label: "Custom" },
 ] as const;
+
+/** Goals that ask the athlete which part of the body the session trains. */
+export const FOCUS_GOALS = ["strength", "muscle"];
+
+/** Body / split focus offered right after Strength or Muscle Building. */
+export const BODY_FOCUS = [
+  { id: "FULL BODY", label: "Full Body", hint: "Everything in one session" },
+  { id: "UPPER BODY", label: "Upper Body", hint: "Chest, back, shoulders, arms" },
+  { id: "LOWER BODY", label: "Lower Body", hint: "Legs and glutes" },
+  { id: "PUSH", label: "Push", hint: "Chest, shoulders, triceps" },
+  { id: "PULL", label: "Pull", hint: "Back and biceps" },
+  { id: "LEGS", label: "Legs", hint: "Quads, hamstrings, calves" },
+  { id: "CHEST", label: "Chest", hint: "Pressing and flys" },
+  { id: "BACK", label: "Back", hint: "Rows and pull-ups" },
+  { id: "SHOULDERS", label: "Shoulders", hint: "Presses and raises" },
+  { id: "ARMS", label: "Arms", hint: "Biceps and triceps" },
+  { id: "CORE & GLUTES", label: "Core & Glutes", hint: "Midline and hips" },
+] as const;
+
 
 export const MOODS = [
   { id: "energized", label: "Energized" },
