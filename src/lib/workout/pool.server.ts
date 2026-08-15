@@ -211,15 +211,25 @@ export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
   const momentum: Category[] = ["CARDIO", "CALORIE BURNING", "METABOLIC", "CHALLENGE"];
   if (momentum.includes(f.category)) pool = pool.filter((e) => !STATIC_HOLD_RE.test(e.name));
 
-  // 5. Strength focus split.
-  if (f.category === "STRENGTH" && f.focus) {
+  // 5. Body-part / split focus — applies to both strength categories.
+  if ((f.category === "STRENGTH" || f.category === "MUSCLE BUILDING") && f.focus) {
     const rule = FOCUS_RULES[f.focus];
+    if (rule.parts?.length) {
+      const parts = new Set(rule.parts);
+      const kept = pool.filter((e) => parts.has((e.body_part ?? "").toLowerCase().trim()));
+      if (kept.length >= 12) pool = kept;
+    }
+    if (rule.targets) {
+      const kept = pool.filter((e) => rule.targets!.test(e.target_muscle ?? ""));
+      if (kept.length >= 12) pool = kept;
+    }
     if (rule.deny) pool = pool.filter((e) => !rule.deny!.test(text(e)));
     if (rule.allow) {
       const kept = pool.filter((e) => rule.allow!.test(text(e)));
       if (kept.length >= 15) pool = kept;
     }
   }
+
 
   // 6. Hard ban: exercises the athlete picked as dislikes, plus their variations.
   if (f.dislikedIds?.length) {
