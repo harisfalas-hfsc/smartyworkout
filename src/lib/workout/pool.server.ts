@@ -271,6 +271,14 @@ export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
     pool = pool.filter((e) => !banned.has(e.id) && !stems.has(nameStem(e.name)));
   }
 
+  // 7. Hard ban from today's note ("no burpees", "avoid bicep curls").
+  if (f.bannedTerms?.length) {
+    const kept = pool.filter((e) => !f.bannedTerms!.some((t) => text(e).includes(t)));
+    if (kept.length >= 12) pool = kept;
+  }
+
+
+
   return pool;
 }
 
