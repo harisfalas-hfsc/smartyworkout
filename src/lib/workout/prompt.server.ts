@@ -142,8 +142,36 @@ export type PromptInput = {
   note?: string;
   athlete?: AthleteContext;
   pool: PoolExercise[];
+  /** Separate approved vocabulary for 🔥 Activation. */
+  activationPool?: PoolExercise[];
+  /** Separate approved vocabulary for 🧘 Cool Down. */
+  cooldownPool?: PoolExercise[];
   bannedNames: string[];
 };
+
+const poolTable = (list: PoolExercise[]) =>
+  list
+    .map(
+      (e) =>
+        `${e.id}|${e.name}|${e.body_part ?? "-"}|${e.target_muscle ?? "-"}|${e.equipment ?? "-"}|${e.difficulty ?? "-"}`,
+    )
+    .join("\n");
+
+/** Keeps prompt size sane while covering every body part. */
+function trimPrep(list: PoolExercise[], max: number): PoolExercise[] {
+  if (list.length <= max) return list;
+  const byPart = new Map<string, PoolExercise[]>();
+  for (const e of list) {
+    const key = e.body_part ?? "other";
+    if (!byPart.has(key)) byPart.set(key, []);
+    byPart.get(key)!.push(e);
+  }
+  const per = Math.max(4, Math.ceil(max / Math.max(1, byPart.size)));
+  const out: PoolExercise[] = [];
+  for (const items of byPart.values()) out.push(...items.slice(0, per));
+  return out.slice(0, max);
+}
+
 
 export function buildWorkoutPrompt(input: PromptInput): { system: string; user: string } {
   const isRecovery = input.category === "RECOVERY";
