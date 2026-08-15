@@ -30,6 +30,10 @@ export type ValidateOptions = {
   dislikedIds?: string[];
   /** Ids allowed in 🔥 Activation / 🧘 Cool Down (prep vocabulary, bodyweight-first). */
   prepIds?: string[];
+  /** Blueprint minimum for 💪 Main Workout. */
+  mainMin?: number;
+  /** Blueprint decision: does this duration / category carry a ⚡ Finisher? */
+  requireFinisher?: boolean;
 };
 
 
@@ -95,11 +99,14 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
   const finisher = steps.filter((s) => s.section === "Finisher");
   const activation = steps.filter((s) => s.section === "Activation" || s.section === "Warm-up");
   const cooldown = steps.filter((s) => s.section === "Cool-down");
-  const requiresFinisher = opts.category !== "RECOVERY" && opts.category !== "MICRO-WORKOUTS";
+  const requiresFinisher =
+    opts.requireFinisher ??
+    (opts.category !== "RECOVERY" && opts.category !== "MICRO-WORKOUTS");
+  const mainMin = opts.mainMin ?? 4;
 
-  if (main.length < 4) {
-    if (main.length < 3) errors.push(`Main Workout has only ${main.length} exercises.`);
-    else warnings.push("Main Workout is below the 4-exercise target.");
+  if (main.length < mainMin) {
+    if (main.length < Math.min(3, mainMin)) errors.push(`Main Workout has only ${main.length} exercises.`);
+    else warnings.push(`Main Workout is below the ${mainMin}-exercise target.`);
   }
   if (requiresFinisher && finisher.length < 3) {
     if (!finisher.length) errors.push("Finisher section is missing.");

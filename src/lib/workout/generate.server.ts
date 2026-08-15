@@ -185,6 +185,8 @@ export async function generateWorkoutContent(
     activationPool,
     cooldownPool,
     seed,
+    requireFinisher: Boolean(plan.finisher),
+    mainMin: plan.mainCount[0],
   };
 
   const validateOpts = {
@@ -199,6 +201,8 @@ export async function generateWorkoutContent(
     customEquipment,
     dislikedIds,
     prepIds,
+    requireFinisher: Boolean(plan.finisher),
+    mainMin: plan.mainCount[0],
   };
 
 
