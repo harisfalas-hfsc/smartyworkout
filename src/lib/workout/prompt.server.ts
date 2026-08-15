@@ -61,7 +61,22 @@ const FOCUS_RULES: Record<StrengthFocus, string> = {
     "ALLOWED: deadlifts, RDLs, leg curls, hinges, glute-ham raises, bench/shoulder press, push-ups, triceps, dips, flys. FORBIDDEN: squats, lunges, leg press, step-ups, rows, pull-ups, curls.",
   "CORE & GLUTES":
     "ALLOWED: anti-rotation, planks, dead bugs, pallof press, bird dogs, hip thrusts, glute bridges, banded work, kickbacks, clamshells. FORBIDDEN: squats, bench, rows, shoulder press, big compounds, arm isolation.",
+  PUSH:
+    "ALLOWED: chest presses and flys, shoulder presses and raises, triceps extensions, push-ups, dips. FORBIDDEN: any pulling (rows, pull-ups, pulldowns, curls, face pulls) and all leg work.",
+  PULL:
+    "ALLOWED: rows, pull-ups, chin-ups, pulldowns, pullovers, face pulls, shrugs, biceps and forearm work. FORBIDDEN: any pressing (bench, shoulder press, push-ups, dips, triceps) and all leg work.",
+  CHEST:
+    "ALLOWED: chest presses (flat, incline, decline), flys, cable crossovers, push-up variations, dips leaning forward. FORBIDDEN: back, legs and dedicated arm or shoulder isolation.",
+  BACK:
+    "ALLOWED: rows, pull-ups, chin-ups, pulldowns, pullovers, shrugs, back extensions, face pulls. FORBIDDEN: chest, shoulders pressing, legs and dedicated arm isolation.",
+  SHOULDERS:
+    "ALLOWED: overhead and landmine presses, lateral, front and rear raises, upright rows, face pulls, shrugs. FORBIDDEN: chest, back, legs and arm isolation.",
+  ARMS:
+    "ALLOWED: biceps curls in every variation, triceps extensions, pushdowns, skull crushers, close-grip pressing, forearm and wrist work. FORBIDDEN: legs, chest, back and shoulder training beyond what an arm exercise needs.",
+  LEGS:
+    "ALLOWED: squats, lunges, leg press, hinges, deadlifts, leg curls and extensions, hip thrusts, step-ups, calf raises. FORBIDDEN: all upper-body pressing, pulling and arm work.",
 };
+
 
 export type AthleteContext = {
   name?: string | null;
