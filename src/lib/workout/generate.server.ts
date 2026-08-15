@@ -121,6 +121,7 @@ export async function generateWorkoutContent(
     : (input.customEquipment ?? []);
   const favoriteIds = input.favoriteIds ?? [];
   const dislikedIds = input.dislikedIds ?? [];
+  const bannedTerms = input.note ? parseNoteExclusions(input.note) : [];
   const pool = filterPool(all, {
     category: input.category,
     equipmentMode: input.equipmentMode,
@@ -130,7 +131,9 @@ export async function generateWorkoutContent(
     focus: input.focus ?? null,
     dislikedIds,
     favoriteIds,
+    bannedTerms,
   });
+
   if (pool.length < 12) {
     throw new Error("Not enough exercises match those settings. Try different equipment.");
   }
