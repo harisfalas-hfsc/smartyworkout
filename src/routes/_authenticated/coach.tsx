@@ -27,6 +27,9 @@ import { Link } from "@tanstack/react-router";
 import {
   EQUIPMENT,
   GOALS,
+  BODY_FOCUS,
+  FOCUS_GOALS,
+
   LEVELS,
   LOCATIONS,
   LOW_ENERGY_MOODS,
@@ -126,6 +129,9 @@ function CoachPage() {
   const navigate = useNavigate();
   const run = useServerFn(generateWorkout);
   const [goal, setGoal] = useState<string>("strength");
+  const [focus, setFocus] = useState<string>("FULL BODY");
+  const showFocus = FOCUS_GOALS.includes(goal);
+
   const [mood, setMood] = useState<string>("normal");
   const [minutes, setMinutes] = useState<number>(30);
   const [location, setLocation] = useState<string>("home");
