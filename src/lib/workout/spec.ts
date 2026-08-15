@@ -2,6 +2,7 @@
 
 export const CATEGORIES = [
   "STRENGTH",
+  "MUSCLE BUILDING",
   "CALORIE BURNING",
   "METABOLIC",
   "CARDIO",
@@ -34,11 +35,22 @@ export const STRENGTH_FOCUS = [
   "LOW PUSH & UPPER PULL",
   "LOW PULL & UPPER PUSH",
   "CORE & GLUTES",
+  "PUSH",
+  "PULL",
+  "CHEST",
+  "BACK",
+  "SHOULDERS",
+  "ARMS",
+  "LEGS",
 ] as const;
 export type StrengthFocus = (typeof STRENGTH_FOCUS)[number];
 
+/** Categories where a body-part focus is meaningful and offered to the athlete. */
+export const FOCUS_CATEGORIES: Category[] = ["STRENGTH", "MUSCLE BUILDING"];
+
 export const CATEGORY_FORMATS: Record<Category, Format[]> = {
   STRENGTH: ["REPS & SETS"],
+  "MUSCLE BUILDING": ["REPS & SETS"],
   "MOBILITY & STABILITY": ["REPS & SETS"],
   PILATES: ["REPS & SETS"],
   RECOVERY: ["MIX"],
@@ -48,6 +60,7 @@ export const CATEGORY_FORMATS: Record<Category, Format[]> = {
   CHALLENGE: ["CIRCUIT", "TABATA", "AMRAP", "EMOM", "FOR TIME", "MIX"],
   "MICRO-WORKOUTS": ["CIRCUIT", "REPS & SETS", "AMRAP", "FOR TIME"],
 };
+
 
 export type DifficultyLevel = "all" | "beginner" | "intermediate" | "advanced";
 
