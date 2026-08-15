@@ -19,7 +19,7 @@ import { ExerciseHTMLContent } from "./ExerciseHTMLContent";
 import { ExerciseDetailDialog } from "./ExerciseDetailDialog";
 import { ExerciseMediaProvider } from "./ExerciseMediaProvider";
 import { WorkoutPlayerDialog } from "./WorkoutPlayerDialog";
-import { parseWorkoutSteps } from "@/lib/workout/parse-steps";
+import { extractSoftTissue, parseWorkoutSteps } from "@/lib/workout/parse-steps";
 import { uniqueTokenIds } from "@/lib/workout/tokens";
 import { difficultyLabel, MAX_STARS, normalizeStars } from "@/lib/workout/spec";
 import { setWorkoutMeta } from "@/lib/coach.functions";
