@@ -119,6 +119,8 @@ export type PoolFilter = {
   favoriteIds?: string[];
   /** Free-text movements the athlete asked to avoid in today's note. */
   bannedTerms?: string[];
+  /** Where the athlete trains today — filters impractical apparatus / impact. */
+  location?: string | null;
 };
 
 const NOTE_STOPWORDS = new Set([
@@ -150,6 +152,36 @@ export function parseNoteExclusions(note: string): string[] {
 }
 
 
+
+/** Apparatus and impact that do not exist in a living room or hotel room. */
+const SMALL_SPACE_BAN_RE =
+  /\b(sled|treadmill|elliptical|stepmill|ergometer|rowing machine|skierg|stationary bike|smith|leverage|cable|machine|rope climb|prowler|tire|sprint|shuttle run|running)\b/i;
+
+const HOTEL_BAN_RE =
+  /\b(jump|jumping|plyo|box jump|burpee|hop|bound|slam|sprint|clean|snatch|jerk|drop)\b/i;
+
+const OUTDOOR_BAN_RE =
+  /\b(machine|cable|smith|leverage|treadmill|elliptical|stepmill|ergometer|rowing machine|skierg|stationary bike|lat pulldown|pec deck|leg press|leg extension|leg curl machine)\b/i;
+
+/** Keeps only what the athlete can realistically do at today's location. */
+export function filterByLocation(pool: PoolExercise[], location?: string | null): PoolExercise[] {
+  const l = (location ?? "").toLowerCase();
+  if (l === "home") {
+    const kept = pool.filter((e) => !SMALL_SPACE_BAN_RE.test(text(e)));
+    return kept.length >= 12 ? kept : pool;
+  }
+  if (l === "hotel") {
+    const kept = pool.filter(
+      (e) => !SMALL_SPACE_BAN_RE.test(text(e)) && !HOTEL_BAN_RE.test(text(e)),
+    );
+    return kept.length >= 12 ? kept : pool;
+  }
+  if (l === "outdoors") {
+    const kept = pool.filter((e) => !OUTDOOR_BAN_RE.test(text(e)));
+    return kept.length >= 12 ? kept : pool;
+  }
+  return pool;
+}
 
 const isBodyweight = (e: PoolExercise) => (e.equipment ?? "").toLowerCase().includes("body weight");
 
@@ -270,6 +302,9 @@ export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
     );
     pool = pool.filter((e) => !banned.has(e.id) && !stems.has(nameStem(e.name)));
   }
+
+  // 6b. Location practicality — no machines in a hotel room, no jumping upstairs.
+  pool = filterByLocation(pool, f.location);
 
   // 7. Hard ban from today's note ("no burpees", "avoid bicep curls").
   if (f.bannedTerms?.length) {
@@ -401,7 +436,17 @@ function shuffle<T>(arr: T[]): T[] {
  * Balanced sample so every body part is represented in the prompt vocabulary.
  * Favourite ids are always carried through, whatever the sample size.
  */
-export function samplePool(pool: PoolExercise[], max = 260, favoriteIds: string[] = []): PoolExercise[] {
+export function samplePool(
+  pool: PoolExercise[],
+  max = 260,
+  favoriteIds: string[] = [],
+  recentIds: string[] = [],
+): PoolExercise[] {
+  if (recentIds.length && pool.length > max) {
+    const recent = new Set(recentIds);
+    const fresh = pool.filter((e) => !recent.has(e.id) || favoriteIds.includes(e.id));
+    if (fresh.length >= Math.max(60, Math.floor(max * 0.6))) pool = fresh;
+  }
   if (pool.length <= max) return pool;
   const favourites = favoriteIds.length
     ? pool.filter((e) => favoriteIds.includes(e.id))
