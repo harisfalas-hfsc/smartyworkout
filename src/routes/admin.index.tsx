@@ -10,6 +10,7 @@ import {
   Loader2,
   SlidersHorizontal,
   CalendarDays,
+  ClipboardList,
   Dumbbell,
   ArrowLeft,
   type LucideIcon,
@@ -22,6 +23,7 @@ import { AdminUsersTab } from "@/components/admin/AdminUsersTab";
 import { AdminRevenueTab } from "@/components/admin/AdminRevenueTab";
 import { AdminRulesTab } from "@/components/admin/AdminRulesTab";
 import { AdminCycleTab } from "@/components/admin/AdminCycleTab";
+import { AdminWorkoutsTab } from "@/components/admin/AdminWorkoutsTab";
 
 export const Route = createFileRoute("/admin/")({
   component: AdminPage,
@@ -38,10 +40,16 @@ export const Route = createFileRoute("/admin/")({
   }),
 });
 
-type SectionKey = "customers" | "subscribers" | "revenue" | "rules" | "cycle";
+type SectionKey = "customers" | "subscribers" | "revenue" | "rules" | "cycle" | "workouts";
 
 const SECTIONS: { key: SectionKey; label: string; description: string; Icon: LucideIcon }[] = [
   { key: "revenue", label: "Revenue", description: "Payments and monthly totals", Icon: TrendingUp },
+  {
+    key: "workouts",
+    label: "Workouts",
+    description: "Every workout ever generated",
+    Icon: ClipboardList,
+  },
   { key: "customers", label: "Customers", description: "Search, grant, revoke, promote", Icon: Users },
   { key: "subscribers", label: "Subscribers", description: "Active memberships only", Icon: Crown },
   {
@@ -115,6 +123,7 @@ function AdminPage() {
           {section === "subscribers" && <AdminUsersTab onlySubscribers />}
           {section === "rules" && <AdminRulesTab />}
           {section === "cycle" && <AdminCycleTab />}
+          {section === "workouts" && <AdminWorkoutsTab />}
         </div>
       ) : (
         <AdminHub onOpen={setSection} />
