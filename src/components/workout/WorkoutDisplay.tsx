@@ -187,6 +187,7 @@ export function WorkoutDisplay({
         open={player}
         onOpenChange={setPlayer}
         steps={steps}
+        softTissue={softTissue}
         workoutName={workout.name}
         workoutId={workout.id}
 
