@@ -333,8 +333,8 @@ function ExerciseLibraryPage() {
             Browse the exercise database{" "}
             <span className="font-bold text-primary">Smarty Coach</span> builds your sessions from.
             Filter by body part, equipment, target muscle or difficulty. Exercises you{" "}
-            <span className="font-semibold text-foreground">like</span> are prioritised and the ones
-            you <span className="font-semibold text-foreground">dislike</span> are avoided every
+            <span className="font-semibold text-primary">like</span> are prioritised and the ones
+            you <span className="font-semibold text-primary">dislike</span> are avoided every
             time a workout is generated for you.
           </>
         }
