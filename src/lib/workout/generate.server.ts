@@ -201,6 +201,8 @@ export async function generateWorkoutContent(
         ...(input.note ? { note: input.note } : {}),
         ...(input.athlete ? { athlete: input.athlete } : {}),
         pool: promptPool,
+        activationPool,
+        cooldownPool,
         bannedNames: usedNames,
       });
 
@@ -216,12 +218,8 @@ export async function generateWorkoutContent(
     }
 
     const html = String(payload["main_workout"] ?? "");
-    const enforced = enforceWorkout(html, pool, {
-      category: input.category,
-      format,
-      level,
-      targetMinutes: input.minutes,
-    });
+    const enforced = enforceWorkout(html, pool, enforceOpts);
+
 
     if (enforced.errors.length) {
       lastError = enforced.errors.join(" ");
