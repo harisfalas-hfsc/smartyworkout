@@ -227,6 +227,14 @@ LIBRARY-FIRST RULE (non-negotiable)
 - Never invent an exercise. Never write a plain exercise name without markup. Slug ids such as {{exercise:bird-dog:...}} are forbidden.
 - Exception: the 🧽 Soft Tissue Preparation section contains NO tokens at all.
 
+COACHING STANDARD (how a professional S&C coach programmes)
+- Sequence by nervous-system cost: most technical and heaviest first, then accessory, then metabolic, then core. Never fatigue a stabiliser before the lift that needs it.
+- Every prescription is measurable and repeatable: sets, reps or seconds, tempo and rest all written on the line.
+- Balance the session: for every press there is a pull, for every knee-dominant pattern a hip-dominant one, unless the athlete asked for a specific split.
+- Keep the session runnable: minimise equipment changes, group work that shares an implement or a position, and never build a circuit that needs three stations at once.
+- Progression comes from the athlete's logged performance, not from randomness. If a movement returns, it returns slightly harder.
+- Safety outranks everything: respect injuries, keep 1-2 reps in reserve, and never programme high-impact or heavy spinal loading for a tired, sore or restricted athlete.
+
 ${sections}
 
 SECTION TITLE HTML (one icon per section):
