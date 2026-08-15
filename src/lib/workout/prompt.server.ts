@@ -254,7 +254,7 @@ PRESCRIPTION RULES
 - Tempo and rest stay inline on the SAME list item as the token. Never create a bullet that only contains a tempo or "rest 90 sec".
 - Accepted units: reps, sec, min, m, km, cal, rounds, "N sets × N", "EMOM Minute N:".
 - Protocol headers look like "Main Workout (FORMAT)" and NEVER contain a duration.
-- Finisher header: "Finisher (REPS & SETS)" for STRENGTH / MOBILITY & STABILITY / PILATES, otherwise "Finisher (For Time)" or "Finisher (AMRAP)" with the cap or rounds in the paragraph below.
+- Finisher header: "Finisher (REPS & SETS)" for STRENGTH / MUSCLE BUILDING / MOBILITY & STABILITY / PILATES, otherwise "Finisher (For Time)" or "Finisher (AMRAP)" with the cap or rounds in the paragraph below.
 
 NAMING
 2-4 word creative name hinting at the category${input.focus ? " and focus" : ""}. Avoid these words: ${BANNED_NAME_WORDS.join(", ")}. Strictly forbidden: internal codes (CAL-813, BW1230, V2, #3), roman numerals, any digits, and 3-letter uppercase abbreviations with numbers.
@@ -271,7 +271,16 @@ Difficulty: ${input.stars} of 3 stars (${input.level.toUpperCase()}) — one sta
 Intensity within the level: ${intensityNote(input.stars)}
 Format: ${input.format}
 Duration: ${input.duration}${input.focus ? `\nFocus: ${input.focus}` : ""}
-${input.note ? `Athlete note: ${input.note}` : ""}
+${
+  input.note
+    ? `TODAY'S REQUEST FROM THE ATHLETE (highest priority after safety — obey it literally):
+"${input.note}"
+- Anything they asked to avoid is already removed from your vocabulary; never write it or a close variation.
+- Anything they said they prefer must appear in 💪 Main Workout or ⚡ Finisher when the category, focus and equipment allow it, without turning the whole session into that one thing.
+- Anything else they asked for (pace, feel, a body part, less jumping, more core) must be visibly reflected in the session.`
+    : ""
+}
+
 
 ${athleteBlock(input.athlete)}
 
