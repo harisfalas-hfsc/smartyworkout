@@ -337,8 +337,11 @@ export async function createWorkoutForUser(
       usedNames,
     ));
 
-  const duration = "duration" in built ? built.duration : built.duration_label;
-
+  const anyBuilt = built as Record<string, unknown>;
+  const durationLabel = (anyBuilt["duration"] ?? anyBuilt["duration_label"] ?? null) as
+    | string
+    | null;
+  const warnings = (anyBuilt["warnings"] ?? anyBuilt["review_warnings"] ?? []) as string[];
 
   const { data: inserted, error } = await db
     .from("workouts")
@@ -351,16 +354,17 @@ export async function createWorkoutForUser(
       difficulty_stars: stars,
       difficulty_label: difficultyLabel(stars),
       duration_min: minutes,
-      duration_label: built.duration,
+      duration_label: durationLabel,
       equipment: equipmentIds,
-      location: String(data.location ?? "anywhere"),
+      location,
       mood,
       description_html: built.description_html,
       instructions_html: built.instructions_html,
       tips_html: built.tips_html,
       main_workout: built.main_workout,
-      needs_review: built.needs_review,
-      review_warnings: built.warnings,
+      needs_review: Boolean(anyBuilt["needs_review"]),
+      review_warnings: warnings,
+
       status: "created",
       is_wod: Boolean(data.wod),
       wod_date: data.wod?.date ?? null,
