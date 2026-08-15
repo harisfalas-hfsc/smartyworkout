@@ -4,6 +4,8 @@ import { buildWorkoutPrompt, type AthleteContext } from "./prompt.server";
 import { enforceWorkout, estimateWorkMinutes } from "./enforce.server";
 import { validateWorkout } from "./validate.server";
 import { buildPackWorkout, packCopy } from "./pack.server";
+import { buildSessionPlan, scoreWorkout } from "./programming";
+import { parseWorkoutSteps } from "./parse-steps";
 
 import {
   buildActivationPool,
@@ -45,6 +47,8 @@ export type GenerateInput = {
   /** Library ids picked as favourites / dislikes in the training profile. */
   favoriteIds?: string[];
   dislikedIds?: string[];
+  /** Library ids programmed in the athlete's last few sessions — used for variety. */
+  recentIds?: string[];
 
   athlete?: AthleteContext;
 };
@@ -134,6 +138,7 @@ export async function generateWorkoutContent(
     dislikedIds,
     favoriteIds,
     bannedTerms,
+    location: input.location ?? null,
   });
 
   if (pool.length < 12) {
@@ -141,7 +146,20 @@ export async function generateWorkoutContent(
   }
 
   const duration = durationLabel(input.minutes);
-  const promptPool = samplePool(pool, 260, favoriteIds);
+  const recentIds = input.recentIds ?? [];
+  const promptPool = samplePool(pool, 260, favoriteIds, recentIds);
+
+  const plan = buildSessionPlan({
+    category: input.category,
+    format,
+    level,
+    stars: input.stars,
+    minutes: input.minutes,
+    mood: input.mood ?? null,
+    location: input.location ?? null,
+    focus: input.focus ?? null,
+    equipmentCount: Math.max(1, input.selectedEquipment.length),
+  });
 
   // Activation and Cool Down get their own library-backed vocabulary so both
   // sections always carry real exercise links and show up in the player.
@@ -189,6 +207,9 @@ export async function generateWorkoutContent(
       c.toUpperCase(),
     );
 
+  const libraryById = new Map(all.map((e) => [e.id, e]));
+  type Candidate = GeneratedWorkout & { score: number };
+  let best: Candidate | null = null;
   let lastError = "";
   for (let attempt = 0; attempt < 3; attempt++) {
     let payload: Record<string, unknown>;
@@ -209,6 +230,7 @@ export async function generateWorkoutContent(
         activationPool,
         cooldownPool,
         bannedNames: usedNames,
+        plan,
       });
 
       payload = await askModel(
@@ -245,19 +267,36 @@ export async function generateWorkoutContent(
       warnings.push("Workout name was replaced by a compliant fallback.");
     }
 
-    return {
+    // Deterministic quality score — the coaching standard, not just legality.
+    const quality = scoreWorkout(parseWorkoutSteps(enforced.html), plan, {
+      library: libraryById,
+      favoriteIds,
+      dislikedIds,
+      recentIds,
+      estimatedMinutes: estimateWorkMinutes(enforced.html),
+    });
+
+    const candidate: Candidate = {
       name,
       description_html: String(payload["description"] ?? ""),
       main_workout: enforced.html,
       instructions_html: String(payload["instructions"] ?? ""),
       tips_html: String(payload["tips"] ?? ""),
-      warnings,
-      needs_review: warnings.length > 0,
-      format,
-      pool,
-      duration,
+      warnings: [...warnings, ...(quality.score < 85 ? quality.issues : [])],
+      needs_review: warnings.length > 0 || quality.score < 75,
+      score: quality.score,
     };
+    if (!best || candidate.score > best.score) best = candidate;
+
+    if (candidate.score < 80 && attempt < 2) {
+      lastError = `Session quality ${candidate.score}/100. Fix: ${quality.issues.slice(0, 4).join(" ")}`;
+      continue;
+    }
+
+    return { ...best, format, pool, duration };
   }
+
+  if (best) return { ...best, format, pool, duration };
 
   // ---- Reliability fallback: deterministic template engine ---------------------
   const pack = buildPackWorkout(pool, all, {
