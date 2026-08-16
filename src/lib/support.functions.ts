@@ -58,7 +58,10 @@ export const submitContactMessage = createServerFn({ method: "POST" })
       .insert({ name, email, subject, admin_unread: true } as never)
       .select("id")
       .single();
-    if (error || !thread) return { ok: false as const, error: "Could not send your message." };
+    if (error || !thread) {
+      console.error("[support] contact thread insert failed:", error);
+      return { ok: false as const, error: "Could not send your message." };
+    }
     await supabaseAdmin
       .from("support_messages")
       .insert({ thread_id: (thread as any).id, sender: "user", body: message } as never);
@@ -89,7 +92,10 @@ export const submitMemberMessage = createServerFn({ method: "POST" })
       .insert({ user_id: context.userId, name, email, subject, admin_unread: true } as never)
       .select("id")
       .single();
-    if (error || !thread) return { ok: false as const, error: "Could not send your message." };
+    if (error || !thread) {
+      console.error("[support] member thread insert failed:", error);
+      return { ok: false as const, error: "Could not send your message." };
+    }
     await context.supabase
       .from("support_messages")
       .insert({ thread_id: (thread as any).id, sender: "user", body: message, author_id: context.userId } as never);
