@@ -149,14 +149,16 @@ export const replyToThread = createServerFn({ method: "POST" })
     if (!body) return { ok: false as const };
     const { data: thread } = await context.supabase
       .from("support_threads")
-      .select("id")
+      .select("id,name,email,subject")
       .eq("id", data.threadId)
       .eq("user_id", context.userId)
       .maybeSingle();
     if (!thread) return { ok: false as const };
-    await context.supabase
+    const { data: insertedMsg } = await context.supabase
       .from("support_messages")
-      .insert({ thread_id: data.threadId, sender: "user", body, author_id: context.userId } as never);
+      .insert({ thread_id: data.threadId, sender: "user", body, author_id: context.userId } as never)
+      .select("id")
+      .single();
     await context.supabase
       .from("support_threads")
       .update({
@@ -165,6 +167,16 @@ export const replyToThread = createServerFn({ method: "POST" })
         last_message_at: new Date().toISOString(),
       } as never)
       .eq("id", data.threadId);
+    const { notifyAdminsOfInboundMessage } = await import("@/lib/support-notify.server");
+    await notifyAdminsOfInboundMessage({
+      threadId: data.threadId,
+      messageId: String((insertedMsg as any)?.id ?? data.threadId),
+      name: clean((thread as any).name, 120),
+      email: clean((thread as any).email, 200),
+      subject: clean((thread as any).subject, 200) || "Support request",
+      message: body,
+      isReply: true,
+    });
     return { ok: true as const };
   });
 
@@ -362,5 +374,22 @@ export const adminBroadcast = createServerFn({ method: "POST" })
       return { ok: true as const, sent: rows.length };
     } catch (e) {
       return { ok: false as const, error: e instanceof Error ? e.message : "Failed" };
+    }
+  });
+
+/** Unread inbound message count for the admin panel badge. */
+export const adminUnreadMessageCount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ count: number }> => {
+    try {
+      await assertAdmin(context as any);
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { count } = await supabaseAdmin
+        .from("support_threads")
+        .select("id", { count: "exact", head: true })
+        .eq("admin_unread", true);
+      return { count: count ?? 0 };
+    } catch {
+      return { count: 0 };
     }
   });
