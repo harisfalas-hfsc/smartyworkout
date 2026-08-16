@@ -345,7 +345,10 @@ function RootShell({ children }: { children: ReactNode }) {
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
+                var hidden = false;
                 function hideSplash() {
+                  if (hidden) return;
+                  hidden = true;
                   var splash = document.getElementById('app-splash');
                   if (!splash) return;
                   splash.classList.add('app-splash--fade');
@@ -358,6 +361,8 @@ function RootShell({ children }: { children: ReactNode }) {
                 } else {
                   window.addEventListener('load', hideSplash);
                 }
+                // Always fade the splash after a short grace period so the app never stays stuck
+                setTimeout(hideSplash, 2500);
               })();
             `,
           }}
