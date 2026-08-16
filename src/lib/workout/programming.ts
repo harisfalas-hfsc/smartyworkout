@@ -513,6 +513,7 @@ export function planPrompt(plan: SessionPlan): string {
     `- MOVEMENT ORDER in 💪: ${plan.sequence.join(" → ")}. Technical and heaviest work first, isolation and conditioning last, core never before the movements that need bracing.`,
     `- POSITIONAL FLOW: group standing work together, floor work together. Never alternate floor → standing → floor line after line.`,
     `- TRANSITION EFFICIENCY: use at most ${plan.maxEquipmentFamilies} equipment family/families across 💪 and ⚡, and at most ${plan.maxTransitions} station changes in 💪. Consecutive lines should share the same implement wherever the pattern allows; a circuit must be runnable without walking across a gym.`,
+    plan.cardioExpression ? `- ${plan.cardioExpression.directive}` : "",
     `- MOOD: ${plan.moodDirective}`,
     `- LOCATION: ${plan.locationDirective}`,
     `- DIFFICULTY: ${plan.intensityDirective}`,
