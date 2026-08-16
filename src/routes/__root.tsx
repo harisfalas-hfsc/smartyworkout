@@ -332,8 +332,36 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        <div
+          id="app-splash"
+          className="app-splash"
+          aria-hidden="true"
+        >
+          <img src="/icon-512.png" alt="" className="app-splash__icon" />
+        </div>
         {children}
         <Scripts />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                function hideSplash() {
+                  var splash = document.getElementById('app-splash');
+                  if (!splash) return;
+                  splash.classList.add('app-splash--fade');
+                  setTimeout(function() {
+                    splash.remove();
+                  }, 450);
+                }
+                if (document.readyState === 'complete') {
+                  hideSplash();
+                } else {
+                  window.addEventListener('load', hideSplash);
+                }
+              })();
+            `,
+          }}
+        />
       </body>
     </html>
   );
