@@ -56,9 +56,9 @@ const LEVEL_STARS: Record<string, number> = {
   advanced: 3,
 };
 
-function starsFor(
+/** REQUESTED difficulty only — mood never enters here. */
+function requestedStarsFor(
   profile: { experience?: string | null; fitness_level?: string | null } | null,
-  mood: string,
   requested?: string,
 ) {
   const level = (profile?.fitness_level ?? profile?.experience ?? "").toLowerCase();
@@ -70,11 +70,9 @@ function starsFor(
         : level.includes("inter")
           ? "intermediate"
           : "beginner";
-  const base = LEVEL_STARS[key]!;
-  // Mood softens a hard day by one level, never below beginner.
-  const tired = mood === "tired" || mood === "low" || mood === "sore";
-  return Math.max(1, Math.min(3, tired ? base - 1 || 1 : base));
+  return LEVEL_STARS[key]!;
 }
+
 
 
 
