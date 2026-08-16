@@ -84,6 +84,9 @@ export function enforceWorkout(
     requireFinisher?: boolean;
     /** Blueprint minimum for 💪 Main Workout. */
     mainMin?: number;
+    /** Blueprint decision: does this session carry 🔥 Activation / 🧘 Cool Down? */
+    requireActivation?: boolean;
+    requireCooldown?: boolean;
     /** Library-backed vocabulary for 🧘 Cool Down — guarantees playable slides. */
     cooldownPool?: PoolExercise[];
     seed?: number;
@@ -240,6 +243,9 @@ export function enforceWorkout(
     else sections.splice(at, 0, section);
   };
 
+  const wantsActivation = opts.requireActivation ?? opts.category !== "MICRO-WORKOUTS";
+  const wantsCooldown = opts.requireCooldown ?? opts.category !== "MICRO-WORKOUTS";
+
   if (opts.category !== "MICRO-WORKOUTS" && !hasSection("Soft Tissue Preparation")) {
     insertSection({
       name: "Soft Tissue Preparation",
@@ -249,7 +255,7 @@ export function enforceWorkout(
     warnings.push("Added the standard Soft Tissue Preparation block.");
   }
 
-  if (!hasSection("Activation") && !hasSection("Warm-up")) {
+  if (wantsActivation && !hasSection("Activation") && !hasSection("Warm-up")) {
     const picks = pickPrep(activationPool, 4, seed);
     if (picks.length >= 3) {
       insertSection({
@@ -261,7 +267,7 @@ export function enforceWorkout(
     }
   }
 
-  if (!hasSection("Cool-down")) {
+  if (wantsCooldown && !hasSection("Cool-down")) {
     const picks = pickPrep(cooldownPool, 3, seed + 17);
     if (picks.length >= 3) {
       insertSection({
@@ -281,12 +287,17 @@ export function enforceWorkout(
   for (const s of sections) counts.set(s.name, findTokens(s.body).length);
 
   const activationCount = (counts.get("Activation") ?? 0) + (counts.get("Warm-up") ?? 0);
-  if (activationCount < 3) warnings.push("Activation has fewer than 3 playable drills.");
-  if ((counts.get("Cool-down") ?? 0) < 3) warnings.push("Cool Down has fewer than 3 playable stretches.");
+  if (wantsActivation && activationCount < 3)
+    warnings.push("Activation has fewer than 3 playable drills.");
+  if (wantsCooldown && (counts.get("Cool-down") ?? 0) < 3)
+    warnings.push("Cool Down has fewer than 3 playable stretches.");
 
 
   const requiresFinisher =
-    opts.requireFinisher ?? (opts.category !== "RECOVERY" && opts.category !== "MICRO-WORKOUTS");
+    opts.requireFinisher ??
+    (opts.category !== "RECOVERY" &&
+      opts.category !== "MICRO-WORKOUTS" &&
+      opts.category !== "PILATES");
   const mainMin = opts.mainMin ?? 4;
   const main = counts.get("Main Workout") ?? 0;
   const finisher = counts.get("Finisher") ?? 0;

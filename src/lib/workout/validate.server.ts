@@ -34,6 +34,9 @@ export type ValidateOptions = {
   mainMin?: number;
   /** Blueprint decision: does this duration / category carry a ⚡ Finisher? */
   requireFinisher?: boolean;
+  /** Blueprint decision: does this session carry 🔥 Activation / 🧘 Cool Down? */
+  requireActivation?: boolean;
+  requireCooldown?: boolean;
 };
 
 
@@ -101,7 +104,11 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
   const cooldown = steps.filter((s) => s.section === "Cool-down");
   const requiresFinisher =
     opts.requireFinisher ??
-    (opts.category !== "RECOVERY" && opts.category !== "MICRO-WORKOUTS");
+    (opts.category !== "RECOVERY" &&
+      opts.category !== "MICRO-WORKOUTS" &&
+      opts.category !== "PILATES");
+  const wantsActivation = opts.requireActivation ?? opts.category !== "MICRO-WORKOUTS";
+  const wantsCooldown = opts.requireCooldown ?? opts.category !== "MICRO-WORKOUTS";
   const mainMin = opts.mainMin ?? 4;
 
   if (main.length < mainMin) {
@@ -112,10 +119,10 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
     if (!finisher.length) errors.push("Finisher section is missing.");
     else warnings.push(`Finisher has only ${finisher.length} exercises.`);
   }
-  if (activation.length < 3) {
+  if (wantsActivation && activation.length < 3) {
     warnings.push(`Activation has only ${activation.length} playable drills.`);
   }
-  if (cooldown.length < 3) {
+  if (wantsCooldown && cooldown.length < 3) {
     warnings.push(`Cool Down has only ${cooldown.length} playable stretches.`);
   }
 

@@ -58,7 +58,11 @@ type Shape = {
 };
 
 function durationShape(minutes: number, category: Category): Shape {
-  if (category === "MICRO-WORKOUTS" || minutes <= 5)
+  // MICRO WORKOUT: one short coherent block. No soft tissue, no separate
+  // activation, no finisher, no cool-down padding — the workout starts at once.
+  if (category === "MICRO-WORKOUTS")
+    return { softTissue: false, activationCount: 0, mainCount: [3, 5], finisherCount: [0, 0], cooldownCount: 0 };
+  if (minutes <= 5)
     return { softTissue: false, activationCount: 2, mainCount: [3, 4], finisherCount: [0, 0], cooldownCount: 2 };
   if (minutes <= 10)
     return { softTissue: false, activationCount: 3, mainCount: [3, 5], finisherCount: [0, 0], cooldownCount: 3 };
@@ -125,6 +129,15 @@ function controlDose(level: DifficultyLevel): Dose {
   };
 }
 
+/** Micro Workout: bodyweight density controlled by level, never junk volume. */
+function microDose(level: DifficultyLevel): Dose {
+  if (level === "beginner")
+    return { sets: [2, 3], reps: [8, 12], seconds: [20, 30], restSec: [30, 45], tempo: "controlled, easy breathing, no rush" };
+  if (level === "advanced")
+    return { sets: [4, 5], reps: [12, 20], seconds: [30, 45], restSec: [10, 20], tempo: "brisk but clean, harder leverage variations" };
+  return { sets: [3, 4], reps: [10, 15], seconds: [25, 40], restSec: [20, 30], tempo: "steady and controlled" };
+}
+
 function doseFor(category: Category, level: DifficultyLevel): { main: Dose; finisher: Dose | null } {
   switch (category) {
     case "STRENGTH":
@@ -142,7 +155,7 @@ function doseFor(category: Category, level: DifficultyLevel): { main: Dose; fini
     case "RECOVERY":
       return { main: controlDose(level), finisher: controlDose(level) };
     case "MICRO-WORKOUTS":
-      return { main: conditioningDose(level, false), finisher: null };
+      return { main: microDose(level), finisher: null };
     default:
       return { main: hypertrophyDose(level), finisher: hypertrophyDose(level) };
   }
@@ -160,9 +173,9 @@ const SEQUENCES: Partial<Record<Category, string[]>> = {
   CHALLENGE: ["engine", "push", "pull", "lower body", "core under fatigue"],
   CARDIO: ["engine", "engine", "impact-managed pattern", "engine"],
   "MOBILITY & STABILITY": ["spine", "hips", "shoulders", "balance", "breathing"],
-  PILATES: ["breath and centring", "deep core", "spinal articulation", "hips", "control finisher"],
+  PILATES: ["breath and centring", "deep core", "spinal articulation", "hips", "controlled close"],
   RECOVERY: ["breathing", "spine", "hips", "shoulders"],
-  "MICRO-WORKOUTS": ["lower body", "push", "core"],
+  "MICRO-WORKOUTS": ["lower body", "push", "core", "full-body movement"],
 };
 
 const LOW_ENERGY = new Set(["tired", "stressed", "low", "sore"]);
@@ -265,9 +278,11 @@ export function buildSessionPlan(input: {
 }): SessionPlan {
   const shape = durationShape(input.minutes, input.category);
   const { main, finisher } = doseFor(input.category, input.level);
+  // HARD RULE: Recovery, Micro Workout and Pilates never carry a finisher.
   const noFinisher =
     input.category === "RECOVERY" ||
     input.category === "MICRO-WORKOUTS" ||
+    input.category === "PILATES" ||
     shape.finisherCount[1] === 0;
 
   const dense =
@@ -316,14 +331,28 @@ function doseText(label: string, d: Dose): string {
 
 /** The blueprint text injected into the model prompt. */
 export function planPrompt(plan: SessionPlan): string {
+  const micro = plan.category === "MICRO-WORKOUTS";
+  const pilates = plan.category === "PILATES";
   const lines = [
     `SESSION BLUEPRINT (hard numbers — a session outside these ranges is rejected)`,
-    `- 🔥 Activation: exactly ${plan.activationCount} token lines.`,
+    micro
+      ? `- NO 🧽 Soft Tissue, NO 🔥 Activation, NO ⚡ Finisher, NO 🧘 Cool Down. Output ONE 💪 Main Workout section only — the first movement is the preparation.`
+      : plan.activationCount === 0
+        ? `- NO separate 🔥 Activation section.`
+        : `- 🔥 Activation: exactly ${plan.activationCount} token lines${pilates ? " that directly prepare the patterns used in the main work (breath, spine, hips or trunk control) — skip it entirely if it adds nothing" : ""}.`,
     `- 💪 Main Workout: ${range(plan.mainCount, "exercises")}.`,
     plan.finisher
       ? `- ⚡ Finisher: ${range(plan.finisherCount, "exercises")}.`
       : `- NO Finisher section at this duration and category.`,
-    `- 🧘 Cool Down: ${plan.cooldownCount} token lines plus one breathing line.`,
+    plan.cooldownCount === 0
+      ? ``
+      : `- 🧘 Cool Down: ${plan.cooldownCount} token lines plus one breathing line.`,
+    micro
+      ? `- MICRO WORKOUT CONCEPT: a 10-minute equipment-free movement break someone can do right now in office clothes, at a desk, in a small room or on the stairs. Bodyweight and environment only (floor, wall, chair, desk, sofa, table, stairs). Zero training equipment. Keep the athlete in roughly one spot — no wandering between rooms. Reps must be intelligent for the level, never junk volume. Golden test: could someone realistically do this in a 10-minute break without changing clothes or setting anything up? If not, rewrite it.`
+      : ``,
+    pilates
+      ? `- PILATES CONCEPT: a controlled Pilates session in SETS & REPS only — never Tabata, AMRAP, EMOM, For Time, circuit, HIIT or metabolic work, and never a conditioning finisher. Emphasise control, precision, breathing, spinal articulation, deep core, stability and full controlled range. Sequence movements so positions flow (supine work together, side-lying together, quadruped together) and keep equipment changes to a minimum. Quality over speed and fatigue.`
+      : ``,
     doseText("- Main Workout dosing", plan.main),
     plan.finisher ? doseText("- Finisher dosing", plan.finisher) : "",
     `- MOVEMENT ORDER in 💪: ${plan.sequence.join(" → ")}. Technical and heaviest work first, isolation and conditioning last, core never before the movements that need bracing.`,

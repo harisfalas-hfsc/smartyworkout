@@ -27,11 +27,11 @@ const CATEGORY_COACHING: Record<Category, string> = {
   CHALLENGE:
     "Gamified benchmark work. Bodyweight: test-style AMRAP / For-Time pieces, multiple rounds, varied high-output patterns. Equipment: rounds-for-time, chippers, mixed modality — loaded conditioning, carries, swings, thrusters, rowing/bike/rope, squats, hinges, pushes, pulls, core under fatigue. HARD BAN in Main Workout and Finisher: stretching, mobility, yoga poses, static flexibility, recovery drills. Challenge means intensity, capacity, time pressure, reps, rounds and discomfort tolerance — never stretching.",
   PILATES:
-    "Mat, reformer, magic circle, Pilates ball, light dumbbells and bands ONLY. Forbidden: kettlebells, barbells, heavy dumbbells, machines, cables, plyometrics, conditioning. Controlled spinal articulation, deep core, breath-led tempo, reps & sets.",
+    "A controlled Pilates session, always SETS & REPS. Equipment only when the athlete actually has it: mat, small Pilates ball, bands, magic circle/ring, roller, block, Pilates chair, reformer, Cadillac, barrel, straps. Never assume a reformer exists. When no equipment is available the session is bodyweight Pilates: spinal articulation, deep core control, controlled leg and trunk work, hip mobility, glute activation, stability. Preparation may open the session and must match what follows (spine work before spinal sessions, trunk activation before core sessions, hip prep before hip sessions) — never random warm-up drills. Activation is optional, low-fatigue and relevant. FORBIDDEN: Tabata, AMRAP, EMOM, For Time, circuits, HIIT, metabolic or calorie finishers, burpees, jumping, plyometrics, kettlebells, barbells, heavy loading, sprinting, any finisher at all. Prioritise control, precision, breathing and quality of movement over speed or fatigue; keep positions and equipment flowing with minimal changes.",
   RECOVERY:
     "PNF stretching, CARs, nasal and box breathing, gentle mobility. No plyometrics, no conditioning, no heavy lifting, no crunches or sit-ups. Format MIX and NO Finisher section.",
   "MICRO-WORKOUTS":
-    "Exactly 5 minutes, bodyweight only plus chair / sofa / desk / stairs / wall. Forbidden: dumbbells, kettlebells, barbells, bands, machines, bike, rower, rope, treadmill, sled. Must be doable in office clothes.",
+    "A 10-minute equipment-free movement break — NOT a shortened gym workout. Think: office break, desk, sofa, hotel room, small room, between meetings. Bodyweight only, plus the environment: floor, wall, chair, desk, table, sofa, bed, stairs, doorway (these are environmental resources, not equipment). ABSOLUTELY FORBIDDEN: dumbbells, kettlebells, barbells, bands, TRX, machines, cables, plates, benches, medicine or slam balls, bike, rower, rope, treadmill, sled — even for an advanced athlete. Advanced means harder leverage, higher density and tougher variations, never equipment. ONE short coherent block: no separate Soft Tissue, no separate Activation, no Finisher, no Cool Down — the first movement doubles as the preparation. Keep the athlete in roughly the same spot with minimal transitions (floor sequences together, desk/chair sequences together, stair sequences together). Formats CIRCUIT, AMRAP, EMOM, FOR TIME, REPS & SETS or a simple structured sequence — only when it genuinely suits the session, never forced. Control the reps intelligently for the level; short does not mean 20 burpees for a beginner. It must be immediately executable in office clothes with zero setup.",
 };
 
 const FORMAT_RULES: Record<Format, string> = {
@@ -198,11 +198,18 @@ export function buildWorkoutPrompt(input: PromptInput): { system: string; user: 
   const isRecovery = input.category === "RECOVERY";
   const isMicro = input.category === "MICRO-WORKOUTS";
 
+  const isPilates = input.category === "PILATES";
+
   const sections = isMicro
-    ? `MICRO-WORKOUT STRUCTURE (exactly 5 minutes, 3 sections):
-1. 🔥 Activation 1'
-2. 💪 Main Workout 3'
-3. 🧘 Cool Down 1'`
+    ? `MICRO-WORKOUT STRUCTURE (10 minutes, ONE section only):
+1. 💪 Main Workout — the entire workout, library tokens only
+NO 🧽 Soft Tissue Preparation. NO 🔥 Activation. NO ⚡ Finisher. NO 🧘 Cool Down. Output the 💪 Main Workout section and nothing else.`
+    : isPilates
+      ? `PILATES STRUCTURE (NO Finisher, ever):
+1. 🧽 Soft Tissue Preparation — foam rolling only, NO {{exercise:}} tokens at all
+2. 🔥 Activation — relevant, controlled preparation tokens for the patterns that follow
+3. 💪 Main Workout (REPS & SETS) — controlled Pilates work, library exercises
+4. 🧘 Cool Down — token stretches then one breathing line`
     : isRecovery
       ? `RECOVERY STRUCTURE (4 sections, NO Finisher):
 1. 🧽 Soft Tissue Preparation
@@ -265,7 +272,7 @@ PRESCRIPTION RULES
 - Tempo and rest stay inline on the SAME list item as the token. Never create a bullet that only contains a tempo or "rest 90 sec".
 - Accepted units: reps, sec, min, m, km, cal, rounds, "N sets × N", "EMOM Minute N:".
 - Protocol headers look like "Main Workout (FORMAT)" and NEVER contain a duration.
-- Finisher header: "Finisher (REPS & SETS)" for STRENGTH / MUSCLE BUILDING / MOBILITY & STABILITY / PILATES, otherwise "Finisher (For Time)" or "Finisher (AMRAP)" with the cap or rounds in the paragraph below.
+- Finisher header: "Finisher (REPS & SETS)" for STRENGTH / MUSCLE BUILDING / MOBILITY & STABILITY, otherwise "Finisher (For Time)" or "Finisher (AMRAP)" with the cap or rounds in the paragraph below.
 
 NAMING
 2-4 word creative name hinting at the category${input.focus ? " and focus" : ""}. Avoid these words: ${BANNED_NAME_WORDS.join(", ")}. Strictly forbidden: internal codes (CAL-813, BW1230, V2, #3), roman numerals, any digits, and 3-letter uppercase abbreviations with numbers.
