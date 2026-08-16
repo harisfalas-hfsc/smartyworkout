@@ -262,8 +262,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "application-name", content: "SmartyWorkout" },
       { name: "apple-mobile-web-app-title", content: "SmartyWorkout" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
-      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
-      { name: "theme-color", content: "#1c1c1c" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black" },
+      { name: "theme-color", content: "#000000" },
       { name: "color-scheme", content: "dark" },
 
       { property: "og:site_name", content: "SmartyWorkout" },
