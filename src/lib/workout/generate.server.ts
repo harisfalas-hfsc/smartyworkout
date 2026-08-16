@@ -186,6 +186,8 @@ export async function generateWorkoutContent(
     cooldownPool,
     seed,
     requireFinisher: Boolean(plan.finisher),
+    requireActivation: plan.activationCount > 0,
+    requireCooldown: plan.cooldownCount > 0,
     mainMin: plan.mainCount[0],
   };
 
@@ -202,6 +204,8 @@ export async function generateWorkoutContent(
     dislikedIds,
     prepIds,
     requireFinisher: Boolean(plan.finisher),
+    requireActivation: plan.activationCount > 0,
+    requireCooldown: plan.cooldownCount > 0,
     mainMin: plan.mainCount[0],
   };
 
