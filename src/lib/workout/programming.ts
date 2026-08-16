@@ -42,11 +42,18 @@ export type SessionPlan = {
   maxTransitions: number;
   /** CARDIO only: which aerobic expression today's session must follow. */
   cardioExpression?: CardioExpression;
+  /** Realistic minutes the Main Workout will occupy at the prescribed dose. */
+  mainMinutesEstimate: number;
+  /** Minutes budgeted for the Finisher (0 when the session carries none). */
+  finisherMinutes: number;
+  /** Why the Finisher exists — or why it was intentionally omitted. */
+  finisherDirective: string;
 
   moodDirective: string;
   locationDirective: string;
   intensityDirective: string;
 };
+
 
 // ---------------------------------------------------------------------------
 // Duration intelligence
@@ -98,25 +105,73 @@ const LEVEL_SHIFT: Record<DifficultyLevel, number> = {
   all: 0,
 };
 
-function strengthDose(level: DifficultyLevel): Dose {
+/**
+ * STRENGTH main dose. The objective is maximal force production with high
+ * technical quality: heavy compounds, low reps, full recovery, never failure.
+ */
+export function strengthDose(level: DifficultyLevel): Dose {
   const shift = LEVEL_SHIFT[level];
+  if (shift < 0)
+    return {
+      sets: [3, 5],
+      reps: [5, 8],
+      restSec: [90, 150],
+      tempo: "controlled 2-sec lower, brief pause, explosive intent up",
+    };
   return {
-    sets: [shift < 0 ? 3 : 4, shift > 0 ? 6 : 5],
-    reps: shift < 0 ? [5, 8] : shift > 0 ? [3, 5] : [4, 6],
-    restSec: shift < 0 ? [90, 150] : [150, 180],
-    tempo: "2-sec lower, brief pause, explosive lift",
+    sets: [4, 6],
+    reps: [3, 6],
+    restSec: shift > 0 ? [150, 180] : [120, 180],
+    tempo: "controlled 2-sec lower, brief pause, explosive intent up",
   };
 }
 
-function hypertrophyDose(level: DifficultyLevel): Dose {
+/**
+ * MUSCLE BUILDING main dose. The objective is hypertrophy stimulus: mechanical
+ * tension, controlled eccentrics, moderate volume, close to but not at failure.
+ */
+export function hypertrophyDose(level: DifficultyLevel): Dose {
   const shift = LEVEL_SHIFT[level];
+  if (shift < 0)
+    return {
+      sets: [2, 3],
+      reps: [8, 15],
+      restSec: [60, 90],
+      tempo: "2-3 sec lower, controlled lift, squeeze the target muscle",
+    };
   return {
-    sets: [3, shift > 0 ? 5 : 4],
-    reps: shift < 0 ? [10, 15] : [8, 12],
+    sets: [3, 4],
+    reps: shift > 0 ? [6, 12] : [8, 12],
     restSec: [60, 90],
-    tempo: "3-sec lower, 1-sec squeeze, controlled lift",
+    tempo: "2-3 sec lower, controlled lift, squeeze the target muscle",
   };
 }
+
+/**
+ * STRENGTH finisher dose — complementary accessory volume that reinforces the
+ * selected focus. It is never a second workout and never conditioning.
+ */
+export function strengthFinisherDose(level: DifficultyLevel): Dose {
+  const shift = LEVEL_SHIFT[level];
+  return {
+    sets: shift > 0 ? [2, 4] : [2, 3],
+    reps: shift < 0 ? [8, 12] : [8, 15],
+    restSec: shift < 0 ? [75, 90] : [60, 90],
+    tempo: "controlled lower, clean lift, stop 2 reps short of failure",
+  };
+}
+
+/** MUSCLE BUILDING finisher dose — a short extra hypertrophy / pump stimulus. */
+export function hypertrophyFinisherDose(level: DifficultyLevel): Dose {
+  const shift = LEVEL_SHIFT[level];
+  return {
+    sets: [2, 3],
+    reps: shift < 0 ? [10, 15] : [12, 20],
+    restSec: shift < 0 ? [60, 75] : [45, 75],
+    tempo: "3-sec lower, hard squeeze at peak contraction, no bouncing",
+  };
+}
+
 
 function conditioningDose(level: DifficultyLevel, hard: boolean): Dose {
   const shift = LEVEL_SHIFT[level];
@@ -151,9 +206,10 @@ function microDose(level: DifficultyLevel): Dose {
 function doseFor(category: Category, level: DifficultyLevel): { main: Dose; finisher: Dose | null } {
   switch (category) {
     case "STRENGTH":
-      return { main: strengthDose(level), finisher: hypertrophyDose(level) };
+      return { main: strengthDose(level), finisher: strengthFinisherDose(level) };
     case "MUSCLE BUILDING":
-      return { main: hypertrophyDose(level), finisher: hypertrophyDose(level) };
+      return { main: hypertrophyDose(level), finisher: hypertrophyFinisherDose(level) };
+
     case "CALORIE BURNING":
     case "METABOLIC":
     case "CHALLENGE":
@@ -383,6 +439,91 @@ export function transitionCostBudget(plan: Pick<SessionPlan, "format" | "mainCou
 
 
 // ---------------------------------------------------------------------------
+// Realistic block duration + the Strength / Muscle Building finisher decision
+// ---------------------------------------------------------------------------
+
+/** True for the two categories that follow the lifting doctrine. */
+export function isLiftingCategory(category: Category): boolean {
+  return category === "STRENGTH" || category === "MUSCLE BUILDING";
+}
+
+/**
+ * Realistic minutes an ordered block occupies at the LOW end of its prescribed
+ * dose: exercises × sets × (work + rest). Reps are costed at 4 sec each; a
+ * timed piece uses its own seconds. This is the honest cost of the work, not
+ * an advertised number.
+ */
+export function estimateBlockMinutes(exercises: number, dose: Dose): number {
+  if (exercises <= 0) return 0;
+  const workSec = dose.reps ? dose.reps[0] * 4 : (dose.seconds?.[0] ?? 30);
+  const perSet = workSec + dose.restSec[0];
+  return Math.round((exercises * dose.sets[0] * perSet) / 60);
+}
+
+export type FinisherDecision = {
+  include: boolean;
+  count: [number, number];
+  dose: Dose | null;
+  /** Minutes budgeted for the finisher (0 when omitted). */
+  minutes: number;
+  /** Realistic minutes the main block occupies. */
+  mainMinutes: number;
+  directive: string;
+};
+
+/**
+ * Professional finisher gate for STRENGTH and MUSCLE BUILDING.
+ *
+ * The finisher is optional. It exists only when a short, complementary,
+ * category-true piece genuinely fits in the time left after a quality Main
+ * Workout, and only when the athlete is not already sufficiently fatigued.
+ * There is no minute threshold and no time-filling.
+ */
+export function decideLiftingFinisher(input: {
+  category: Category;
+  level: DifficultyLevel;
+  minutes: number;
+  mainCount: [number, number];
+  mainDose: Dose;
+  finisherDose: Dose;
+  mood?: string | null;
+  shapeAllowsFinisher: boolean;
+}): FinisherDecision {
+  const strength = input.category === "STRENGTH";
+  const raw = estimateBlockMinutes(input.mainCount[0], input.mainDose);
+  // A right-sized main block never eats the whole session: the coach can trim
+  // sets or exercises inside the blueprint range to protect session quality.
+  const mainMinutes = Math.min(raw, Math.round(input.minutes * 0.85));
+  const remaining = Math.max(0, input.minutes - mainMinutes);
+
+  const none = (why: string): FinisherDecision => ({
+    include: false,
+    count: [0, 0],
+    dose: null,
+    minutes: 0,
+    mainMinutes,
+    directive: `NO ⚡ Finisher today. ${why} A shorter, high-quality session is the correct professional decision — never add work to reach the advertised duration.`,
+  });
+
+  if (!input.shapeAllowsFinisher) return none("This duration carries no finisher slot.");
+  if (remaining < 5)
+    return none(
+      `Only about ${remaining} min remain after a properly dosed Main Workout, which is not enough for a meaningful finisher.`,
+    );
+  // Fatigue gate: a hard session on a depleted athlete already did the job.
+  if (isLowEnergyState(input.mood) && (input.level === "advanced" || raw >= input.minutes))
+    return none("The athlete is fatigued and the Main Workout already delivers the intended stimulus.");
+
+  const minutes = Math.min(10, Math.max(5, remaining));
+  const count: [number, number] = [1, 2];
+  const directive = strength
+    ? `⚡ Finisher — OPTIONAL, complementary accessory volume only (about ${minutes} min, ${count[0]}-${count[1]} exercises). It must reinforce the SAME focus and muscles as the Main Workout, stay in REPS & SETS, and never become conditioning, metabolic or cardio work. It must never rival the Main Workout in exercises, sets or time, and it must never compromise recovery from the primary strength work. No failure.`
+    : `⚡ Finisher — OPTIONAL, a short extra hypertrophy stimulus (about ${minutes} min, ${count[0]}-${count[1]} exercises). Target-muscle isolation or pump work on the SAME focus as the Main Workout, higher reps, controlled eccentrics, shorter rest, still REPS & SETS. Fewer exercises and fewer total sets than the Main Workout. Never conditioning, metabolic or cardio work.`;
+
+  return { include: true, count, dose: input.finisherDose, minutes, mainMinutes, directive };
+}
+
+// ---------------------------------------------------------------------------
 // Plan builder
 // ---------------------------------------------------------------------------
 
@@ -400,6 +541,9 @@ export function buildSessionPlan(input: {
   const shape = durationShape(input.minutes, input.category);
   const { main, finisher } = doseFor(input.category, input.level);
 
+  // HARD RULE: Strength and Muscle Building are always REPS & SETS.
+  const format: Format = isLiftingCategory(input.category) ? "REPS & SETS" : input.format;
+
   // HARD RULE: Recovery, Micro Workout and Pilates never carry a finisher.
   const noFinisher =
     input.category === "RECOVERY" ||
@@ -407,21 +551,45 @@ export function buildSessionPlan(input: {
     input.category === "PILATES" ||
     shape.finisherCount[1] === 0;
 
-  const finisherCount: [number, number] = noFinisher ? [0, 0] : shape.finisherCount;
+  let finisherCount: [number, number] = noFinisher ? [0, 0] : shape.finisherCount;
+  let finisherDose: Dose | null = noFinisher ? null : finisher;
+  let mainMinutesEstimate = estimateBlockMinutes(shape.mainCount[0], main);
+  let finisherMinutes = noFinisher ? 0 : Math.max(0, input.minutes - mainMinutesEstimate);
+  let finisherDirective = noFinisher
+    ? "This category carries no ⚡ Finisher."
+    : "⚡ Finisher stays short and true to the category objective.";
 
-  const finisherDose: Dose | null = noFinisher ? null : finisher;
+  if (isLiftingCategory(input.category)) {
+    const decision = decideLiftingFinisher({
+      category: input.category,
+      level: input.level,
+      minutes: input.minutes,
+      mainCount: shape.mainCount,
+      mainDose: main,
+      finisherDose: finisher ?? main,
+      mood: input.mood ?? null,
+      shapeAllowsFinisher: !noFinisher,
+    });
+    finisherCount = decision.count;
+    finisherDose = decision.include ? decision.dose : null;
+    finisherMinutes = decision.minutes;
+    mainMinutesEstimate = decision.mainMinutes;
+    finisherDirective = decision.directive;
+  }
+
+
 
 
   const dense =
-    input.format === "CIRCUIT" ||
-    input.format === "AMRAP" ||
-    input.format === "EMOM" ||
-    input.format === "TABATA" ||
-    input.format === "FOR TIME";
+    format === "CIRCUIT" ||
+    format === "AMRAP" ||
+    format === "EMOM" ||
+    format === "TABATA" ||
+    format === "FOR TIME";
 
   return {
     category: input.category,
-    format: input.format,
+    format,
     level: input.level,
     minutes: input.minutes,
     softTissue: shape.softTissue,
@@ -435,14 +603,16 @@ export function buildSessionPlan(input: {
     maxEquipmentFamilies: dense
       ? Math.min(2, Math.max(1, input.equipmentCount))
       : Math.min(3, Math.max(1, input.equipmentCount)),
-    maxTransitions: transitionBudget(input.category, input.format, shape.mainCount[1]),
+    maxTransitions: transitionBudget(input.category, format, shape.mainCount[1]),
+    mainMinutesEstimate,
+    finisherMinutes,
+    finisherDirective,
     moodDirective: moodDirective(input.mood),
     locationDirective: locationDirective(input.location),
     intensityDirective: intensityDirective(input.stars, input.category),
-    ...(input.category === "CARDIO"
-      ? { cardioExpression: cardioExpression(input.format) }
-      : {}),
+    ...(input.category === "CARDIO" ? { cardioExpression: cardioExpression(format) } : {}),
   };
+
 
 }
 
@@ -464,6 +634,7 @@ function doseText(label: string, d: Dose): string {
 export function planPrompt(plan: SessionPlan): string {
   const micro = plan.category === "MICRO-WORKOUTS";
   const pilates = plan.category === "PILATES";
+  const lifting = isLiftingCategory(plan.category);
   const lines = [
     `SESSION BLUEPRINT (hard numbers — a session outside these ranges is rejected)`,
     micro
@@ -473,7 +644,7 @@ export function planPrompt(plan: SessionPlan): string {
         : `- 🔥 Activation: exactly ${plan.activationCount} token lines${pilates ? " that directly prepare the patterns used in the main work (breath, spine, hips or trunk control) — skip it entirely if it adds nothing" : ""}.`,
     `- 💪 Main Workout: ${range(plan.mainCount, "exercises")}.`,
     plan.finisher
-      ? `- ⚡ Finisher: ${range(plan.finisherCount, "exercises")}.`
+      ? `- ⚡ Finisher: ${range(plan.finisherCount, "exercises")}${plan.finisherMinutes ? `, about ${plan.finisherMinutes} min total` : ""}.`
       : `- NO Finisher section at this duration and category.`,
     plan.cooldownCount === 0
       ? ``
@@ -484,6 +655,15 @@ export function planPrompt(plan: SessionPlan): string {
     pilates
       ? `- PILATES CONCEPT: a controlled Pilates session in SETS & REPS only — never Tabata, AMRAP, EMOM, For Time, circuit, HIIT or metabolic work, and never a conditioning finisher. Emphasise control, precision, breathing, spinal articulation, deep core, stability and full controlled range. Sequence movements so positions flow (supine work together, side-lying together, quadruped together) and keep equipment changes to a minimum. Quality over speed and fatigue.`
       : ``,
+    lifting
+      ? plan.category === "STRENGTH"
+        ? `- STRENGTH DOCTRINE: the objective is maximal strength and force production with high technical quality — this is NOT hypertrophy with heavier weights. REPS & SETS only (no AMRAP, EMOM, Tabata, For Time, circuit or chipper anywhere in the session, finisher included). Hierarchy: primary compound → secondary compound → accessory → accessory → core/carry, and only as many of those levels as the time honestly allows. The primary compound gets the highest priority, the freshest athlete and the longest rest. Keep 1-3 reps in reserve, never train primary strength work to failure, and never shorten rest just to make the session fit the advertised duration.`
+        : `- MUSCLE BUILDING DOCTRINE: the objective is hypertrophy — mechanical tension, controlled eccentrics, adequate volume and appropriate proximity to failure. This is NOT strength with higher reps. REPS & SETS only (no AMRAP, EMOM, Tabata, For Time, circuit or chipper anywhere, finisher included). Hierarchy: primary compound → secondary compound → targeted accessory → accessory/isolation → optional pump movement, only as many as the time honestly allows. Rest 60-90 sec on most work, longer on demanding compounds when quality needs it. Beginner 2-3 RIR, intermediate and advanced 1-2 RIR — do not routinely prescribe absolute failure. Tempo must suit the movement, not be copy-pasted onto every line.`
+      : ``,
+    lifting ? `- FINISHER DECISION: ${plan.finisherDirective}` : ``,
+    lifting
+      ? `- NO ARTIFICIAL TIME FILLING: the advertised duration is a programming target, not a quota. A professionally programmed ${Math.max(1, plan.minutes - 8)}-minute session beats a padded ${plan.minutes}-minute one. Never invent work to reach a number, and never let the ⚡ Finisher rival the 💪 Main Workout in exercises, sets or time.`
+      : ``,
     doseText("- Main Workout dosing", plan.main),
     plan.finisher ? doseText("- Finisher dosing", plan.finisher) : "",
     `- MOVEMENT ORDER in 💪: ${plan.sequence.join(" → ")}. Technical and heaviest work first, isolation and conditioning last, core never before the movements that need bracing.`,
@@ -493,10 +673,13 @@ export function planPrompt(plan: SessionPlan): string {
     `- MOOD: ${plan.moodDirective}`,
     `- LOCATION: ${plan.locationDirective}`,
     `- DIFFICULTY: ${plan.intensityDirective}`,
-    `- TIME MATH: ${plan.minutes} min of advertised work counts 💪 + ⚡ only. Sets × (work + rest) must land within ±5 min of that.`,
+    lifting
+      ? `- TIME MATH: ${plan.minutes} min of advertised work counts 💪 + ⚡ only. Dose the Main Workout honestly (sets × (work + rest)); if that already fills the session, output no Finisher rather than compressing the main work.`
+      : `- TIME MATH: ${plan.minutes} min of advertised work counts 💪 + ⚡ only. Sets × (work + rest) must land within ±5 min of that.`,
   ];
   return lines.filter(Boolean).join("\n");
 }
+
 
 // ---------------------------------------------------------------------------
 // Post-generation quality score
