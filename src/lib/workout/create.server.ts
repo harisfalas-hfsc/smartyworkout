@@ -7,6 +7,7 @@ import {
   type Format,
   type StrengthFocus,
 } from "@/lib/workout/spec";
+import { microMinutes, resolveDifficulty } from "@/lib/workout/programming";
 
 export type CoachRequest = {
   goal?: string;
