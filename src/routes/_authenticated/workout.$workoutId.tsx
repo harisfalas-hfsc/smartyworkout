@@ -73,6 +73,9 @@ function WorkoutPage() {
   const [comment, setComment] = useState("");
   const [scheduledAt, setScheduledAt] = useState<string>("");
   const [showSchedule, setShowSchedule] = useState(false);
+  const [parqFlags, setParqFlags] = useState<string[]>([]);
+  const [parqOpen, setParqOpen] = useState(false);
+  const [parqBlocked, setParqBlocked] = useState(false);
   const saveStatus = useServerFn(setWorkoutStatus);
 
   useEffect(() => {
@@ -80,9 +83,13 @@ function WorkoutPage() {
       const { data } = await supabase.from("workouts").select("*").eq("id", workoutId).maybeSingle();
       const row = (data as unknown as WorkoutRow) ?? null;
       setW(row);
+      const access = await getMyAccessState({}).catch(() => null);
       if ((row as { is_wod?: boolean } | null)?.is_wod) {
-        const access = await getMyAccessState({}).catch(() => null);
         setLocked(!access?.premium);
+      }
+      if (row && access?.readinessFlagged && access.readinessFlags.length > 0) {
+        setParqFlags(access.readinessFlags);
+        setParqOpen(true);
       }
       if (row?.status === "completed") setDone(true);
       const sched = (data as { scheduled_at?: string | null } | null)?.scheduled_at;
@@ -90,6 +97,7 @@ function WorkoutPage() {
       setLoading(false);
     })();
   }, [workoutId]);
+
 
   async function complete() {
     await saveStatus({ data: { workoutId, status: "completed" } });
