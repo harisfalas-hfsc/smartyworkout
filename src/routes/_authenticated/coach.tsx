@@ -24,6 +24,8 @@ import {
   setUseLibraryPreferences as saveUseLibraryPreferences,
 } from "@/lib/preferences.functions";
 import { Link } from "@tanstack/react-router";
+import { ParqWaiverDialog } from "@/components/ParqWaiverDialog";
+
 import {
   EQUIPMENT,
   GOALS,
