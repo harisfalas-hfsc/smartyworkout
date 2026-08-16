@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/PageHeader";
 import { isAdminEmail } from "@/lib/admin";
 import { adminGetStats, type AdminStats } from "@/lib/admin.functions";
+import { adminUnreadMessageCount } from "@/lib/support.functions";
 import { AdminUsersTab } from "@/components/admin/AdminUsersTab";
 import { AdminRevenueTab } from "@/components/admin/AdminRevenueTab";
 import { AdminRulesTab } from "@/components/admin/AdminRulesTab";
@@ -84,6 +85,7 @@ const SECTIONS: { key: SectionKey; label: string; description: string; Icon: Luc
 function AdminPage() {
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [section, setSection] = useState<SectionKey | null>(null);
+  const unreadMessages = useAdminUnreadMessages(authed === true, section);
 
   useEffect(() => {
     supabase.auth
@@ -142,13 +144,42 @@ function AdminPage() {
           {section === "messages" && <AdminMessagesTab />}
         </div>
       ) : (
-        <AdminHub onOpen={setSection} />
+        <AdminHub onOpen={setSection} unreadMessages={unreadMessages} />
       )}
     </Shell>
   );
 }
 
-function AdminHub({ onOpen }: { onOpen: (key: SectionKey) => void }) {
+function useAdminUnreadMessages(enabled: boolean, section: SectionKey | null) {
+  const getCount = useServerFn(adminUnreadMessageCount);
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    if (!enabled) return;
+    let active = true;
+    const tick = () => {
+      void getCount({ data: {} } as never)
+        .then((r) => {
+          if (active) setCount(r.count);
+        })
+        .catch(() => undefined);
+    };
+    tick();
+    const t = setInterval(tick, 60_000);
+    return () => {
+      active = false;
+      clearInterval(t);
+    };
+  }, [enabled, section, getCount]);
+  return count;
+}
+
+function AdminHub({
+  onOpen,
+  unreadMessages,
+}: {
+  onOpen: (key: SectionKey) => void;
+  unreadMessages: number;
+}) {
   const getStats = useServerFn(adminGetStats);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -175,6 +206,26 @@ function AdminHub({ onOpen }: { onOpen: (key: SectionKey) => void }) {
         <Stat label="WOD members" value={stats?.wodSubscribers} />
       </div>
 
+      {unreadMessages > 0 && (
+        <button
+          type="button"
+          onClick={() => onOpen("messages")}
+          className="flex w-full items-center gap-3 rounded-2xl border border-blue-400 bg-primary/10 p-4 text-left"
+        >
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary text-primary-foreground">
+            <MessagesSquare className="h-5 w-5" />
+          </span>
+          <span>
+            <span className="block font-semibold">
+              {unreadMessages} unread {unreadMessages === 1 ? "message" : "messages"}
+            </span>
+            <span className="block text-xs text-muted-foreground">
+              Tap to open the Messages section and reply
+            </span>
+          </span>
+        </button>
+      )}
+
       {error && <p className="text-sm text-muted-foreground">{error}</p>}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
@@ -183,8 +234,13 @@ function AdminHub({ onOpen }: { onOpen: (key: SectionKey) => void }) {
             key={key}
             type="button"
             onClick={() => onOpen(key)}
-            className="flex min-h-[112px] flex-col items-start gap-2 rounded-2xl border border-blue-400 bg-card p-4 text-left transition hover:bg-accent"
+            className="relative flex min-h-[112px] flex-col items-start gap-2 rounded-2xl border border-blue-400 bg-card p-4 text-left transition hover:bg-accent"
           >
+            {key === "messages" && unreadMessages > 0 && (
+              <span className="absolute right-3 top-3 grid h-6 min-w-6 place-items-center rounded-full bg-primary px-2 text-xs font-bold text-primary-foreground">
+                {unreadMessages}
+              </span>
+            )}
             <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
               <Icon className="h-5 w-5" />
             </span>
