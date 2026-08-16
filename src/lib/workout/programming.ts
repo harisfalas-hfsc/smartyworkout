@@ -206,9 +206,10 @@ function microDose(level: DifficultyLevel): Dose {
 function doseFor(category: Category, level: DifficultyLevel): { main: Dose; finisher: Dose | null } {
   switch (category) {
     case "STRENGTH":
-      return { main: strengthDose(level), finisher: hypertrophyDose(level) };
+      return { main: strengthDose(level), finisher: strengthFinisherDose(level) };
     case "MUSCLE BUILDING":
-      return { main: hypertrophyDose(level), finisher: hypertrophyDose(level) };
+      return { main: hypertrophyDose(level), finisher: hypertrophyFinisherDose(level) };
+
     case "CALORIE BURNING":
     case "METABOLIC":
     case "CHALLENGE":
