@@ -183,6 +183,37 @@ function WorkoutPage() {
       </div>
     );
 
+  if (parqBlocked)
+    return (
+      <div className="mx-auto max-w-xl px-4 py-16 text-center">
+        <h1 className="text-xl font-extrabold uppercase tracking-tight">Health warning</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Your PAR-Q has a YES answer. Confirm the waiver to open this workout, or update your
+          answers in your Training Profile.
+        </p>
+        <div className="mt-4 grid gap-2">
+          <Button className="h-12 rounded-2xl" onClick={() => setParqOpen(true)}>
+            Read and confirm
+          </Button>
+          <Button asChild variant="secondary" className="h-12 rounded-2xl">
+            <Link to="/profile">Update my PAR-Q answers</Link>
+          </Button>
+        </div>
+        <ParqWaiverDialog
+          open={parqOpen}
+          flags={parqFlags}
+          confirmLabel="I confirm — open my workout"
+          onConfirm={() => {
+            setParqOpen(false);
+            setParqBlocked(false);
+          }}
+          onCancel={() => setParqOpen(false)}
+        />
+      </div>
+    );
+
+
+
   return (
     <WorkoutDisplay workout={w} onComplete={complete}>
       <section className="mt-6 rounded-2xl border border-border bg-card p-5">
