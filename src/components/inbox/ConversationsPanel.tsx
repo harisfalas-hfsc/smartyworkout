@@ -24,7 +24,13 @@ function when(iso: string) {
   });
 }
 
-export function ConversationsPanel({ onUnread }: { onUnread?: (n: number) => void }) {
+export function ConversationsPanel({
+  onUnread,
+  defaultComposing,
+}: {
+  onUnread?: (n: number) => void;
+  defaultComposing?: boolean;
+}) {
   const load = useServerFn(listMyThreads);
   const reply = useServerFn(replyToThread);
   const start = useServerFn(submitMemberMessage);
@@ -38,7 +44,7 @@ export function ConversationsPanel({ onUnread }: { onUnread?: (n: number) => voi
   const [busy, setBusy] = useState(false);
   const [newSubject, setNewSubject] = useState("");
   const [newBody, setNewBody] = useState("");
-  const [composing, setComposing] = useState(false);
+  const [composing, setComposing] = useState(Boolean(defaultComposing));
 
   const reload = useCallback(async () => {
     try {
