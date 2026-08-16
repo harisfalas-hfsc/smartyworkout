@@ -634,6 +634,7 @@ function doseText(label: string, d: Dose): string {
 export function planPrompt(plan: SessionPlan): string {
   const micro = plan.category === "MICRO-WORKOUTS";
   const pilates = plan.category === "PILATES";
+  const lifting = isLiftingCategory(plan.category);
   const lines = [
     `SESSION BLUEPRINT (hard numbers — a session outside these ranges is rejected)`,
     micro
@@ -643,7 +644,7 @@ export function planPrompt(plan: SessionPlan): string {
         : `- 🔥 Activation: exactly ${plan.activationCount} token lines${pilates ? " that directly prepare the patterns used in the main work (breath, spine, hips or trunk control) — skip it entirely if it adds nothing" : ""}.`,
     `- 💪 Main Workout: ${range(plan.mainCount, "exercises")}.`,
     plan.finisher
-      ? `- ⚡ Finisher: ${range(plan.finisherCount, "exercises")}.`
+      ? `- ⚡ Finisher: ${range(plan.finisherCount, "exercises")}${plan.finisherMinutes ? `, about ${plan.finisherMinutes} min total` : ""}.`
       : `- NO Finisher section at this duration and category.`,
     plan.cooldownCount === 0
       ? ``
@@ -654,6 +655,15 @@ export function planPrompt(plan: SessionPlan): string {
     pilates
       ? `- PILATES CONCEPT: a controlled Pilates session in SETS & REPS only — never Tabata, AMRAP, EMOM, For Time, circuit, HIIT or metabolic work, and never a conditioning finisher. Emphasise control, precision, breathing, spinal articulation, deep core, stability and full controlled range. Sequence movements so positions flow (supine work together, side-lying together, quadruped together) and keep equipment changes to a minimum. Quality over speed and fatigue.`
       : ``,
+    lifting
+      ? plan.category === "STRENGTH"
+        ? `- STRENGTH DOCTRINE: the objective is maximal strength and force production with high technical quality — this is NOT hypertrophy with heavier weights. REPS & SETS only (no AMRAP, EMOM, Tabata, For Time, circuit or chipper anywhere in the session, finisher included). Hierarchy: primary compound → secondary compound → accessory → accessory → core/carry, and only as many of those levels as the time honestly allows. The primary compound gets the highest priority, the freshest athlete and the longest rest. Keep 1-3 reps in reserve, never train primary strength work to failure, and never shorten rest just to make the session fit the advertised duration.`
+        : `- MUSCLE BUILDING DOCTRINE: the objective is hypertrophy — mechanical tension, controlled eccentrics, adequate volume and appropriate proximity to failure. This is NOT strength with higher reps. REPS & SETS only (no AMRAP, EMOM, Tabata, For Time, circuit or chipper anywhere, finisher included). Hierarchy: primary compound → secondary compound → targeted accessory → accessory/isolation → optional pump movement, only as many as the time honestly allows. Rest 60-90 sec on most work, longer on demanding compounds when quality needs it. Beginner 2-3 RIR, intermediate and advanced 1-2 RIR — do not routinely prescribe absolute failure. Tempo must suit the movement, not be copy-pasted onto every line.`
+      : ``,
+    lifting ? `- FINISHER DECISION: ${plan.finisherDirective}` : ``,
+    lifting
+      ? `- NO ARTIFICIAL TIME FILLING: the advertised duration is a programming target, not a quota. A professionally programmed ${Math.max(1, plan.minutes - 8)}-minute session beats a padded ${plan.minutes}-minute one. Never invent work to reach a number, and never let the ⚡ Finisher rival the 💪 Main Workout in exercises, sets or time.`
+      : ``,
     doseText("- Main Workout dosing", plan.main),
     plan.finisher ? doseText("- Finisher dosing", plan.finisher) : "",
     `- MOVEMENT ORDER in 💪: ${plan.sequence.join(" → ")}. Technical and heaviest work first, isolation and conditioning last, core never before the movements that need bracing.`,
@@ -663,10 +673,13 @@ export function planPrompt(plan: SessionPlan): string {
     `- MOOD: ${plan.moodDirective}`,
     `- LOCATION: ${plan.locationDirective}`,
     `- DIFFICULTY: ${plan.intensityDirective}`,
-    `- TIME MATH: ${plan.minutes} min of advertised work counts 💪 + ⚡ only. Sets × (work + rest) must land within ±5 min of that.`,
+    lifting
+      ? `- TIME MATH: ${plan.minutes} min of advertised work counts 💪 + ⚡ only. Dose the Main Workout honestly (sets × (work + rest)); if that already fills the session, output no Finisher rather than compressing the main work.`
+      : `- TIME MATH: ${plan.minutes} min of advertised work counts 💪 + ⚡ only. Sets × (work + rest) must land within ±5 min of that.`,
   ];
   return lines.filter(Boolean).join("\n");
 }
+
 
 // ---------------------------------------------------------------------------
 // Post-generation quality score
