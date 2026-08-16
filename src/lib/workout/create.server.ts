@@ -231,8 +231,8 @@ export async function createWorkoutForUser(
   const { effectiveStars } = resolveDifficulty(requestedStars, mood);
   const stars = effectiveStars;
 
-  // MICRO WORKOUT: an equipment-free movement break. The requested duration is
-  // honoured (2-10 min) and never inflated; gear choices never apply here.
+  // MICRO WORKOUT: an equipment-free 10-minute movement break. Gear choices
+  // never apply here.
   if (category === "MICRO-WORKOUTS") {
     minutes = microMinutes(minutes);
     equipmentIds = ["bodyweight"];
