@@ -40,6 +40,9 @@ export type SessionPlan = {
   maxEquipmentFamilies: number;
   /** How many times the athlete may switch station across the work sections. */
   maxTransitions: number;
+  /** CARDIO only: which aerobic expression today's session must follow. */
+  cardioExpression?: CardioExpression;
+
   moodDirective: string;
   locationDirective: string;
   intensityDirective: string;
