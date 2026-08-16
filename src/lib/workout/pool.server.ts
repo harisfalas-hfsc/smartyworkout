@@ -272,11 +272,25 @@ export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
       pool = pool.filter((e) => isBodyweight(e) && !HOME_APPARATUS_RE.test(text(e)));
   }
 
-  // 3. Strict difficulty match (no level mixing).
+  // 3. Difficulty. Start strict; when the level is genuinely thin, widen to the
+  //    ADJACENT level only (never to the whole library, never by an arbitrary
+  //    exercise count). Beginner never inherits advanced movements.
   if (f.level !== "all") {
-    const strict = pool.filter((e) => (e.difficulty ?? "").toLowerCase() === f.level);
-    if (strict.length >= 40) pool = strict;
+    const at = (lvl: string) => pool.filter((e) => (e.difficulty ?? "").toLowerCase() === lvl);
+    const strict = at(f.level);
+    if (strict.length >= 12) pool = strict;
+    else {
+      const adjacent =
+        f.level === "beginner"
+          ? ["intermediate"]
+          : f.level === "advanced"
+            ? ["intermediate"]
+            : ["beginner", "advanced"];
+      const widened = [...strict, ...adjacent.flatMap(at)];
+      if (widened.length) pool = widened;
+    }
   }
+
 
   // 4. Static-hold guardrail for momentum / conditioning categories.
   const momentum: Category[] = ["CARDIO", "CALORIE BURNING", "METABOLIC", "CHALLENGE"];
