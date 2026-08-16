@@ -23,21 +23,14 @@ export async function sendContactEmails(input: {
   message: string;
 }) {
   const { threadId, name, email, subject, message } = input;
-  await Promise.all([
-    safeSend(
-      "contact-confirmation",
-      email,
-      { name, subject, message },
-      `contact-confirmation-${threadId}`,
-    ),
-    safeSend(
-      "contact-notification",
-      email,
-      { name, email, subject, message },
-      `contact-notification-${threadId}`,
-      email,
-    ),
-  ]);
+  await safeSend(
+    "contact-confirmation",
+    email,
+    { name, subject, message },
+    `contact-confirmation-${threadId}`,
+  );
+  const { notifyAdminsOfInboundMessage } = await import("@/lib/support-notify.server");
+  await notifyAdminsOfInboundMessage({ threadId, name, email, subject, message });
 }
 
 export async function sendSupportReplyEmail(input: {
