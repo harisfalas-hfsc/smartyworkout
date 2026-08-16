@@ -102,6 +102,11 @@ export function NotificationBell() {
             See all notifications
           </Link>
         </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link to="/messages" className="justify-center text-sm font-bold text-primary">
+            Messages with the team
+          </Link>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
