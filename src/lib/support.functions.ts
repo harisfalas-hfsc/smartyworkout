@@ -266,6 +266,18 @@ export const adminReplyToThread = createServerFn({ method: "POST" })
           body: body.slice(0, 240),
         } as never);
       }
+      const toEmail = clean((thread as any).email, 200);
+      if (toEmail) {
+        const { sendSupportReplyEmail } = await import("@/lib/support-email.server");
+        await sendSupportReplyEmail({
+          messageId: String((inserted as any)?.id ?? data.threadId),
+          name: clean((thread as any).name, 120),
+          email: toEmail,
+          subject: clean((thread as any).subject, 200),
+          message: body,
+        });
+      }
+
       return { ok: true as const };
     } catch (e) {
       return { ok: false as const, error: e instanceof Error ? e.message : "Failed" };
