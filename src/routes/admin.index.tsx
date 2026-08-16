@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/PageHeader";
 import { isAdminEmail } from "@/lib/admin";
 import { adminGetStats, type AdminStats } from "@/lib/admin.functions";
+import { adminUnreadMessageCount } from "@/lib/support.functions";
 import { AdminUsersTab } from "@/components/admin/AdminUsersTab";
 import { AdminRevenueTab } from "@/components/admin/AdminRevenueTab";
 import { AdminRulesTab } from "@/components/admin/AdminRulesTab";
