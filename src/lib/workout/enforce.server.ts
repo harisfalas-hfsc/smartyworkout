@@ -84,6 +84,9 @@ export function enforceWorkout(
     requireFinisher?: boolean;
     /** Blueprint minimum for 💪 Main Workout. */
     mainMin?: number;
+    /** Blueprint minimum for ⚡ Finisher (lifting finishers can be 1-2 lines). */
+    finisherMin?: number;
+
     /** Blueprint decision: does this session carry 🔥 Activation / 🧘 Cool Down? */
     requireActivation?: boolean;
     requireCooldown?: boolean;
