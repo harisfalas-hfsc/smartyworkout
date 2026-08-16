@@ -105,25 +105,73 @@ const LEVEL_SHIFT: Record<DifficultyLevel, number> = {
   all: 0,
 };
 
-function strengthDose(level: DifficultyLevel): Dose {
+/**
+ * STRENGTH main dose. The objective is maximal force production with high
+ * technical quality: heavy compounds, low reps, full recovery, never failure.
+ */
+export function strengthDose(level: DifficultyLevel): Dose {
   const shift = LEVEL_SHIFT[level];
+  if (shift < 0)
+    return {
+      sets: [3, 5],
+      reps: [5, 8],
+      restSec: [90, 150],
+      tempo: "controlled 2-sec lower, brief pause, explosive intent up",
+    };
   return {
-    sets: [shift < 0 ? 3 : 4, shift > 0 ? 6 : 5],
-    reps: shift < 0 ? [5, 8] : shift > 0 ? [3, 5] : [4, 6],
-    restSec: shift < 0 ? [90, 150] : [150, 180],
-    tempo: "2-sec lower, brief pause, explosive lift",
+    sets: [4, 6],
+    reps: [3, 6],
+    restSec: shift > 0 ? [150, 180] : [120, 180],
+    tempo: "controlled 2-sec lower, brief pause, explosive intent up",
   };
 }
 
-function hypertrophyDose(level: DifficultyLevel): Dose {
+/**
+ * MUSCLE BUILDING main dose. The objective is hypertrophy stimulus: mechanical
+ * tension, controlled eccentrics, moderate volume, close to but not at failure.
+ */
+export function hypertrophyDose(level: DifficultyLevel): Dose {
   const shift = LEVEL_SHIFT[level];
+  if (shift < 0)
+    return {
+      sets: [2, 3],
+      reps: [8, 15],
+      restSec: [60, 90],
+      tempo: "2-3 sec lower, controlled lift, squeeze the target muscle",
+    };
   return {
-    sets: [3, shift > 0 ? 5 : 4],
-    reps: shift < 0 ? [10, 15] : [8, 12],
+    sets: [3, 4],
+    reps: shift > 0 ? [6, 12] : [8, 12],
     restSec: [60, 90],
-    tempo: "3-sec lower, 1-sec squeeze, controlled lift",
+    tempo: "2-3 sec lower, controlled lift, squeeze the target muscle",
   };
 }
+
+/**
+ * STRENGTH finisher dose — complementary accessory volume that reinforces the
+ * selected focus. It is never a second workout and never conditioning.
+ */
+export function strengthFinisherDose(level: DifficultyLevel): Dose {
+  const shift = LEVEL_SHIFT[level];
+  return {
+    sets: shift > 0 ? [2, 4] : [2, 3],
+    reps: shift < 0 ? [8, 12] : [8, 15],
+    restSec: shift < 0 ? [75, 90] : [60, 90],
+    tempo: "controlled lower, clean lift, stop 2 reps short of failure",
+  };
+}
+
+/** MUSCLE BUILDING finisher dose — a short extra hypertrophy / pump stimulus. */
+export function hypertrophyFinisherDose(level: DifficultyLevel): Dose {
+  const shift = LEVEL_SHIFT[level];
+  return {
+    sets: [2, 3],
+    reps: shift < 0 ? [10, 15] : [12, 20],
+    restSec: shift < 0 ? [60, 75] : [45, 75],
+    tempo: "3-sec lower, hard squeeze at peak contraction, no bouncing",
+  };
+}
+
 
 function conditioningDose(level: DifficultyLevel, hard: boolean): Dose {
   const shift = LEVEL_SHIFT[level];
