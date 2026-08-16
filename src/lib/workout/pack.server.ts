@@ -190,6 +190,8 @@ export function buildPackWorkout(
 ): PackResult {
   const isMicro = input.category === "MICRO-WORKOUTS";
   const isRecovery = input.category === "RECOVERY";
+  // HARD RULE: Micro Workout and Pilates never get a finisher.
+  const noFinisher = isMicro || isRecovery || input.category === "PILATES";
   const favouriteIds = input.favoriteIds ?? [];
   const used = new Set<string>();
 
@@ -197,7 +199,7 @@ export function buildPackWorkout(
   const mainPicks = pickBalanced(pool, mainCount, { favoriteIds: favouriteIds, exclude: used });
   mainPicks.forEach((e) => used.add(e.id));
 
-  const finisherPicks = isMicro || isRecovery
+  const finisherPicks = noFinisher
     ? []
     : pickBalanced(pool, 3, { exclude: used }).length >= 3
       ? pickBalanced(pool, 3, { exclude: used })
@@ -229,11 +231,14 @@ export function buildPackWorkout(
     SOFT_TISSUE.forEach((line) => blocks.push(li(line)));
   }
 
-  blocks.push(heading("🔥", isMicro ? "Activation 1'" : "Activation 5'"));
-  if (activationPicks.length >= 3) {
-    activationPicks.forEach((e) => blocks.push(li(`10 reps ${token(e)} — slow and controlled`)));
-  } else {
-    ACTIVATION_FALLBACK.forEach((line) => blocks.push(li(line)));
+  // Micro Workout is one coherent block: no activation, no cool-down section.
+  if (!isMicro) {
+    blocks.push(heading("🔥", "Activation 5'"));
+    if (activationPicks.length >= 3) {
+      activationPicks.forEach((e) => blocks.push(li(`10 reps ${token(e)} — slow and controlled`)));
+    } else {
+      ACTIVATION_FALLBACK.forEach((line) => blocks.push(li(line)));
+    }
   }
 
   const protocolLine = roundsFor(input.format, input.minutes, mainPicks.length);
@@ -250,12 +255,14 @@ export function buildPackWorkout(
     finisherPicks.forEach((e) => blocks.push(li(`12 reps ${token(e)}`)));
   }
 
+  if (!isMicro) {
   blocks.push(heading("🧘", "Cool Down"));
   if (cooldownPicks.length >= 3) {
     cooldownPicks.forEach((e) => blocks.push(li(`45 sec ${token(e)} — breathe out into the position`)));
     blocks.push(li(COOLDOWN_FALLBACK[2]!));
   } else {
     COOLDOWN_FALLBACK.forEach((line) => blocks.push(li(line)));
+  }
   }
 
 
