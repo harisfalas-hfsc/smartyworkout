@@ -118,10 +118,11 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
     if (main.length < Math.min(3, mainMin)) errors.push(`Main Workout has only ${main.length} exercises.`);
     else warnings.push(`Main Workout is below the ${mainMin}-exercise target.`);
   }
-  if (requiresFinisher && finisher.length < 3) {
+  if (requiresFinisher && finisher.length < (opts.finisherMin ?? 3)) {
     if (!finisher.length) errors.push("Finisher section is missing.");
     else warnings.push(`Finisher has only ${finisher.length} exercises.`);
   }
+
   if (wantsActivation && activation.length < 3) {
     warnings.push(`Activation has only ${activation.length} playable drills.`);
   }
