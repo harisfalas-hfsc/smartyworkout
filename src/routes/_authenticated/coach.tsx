@@ -148,7 +148,9 @@ function CoachPage() {
   const [wodMode, setWodMode] = useState(false);
   const [profileReady, setProfileReady] = useState<boolean | null>(null);
   const [parqFlags, setParqFlags] = useState<string[]>([]);
-  const [parqConsent, setParqConsent] = useState(false);
+  const [parqOpen, setParqOpen] = useState(false);
+  const [pendingSurprise, setPendingSurprise] = useState<boolean | null>(null);
+
 
   useEffect(() => {
     void getMyAccessState()
