@@ -329,47 +329,6 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-function SplashScreen() {
-  const [fade, setFade] = useState(false);
-  const [removed, setRemoved] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    const hide = () => {
-      if (cancelled) return;
-      setFade(true);
-      window.setTimeout(() => {
-        if (!cancelled) setRemoved(true);
-      }, 450);
-    };
-
-    const timer = window.setTimeout(hide, 2500);
-    if (document.readyState === "complete") {
-      hide();
-    } else {
-      window.addEventListener("load", hide);
-    }
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-      window.removeEventListener("load", hide);
-    };
-  }, []);
-
-  if (removed) return null;
-
-  return (
-    <div
-      id="app-splash"
-      className={`app-splash${fade ? " app-splash--fade" : ""}`}
-      aria-hidden="true"
-    >
-      <img src="/icon-512.png" alt="" className="app-splash__icon" />
-    </div>
-  );
-}
-
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
