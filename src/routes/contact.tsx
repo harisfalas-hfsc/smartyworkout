@@ -70,6 +70,7 @@ function Contact() {
     const form = e.currentTarget;
     const fd = new FormData(form);
     fd.append("_captcha", "false");
+    fd.append("_replyto", String(fd.get("email") || ""));
     fd.append("_template", "table");
     fd.append(
       "_subject",
@@ -80,7 +81,10 @@ function Contact() {
         method: "POST",
         body: fd,
       });
-      if (!res.ok) throw new Error("send_failed");
+      const payload = (await res.json().catch(() => null)) as { success?: string | boolean } | null;
+      const ok =
+        res.ok && payload !== null && (payload.success === true || payload.success === "true");
+      if (!ok) throw new Error("send_failed");
       setSent(true);
       form.reset();
       setFiles([]);
