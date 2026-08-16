@@ -62,8 +62,17 @@ export const submitContactMessage = createServerFn({ method: "POST" })
     await supabaseAdmin
       .from("support_messages")
       .insert({ thread_id: (thread as any).id, sender: "user", body: message } as never);
+    const { sendContactEmails } = await import("@/lib/support-email.server");
+    await sendContactEmails({
+      threadId: (thread as any).id as string,
+      name,
+      email,
+      subject,
+      message,
+    });
     return { ok: true as const };
   });
+
 
 /** Contact form submission from a signed-in member (links the thread to the account). */
 export const submitMemberMessage = createServerFn({ method: "POST" })
@@ -84,7 +93,18 @@ export const submitMemberMessage = createServerFn({ method: "POST" })
     await context.supabase
       .from("support_messages")
       .insert({ thread_id: (thread as any).id, sender: "user", body: message, author_id: context.userId } as never);
+    if (email) {
+      const { sendContactEmails } = await import("@/lib/support-email.server");
+      await sendContactEmails({
+        threadId: (thread as any).id as string,
+        name,
+        email,
+        subject,
+        message,
+      });
+    }
     return { ok: true as const, threadId: (thread as any).id as string };
+
   });
 
 /** Member inbox: all their conversations with the messages inside. */
@@ -218,13 +238,16 @@ export const adminReplyToThread = createServerFn({ method: "POST" })
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { data: thread } = await supabaseAdmin
         .from("support_threads")
-        .select("id,user_id,subject")
+        .select("id,user_id,subject,name,email")
         .eq("id", data.threadId)
         .maybeSingle();
       if (!thread) return { ok: false as const, error: "Conversation not found" };
-      await supabaseAdmin
+      const { data: inserted } = await supabaseAdmin
         .from("support_messages")
-        .insert({ thread_id: data.threadId, sender: "admin", body, author_id: context.userId } as never);
+        .insert({ thread_id: data.threadId, sender: "admin", body, author_id: context.userId } as never)
+        .select("id")
+        .single();
+
       await supabaseAdmin
         .from("support_threads")
         .update({
@@ -243,6 +266,18 @@ export const adminReplyToThread = createServerFn({ method: "POST" })
           body: body.slice(0, 240),
         } as never);
       }
+      const toEmail = clean((thread as any).email, 200);
+      if (toEmail) {
+        const { sendSupportReplyEmail } = await import("@/lib/support-email.server");
+        await sendSupportReplyEmail({
+          messageId: String((inserted as any)?.id ?? data.threadId),
+          name: clean((thread as any).name, 120),
+          email: toEmail,
+          subject: clean((thread as any).subject, 200),
+          message: body,
+        });
+      }
+
       return { ok: true as const };
     } catch (e) {
       return { ok: false as const, error: e instanceof Error ? e.message : "Failed" };
