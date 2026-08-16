@@ -192,6 +192,44 @@ const SEQUENCES: Partial<Record<Category, string[]>> = {
 const LOW_ENERGY = new Set(["tired", "stressed", "low", "sore"]);
 const HIGH_ENERGY = new Set(["energized", "good", "push"]);
 
+// ---------------------------------------------------------------------------
+// Requested vs Effective difficulty
+// ---------------------------------------------------------------------------
+
+/** True when the athlete's current state must soften today's dose. */
+export function isLowEnergyState(mood: string | null | undefined): boolean {
+  return LOW_ENERGY.has((mood ?? "").toLowerCase());
+}
+
+export type DifficultyResolution = {
+  /** What the profile, the user or the WOD asked for (never shown differently). */
+  requestedStars: number;
+  /** What the engine actually programmes today. */
+  effectiveStars: number;
+  softenedBy: string | null;
+};
+
+/**
+ * Requested difficulty -> current athlete state -> effective difficulty.
+ * Tired / low / sore soften by exactly one full star, never below 1.
+ * Everything downstream (pool, blueprint, prompt, enforcement) uses the
+ * effective value; the user-facing requested value is unchanged.
+ */
+export function resolveDifficulty(
+  requestedStars: number,
+  mood: string | null | undefined,
+): DifficultyResolution {
+  const requested = Math.max(1, Math.min(3, Math.round(requestedStars || 1)));
+  if (!isLowEnergyState(mood))
+    return { requestedStars: requested, effectiveStars: requested, softenedBy: null };
+  return {
+    requestedStars: requested,
+    effectiveStars: Math.max(1, requested - 1),
+    softenedBy: (mood ?? "").toLowerCase(),
+  };
+}
+
+
 function moodDirective(mood: string | null | undefined): string {
   const m = (mood ?? "").toLowerCase();
   if (LOW_ENERGY.has(m))
