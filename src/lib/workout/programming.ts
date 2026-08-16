@@ -327,12 +327,38 @@ export function buildSessionPlan(input: {
 }): SessionPlan {
   const shape = durationShape(input.minutes, input.category);
   const { main, finisher } = doseFor(input.category, input.level);
+
+  // STRENGTH PRIORITY: the finisher is optional and must never compete with
+  // the primary strength objective. It only appears when the session is long
+  // enough to complete the heavy work first, and it is always short and light.
+  const isStrength = input.category === "STRENGTH";
+  const strengthFinisherAllowed = isStrength ? input.minutes >= 40 : true;
+
   // HARD RULE: Recovery, Micro Workout and Pilates never carry a finisher.
   const noFinisher =
     input.category === "RECOVERY" ||
     input.category === "MICRO-WORKOUTS" ||
     input.category === "PILATES" ||
+    !strengthFinisherAllowed ||
     shape.finisherCount[1] === 0;
+
+  const finisherCount: [number, number] = noFinisher
+    ? [0, 0]
+    : isStrength
+      ? [2, Math.min(3, shape.finisherCount[1])]
+      : shape.finisherCount;
+
+  // A strength finisher is accessory volume, not a second workout.
+  const finisherDose: Dose | null = noFinisher
+    ? null
+    : isStrength && finisher
+      ? {
+          ...finisher,
+          sets: [2, 3],
+          restSec: [60, 90],
+          tempo: `${finisher.tempo} — accessory only, stop 3 reps short of failure`,
+        }
+      : finisher;
 
   const dense =
     input.format === "CIRCUIT" ||
@@ -349,10 +375,10 @@ export function buildSessionPlan(input: {
     softTissue: shape.softTissue,
     activationCount: shape.activationCount,
     mainCount: shape.mainCount,
-    finisherCount: noFinisher ? [0, 0] : shape.finisherCount,
+    finisherCount,
     cooldownCount: shape.cooldownCount,
     main,
-    finisher: noFinisher ? null : finisher,
+    finisher: finisherDose,
     sequence: SEQUENCES[input.category] ?? ["compound", "compound", "accessory", "core"],
     maxEquipmentFamilies: dense
       ? Math.min(2, Math.max(1, input.equipmentCount))
@@ -361,7 +387,11 @@ export function buildSessionPlan(input: {
     moodDirective: moodDirective(input.mood),
     locationDirective: locationDirective(input.location),
     intensityDirective: intensityDirective(input.stars, input.category),
+    ...(input.category === "CARDIO"
+      ? { cardioExpression: cardioExpression(input.format) }
+      : {}),
   };
+
 }
 
 const range = ([a, b]: [number, number], unit: string) =>
