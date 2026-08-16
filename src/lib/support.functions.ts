@@ -93,7 +93,18 @@ export const submitMemberMessage = createServerFn({ method: "POST" })
     await context.supabase
       .from("support_messages")
       .insert({ thread_id: (thread as any).id, sender: "user", body: message, author_id: context.userId } as never);
+    if (email) {
+      const { sendContactEmails } = await import("@/lib/support-email.server");
+      await sendContactEmails({
+        threadId: (thread as any).id as string,
+        name,
+        email,
+        subject,
+        message,
+      });
+    }
     return { ok: true as const, threadId: (thread as any).id as string };
+
   });
 
 /** Member inbox: all their conversations with the messages inside. */
