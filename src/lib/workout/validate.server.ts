@@ -34,6 +34,9 @@ export type ValidateOptions = {
   mainMin?: number;
   /** Blueprint decision: does this duration / category carry a ⚡ Finisher? */
   requireFinisher?: boolean;
+  /** Blueprint minimum for ⚡ Finisher lines. */
+  finisherMin?: number;
+
   /** Blueprint decision: does this session carry 🔥 Activation / 🧘 Cool Down? */
   requireActivation?: boolean;
   requireCooldown?: boolean;
