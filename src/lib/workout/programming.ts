@@ -331,14 +331,28 @@ function doseText(label: string, d: Dose): string {
 
 /** The blueprint text injected into the model prompt. */
 export function planPrompt(plan: SessionPlan): string {
+  const micro = plan.category === "MICRO-WORKOUTS";
+  const pilates = plan.category === "PILATES";
   const lines = [
     `SESSION BLUEPRINT (hard numbers — a session outside these ranges is rejected)`,
-    `- 🔥 Activation: exactly ${plan.activationCount} token lines.`,
+    micro
+      ? `- NO 🧽 Soft Tissue, NO 🔥 Activation, NO ⚡ Finisher, NO 🧘 Cool Down. Output ONE 💪 Main Workout section only — the first movement is the preparation.`
+      : plan.activationCount === 0
+        ? `- NO separate 🔥 Activation section.`
+        : `- 🔥 Activation: exactly ${plan.activationCount} token lines${pilates ? " that directly prepare the patterns used in the main work (breath, spine, hips or trunk control) — skip it entirely if it adds nothing" : ""}.`,
     `- 💪 Main Workout: ${range(plan.mainCount, "exercises")}.`,
     plan.finisher
       ? `- ⚡ Finisher: ${range(plan.finisherCount, "exercises")}.`
       : `- NO Finisher section at this duration and category.`,
-    `- 🧘 Cool Down: ${plan.cooldownCount} token lines plus one breathing line.`,
+    plan.cooldownCount === 0
+      ? ``
+      : `- 🧘 Cool Down: ${plan.cooldownCount} token lines plus one breathing line.`,
+    micro
+      ? `- MICRO WORKOUT CONCEPT: a 10-minute equipment-free movement break someone can do right now in office clothes, at a desk, in a small room or on the stairs. Bodyweight and environment only (floor, wall, chair, desk, sofa, table, stairs). Zero training equipment. Keep the athlete in roughly one spot — no wandering between rooms. Reps must be intelligent for the level, never junk volume. Golden test: could someone realistically do this in a 10-minute break without changing clothes or setting anything up? If not, rewrite it.`
+      : ``,
+    pilates
+      ? `- PILATES CONCEPT: a controlled Pilates session in SETS & REPS only — never Tabata, AMRAP, EMOM, For Time, circuit, HIIT or metabolic work, and never a conditioning finisher. Emphasise control, precision, breathing, spinal articulation, deep core, stability and full controlled range. Sequence movements so positions flow (supine work together, side-lying together, quadruped together) and keep equipment changes to a minimum. Quality over speed and fatigue.`
+      : ``,
     doseText("- Main Workout dosing", plan.main),
     plan.finisher ? doseText("- Finisher dosing", plan.finisher) : "",
     `- MOVEMENT ORDER in 💪: ${plan.sequence.join(" → ")}. Technical and heaviest work first, isolation and conditioning last, core never before the movements that need bracing.`,
