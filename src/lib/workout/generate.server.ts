@@ -206,10 +206,12 @@ export async function generateWorkoutContent(
     dislikedIds,
     prepIds,
     requireFinisher: Boolean(plan.finisher),
+    finisherMin: Math.max(1, plan.finisherCount[0]),
     requireActivation: plan.activationCount > 0,
     requireCooldown: plan.cooldownCount > 0,
     mainMin: plan.mainCount[0],
   };
+
 
 
   const fallbackName = () =>
