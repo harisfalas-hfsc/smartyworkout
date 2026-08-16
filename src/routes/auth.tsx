@@ -38,9 +38,31 @@ function Auth() {
   const [submitting, setSubmitting] = useState(false);
   const [resetSent, setResetSent] = useState(false);
 
-  const goNext = () => {
-    if (next) navigate({ to: next as never, replace: true });
-    else navigate({ to: "/profile", replace: true });
+  const goNext = async () => {
+    if (next) {
+      navigate({ to: next as never, replace: true });
+      return;
+    }
+    // Only send users to the Training Profile when they have not completed it yet.
+    try {
+      const { data: auth } = await supabase.auth.getUser();
+      const uid = auth.user?.id;
+      if (uid) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("onboarded, health_acknowledged_at")
+          .eq("id", uid)
+          .maybeSingle();
+        const row = profile as { onboarded?: boolean; health_acknowledged_at?: string | null } | null;
+        if (row?.onboarded && row?.health_acknowledged_at) {
+          navigate({ to: "/", replace: true });
+          return;
+        }
+      }
+    } catch {
+      /* fall through to profile */
+    }
+    navigate({ to: "/profile", replace: true });
   };
 
   useEffect(() => {
