@@ -281,8 +281,22 @@ export async function createWorkoutForUser(
     review_warnings: string[] | null;
   };
 
+  /**
+   * PERSONAL CONTEXT GATE: an archived workout may only be reused when nothing
+   * personal would have changed the programming. Limitations, active library
+   * likes/dislikes, logged performance and a non-neutral mood all make the
+   * session athlete-specific, so those requests always generate fresh.
+   */
+  const personalContext =
+    Boolean(((prof?.["limitations"] as string[] | null) ?? []).length) ||
+    favoriteIds.length > 0 ||
+    dislikedIds.length > 0 ||
+    performanceLines.length > 0 ||
+    feedbackLines.length > 0 ||
+    (mood !== "normal" && mood !== "");
+
   let reused: ArchivedWorkout | null = null;
-  if (!data.note && !equipmentOther && !data.wod) {
+  if (!data.note && !equipmentOther && !data.wod && !personalContext) {
     const usedSet = new Set(usedNames);
     const sameEquipment = [...equipmentIds].sort().join("|");
     let candidates = db
