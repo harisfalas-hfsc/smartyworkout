@@ -303,10 +303,12 @@ export function enforceWorkout(
   const finisher = counts.get("Finisher") ?? 0;
   if (main < Math.min(3, mainMin)) errors.push(`Main Workout has only ${main} exercises (minimum ${mainMin}).`);
   else if (main < mainMin) warnings.push(`Main Workout is below the ${mainMin}-exercise target.`);
-  if (requiresFinisher && finisher < 3) {
+  const finisherMin = opts.finisherMin ?? 3;
+  if (requiresFinisher && finisher < finisherMin) {
     if (finisher === 0) errors.push("Finisher section is missing.");
-    else warnings.push(`Finisher has only ${finisher} exercises (minimum 3).`);
+    else warnings.push(`Finisher has only ${finisher} exercises (minimum ${finisherMin}).`);
   }
+
 
   const finalHtml = joinSections(sections);
 
