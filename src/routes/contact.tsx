@@ -130,11 +130,11 @@ function Contact() {
             <h2 className="text-xl font-bold text-foreground">Message sent</h2>
             <p className="text-sm text-muted-foreground">
               Thanks — we've received your message and will reply within 24–48 hours.
-              {signedIn ? " Our reply lands in your Messages inbox." : ""}
+              {signedIn ? " Our reply lands in your in-app inbox." : ""}
             </p>
             {signedIn && (
               <Button asChild variant="secondary" className="w-full">
-                <Link to="/messages">Open my messages</Link>
+                <Link to="/inbox" search={{ tab: "messages" as const, compose: false }}>Open my inbox</Link>
               </Button>
             )}
             <Button onClick={() => setSent(false)} className="w-full">
@@ -202,7 +202,7 @@ function Contact() {
               {signedIn && (
                 <p className="text-center text-xs text-muted-foreground">
                   All your conversations live in{" "}
-                  <Link to="/messages" className="font-semibold text-primary hover:underline">
+                  <Link to="/inbox" search={{ tab: "messages" as const, compose: false }} className="font-semibold text-primary hover:underline">
                     Messages
                   </Link>
                   .
