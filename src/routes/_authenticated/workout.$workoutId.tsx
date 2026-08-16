@@ -9,6 +9,7 @@ import { setWorkoutStatus } from "@/lib/coach.functions";
 import { getMyAccessState } from "@/lib/access.functions";
 import { toast } from "sonner";
 import { WorkoutDisplay, type WorkoutRow } from "@/components/workout/WorkoutDisplay";
+import { ParqWaiverDialog } from "@/components/ParqWaiverDialog";
 
 export const Route = createFileRoute("/_authenticated/workout/$workoutId")({
   head: () => ({
@@ -89,6 +90,7 @@ function WorkoutPage() {
       }
       if (row && access?.readinessFlagged && access.readinessFlags.length > 0) {
         setParqFlags(access.readinessFlags);
+        setParqBlocked(true);
         setParqOpen(true);
       }
       if (row?.status === "completed") setDone(true);
