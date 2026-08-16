@@ -581,15 +581,15 @@ export function buildSessionPlan(input: {
 
 
   const dense =
-    input.format === "CIRCUIT" ||
-    input.format === "AMRAP" ||
-    input.format === "EMOM" ||
-    input.format === "TABATA" ||
-    input.format === "FOR TIME";
+    format === "CIRCUIT" ||
+    format === "AMRAP" ||
+    format === "EMOM" ||
+    format === "TABATA" ||
+    format === "FOR TIME";
 
   return {
     category: input.category,
-    format: input.format,
+    format,
     level: input.level,
     minutes: input.minutes,
     softTissue: shape.softTissue,
@@ -603,14 +603,16 @@ export function buildSessionPlan(input: {
     maxEquipmentFamilies: dense
       ? Math.min(2, Math.max(1, input.equipmentCount))
       : Math.min(3, Math.max(1, input.equipmentCount)),
-    maxTransitions: transitionBudget(input.category, input.format, shape.mainCount[1]),
+    maxTransitions: transitionBudget(input.category, format, shape.mainCount[1]),
+    mainMinutesEstimate,
+    finisherMinutes,
+    finisherDirective,
     moodDirective: moodDirective(input.mood),
     locationDirective: locationDirective(input.location),
     intensityDirective: intensityDirective(input.stars, input.category),
-    ...(input.category === "CARDIO"
-      ? { cardioExpression: cardioExpression(input.format) }
-      : {}),
+    ...(input.category === "CARDIO" ? { cardioExpression: cardioExpression(format) } : {}),
   };
+
 
 }
 
