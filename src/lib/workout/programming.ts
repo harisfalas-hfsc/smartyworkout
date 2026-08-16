@@ -42,11 +42,18 @@ export type SessionPlan = {
   maxTransitions: number;
   /** CARDIO only: which aerobic expression today's session must follow. */
   cardioExpression?: CardioExpression;
+  /** Realistic minutes the Main Workout will occupy at the prescribed dose. */
+  mainMinutesEstimate: number;
+  /** Minutes budgeted for the Finisher (0 when the session carries none). */
+  finisherMinutes: number;
+  /** Why the Finisher exists — or why it was intentionally omitted. */
+  finisherDirective: string;
 
   moodDirective: string;
   locationDirective: string;
   intensityDirective: string;
 };
+
 
 // ---------------------------------------------------------------------------
 // Duration intelligence
