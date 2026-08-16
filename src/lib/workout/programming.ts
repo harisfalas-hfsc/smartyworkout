@@ -344,6 +344,49 @@ function transitionBudget(category: Category, format: Format, mainMax: number): 
 }
 
 // ---------------------------------------------------------------------------
+// Measurable transition cost
+// ---------------------------------------------------------------------------
+
+const FLOOR_RE = /(floor|lying|supine|prone|plank|glute bridge|crunch|sit-up|dead bug|bird dog|kneel|quadruped|side-lying|hip thrust|push-up)/i;
+
+function positionOf(e: { name: string; body_part: string | null } | null): "floor" | "standing" {
+  return e && FLOOR_RE.test(e.name) ? "floor" : "standing";
+}
+
+/**
+ * Real-world setup cost of an ordered main block:
+ *  +2 per equipment/station change, +1 per floor <-> standing change.
+ * Lower is better; the score penalises anything above the format's budget.
+ */
+export function transitionCost(
+  exercises: Array<{ name: string; equipment: string | null; body_part: string | null } | null>,
+  _format: Format,
+): number {
+  let cost = 0;
+  for (let i = 1; i < exercises.length; i++) {
+    const prev = exercises[i - 1] ?? null;
+    const cur = exercises[i] ?? null;
+    if (equipmentFamily(prev?.equipment ?? null) !== equipmentFamily(cur?.equipment ?? null))
+      cost += 2;
+    if (positionOf(prev) !== positionOf(cur)) cost += 1;
+  }
+  return cost;
+}
+
+/** Practical transition-cost budget for a session plan. */
+export function transitionCostBudget(plan: Pick<SessionPlan, "format" | "mainCount">): number {
+  const dense =
+    plan.format === "CIRCUIT" ||
+    plan.format === "AMRAP" ||
+    plan.format === "EMOM" ||
+    plan.format === "TABATA" ||
+    plan.format === "FOR TIME";
+  const n = plan.mainCount[1];
+  return dense ? Math.max(2, Math.round(n * 0.8)) : Math.max(4, Math.round(n * 1.6));
+}
+
+
+// ---------------------------------------------------------------------------
 // Plan builder
 // ---------------------------------------------------------------------------
 
