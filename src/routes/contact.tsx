@@ -1,9 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { supabase } from "@/integrations/supabase/client";
+import { submitContactMessage, submitMemberMessage } from "@/lib/support.functions";
 import {
   Mail,
   Send,
-  Paperclip,
   CheckCircle2,
   Clock,
   MessageSquare,
@@ -58,10 +60,19 @@ export const Route = createFileRoute("/contact")({
 });
 
 function Contact() {
+  const submitPublic = useServerFn(submitContactMessage);
+  const submitMember = useServerFn(submitMemberMessage);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [files, setFiles] = useState<File[]>([]);
+
+  useEffect(() => {
+    supabase.auth
+      .getUser()
+      .then(({ data }) => setSignedIn(Boolean(data.user)))
+      .catch(() => setSignedIn(false));
+  }, []);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -69,25 +80,19 @@ function Contact() {
     setSending(true);
     const form = e.currentTarget;
     const fd = new FormData(form);
-    fd.append("_captcha", "false");
-    fd.append("_replyto", String(fd.get("email") || ""));
-    fd.append("_template", "table");
-    fd.append(
-      "_subject",
-      `[SmartyWorkout] ${String(fd.get("subject") || "New contact message")}`,
-    );
+    const payload = {
+      name: String(fd.get("name") || ""),
+      email: String(fd.get("email") || ""),
+      subject: String(fd.get("subject") || ""),
+      message: String(fd.get("message") || ""),
+    };
     try {
-      const res = await fetch(`https://formsubmit.co/ajax/${SUPPORT_EMAIL}`, {
-        method: "POST",
-        body: fd,
-      });
-      const payload = (await res.json().catch(() => null)) as { success?: string | boolean } | null;
-      const ok =
-        res.ok && payload !== null && (payload.success === true || payload.success === "true");
-      if (!ok) throw new Error("send_failed");
+      const res = signedIn
+        ? await submitMember({ data: payload })
+        : await submitPublic({ data: payload });
+      if (!res.ok) throw new Error("error" in res ? String(res.error) : "send_failed");
       setSent(true);
       form.reset();
-      setFiles([]);
     } catch {
       setError(`We couldn't send your message. Please email ${SUPPORT_EMAIL} directly.`);
     } finally {
@@ -125,7 +130,13 @@ function Contact() {
             <h2 className="text-xl font-bold text-foreground">Message sent</h2>
             <p className="text-sm text-muted-foreground">
               Thanks — we've received your message and will reply within 24–48 hours.
+              {signedIn ? " Our reply lands in your Messages inbox." : ""}
             </p>
+            {signedIn && (
+              <Button asChild variant="secondary" className="w-full">
+                <Link to="/messages">Open my messages</Link>
+              </Button>
+            )}
             <Button onClick={() => setSent(false)} className="w-full">
               Send another
             </Button>
@@ -138,14 +149,16 @@ function Contact() {
               <Send className="w-10 h-10 text-primary mx-auto" />
               <h2 className="text-xl font-bold text-foreground">Send us a Message</h2>
               <p className="text-xs text-muted-foreground">
-                Fill the form below — we'll get back to you soon.
+                {signedIn
+                  ? "We answer inside the app — your reply appears in Messages and in your notifications."
+                  : "Fill the form below — we'll reply to your email address."}
               </p>
             </div>
             <form onSubmit={onSubmit} className="space-y-4">
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label htmlFor="name">Name *</Label>
-                  <Input id="name" name="name" required placeholder="Your full name" />
+                  <Input id="name" name="name" required placeholder="Your full name" maxLength={120} />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="email">Email *</Label>
@@ -155,12 +168,13 @@ function Contact() {
                     type="email"
                     required
                     placeholder="you@example.com"
+                    maxLength={200}
                   />
                 </div>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="subject">Subject *</Label>
-                <Input id="subject" name="subject" required placeholder="How can we help?" />
+                <Input id="subject" name="subject" required placeholder="How can we help?" maxLength={200} />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="message">Message *</Label>
@@ -169,45 +183,11 @@ function Contact() {
                   name="message"
                   required
                   rows={6}
+                  maxLength={5000}
                   placeholder="Tell us what's on your mind…"
                   className="resize-none"
                 />
               </div>
-
-              <div className="space-y-1.5">
-                <Label>Attachments (Optional)</Label>
-                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-md border-2 border-dashed border-primary/40 bg-primary/5 p-4 text-sm font-semibold text-primary hover:bg-primary/10">
-                  <Paperclip className="h-4 w-4" />
-                  {files.length
-                    ? `${files.length} file${files.length === 1 ? "" : "s"} attached`
-                    : "Attach screenshots or PDFs"}
-                  <input
-                    type="file"
-                    name="attachment"
-                    multiple
-                    onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
-                    className="hidden"
-                  />
-                </label>
-                {files.length > 0 && (
-                  <ul className="mt-1 space-y-0.5">
-                    {files.map((f, i) => (
-                      <li key={i} className="text-xs text-muted-foreground">
-                        • {f.name} ({Math.round(f.size / 1024)} KB)
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-
-              {/* Honeypot */}
-              <input
-                type="text"
-                name="_honey"
-                style={{ display: "none" }}
-                tabIndex={-1}
-                autoComplete="off"
-              />
 
               {error && (
                 <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
@@ -219,19 +199,33 @@ function Contact() {
                 <Send className="w-4 h-4 mr-2" />
                 {sending ? "Sending…" : "Send Message"}
               </Button>
-              <p className="text-center text-xs text-muted-foreground">
-                Or email us directly at{" "}
-                <a
-                  href={`mailto:${SUPPORT_EMAIL}`}
-                  className="font-semibold text-primary hover:underline"
-                >
-                  {SUPPORT_EMAIL}
-                </a>
-              </p>
+              {signedIn && (
+                <p className="text-center text-xs text-muted-foreground">
+                  All your conversations live in{" "}
+                  <Link to="/messages" className="font-semibold text-primary hover:underline">
+                    Messages
+                  </Link>
+                  .
+                </p>
+              )}
             </form>
           </CardContent>
         </Card>
       )}
+
+      {/* Direct email — independent channel */}
+      <Card className="border-2 border-primary">
+        <CardContent className="p-6 text-center space-y-2">
+          <Mail className="w-8 h-8 text-primary mx-auto" />
+          <h2 className="text-lg font-bold text-foreground">Or email us directly</h2>
+          <p className="text-sm text-muted-foreground">
+            Prefer your own email app? Write to us and we'll answer from there.
+          </p>
+          <Button asChild variant="secondary" className="w-full">
+            <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 }

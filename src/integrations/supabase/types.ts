@@ -499,6 +499,86 @@ export type Database = {
         }
         Relationships: []
       }
+      support_messages: {
+        Row: {
+          author_id: string | null
+          body: string
+          created_at: string
+          id: string
+          sender: string
+          thread_id: string
+        }
+        Insert: {
+          author_id?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          sender: string
+          thread_id: string
+        }
+        Update: {
+          author_id?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          sender?: string
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "support_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_threads: {
+        Row: {
+          admin_unread: boolean
+          created_at: string
+          email: string
+          id: string
+          last_message_at: string
+          name: string
+          status: string
+          subject: string
+          updated_at: string
+          user_deleted: boolean
+          user_id: string | null
+          user_unread: boolean
+        }
+        Insert: {
+          admin_unread?: boolean
+          created_at?: string
+          email?: string
+          id?: string
+          last_message_at?: string
+          name?: string
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_deleted?: boolean
+          user_id?: string | null
+          user_unread?: boolean
+        }
+        Update: {
+          admin_unread?: boolean
+          created_at?: string
+          email?: string
+          id?: string
+          last_message_at?: string
+          name?: string
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_deleted?: boolean
+          user_id?: string | null
+          user_unread?: boolean
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

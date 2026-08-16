@@ -31,6 +31,7 @@ import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
 import { Route as AuthenticatedCoachRouteImport } from './routes/_authenticated/coach'
 import { Route as AuthenticatedLogbookRouteImport } from './routes/_authenticated/logbook'
+import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedProgressRouteImport } from './routes/_authenticated/progress'
@@ -154,6 +155,11 @@ const AuthenticatedLogbookRoute = AuthenticatedLogbookRouteImport.update({
   path: '/logbook',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMessagesRoute = AuthenticatedMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedNotificationsRoute =
   AuthenticatedNotificationsRouteImport.update({
     id: '/notifications',
@@ -246,6 +252,7 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof AuthenticatedCheckoutRouteWithChildren
   '/coach': typeof AuthenticatedCoachRoute
   '/logbook': typeof AuthenticatedLogbookRoute
+  '/messages': typeof AuthenticatedMessagesRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/progress': typeof AuthenticatedProgressRoute
@@ -282,6 +289,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof AuthenticatedCheckoutRouteWithChildren
   '/coach': typeof AuthenticatedCoachRoute
   '/logbook': typeof AuthenticatedLogbookRoute
+  '/messages': typeof AuthenticatedMessagesRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/progress': typeof AuthenticatedProgressRoute
@@ -320,6 +328,7 @@ export interface FileRoutesById {
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRouteWithChildren
   '/_authenticated/coach': typeof AuthenticatedCoachRoute
   '/_authenticated/logbook': typeof AuthenticatedLogbookRoute
+  '/_authenticated/messages': typeof AuthenticatedMessagesRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/progress': typeof AuthenticatedProgressRoute
@@ -358,6 +367,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/coach'
     | '/logbook'
+    | '/messages'
     | '/notifications'
     | '/profile'
     | '/progress'
@@ -394,6 +404,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/coach'
     | '/logbook'
+    | '/messages'
     | '/notifications'
     | '/profile'
     | '/progress'
@@ -431,6 +442,7 @@ export interface FileRouteTypes {
     | '/_authenticated/checkout'
     | '/_authenticated/coach'
     | '/_authenticated/logbook'
+    | '/_authenticated/messages'
     | '/_authenticated/notifications'
     | '/_authenticated/profile'
     | '/_authenticated/progress'
@@ -631,6 +643,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLogbookRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/messages': {
+      id: '/_authenticated/messages'
+      path: '/messages'
+      fullPath: '/messages'
+      preLoaderRoute: typeof AuthenticatedMessagesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/notifications': {
       id: '/_authenticated/notifications'
       path: '/notifications'
@@ -743,6 +762,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCheckoutRoute: typeof AuthenticatedCheckoutRouteWithChildren
   AuthenticatedCoachRoute: typeof AuthenticatedCoachRoute
   AuthenticatedLogbookRoute: typeof AuthenticatedLogbookRoute
+  AuthenticatedMessagesRoute: typeof AuthenticatedMessagesRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedProgressRoute: typeof AuthenticatedProgressRoute
@@ -754,6 +774,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCheckoutRoute: AuthenticatedCheckoutRouteWithChildren,
   AuthenticatedCoachRoute: AuthenticatedCoachRoute,
   AuthenticatedLogbookRoute: AuthenticatedLogbookRoute,
+  AuthenticatedMessagesRoute: AuthenticatedMessagesRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedProgressRoute: AuthenticatedProgressRoute,

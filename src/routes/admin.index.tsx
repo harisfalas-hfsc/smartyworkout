@@ -12,6 +12,7 @@ import {
   CalendarDays,
   ClipboardList,
   Dumbbell,
+  MessagesSquare,
   ArrowLeft,
   type LucideIcon,
 } from "lucide-react";
@@ -24,6 +25,7 @@ import { AdminRevenueTab } from "@/components/admin/AdminRevenueTab";
 import { AdminRulesTab } from "@/components/admin/AdminRulesTab";
 import { AdminCycleTab } from "@/components/admin/AdminCycleTab";
 import { AdminWorkoutsTab } from "@/components/admin/AdminWorkoutsTab";
+import { AdminMessagesTab } from "@/components/admin/AdminMessagesTab";
 
 export const Route = createFileRoute("/admin/")({
   component: AdminPage,
@@ -40,7 +42,14 @@ export const Route = createFileRoute("/admin/")({
   }),
 });
 
-type SectionKey = "customers" | "subscribers" | "revenue" | "rules" | "cycle" | "workouts";
+type SectionKey =
+  | "customers"
+  | "subscribers"
+  | "revenue"
+  | "rules"
+  | "cycle"
+  | "workouts"
+  | "messages";
 
 const SECTIONS: { key: SectionKey; label: string; description: string; Icon: LucideIcon }[] = [
   { key: "revenue", label: "Revenue", description: "Payments and monthly totals", Icon: TrendingUp },
@@ -49,6 +58,12 @@ const SECTIONS: { key: SectionKey; label: string; description: string; Icon: Luc
     label: "Workouts",
     description: "Every workout ever generated",
     Icon: ClipboardList,
+  },
+  {
+    key: "messages",
+    label: "Messages",
+    description: "Member messages and announcements",
+    Icon: MessagesSquare,
   },
   { key: "customers", label: "Customers", description: "Search, grant, revoke, promote", Icon: Users },
   { key: "subscribers", label: "Subscribers", description: "Active memberships only", Icon: Crown },
@@ -124,6 +139,7 @@ function AdminPage() {
           {section === "rules" && <AdminRulesTab />}
           {section === "cycle" && <AdminCycleTab />}
           {section === "workouts" && <AdminWorkoutsTab />}
+          {section === "messages" && <AdminMessagesTab />}
         </div>
       ) : (
         <AdminHub onOpen={setSection} />
