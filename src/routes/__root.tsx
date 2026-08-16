@@ -332,43 +332,51 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <div
-          id="app-splash"
-          className="app-splash"
-          aria-hidden="true"
-        >
-          <img src="/icon-512.png" alt="" className="app-splash__icon" />
-        </div>
         {children}
         <Scripts />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                var hidden = false;
-                function hideSplash() {
-                  if (hidden) return;
-                  hidden = true;
-                  var splash = document.getElementById('app-splash');
-                  if (!splash) return;
-                  splash.classList.add('app-splash--fade');
-                  setTimeout(function() {
-                    splash.remove();
-                  }, 450);
-                }
-                if (document.readyState === 'complete') {
-                  hideSplash();
-                } else {
-                  window.addEventListener('load', hideSplash);
-                }
-                // Always fade the splash after a short grace period so the app never stays stuck
-                setTimeout(hideSplash, 2500);
-              })();
-            `,
-          }}
-        />
       </body>
     </html>
+  );
+}
+
+function SplashScreen() {
+  const [fade, setFade] = useState(false);
+  const [removed, setRemoved] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const hide = () => {
+      if (cancelled) return;
+      setFade(true);
+      window.setTimeout(() => {
+        if (!cancelled) setRemoved(true);
+      }, 450);
+    };
+
+    const timer = window.setTimeout(hide, 2500);
+    if (document.readyState === "complete") {
+      hide();
+    } else {
+      window.addEventListener("load", hide);
+    }
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+      window.removeEventListener("load", hide);
+    };
+  }, []);
+
+  if (removed) return null;
+
+  return (
+    <div
+      id="app-splash"
+      className={`app-splash${fade ? " app-splash--fade" : ""}`}
+      aria-hidden="true"
+    >
+      <img src="/icon-512.png" alt="" className="app-splash__icon" />
+    </div>
   );
 }
 
