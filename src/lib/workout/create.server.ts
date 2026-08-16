@@ -93,9 +93,9 @@ export async function createWorkoutForUser(
 
   const goal = String(data.goal ?? "strength");
   const mood = String(data.mood ?? "normal");
-  const minutes = Math.max(5, Math.min(120, Number(data.minutes) || 30));
-  const equipmentIds = (Array.isArray(data.equipment) ? data.equipment : ["bodyweight"]).map(String);
-  const equipmentMode: EquipmentMode =
+  let minutes = Math.max(5, Math.min(120, Number(data.minutes) || 30));
+  let equipmentIds = (Array.isArray(data.equipment) ? data.equipment : ["bodyweight"]).map(String);
+  let equipmentMode: EquipmentMode =
     equipmentIds.length && equipmentIds.every((e) => BODYWEIGHT_ONLY.has(e))
       ? "BODYWEIGHT"
       : "EQUIPMENT";
@@ -223,6 +223,14 @@ export async function createWorkoutForUser(
     category = data.wod.category;
     stars = data.wod.stars;
     focus = data.wod.focus ?? null;
+  }
+
+  // MICRO WORKOUT: a fixed 10-minute, equipment-free movement break. The athlete's
+  // duration and gear choices never apply here.
+  if (category === "MICRO-WORKOUTS") {
+    minutes = 10;
+    equipmentIds = ["bodyweight"];
+    equipmentMode = "BODYWEIGHT";
   }
 
   const usedNames = history.map((r) => r.name);

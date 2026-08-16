@@ -254,15 +254,23 @@ export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
   if (f.category === "MOBILITY & STABILITY")
     pool = pool.filter((e) => !MOBILITY_BAN_RE.test(text(e)));
   if (f.category === "RECOVERY") pool = pool.filter((e) => !RECOVERY_BAN_RE.test(text(e)));
-  if (f.category === "MICRO-WORKOUTS")
-    pool = pool.filter((e) => isBodyweight(e) && !MICRO_BAN_RE.test(text(e)));
+  // MICRO WORKOUT: hard equipment-free rule. Bodyweight and environment only
+  // (floor, wall, chair, desk, sofa, stairs), never training apparatus — the
+  // athlete's normal equipment preferences do not apply to this category.
+  const isMicro = f.category === "MICRO-WORKOUTS";
+  if (isMicro)
+    pool = pool.filter(
+      (e) => isBodyweight(e) && !MICRO_BAN_RE.test(text(e)) && !HOME_APPARATUS_RE.test(text(e)),
+    );
 
   // 2. Exact equipment allowlist. Never widen a user's choices to all equipment.
-  pool = pool.filter((e) =>
-    matchesSelectedEquipment(e, f.selectedEquipment, f.customEquipment ?? []),
-  );
-  if (f.equipmentMode === "BODYWEIGHT")
-    pool = pool.filter((e) => isBodyweight(e) && !HOME_APPARATUS_RE.test(text(e)));
+  if (!isMicro) {
+    pool = pool.filter((e) =>
+      matchesSelectedEquipment(e, f.selectedEquipment, f.customEquipment ?? []),
+    );
+    if (f.equipmentMode === "BODYWEIGHT")
+      pool = pool.filter((e) => isBodyweight(e) && !HOME_APPARATUS_RE.test(text(e)));
+  }
 
   // 3. Strict difficulty match (no level mixing).
   if (f.level !== "all") {
