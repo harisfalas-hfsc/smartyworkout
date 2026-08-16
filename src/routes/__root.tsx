@@ -7,7 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -291,19 +291,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", type: "image/png", sizes: "192x192", href: "/icon-192.png" },
       { rel: "shortcut icon", href: "/favicon.ico" },
       { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
-      { rel: "apple-touch-startup-image", media: "screen and (device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)", href: "/splash/apple-splash-2048x2732.png" },
-      { rel: "apple-touch-startup-image", media: "screen and (device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)", href: "/splash/apple-splash-2048x2732.png" },
-      { rel: "apple-touch-startup-image", media: "screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)", href: "/splash/apple-splash-1242x2688.png" },
-      { rel: "apple-touch-startup-image", media: "screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)", href: "/splash/apple-splash-1125x2436.png" },
-      { rel: "apple-touch-startup-image", media: "screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)", href: "/splash/apple-splash-1242x2688.png" },
-      { rel: "apple-touch-startup-image", media: "screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)", href: "/splash/apple-splash-1242x2208.png" },
-      { rel: "apple-touch-startup-image", media: "screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)", href: "/splash/apple-splash-1125x2436.png" },
-      { rel: "apple-touch-startup-image", media: "screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)", href: "/splash/apple-splash-750x1334.png" },
-      { rel: "apple-touch-startup-image", media: "screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)", href: "/splash/apple-splash-1242x2208.png" },
-      { rel: "apple-touch-startup-image", media: "screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)", href: "/splash/apple-splash-2048x2732.png" },
-      { rel: "apple-touch-startup-image", media: "screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)", href: "/splash/apple-splash-1668x2388.png" },
-      { rel: "apple-touch-startup-image", media: "screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)", href: "/splash/apple-splash-1668x2224.png" },
-      { rel: "apple-touch-startup-image", media: "screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)", href: "/splash/apple-splash-1536x2048.png" },
       { rel: "manifest", href: "/manifest.webmanifest" },
     ],
     scripts: [
@@ -342,47 +329,6 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-function SplashScreen() {
-  const [fade, setFade] = useState(false);
-  const [removed, setRemoved] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    const hide = () => {
-      if (cancelled) return;
-      setFade(true);
-      window.setTimeout(() => {
-        if (!cancelled) setRemoved(true);
-      }, 450);
-    };
-
-    const timer = window.setTimeout(hide, 2500);
-    if (document.readyState === "complete") {
-      hide();
-    } else {
-      window.addEventListener("load", hide);
-    }
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-      window.removeEventListener("load", hide);
-    };
-  }, []);
-
-  if (removed) return null;
-
-  return (
-    <div
-      id="app-splash"
-      className={`app-splash${fade ? " app-splash--fade" : ""}`}
-      aria-hidden="true"
-    >
-      <img src="/icon-512.png" alt="" className="app-splash__icon" />
-    </div>
-  );
-}
-
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
@@ -390,7 +336,6 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <div className="flex min-h-screen flex-col bg-background">
-          <SplashScreen />
           <Navigation />
           <main>
             <Outlet />
