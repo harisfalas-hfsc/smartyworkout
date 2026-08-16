@@ -7,6 +7,7 @@ import {
   type Format,
   type StrengthFocus,
 } from "@/lib/workout/spec";
+import { microMinutes, resolveDifficulty } from "@/lib/workout/programming";
 
 export type CoachRequest = {
   goal?: string;
@@ -56,9 +57,9 @@ const LEVEL_STARS: Record<string, number> = {
   advanced: 3,
 };
 
-function starsFor(
+/** REQUESTED difficulty only — mood never enters here. */
+function requestedStarsFor(
   profile: { experience?: string | null; fitness_level?: string | null } | null,
-  mood: string,
   requested?: string,
 ) {
   const level = (profile?.fitness_level ?? profile?.experience ?? "").toLowerCase();
@@ -70,11 +71,9 @@ function starsFor(
         : level.includes("inter")
           ? "intermediate"
           : "beginner";
-  const base = LEVEL_STARS[key]!;
-  // Mood softens a hard day by one level, never below beginner.
-  const tired = mood === "tired" || mood === "low" || mood === "sore";
-  return Math.max(1, Math.min(3, tired ? base - 1 || 1 : base));
+  return LEVEL_STARS[key]!;
 }
+
 
 
 
@@ -212,26 +211,34 @@ export async function createWorkoutForUser(
   if (!data.wod && minutes <= 5) category = "MICRO-WORKOUTS";
 
   const requestedLevel = String(data.level ?? "auto");
-  let stars = starsFor(
+  let requestedStars = requestedStarsFor(
     (prof as never) ?? null,
-    mood,
     requestedLevel === "auto" ? undefined : requestedLevel,
   );
   let focus = (data.focus as StrengthFocus | undefined) ?? null;
 
   if (data.wod) {
+    // WOD: the programming (category, difficulty, focus) is identical for
+    // everyone; only the EXECUTION is personal (equipment, location, mood,
+    // limitations, history).
     category = data.wod.category;
-    stars = data.wod.stars;
+    requestedStars = data.wod.stars;
     focus = data.wod.focus ?? null;
   }
 
-  // MICRO WORKOUT: a fixed 10-minute, equipment-free movement break. The athlete's
-  // duration and gear choices never apply here.
+  // Requested difficulty -> athlete state -> effective difficulty. Mood softens
+  // by one level, never below beginner, for coach sessions and WOD alike.
+  const { effectiveStars } = resolveDifficulty(requestedStars, mood);
+  const stars = effectiveStars;
+
+  // MICRO WORKOUT: an equipment-free movement break. The requested duration is
+  // honoured (2-10 min) and never inflated; gear choices never apply here.
   if (category === "MICRO-WORKOUTS") {
-    minutes = 10;
+    minutes = microMinutes(minutes);
     equipmentIds = ["bodyweight"];
     equipmentMode = "BODYWEIGHT";
   }
+
 
   const usedNames = history.map((r) => r.name);
 
@@ -274,8 +281,22 @@ export async function createWorkoutForUser(
     review_warnings: string[] | null;
   };
 
+  /**
+   * PERSONAL CONTEXT GATE: an archived workout may only be reused when nothing
+   * personal would have changed the programming. Limitations, active library
+   * likes/dislikes, logged performance and a non-neutral mood all make the
+   * session athlete-specific, so those requests always generate fresh.
+   */
+  const personalContext =
+    Boolean(((prof?.["limitations"] as string[] | null) ?? []).length) ||
+    favoriteIds.length > 0 ||
+    dislikedIds.length > 0 ||
+    performanceLines.length > 0 ||
+    feedbackLines.length > 0 ||
+    (mood !== "normal" && mood !== "");
+
   let reused: ArchivedWorkout | null = null;
-  if (!data.note && !equipmentOther && !data.wod) {
+  if (!data.note && !equipmentOther && !data.wod && !personalContext) {
     const usedSet = new Set(usedNames);
     const sameEquipment = [...equipmentIds].sort().join("|");
     let candidates = db

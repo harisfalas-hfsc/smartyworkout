@@ -40,6 +40,9 @@ export type SessionPlan = {
   maxEquipmentFamilies: number;
   /** How many times the athlete may switch station across the work sections. */
   maxTransitions: number;
+  /** CARDIO only: which aerobic expression today's session must follow. */
+  cardioExpression?: CardioExpression;
+
   moodDirective: string;
   locationDirective: string;
   intensityDirective: string;
@@ -57,11 +60,22 @@ type Shape = {
   cooldownCount: number;
 };
 
+/** Micro Workout minutes are honoured as requested (3-10), never inflated. */
+export function microMinutes(requested: number): number {
+  return Math.max(2, Math.min(10, Math.round(requested)));
+}
+
 function durationShape(minutes: number, category: Category): Shape {
   // MICRO WORKOUT: one short coherent block. No soft tissue, no separate
   // activation, no finisher, no cool-down padding — the workout starts at once.
-  if (category === "MICRO-WORKOUTS")
-    return { softTissue: false, activationCount: 0, mainCount: [3, 5], finisherCount: [0, 0], cooldownCount: 0 };
+  // The movement count scales with the REQUESTED duration: a 3-minute request
+  // stays a 3-minute session, it is never padded up to 10 minutes.
+  if (category === "MICRO-WORKOUTS") {
+    const m = microMinutes(minutes);
+    const mainCount: [number, number] = m <= 3 ? [2, 3] : m <= 5 ? [3, 4] : m <= 7 ? [3, 5] : [4, 5];
+    return { softTissue: false, activationCount: 0, mainCount, finisherCount: [0, 0], cooldownCount: 0 };
+  }
+
   if (minutes <= 5)
     return { softTissue: false, activationCount: 2, mainCount: [3, 4], finisherCount: [0, 0], cooldownCount: 2 };
   if (minutes <= 10)
@@ -178,8 +192,76 @@ const SEQUENCES: Partial<Record<Category, string[]>> = {
   "MICRO-WORKOUTS": ["lower body", "push", "core", "full-body movement"],
 };
 
+// ---------------------------------------------------------------------------
+// Cardio doctrine — aerobic continuous vs aerobic intervals
+// ---------------------------------------------------------------------------
+
+export type CardioExpression = {
+  kind: "continuous" | "intervals";
+  directive: string;
+};
+
+/**
+ * Cardio stays aerobic: more aerobic than Metabolic, less aggressive than
+ * Challenge, less fatigue-driven than Calorie Burning and never strength
+ * dominant. Only the expression changes with the chosen format.
+ */
+export function cardioExpression(format: Format): CardioExpression {
+  const intervalFormats: Format[] = ["EMOM", "TABATA", "CIRCUIT", "AMRAP", "FOR TIME"];
+  if (intervalFormats.includes(format))
+    return {
+      kind: "intervals",
+      directive:
+        "CARDIO — AEROBIC INTERVALS: structured work/rest that keeps aerobic output repeatable. Work bouts 30-120 sec at a pace the athlete could hold for the whole session, rest just long enough to repeat the same quality. This is NOT a metabolic or calorie-burning session: no loaded complexes, no grinding strength movements, no near-failure work, no deliberate fatigue accumulation.",
+    };
+  return {
+    kind: "continuous",
+    directive:
+      "CARDIO — AEROBIC CONTINUOUS: sustained cyclical output with minimal interruption. Few movements, long uninterrupted blocks, conversational-to-strong breathing, pace held steady rather than surged. This is NOT a metabolic or calorie-burning session: no loaded complexes, no near-failure strength work, no fatigue-chasing.",
+  };
+}
+
 const LOW_ENERGY = new Set(["tired", "stressed", "low", "sore"]);
+
 const HIGH_ENERGY = new Set(["energized", "good", "push"]);
+
+// ---------------------------------------------------------------------------
+// Requested vs Effective difficulty
+// ---------------------------------------------------------------------------
+
+/** True when the athlete's current state must soften today's dose. */
+export function isLowEnergyState(mood: string | null | undefined): boolean {
+  return LOW_ENERGY.has((mood ?? "").toLowerCase());
+}
+
+export type DifficultyResolution = {
+  /** What the profile, the user or the WOD asked for (never shown differently). */
+  requestedStars: number;
+  /** What the engine actually programmes today. */
+  effectiveStars: number;
+  softenedBy: string | null;
+};
+
+/**
+ * Requested difficulty -> current athlete state -> effective difficulty.
+ * Tired / low / sore soften by exactly one full star, never below 1.
+ * Everything downstream (pool, blueprint, prompt, enforcement) uses the
+ * effective value; the user-facing requested value is unchanged.
+ */
+export function resolveDifficulty(
+  requestedStars: number,
+  mood: string | null | undefined,
+): DifficultyResolution {
+  const requested = Math.max(1, Math.min(3, Math.round(requestedStars || 1)));
+  if (!isLowEnergyState(mood))
+    return { requestedStars: requested, effectiveStars: requested, softenedBy: null };
+  return {
+    requestedStars: requested,
+    effectiveStars: Math.max(1, requested - 1),
+    softenedBy: (mood ?? "").toLowerCase(),
+  };
+}
+
 
 function moodDirective(mood: string | null | undefined): string {
   const m = (mood ?? "").toLowerCase();
@@ -262,6 +344,49 @@ function transitionBudget(category: Category, format: Format, mainMax: number): 
 }
 
 // ---------------------------------------------------------------------------
+// Measurable transition cost
+// ---------------------------------------------------------------------------
+
+const FLOOR_RE = /(floor|lying|supine|prone|plank|glute bridge|crunch|sit-up|dead bug|bird dog|kneel|quadruped|side-lying|hip thrust|push-up)/i;
+
+function positionOf(e: { name: string; body_part: string | null } | null): "floor" | "standing" {
+  return e && FLOOR_RE.test(e.name) ? "floor" : "standing";
+}
+
+/**
+ * Real-world setup cost of an ordered main block:
+ *  +2 per equipment/station change, +1 per floor <-> standing change.
+ * Lower is better; the score penalises anything above the format's budget.
+ */
+export function transitionCost(
+  exercises: Array<{ name: string; equipment: string | null; body_part: string | null } | null>,
+  _format: Format,
+): number {
+  let cost = 0;
+  for (let i = 1; i < exercises.length; i++) {
+    const prev = exercises[i - 1] ?? null;
+    const cur = exercises[i] ?? null;
+    if (equipmentFamily(prev?.equipment ?? null) !== equipmentFamily(cur?.equipment ?? null))
+      cost += 2;
+    if (positionOf(prev) !== positionOf(cur)) cost += 1;
+  }
+  return cost;
+}
+
+/** Practical transition-cost budget for a session plan. */
+export function transitionCostBudget(plan: Pick<SessionPlan, "format" | "mainCount">): number {
+  const dense =
+    plan.format === "CIRCUIT" ||
+    plan.format === "AMRAP" ||
+    plan.format === "EMOM" ||
+    plan.format === "TABATA" ||
+    plan.format === "FOR TIME";
+  const n = plan.mainCount[1];
+  return dense ? Math.max(2, Math.round(n * 0.8)) : Math.max(4, Math.round(n * 1.6));
+}
+
+
+// ---------------------------------------------------------------------------
 // Plan builder
 // ---------------------------------------------------------------------------
 
@@ -278,12 +403,38 @@ export function buildSessionPlan(input: {
 }): SessionPlan {
   const shape = durationShape(input.minutes, input.category);
   const { main, finisher } = doseFor(input.category, input.level);
+
+  // STRENGTH PRIORITY: the finisher is optional and must never compete with
+  // the primary strength objective. It only appears when the session is long
+  // enough to complete the heavy work first, and it is always short and light.
+  const isStrength = input.category === "STRENGTH";
+  const strengthFinisherAllowed = isStrength ? input.minutes >= 40 : true;
+
   // HARD RULE: Recovery, Micro Workout and Pilates never carry a finisher.
   const noFinisher =
     input.category === "RECOVERY" ||
     input.category === "MICRO-WORKOUTS" ||
     input.category === "PILATES" ||
+    !strengthFinisherAllowed ||
     shape.finisherCount[1] === 0;
+
+  const finisherCount: [number, number] = noFinisher
+    ? [0, 0]
+    : isStrength
+      ? [2, Math.min(3, shape.finisherCount[1])]
+      : shape.finisherCount;
+
+  // A strength finisher is accessory volume, not a second workout.
+  const finisherDose: Dose | null = noFinisher
+    ? null
+    : isStrength && finisher
+      ? {
+          ...finisher,
+          sets: [2, 3],
+          restSec: [60, 90],
+          tempo: `${finisher.tempo} — accessory only, stop 3 reps short of failure`,
+        }
+      : finisher;
 
   const dense =
     input.format === "CIRCUIT" ||
@@ -300,10 +451,10 @@ export function buildSessionPlan(input: {
     softTissue: shape.softTissue,
     activationCount: shape.activationCount,
     mainCount: shape.mainCount,
-    finisherCount: noFinisher ? [0, 0] : shape.finisherCount,
+    finisherCount,
     cooldownCount: shape.cooldownCount,
     main,
-    finisher: noFinisher ? null : finisher,
+    finisher: finisherDose,
     sequence: SEQUENCES[input.category] ?? ["compound", "compound", "accessory", "core"],
     maxEquipmentFamilies: dense
       ? Math.min(2, Math.max(1, input.equipmentCount))
@@ -312,7 +463,11 @@ export function buildSessionPlan(input: {
     moodDirective: moodDirective(input.mood),
     locationDirective: locationDirective(input.location),
     intensityDirective: intensityDirective(input.stars, input.category),
+    ...(input.category === "CARDIO"
+      ? { cardioExpression: cardioExpression(input.format) }
+      : {}),
   };
+
 }
 
 const range = ([a, b]: [number, number], unit: string) =>
@@ -348,7 +503,7 @@ export function planPrompt(plan: SessionPlan): string {
       ? ``
       : `- 🧘 Cool Down: ${plan.cooldownCount} token lines plus one breathing line.`,
     micro
-      ? `- MICRO WORKOUT CONCEPT: a 10-minute equipment-free movement break someone can do right now in office clothes, at a desk, in a small room or on the stairs. Bodyweight and environment only (floor, wall, chair, desk, sofa, table, stairs). Zero training equipment. Keep the athlete in roughly one spot — no wandering between rooms. Reps must be intelligent for the level, never junk volume. Golden test: could someone realistically do this in a 10-minute break without changing clothes or setting anything up? If not, rewrite it.`
+      ? `- MICRO WORKOUT CONCEPT: an approximately ${microMinutes(plan.minutes)}-minute equipment-free movement break someone can do right now in office clothes, at a desk, on a sofa or in a small room. Bodyweight and everyday environment only (floor, wall, chair, sofa, desk, table). Zero training equipment of any kind. NO stairs, NO doorways, NO location-dependent setups. Keep the athlete in one small area with minimal movement around the room. Scale the number of movements, sets, work and rest so the session really lasts about ${microMinutes(plan.minutes)} minutes — never inflate a short request into a longer session. Reps must be intelligent for the level, never junk volume. Golden test: can this be performed immediately, in normal clothes, with zero setup, in one small area? If not, rewrite it.`
       : ``,
     pilates
       ? `- PILATES CONCEPT: a controlled Pilates session in SETS & REPS only — never Tabata, AMRAP, EMOM, For Time, circuit, HIIT or metabolic work, and never a conditioning finisher. Emphasise control, precision, breathing, spinal articulation, deep core, stability and full controlled range. Sequence movements so positions flow (supine work together, side-lying together, quadruped together) and keep equipment changes to a minimum. Quality over speed and fatigue.`
@@ -358,6 +513,7 @@ export function planPrompt(plan: SessionPlan): string {
     `- MOVEMENT ORDER in 💪: ${plan.sequence.join(" → ")}. Technical and heaviest work first, isolation and conditioning last, core never before the movements that need bracing.`,
     `- POSITIONAL FLOW: group standing work together, floor work together. Never alternate floor → standing → floor line after line.`,
     `- TRANSITION EFFICIENCY: use at most ${plan.maxEquipmentFamilies} equipment family/families across 💪 and ⚡, and at most ${plan.maxTransitions} station changes in 💪. Consecutive lines should share the same implement wherever the pattern allows; a circuit must be runnable without walking across a gym.`,
+    plan.cardioExpression ? `- ${plan.cardioExpression.directive}` : "",
     `- MOOD: ${plan.moodDirective}`,
     `- LOCATION: ${plan.locationDirective}`,
     `- DIFFICULTY: ${plan.intensityDirective}`,
@@ -433,7 +589,7 @@ export function scoreWorkout(
   if (work.length && restLines < Math.ceil(work.length * 0.5))
     penalise(6, "Rest is missing from most working lines.");
 
-  // 3. Transition efficiency.
+  // 3. Transition efficiency — measured with an explicit transition cost.
   const familyOf = (id: string) => equipmentFamily(opts.library.get(id)?.equipment ?? null);
   const mainFamilies = main.map((s) => familyOf(s.exerciseId));
   const transitions = countTransitions(mainFamilies);
@@ -445,6 +601,18 @@ export function scoreWorkout(
   const families = new Set([...mainFamilies, ...finisher.map((s) => familyOf(s.exerciseId))]);
   if (families.size > plan.maxEquipmentFamilies + 1)
     penalise(6, `Session spans ${families.size} equipment families.`);
+
+  const cost = transitionCost(
+    main.map((s) => opts.library.get(s.exerciseId) ?? null),
+    plan.format,
+  );
+  const budget = transitionCostBudget(plan);
+  if (cost > budget)
+    penalise(
+      Math.min(14, Math.round((cost - budget) * 2)),
+      `Transition cost ${cost} exceeds the practical budget of ${budget} for a ${plan.format} session — regroup the movements by station and position.`,
+    );
+
 
   // 4. Variety and repetition.
   const workIds = work.map((s) => s.exerciseId);

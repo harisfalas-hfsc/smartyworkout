@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { buildSessionPlan, countTransitions, equipmentFamily, scoreWorkout } from "../programming";
+import {
+  buildSessionPlan,
+  cardioExpression,
+  countTransitions,
+  equipmentFamily,
+  microMinutes,
+  resolveDifficulty,
+  scoreWorkout,
+  transitionCost,
+} from "../programming";
 import type { PoolExercise } from "../pool.server";
 import type { WorkoutStep } from "../parse-steps";
 
@@ -76,5 +85,56 @@ describe("micro workout and pilates blueprints", () => {
     });
     expect(plan.finisher).toBeNull();
     expect(plan.format).toBe("REPS & SETS");
+  });
+});
+
+describe("difficulty, micro scaling, cardio and transition cost", () => {
+  it("honours the requested micro duration instead of inflating it", () => {
+    expect(microMinutes(3)).toBe(3);
+    expect(microMinutes(20)).toBe(10);
+    const short = buildSessionPlan({
+      category: "MICRO-WORKOUTS", format: "REPS & SETS", level: "beginner", stars: 1,
+      minutes: 3, equipmentCount: 1,
+    });
+    const long = buildSessionPlan({
+      category: "MICRO-WORKOUTS", format: "REPS & SETS", level: "beginner", stars: 1,
+      minutes: 10, equipmentCount: 1,
+    });
+    expect(short.mainCount[1]).toBeLessThan(long.mainCount[1]);
+  });
+
+  it("softens effective difficulty for low-energy states but keeps the request", () => {
+    expect(resolveDifficulty(3, "tired")).toMatchObject({ requestedStars: 3, effectiveStars: 2 });
+    expect(resolveDifficulty(1, "sore").effectiveStars).toBe(1);
+    expect(resolveDifficulty(3, "energized").effectiveStars).toBe(3);
+  });
+
+  it("drops the strength finisher on short sessions and keeps it light on long ones", () => {
+    const shortStrength = buildSessionPlan({
+      category: "STRENGTH", format: "REPS & SETS", level: "advanced", stars: 3,
+      minutes: 30, equipmentCount: 2,
+    });
+    expect(shortStrength.finisher).toBeNull();
+    const longStrength = buildSessionPlan({
+      category: "STRENGTH", format: "REPS & SETS", level: "advanced", stars: 3,
+      minutes: 60, equipmentCount: 2,
+    });
+    expect(longStrength.finisher?.sets).toEqual([2, 3]);
+    expect(longStrength.finisherCount[1]).toBeLessThanOrEqual(3);
+  });
+
+  it("expresses cardio as continuous or intervals", () => {
+    expect(cardioExpression("REPS & SETS").kind).toBe("continuous");
+    expect(cardioExpression("TABATA").kind).toBe("intervals");
+  });
+
+  it("measures transition cost from equipment and position changes", () => {
+    const ex = (name: string, equipment: string | null) => ({ name, equipment, body_part: null });
+    const grouped = transitionCost(
+      [ex("Dumbbell Press", "dumbbell"), ex("Dumbbell Row", "dumbbell")], "REPS & SETS");
+    const scattered = transitionCost(
+      [ex("Dumbbell Press", "dumbbell"), ex("Floor Plank", "body weight"), ex("Barbell Squat", "barbell")],
+      "REPS & SETS");
+    expect(grouped).toBeLessThan(scattered);
   });
 });

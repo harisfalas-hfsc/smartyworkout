@@ -57,7 +57,7 @@ const MOBILITY_BAN_RE =
   /\b(jump|jumping|plyo|burpee|sprint|snatch|clean|jerk|thruster|push-?up|pushup|crunch|sit-?up|leg raise|kettlebell swing|box jump|deadlift|bench press|row machine|sled)\b/i;
 
 const MICRO_BAN_RE =
-  /\b(dumbbell|kettlebell|barbell|band|machine|bike|rower|rope|treadmill|sled|cable|smith|ez|olympic|medicine ball|bosu|stability ball)\b/i;
+  /\b(dumbbell|kettlebell|barbell|band|machine|bike|rower|rope|treadmill|sled|cable|smith|ez|olympic|medicine ball|bosu|stability ball|pull-?up|chin-?up|hang(ing)?|dip bar|parallette|bench press|box jump|stair|stairs|step-?up|doorway|door frame)\b/i;
 
 const RECOVERY_BAN_RE =
   /\b(jump|jumping|plyo|burpee|sprint|snatch|clean|jerk|thruster|crunch|sit-?up|deadlift|bench press|heavy)\b/i;
@@ -254,9 +254,11 @@ export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
   if (f.category === "MOBILITY & STABILITY")
     pool = pool.filter((e) => !MOBILITY_BAN_RE.test(text(e)));
   if (f.category === "RECOVERY") pool = pool.filter((e) => !RECOVERY_BAN_RE.test(text(e)));
-  // MICRO WORKOUT: hard equipment-free rule. Bodyweight and environment only
-  // (floor, wall, chair, desk, sofa, stairs), never training apparatus — the
-  // athlete's normal equipment preferences do not apply to this category.
+  // MICRO WORKOUT: hard equipment-free rule. Bodyweight and everyday indoor
+  // environment only (floor, wall, chair, desk, sofa) — never training
+  // apparatus, and never location-dependent setups such as stairs, doorways or
+  // pull-up bars. The athlete's normal equipment preferences do not apply here.
+
   const isMicro = f.category === "MICRO-WORKOUTS";
   if (isMicro)
     pool = pool.filter(
@@ -272,11 +274,25 @@ export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
       pool = pool.filter((e) => isBodyweight(e) && !HOME_APPARATUS_RE.test(text(e)));
   }
 
-  // 3. Strict difficulty match (no level mixing).
+  // 3. Difficulty. Start strict; when the level is genuinely thin, widen to the
+  //    ADJACENT level only (never to the whole library, never by an arbitrary
+  //    exercise count). Beginner never inherits advanced movements.
   if (f.level !== "all") {
-    const strict = pool.filter((e) => (e.difficulty ?? "").toLowerCase() === f.level);
-    if (strict.length >= 40) pool = strict;
+    const at = (lvl: string) => pool.filter((e) => (e.difficulty ?? "").toLowerCase() === lvl);
+    const strict = at(f.level);
+    if (strict.length >= 12) pool = strict;
+    else {
+      const adjacent =
+        f.level === "beginner"
+          ? ["intermediate"]
+          : f.level === "advanced"
+            ? ["intermediate"]
+            : ["beginner", "advanced"];
+      const widened = [...strict, ...adjacent.flatMap(at)];
+      if (widened.length) pool = widened;
+    }
   }
+
 
   // 4. Static-hold guardrail for momentum / conditioning categories.
   const momentum: Category[] = ["CARDIO", "CALORIE BURNING", "METABOLIC", "CHALLENGE"];
