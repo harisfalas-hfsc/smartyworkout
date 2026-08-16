@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { buildSessionPlan, countTransitions, equipmentFamily, scoreWorkout } from "../programming";
+import {
+  buildSessionPlan,
+  cardioExpression,
+  countTransitions,
+  equipmentFamily,
+  microMinutes,
+  resolveDifficulty,
+  scoreWorkout,
+  transitionCost,
+} from "../programming";
 import type { PoolExercise } from "../pool.server";
 import type { WorkoutStep } from "../parse-steps";
 
