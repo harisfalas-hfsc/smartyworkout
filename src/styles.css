@@ -167,7 +167,6 @@
     max-height: 280px;
   }
 }
-}
 
 /* ---- Workout HTML rendering ---- */
 .workout-html { overflow-wrap: anywhere; word-break: break-word; max-width: 100%; }
