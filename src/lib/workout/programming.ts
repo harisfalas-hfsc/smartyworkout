@@ -60,20 +60,16 @@ type Shape = {
   cooldownCount: number;
 };
 
-/** Micro Workout minutes are honoured as requested (3-10), never inflated. */
-export function microMinutes(requested: number): number {
-  return Math.max(2, Math.min(10, Math.round(requested)));
+/** Micro Workouts are always 10 minutes. */
+export function microMinutes(_requested: number): number {
+  return 10;
 }
 
 function durationShape(minutes: number, category: Category): Shape {
-  // MICRO WORKOUT: one short coherent block. No soft tissue, no separate
+  // MICRO WORKOUT: one 10-minute coherent block. No soft tissue, no separate
   // activation, no finisher, no cool-down padding — the workout starts at once.
-  // The movement count scales with the REQUESTED duration: a 3-minute request
-  // stays a 3-minute session, it is never padded up to 10 minutes.
   if (category === "MICRO-WORKOUTS") {
-    const m = microMinutes(minutes);
-    const mainCount: [number, number] = m <= 3 ? [2, 3] : m <= 5 ? [3, 4] : m <= 7 ? [3, 5] : [4, 5];
-    return { softTissue: false, activationCount: 0, mainCount, finisherCount: [0, 0], cooldownCount: 0 };
+    return { softTissue: false, activationCount: 0, mainCount: [4, 5], finisherCount: [0, 0], cooldownCount: 0 };
   }
 
   if (minutes <= 5)

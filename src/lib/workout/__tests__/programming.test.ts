@@ -89,18 +89,18 @@ describe("micro workout and pilates blueprints", () => {
 });
 
 describe("difficulty, micro scaling, cardio and transition cost", () => {
-  it("honours the requested micro duration instead of inflating it", () => {
-    expect(microMinutes(3)).toBe(3);
+  it("micro is always 10 minutes; no activation, cooldown or finisher", () => {
+    expect(microMinutes(3)).toBe(10);
     expect(microMinutes(20)).toBe(10);
-    const short = buildSessionPlan({
+    const plan = buildSessionPlan({
       category: "MICRO-WORKOUTS", format: "REPS & SETS", level: "beginner", stars: 1,
       minutes: 3, equipmentCount: 1,
     });
-    const long = buildSessionPlan({
-      category: "MICRO-WORKOUTS", format: "REPS & SETS", level: "beginner", stars: 1,
-      minutes: 10, equipmentCount: 1,
-    });
-    expect(short.mainCount[1]).toBeLessThan(long.mainCount[1]);
+    expect(plan.activationCount).toBe(0);
+    expect(plan.cooldownCount).toBe(0);
+    expect(plan.finisher).toBeNull();
+    expect(plan.softTissue).toBe(false);
+    expect(plan.mainCount).toEqual([4, 5]);
   });
 
   it("softens effective difficulty for low-energy states but keeps the request", () => {
