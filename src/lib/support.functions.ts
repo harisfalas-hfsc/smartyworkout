@@ -238,13 +238,16 @@ export const adminReplyToThread = createServerFn({ method: "POST" })
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { data: thread } = await supabaseAdmin
         .from("support_threads")
-        .select("id,user_id,subject")
+        .select("id,user_id,subject,name,email")
         .eq("id", data.threadId)
         .maybeSingle();
       if (!thread) return { ok: false as const, error: "Conversation not found" };
-      await supabaseAdmin
+      const { data: inserted } = await supabaseAdmin
         .from("support_messages")
-        .insert({ thread_id: data.threadId, sender: "admin", body, author_id: context.userId } as never);
+        .insert({ thread_id: data.threadId, sender: "admin", body, author_id: context.userId } as never)
+        .select("id")
+        .single();
+
       await supabaseAdmin
         .from("support_threads")
         .update({
