@@ -56,3 +56,25 @@ describe("quality score", () => {
     expect(countTransitions(["a", "a", "b", "b", "a"])).toBe(2);
   });
 });
+
+describe("micro workout and pilates blueprints", () => {
+  it("micro is one 10-minute block: no activation, cooldown or finisher", () => {
+    const plan = buildSessionPlan({
+      category: "MICRO-WORKOUTS", format: "CIRCUIT", level: "advanced",
+      stars: 3, minutes: 45, equipmentCount: 4,
+    });
+    expect(plan.activationCount).toBe(0);
+    expect(plan.cooldownCount).toBe(0);
+    expect(plan.finisher).toBeNull();
+    expect(plan.softTissue).toBe(false);
+  });
+
+  it("pilates never carries a finisher", () => {
+    const plan = buildSessionPlan({
+      category: "PILATES", format: "REPS & SETS", level: "intermediate",
+      stars: 2, minutes: 45, equipmentCount: 2,
+    });
+    expect(plan.finisher).toBeNull();
+    expect(plan.format).toBe("REPS & SETS");
+  });
+});
