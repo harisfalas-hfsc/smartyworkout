@@ -254,9 +254,11 @@ export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
   if (f.category === "MOBILITY & STABILITY")
     pool = pool.filter((e) => !MOBILITY_BAN_RE.test(text(e)));
   if (f.category === "RECOVERY") pool = pool.filter((e) => !RECOVERY_BAN_RE.test(text(e)));
-  // MICRO WORKOUT: hard equipment-free rule. Bodyweight and environment only
-  // (floor, wall, chair, desk, sofa, stairs), never training apparatus — the
-  // athlete's normal equipment preferences do not apply to this category.
+  // MICRO WORKOUT: hard equipment-free rule. Bodyweight and everyday indoor
+  // environment only (floor, wall, chair, desk, sofa) — never training
+  // apparatus, and never location-dependent setups such as stairs, doorways or
+  // pull-up bars. The athlete's normal equipment preferences do not apply here.
+
   const isMicro = f.category === "MICRO-WORKOUTS";
   if (isMicro)
     pool = pool.filter(
