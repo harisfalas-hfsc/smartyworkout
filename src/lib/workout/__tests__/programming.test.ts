@@ -118,6 +118,28 @@ describe("difficulty, micro scaling, cardio and transition cost", () => {
     expect(longStrength.finisherCount[0]).toBeGreaterThan(0);
   });
 
+  it("locks lifting categories to reps & sets and never lets the finisher rival the main block", () => {
+    const plan = buildSessionPlan({
+      category: "MUSCLE BUILDING", format: "TABATA", level: "intermediate", stars: 2,
+      minutes: 60, equipmentCount: 2,
+    });
+    expect(plan.format).toBe("REPS & SETS");
+    if (plan.finisher) {
+      expect(plan.finisherCount[1]).toBeLessThan(plan.mainCount[0]);
+      expect(plan.finisherMinutes).toBeLessThanOrEqual(10);
+    }
+  });
+
+  it("drops the lifting finisher when a properly dosed main block leaves no room", () => {
+    const plan = buildSessionPlan({
+      category: "STRENGTH", format: "REPS & SETS", level: "advanced", stars: 3,
+      minutes: 30, equipmentCount: 2,
+    });
+    expect(plan.mainMinutesEstimate).toBeGreaterThan(0);
+    if (!plan.finisher) expect(plan.finisherDirective).toMatch(/no ⚡ finisher/i);
+  });
+
+
 
   it("expresses cardio as continuous or intervals", () => {
     expect(cardioExpression("REPS & SETS").kind).toBe("continuous");
