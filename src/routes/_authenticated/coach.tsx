@@ -24,6 +24,8 @@ import {
   setUseLibraryPreferences as saveUseLibraryPreferences,
 } from "@/lib/preferences.functions";
 import { Link } from "@tanstack/react-router";
+import { ParqWaiverDialog } from "@/components/ParqWaiverDialog";
+
 import {
   EQUIPMENT,
   GOALS,
@@ -148,7 +150,9 @@ function CoachPage() {
   const [wodMode, setWodMode] = useState(false);
   const [profileReady, setProfileReady] = useState<boolean | null>(null);
   const [parqFlags, setParqFlags] = useState<string[]>([]);
-  const [parqConsent, setParqConsent] = useState(false);
+  const [parqOpen, setParqOpen] = useState(false);
+  const [pendingSurprise, setPendingSurprise] = useState<boolean | null>(null);
+
 
   useEffect(() => {
     void getMyAccessState()
@@ -233,8 +237,9 @@ function CoachPage() {
   }
 
   function requestGenerate(surprise: boolean) {
-    if (parqFlags.length > 0 && !parqConsent) {
-      toast.error("Confirm the health warning below, or update your PAR-Q answers first.");
+    if (parqFlags.length > 0) {
+      setPendingSurprise(surprise);
+      setParqOpen(true);
       return;
     }
     if (!surprise && level === "advanced" && LOW_ENERGY_MOODS.includes(mood)) {
@@ -243,6 +248,7 @@ function CoachPage() {
     }
     void generate(surprise);
   }
+
 
 
   if (profileReady === false) {
@@ -296,37 +302,22 @@ function CoachPage() {
         </div>
       ) : null}
 
-      {parqFlags.length > 0 ? (
-        <div className="mb-4 rounded-2xl border-2 border-destructive bg-destructive/10 p-4 text-sm">
-          <p className="font-extrabold uppercase tracking-[0.14em] text-destructive">
-            Health warning
-          </p>
-          <p className="mt-1 text-muted-foreground">
-            Your readiness questionnaire (PAR-Q) has a YES answer:
-          </p>
-          <ul className="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
-            {parqFlags.map((flag) => (
-              <li key={flag}>{flag}</li>
-            ))}
-          </ul>
-          <p className="mt-2 text-muted-foreground">
-            Smarty Coach is not a doctor. Speak to a medical professional before training. Either{" "}
-            <Link to="/profile" className="font-semibold text-primary underline">
-              update your PAR-Q answers
-            </Link>{" "}
-            or confirm below to train on your own responsibility.
-          </p>
-          <label className="mt-3 flex items-start gap-2 font-semibold">
-            <input
-              type="checkbox"
-              checked={parqConsent}
-              onChange={(e) => setParqConsent(e.target.checked)}
-              className="mt-0.5 h-5 w-5 accent-[hsl(var(--destructive))]"
-            />
-            <span>I train at my own responsibility for this workout.</span>
-          </label>
-        </div>
-      ) : null}
+      <ParqWaiverDialog
+        open={parqOpen}
+        flags={parqFlags}
+        confirmLabel="I confirm — build my workout"
+        onConfirm={() => {
+          setParqOpen(false);
+          const surprise = pendingSurprise;
+          setPendingSurprise(null);
+          if (surprise !== null) void generate(surprise);
+        }}
+        onCancel={() => {
+          setParqOpen(false);
+          setPendingSurprise(null);
+        }}
+      />
+
 
 
       {wodMode ? (

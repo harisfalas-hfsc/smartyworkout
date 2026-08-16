@@ -9,6 +9,7 @@ import { setWorkoutStatus } from "@/lib/coach.functions";
 import { getMyAccessState } from "@/lib/access.functions";
 import { toast } from "sonner";
 import { WorkoutDisplay, type WorkoutRow } from "@/components/workout/WorkoutDisplay";
+import { ParqWaiverDialog } from "@/components/ParqWaiverDialog";
 
 export const Route = createFileRoute("/_authenticated/workout/$workoutId")({
   head: () => ({
@@ -73,6 +74,9 @@ function WorkoutPage() {
   const [comment, setComment] = useState("");
   const [scheduledAt, setScheduledAt] = useState<string>("");
   const [showSchedule, setShowSchedule] = useState(false);
+  const [parqFlags, setParqFlags] = useState<string[]>([]);
+  const [parqOpen, setParqOpen] = useState(false);
+  const [parqBlocked, setParqBlocked] = useState(false);
   const saveStatus = useServerFn(setWorkoutStatus);
 
   useEffect(() => {
@@ -80,9 +84,14 @@ function WorkoutPage() {
       const { data } = await supabase.from("workouts").select("*").eq("id", workoutId).maybeSingle();
       const row = (data as unknown as WorkoutRow) ?? null;
       setW(row);
+      const access = await getMyAccessState({}).catch(() => null);
       if ((row as { is_wod?: boolean } | null)?.is_wod) {
-        const access = await getMyAccessState({}).catch(() => null);
         setLocked(!access?.premium);
+      }
+      if (row && access?.readinessFlagged && access.readinessFlags.length > 0) {
+        setParqFlags(access.readinessFlags);
+        setParqBlocked(true);
+        setParqOpen(true);
       }
       if (row?.status === "completed") setDone(true);
       const sched = (data as { scheduled_at?: string | null } | null)?.scheduled_at;
@@ -90,6 +99,7 @@ function WorkoutPage() {
       setLoading(false);
     })();
   }, [workoutId]);
+
 
   async function complete() {
     await saveStatus({ data: { workoutId, status: "completed" } });
@@ -174,6 +184,37 @@ function WorkoutPage() {
         </Button>
       </div>
     );
+
+  if (parqBlocked)
+    return (
+      <div className="mx-auto max-w-xl px-4 py-16 text-center">
+        <h1 className="text-xl font-extrabold uppercase tracking-tight">Health warning</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Your PAR-Q has a YES answer. Confirm the waiver to open this workout, or update your
+          answers in your Training Profile.
+        </p>
+        <div className="mt-4 grid gap-2">
+          <Button className="h-12 rounded-2xl" onClick={() => setParqOpen(true)}>
+            Read and confirm
+          </Button>
+          <Button asChild variant="secondary" className="h-12 rounded-2xl">
+            <Link to="/profile">Update my PAR-Q answers</Link>
+          </Button>
+        </div>
+        <ParqWaiverDialog
+          open={parqOpen}
+          flags={parqFlags}
+          confirmLabel="I confirm — open my workout"
+          onConfirm={() => {
+            setParqOpen(false);
+            setParqBlocked(false);
+          }}
+          onCancel={() => setParqOpen(false)}
+        />
+      </div>
+    );
+
+
 
   return (
     <WorkoutDisplay workout={w} onComplete={complete}>
