@@ -233,8 +233,9 @@ function CoachPage() {
   }
 
   function requestGenerate(surprise: boolean) {
-    if (parqFlags.length > 0 && !parqConsent) {
-      toast.error("Confirm the health warning below, or update your PAR-Q answers first.");
+    if (parqFlags.length > 0) {
+      setPendingSurprise(surprise);
+      setParqOpen(true);
       return;
     }
     if (!surprise && level === "advanced" && LOW_ENERGY_MOODS.includes(mood)) {
@@ -243,6 +244,7 @@ function CoachPage() {
     }
     void generate(surprise);
   }
+
 
 
   if (profileReady === false) {
