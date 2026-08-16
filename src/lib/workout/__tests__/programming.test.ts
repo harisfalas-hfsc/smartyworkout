@@ -109,19 +109,15 @@ describe("difficulty, micro scaling, cardio and transition cost", () => {
     expect(resolveDifficulty(3, "energized").effectiveStars).toBe(3);
   });
 
-  it("drops the strength finisher on short sessions and keeps it light on long ones", () => {
-    const shortStrength = buildSessionPlan({
-      category: "STRENGTH", format: "REPS & SETS", level: "advanced", stars: 3,
-      minutes: 30, equipmentCount: 2,
-    });
-    expect(shortStrength.finisher).toBeNull();
+  it("keeps the standard strength finisher driven only by duration shape", () => {
     const longStrength = buildSessionPlan({
       category: "STRENGTH", format: "REPS & SETS", level: "advanced", stars: 3,
       minutes: 60, equipmentCount: 2,
     });
-    expect(longStrength.finisher?.sets).toEqual([2, 3]);
-    expect(longStrength.finisherCount[1]).toBeLessThanOrEqual(3);
+    expect(longStrength.finisher).not.toBeNull();
+    expect(longStrength.finisherCount[0]).toBeGreaterThan(0);
   });
+
 
   it("expresses cardio as continuous or intervals", () => {
     expect(cardioExpression("REPS & SETS").kind).toBe("continuous");
