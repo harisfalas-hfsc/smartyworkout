@@ -136,9 +136,37 @@
   .brand-gradient-soft { background-image: var(--gradient-brand-soft); }
   .shadow-soft { box-shadow: var(--shadow-soft); }
   .shadow-primary { box-shadow: var(--shadow-primary); }
-  .transition-smooth { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-  .hover-lift { transition: transform 0.3s ease, box-shadow 0.3s ease; }
-  .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgb(0 0 0 / 0.12); }
+.transition-smooth { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.hover-lift { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+.hover-lift:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgb(0 0 0 / 0.12); }
+
+/* App splash screen — shown while the PWA/web app boots on a black background */
+.app-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000000;
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.app-splash--fade { opacity: 0; }
+.app-splash__icon {
+  width: 40vmin;
+  height: 40vmin;
+  max-width: 220px;
+  max-height: 220px;
+  object-fit: contain;
+  user-select: none;
+  pointer-events: none;
+}
+@media (min-width: 768px) {
+  .app-splash__icon {
+    max-width: 280px;
+    max-height: 280px;
+  }
+}
 }
 
 /* ---- Workout HTML rendering ---- */
