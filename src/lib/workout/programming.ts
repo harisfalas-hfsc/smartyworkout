@@ -58,7 +58,11 @@ type Shape = {
 };
 
 function durationShape(minutes: number, category: Category): Shape {
-  if (category === "MICRO-WORKOUTS" || minutes <= 5)
+  // MICRO WORKOUT: one short coherent block. No soft tissue, no separate
+  // activation, no finisher, no cool-down padding — the workout starts at once.
+  if (category === "MICRO-WORKOUTS")
+    return { softTissue: false, activationCount: 0, mainCount: [3, 5], finisherCount: [0, 0], cooldownCount: 0 };
+  if (minutes <= 5)
     return { softTissue: false, activationCount: 2, mainCount: [3, 4], finisherCount: [0, 0], cooldownCount: 2 };
   if (minutes <= 10)
     return { softTissue: false, activationCount: 3, mainCount: [3, 5], finisherCount: [0, 0], cooldownCount: 3 };
@@ -125,6 +129,15 @@ function controlDose(level: DifficultyLevel): Dose {
   };
 }
 
+/** Micro Workout: bodyweight density controlled by level, never junk volume. */
+function microDose(level: DifficultyLevel): Dose {
+  if (level === "beginner")
+    return { sets: [2, 3], reps: [8, 12], seconds: [20, 30], restSec: [30, 45], tempo: "controlled, easy breathing, no rush" };
+  if (level === "advanced")
+    return { sets: [4, 5], reps: [12, 20], seconds: [30, 45], restSec: [10, 20], tempo: "brisk but clean, harder leverage variations" };
+  return { sets: [3, 4], reps: [10, 15], seconds: [25, 40], restSec: [20, 30], tempo: "steady and controlled" };
+}
+
 function doseFor(category: Category, level: DifficultyLevel): { main: Dose; finisher: Dose | null } {
   switch (category) {
     case "STRENGTH":
@@ -142,7 +155,7 @@ function doseFor(category: Category, level: DifficultyLevel): { main: Dose; fini
     case "RECOVERY":
       return { main: controlDose(level), finisher: controlDose(level) };
     case "MICRO-WORKOUTS":
-      return { main: conditioningDose(level, false), finisher: null };
+      return { main: microDose(level), finisher: null };
     default:
       return { main: hypertrophyDose(level), finisher: hypertrophyDose(level) };
   }
@@ -160,9 +173,9 @@ const SEQUENCES: Partial<Record<Category, string[]>> = {
   CHALLENGE: ["engine", "push", "pull", "lower body", "core under fatigue"],
   CARDIO: ["engine", "engine", "impact-managed pattern", "engine"],
   "MOBILITY & STABILITY": ["spine", "hips", "shoulders", "balance", "breathing"],
-  PILATES: ["breath and centring", "deep core", "spinal articulation", "hips", "control finisher"],
+  PILATES: ["breath and centring", "deep core", "spinal articulation", "hips", "controlled close"],
   RECOVERY: ["breathing", "spine", "hips", "shoulders"],
-  "MICRO-WORKOUTS": ["lower body", "push", "core"],
+  "MICRO-WORKOUTS": ["lower body", "push", "core", "full-body movement"],
 };
 
 const LOW_ENERGY = new Set(["tired", "stressed", "low", "sore"]);
@@ -265,9 +278,11 @@ export function buildSessionPlan(input: {
 }): SessionPlan {
   const shape = durationShape(input.minutes, input.category);
   const { main, finisher } = doseFor(input.category, input.level);
+  // HARD RULE: Recovery, Micro Workout and Pilates never carry a finisher.
   const noFinisher =
     input.category === "RECOVERY" ||
     input.category === "MICRO-WORKOUTS" ||
+    input.category === "PILATES" ||
     shape.finisherCount[1] === 0;
 
   const dense =
