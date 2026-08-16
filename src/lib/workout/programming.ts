@@ -192,7 +192,37 @@ const SEQUENCES: Partial<Record<Category, string[]>> = {
   "MICRO-WORKOUTS": ["lower body", "push", "core", "full-body movement"],
 };
 
+// ---------------------------------------------------------------------------
+// Cardio doctrine — aerobic continuous vs aerobic intervals
+// ---------------------------------------------------------------------------
+
+export type CardioExpression = {
+  kind: "continuous" | "intervals";
+  directive: string;
+};
+
+/**
+ * Cardio stays aerobic: more aerobic than Metabolic, less aggressive than
+ * Challenge, less fatigue-driven than Calorie Burning and never strength
+ * dominant. Only the expression changes with the chosen format.
+ */
+export function cardioExpression(format: Format): CardioExpression {
+  const intervalFormats: Format[] = ["EMOM", "TABATA", "CIRCUIT", "AMRAP", "FOR TIME"];
+  if (intervalFormats.includes(format))
+    return {
+      kind: "intervals",
+      directive:
+        "CARDIO — AEROBIC INTERVALS: structured work/rest that keeps aerobic output repeatable. Work bouts 30-120 sec at a pace the athlete could hold for the whole session, rest just long enough to repeat the same quality. This is NOT a metabolic or calorie-burning session: no loaded complexes, no grinding strength movements, no near-failure work, no deliberate fatigue accumulation.",
+    };
+  return {
+    kind: "continuous",
+    directive:
+      "CARDIO — AEROBIC CONTINUOUS: sustained cyclical output with minimal interruption. Few movements, long uninterrupted blocks, conversational-to-strong breathing, pace held steady rather than surged. This is NOT a metabolic or calorie-burning session: no loaded complexes, no near-failure strength work, no fatigue-chasing.",
+  };
+}
+
 const LOW_ENERGY = new Set(["tired", "stressed", "low", "sore"]);
+
 const HIGH_ENERGY = new Set(["energized", "good", "push"]);
 
 // ---------------------------------------------------------------------------
