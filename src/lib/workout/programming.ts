@@ -439,6 +439,91 @@ export function transitionCostBudget(plan: Pick<SessionPlan, "format" | "mainCou
 
 
 // ---------------------------------------------------------------------------
+// Realistic block duration + the Strength / Muscle Building finisher decision
+// ---------------------------------------------------------------------------
+
+/** True for the two categories that follow the lifting doctrine. */
+export function isLiftingCategory(category: Category): boolean {
+  return category === "STRENGTH" || category === "MUSCLE BUILDING";
+}
+
+/**
+ * Realistic minutes an ordered block occupies at the LOW end of its prescribed
+ * dose: exercises × sets × (work + rest). Reps are costed at 4 sec each; a
+ * timed piece uses its own seconds. This is the honest cost of the work, not
+ * an advertised number.
+ */
+export function estimateBlockMinutes(exercises: number, dose: Dose): number {
+  if (exercises <= 0) return 0;
+  const workSec = dose.reps ? dose.reps[0] * 4 : (dose.seconds?.[0] ?? 30);
+  const perSet = workSec + dose.restSec[0];
+  return Math.round((exercises * dose.sets[0] * perSet) / 60);
+}
+
+export type FinisherDecision = {
+  include: boolean;
+  count: [number, number];
+  dose: Dose | null;
+  /** Minutes budgeted for the finisher (0 when omitted). */
+  minutes: number;
+  /** Realistic minutes the main block occupies. */
+  mainMinutes: number;
+  directive: string;
+};
+
+/**
+ * Professional finisher gate for STRENGTH and MUSCLE BUILDING.
+ *
+ * The finisher is optional. It exists only when a short, complementary,
+ * category-true piece genuinely fits in the time left after a quality Main
+ * Workout, and only when the athlete is not already sufficiently fatigued.
+ * There is no minute threshold and no time-filling.
+ */
+export function decideLiftingFinisher(input: {
+  category: Category;
+  level: DifficultyLevel;
+  minutes: number;
+  mainCount: [number, number];
+  mainDose: Dose;
+  finisherDose: Dose;
+  mood?: string | null;
+  shapeAllowsFinisher: boolean;
+}): FinisherDecision {
+  const strength = input.category === "STRENGTH";
+  const raw = estimateBlockMinutes(input.mainCount[0], input.mainDose);
+  // A right-sized main block never eats the whole session: the coach can trim
+  // sets or exercises inside the blueprint range to protect session quality.
+  const mainMinutes = Math.min(raw, Math.round(input.minutes * 0.85));
+  const remaining = Math.max(0, input.minutes - mainMinutes);
+
+  const none = (why: string): FinisherDecision => ({
+    include: false,
+    count: [0, 0],
+    dose: null,
+    minutes: 0,
+    mainMinutes,
+    directive: `NO ⚡ Finisher today. ${why} A shorter, high-quality session is the correct professional decision — never add work to reach the advertised duration.`,
+  });
+
+  if (!input.shapeAllowsFinisher) return none("This duration carries no finisher slot.");
+  if (remaining < 5)
+    return none(
+      `Only about ${remaining} min remain after a properly dosed Main Workout, which is not enough for a meaningful finisher.`,
+    );
+  // Fatigue gate: a hard session on a depleted athlete already did the job.
+  if (isLowEnergyState(input.mood) && (input.level === "advanced" || raw >= input.minutes))
+    return none("The athlete is fatigued and the Main Workout already delivers the intended stimulus.");
+
+  const minutes = Math.min(10, Math.max(5, remaining));
+  const count: [number, number] = [1, 2];
+  const directive = strength
+    ? `⚡ Finisher — OPTIONAL, complementary accessory volume only (about ${minutes} min, ${count[0]}-${count[1]} exercises). It must reinforce the SAME focus and muscles as the Main Workout, stay in REPS & SETS, and never become conditioning, metabolic or cardio work. It must never rival the Main Workout in exercises, sets or time, and it must never compromise recovery from the primary strength work. No failure.`
+    : `⚡ Finisher — OPTIONAL, a short extra hypertrophy stimulus (about ${minutes} min, ${count[0]}-${count[1]} exercises). Target-muscle isolation or pump work on the SAME focus as the Main Workout, higher reps, controlled eccentrics, shorter rest, still REPS & SETS. Fewer exercises and fewer total sets than the Main Workout. Never conditioning, metabolic or cardio work.`;
+
+  return { include: true, count, dose: input.finisherDose, minutes, mainMinutes, directive };
+}
+
+// ---------------------------------------------------------------------------
 // Plan builder
 // ---------------------------------------------------------------------------
 
@@ -456,6 +541,9 @@ export function buildSessionPlan(input: {
   const shape = durationShape(input.minutes, input.category);
   const { main, finisher } = doseFor(input.category, input.level);
 
+  // HARD RULE: Strength and Muscle Building are always REPS & SETS.
+  const format: Format = isLiftingCategory(input.category) ? "REPS & SETS" : input.format;
+
   // HARD RULE: Recovery, Micro Workout and Pilates never carry a finisher.
   const noFinisher =
     input.category === "RECOVERY" ||
@@ -463,9 +551,33 @@ export function buildSessionPlan(input: {
     input.category === "PILATES" ||
     shape.finisherCount[1] === 0;
 
-  const finisherCount: [number, number] = noFinisher ? [0, 0] : shape.finisherCount;
+  let finisherCount: [number, number] = noFinisher ? [0, 0] : shape.finisherCount;
+  let finisherDose: Dose | null = noFinisher ? null : finisher;
+  let mainMinutesEstimate = estimateBlockMinutes(shape.mainCount[0], main);
+  let finisherMinutes = noFinisher ? 0 : Math.max(0, input.minutes - mainMinutesEstimate);
+  let finisherDirective = noFinisher
+    ? "This category carries no ⚡ Finisher."
+    : "⚡ Finisher stays short and true to the category objective.";
 
-  const finisherDose: Dose | null = noFinisher ? null : finisher;
+  if (isLiftingCategory(input.category)) {
+    const decision = decideLiftingFinisher({
+      category: input.category,
+      level: input.level,
+      minutes: input.minutes,
+      mainCount: shape.mainCount,
+      mainDose: main,
+      finisherDose: finisher ?? main,
+      mood: input.mood ?? null,
+      shapeAllowsFinisher: !noFinisher,
+    });
+    finisherCount = decision.count;
+    finisherDose = decision.include ? decision.dose : null;
+    finisherMinutes = decision.minutes;
+    mainMinutesEstimate = decision.mainMinutes;
+    finisherDirective = decision.directive;
+  }
+
+
 
 
   const dense =
