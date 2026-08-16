@@ -545,7 +545,7 @@ export function scoreWorkout(
   if (work.length && restLines < Math.ceil(work.length * 0.5))
     penalise(6, "Rest is missing from most working lines.");
 
-  // 3. Transition efficiency.
+  // 3. Transition efficiency — measured with an explicit transition cost.
   const familyOf = (id: string) => equipmentFamily(opts.library.get(id)?.equipment ?? null);
   const mainFamilies = main.map((s) => familyOf(s.exerciseId));
   const transitions = countTransitions(mainFamilies);
@@ -557,6 +557,18 @@ export function scoreWorkout(
   const families = new Set([...mainFamilies, ...finisher.map((s) => familyOf(s.exerciseId))]);
   if (families.size > plan.maxEquipmentFamilies + 1)
     penalise(6, `Session spans ${families.size} equipment families.`);
+
+  const cost = transitionCost(
+    main.map((s) => opts.library.get(s.exerciseId) ?? null),
+    plan.format,
+  );
+  const budget = transitionCostBudget(plan);
+  if (cost > budget)
+    penalise(
+      Math.min(14, Math.round((cost - budget) * 2)),
+      `Transition cost ${cost} exceeds the practical budget of ${budget} for a ${plan.format} session — regroup the movements by station and position.`,
+    );
+
 
   // 4. Variety and repetition.
   const workIds = work.map((s) => s.exerciseId);
