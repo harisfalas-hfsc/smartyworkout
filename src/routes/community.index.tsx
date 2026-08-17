@@ -633,9 +633,9 @@ function TalkPanel({
         <div className="space-y-3 p-4">
           <div className="flex items-center gap-3">
             <MemberAvatar
-              name={selectedComment?.author_name}
-              avatar={selectedComment?.author_avatar}
-              size={9}
+              name={selectedComment?.author_name ?? null}
+              avatar={selectedComment?.author_avatar ?? null}
+              size={10}
             />
             <p className="min-w-0 truncate text-sm font-bold">
               {selectedComment?.author_name || "Smarty member"}
