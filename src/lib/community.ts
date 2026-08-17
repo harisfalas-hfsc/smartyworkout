@@ -77,6 +77,10 @@ export type CommunitySort = (typeof SORTS)[number]["id"];
 /** Minimum reactions before a workout can appear in Top Rated. */
 export const MIN_RATINGS = 3;
 
+/** Comments are short, SMS-style messages. */
+export const COMMENT_MAX = 160;
+
+
 export function ratingScore(w: { likes: number; dislikes: number }) {
   const total = w.likes + w.dislikes;
   if (total === 0) return 0;

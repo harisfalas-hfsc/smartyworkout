@@ -199,10 +199,10 @@ function AboutPage() {
       </p>
 
       <h2 className="mt-10 text-center text-xl font-extrabold uppercase sm:text-2xl">
-        Two ways to <span className="text-primary">benefit</span>
+        Three ways to <span className="text-primary">benefit</span>
       </h2>
 
-      <div className="mx-auto mt-4 grid max-w-xl gap-4 lg:max-w-5xl lg:grid-cols-2">
+      <div className="mx-auto mt-4 grid max-w-xl gap-4 lg:max-w-5xl lg:grid-cols-3">
         <div className="rounded-2xl border-2 border-blue-400 bg-card p-5">
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">
             Create your workout
@@ -234,7 +234,23 @@ function AboutPage() {
             <Link to="/wod">Follow Workout of the Day</Link>
           </Button>
         </div>
+
+        <div className="rounded-2xl border-2 border-blue-400 bg-card p-5">
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">
+            Smarty Community
+          </p>
+          <p className="mt-2 text-base font-extrabold uppercase">Train with the community</p>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Open a workout shared by another member, train it exactly as it was generated, mark it
+            completed, like it and leave a short comment. Climb the member and workout rankings and
+            see who is training, what they are training and what the community says about it.
+          </p>
+          <Button asChild className="mt-4 w-full font-extrabold uppercase">
+            <Link to="/community">Open Smarty Community</Link>
+          </Button>
+        </div>
       </div>
+
     </div>
   );
 }

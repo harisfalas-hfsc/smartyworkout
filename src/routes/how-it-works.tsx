@@ -129,6 +129,30 @@ const WOD_STEPS = [
   },
 ];
 
+const COMMUNITY_STEPS = [
+  {
+    n: "01",
+    title: "Members share",
+    desc: "Any workout • Exactly as generated • Never edited",
+  },
+  {
+    n: "02",
+    title: "You browse",
+    desc: "Shared workouts • Member ranking • Workout ranking • Comments",
+  },
+  {
+    n: "03",
+    title: "You train it",
+    desc: "A copy lands in your logbook • Completed, not completed or scheduled",
+  },
+  {
+    n: "04",
+    title: "You react",
+    desc: "Like it • Comment in 160 characters • Climb the rankings",
+  },
+];
+
+
 function HowItWorks() {
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">
@@ -139,7 +163,7 @@ function HowItWorks() {
             Simple &amp; <span className="text-primary">transparent</span>
           </>
         }
-        subtitle="Two ways to train: create your own workout on demand, or follow the Workout of the Day."
+        subtitle="Three ways to train: create your own workout on demand, follow the Workout of the Day, or train a workout shared by the Smarty Community."
       />
 
       <section className="rounded-2xl border-2 border-blue-400 bg-card p-5 sm:p-8">
@@ -216,6 +240,44 @@ function HowItWorks() {
           </Button>
         </div>
       </section>
+
+      <section className="mt-6 rounded-2xl border-2 border-blue-400 bg-card p-5 sm:p-8">
+        <p className="text-center text-[11px] font-bold uppercase tracking-[0.18em] text-primary">
+          Way 3 — Smarty Community
+        </p>
+        <h2 className="mt-2 text-center text-xl font-extrabold uppercase sm:text-2xl">
+          Train the workouts other members share.
+        </h2>
+        <p className="mx-auto mt-2 max-w-2xl text-center text-sm leading-6 text-muted-foreground">
+          Every shared workout opens exactly like a workout in your own logbook — same reader, same
+          player. Do it, mark it completed, not completed or scheduled, like it and leave a short
+          comment. Your comment appears in the community comments card for everyone to read.
+        </p>
+
+        <div className="mt-6 grid gap-6 sm:grid-cols-4 sm:gap-4">
+          {COMMUNITY_STEPS.map((s) => (
+            <div key={s.n} className="flex flex-col items-center text-center">
+              <div className="text-4xl font-black leading-none text-primary sm:text-5xl">
+                {s.n}
+              </div>
+              <div className="mt-3 text-base font-bold uppercase">{s.title}</div>
+              <div className="mt-1 text-sm text-muted-foreground">{s.desc}</div>
+            </div>
+          ))}
+        </div>
+
+        <p className="mt-6 text-center text-sm font-semibold leading-snug text-muted-foreground">
+          Training alone is hard. Training with{" "}
+          <span className="text-primary">other Smarty members</span> keeps you accountable.
+        </p>
+
+        <div className="mt-6 flex justify-center">
+          <Button asChild size="lg" className="font-extrabold uppercase">
+            <Link to="/community">Open Smarty Community</Link>
+          </Button>
+        </div>
+      </section>
+
     </div>
   );
 }

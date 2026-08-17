@@ -23,6 +23,9 @@ import { fetchComments } from "@/lib/community-queries";
 import type { CommunityComment, SharedWorkoutFull } from "@/lib/community";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { WorkoutStatusPanel } from "@/components/workout/WorkoutStatusPanel";
+import { COMMENT_MAX } from "@/lib/community";
+
 
 export const Route = createFileRoute("/community/workout/$workoutId")({
   head: () => ({
@@ -57,6 +60,16 @@ function SharedWorkoutPage() {
   const [draft, setDraft] = useState("");
   const [me, setMe] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [copy, setCopy] = useState<{ id: string; status: string; scheduledAt: string } | null>(null);
+
+  /** Lazily creates (or reuses) the member's own copy so status can be tracked. */
+  async function ensureCopy(): Promise<string> {
+    if (copy?.id) return copy.id;
+    const r = await doWorkout({ data: { workoutId } });
+    setCopy((c) => ({ id: r.workoutId, status: c?.status ?? "created", scheduledAt: c?.scheduledAt ?? "" }));
+    return r.workoutId;
+  }
+
 
   async function refreshCounts() {
     const { data } = await supabase
@@ -78,6 +91,8 @@ function SharedWorkoutPage() {
         if (!active) return;
         setWorkout(res.workout);
         setMyReaction(res.myReaction);
+        if (res.myCopy) setCopy({ id: res.myCopy.id, status: res.myCopy.status, scheduledAt: "" });
+
       } catch (e) {
         if (active) setError((e as Error).message);
       }
@@ -171,15 +186,34 @@ function SharedWorkoutPage() {
 
   return (
     <WorkoutDisplay workout={{ ...workout, is_favorite: false, rating: null }} onComplete={start}>
+      <WorkoutStatusPanel
+        workoutId={copy?.id ?? null}
+        status={copy?.status === "completed" ? "completed" : copy?.scheduledAt ? "scheduled" : "created"}
+        scheduledAt={copy?.scheduledAt ?? ""}
+        resolveWorkoutId={ensureCopy}
+        onChange={(next) =>
+          setCopy((c) => ({
+            id: c?.id ?? "",
+            status: next.status,
+            scheduledAt: next.scheduledAt,
+          }))
+        }
+      />
+
       <section className="mt-6 rounded-3xl border-2 border-blue-400 bg-card p-5">
         <p className="text-xs font-bold uppercase tracking-wider text-primary">Community workout</p>
         <p className="mt-2 text-sm text-muted-foreground">
           This workout is shown exactly as its creator generated it and cannot be edited. Start it to
           add your own copy to your logbook — your completion is credited to the creator.
         </p>
-        <Button className="mt-4 h-12 w-full rounded-2xl font-bold" onClick={start} disabled={busy}>
-          Do workout
-        </Button>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          <Button className="h-12 rounded-2xl font-bold" onClick={start} disabled={busy}>
+            Do workout
+          </Button>
+          <Button asChild variant="secondary" className="h-12 rounded-2xl">
+            <Link to="/community">Open community</Link>
+          </Button>
+        </div>
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <button
             type="button"
@@ -215,20 +249,24 @@ function SharedWorkoutPage() {
         </div>
       </section>
 
-      <section className="mt-6 rounded-3xl border border-border bg-card p-5">
+      <section id="comments" className="mt-6 rounded-3xl border border-border bg-card p-5">
         <h3 className="text-lg font-bold">Comments ({comments.length})</h3>
         <div className="mt-3 flex gap-2">
           <Textarea
             value={draft}
-            onChange={(e) => setDraft(e.target.value)}
+            onChange={(e) => setDraft(e.target.value.slice(0, COMMENT_MAX))}
             placeholder="Great workout. That finisher was brutal…"
             className="min-h-[3rem] rounded-2xl"
-            maxLength={1000}
+            maxLength={COMMENT_MAX}
           />
           <Button className="h-12 shrink-0 rounded-2xl" onClick={submitComment} disabled={busy}>
             <Send className="h-4 w-4" />
           </Button>
         </div>
+        <p className="mt-1 text-right text-[11px] text-muted-foreground">
+          {draft.length}/{COMMENT_MAX}
+        </p>
+
         <ul className="mt-5 space-y-3">
           {comments.map((c) => (
             <li key={c.id} className="flex gap-3 rounded-2xl border border-border p-3">

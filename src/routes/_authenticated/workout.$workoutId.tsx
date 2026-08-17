@@ -3,7 +3,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, CalendarClock, CheckCircle2, RotateCcw } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { WorkoutStatusPanel } from "@/components/workout/WorkoutStatusPanel";
+
 import { useServerFn } from "@tanstack/react-start";
 import { setWorkoutStatus } from "@/lib/coach.functions";
 import { shareWorkout } from "@/lib/community.functions";
@@ -75,7 +77,7 @@ function WorkoutPage() {
   const [repeat, setRepeat] = useState("Yes");
   const [comment, setComment] = useState("");
   const [scheduledAt, setScheduledAt] = useState<string>("");
-  const [showSchedule, setShowSchedule] = useState(false);
+  
   const [parqFlags, setParqFlags] = useState<string[]>([]);
   const [parqOpen, setParqOpen] = useState(false);
   const [parqBlocked, setParqBlocked] = useState(false);
@@ -113,13 +115,6 @@ function WorkoutPage() {
     toast.success("Marked as completed.");
   }
 
-  async function markNotCompleted() {
-    await saveStatus({ data: { workoutId, status: "created" } });
-    setDone(false);
-    setSaved(false);
-    toast.success("Marked as not completed.");
-  }
-
   async function toggleShare() {
     const next = !shared;
     setSharing(true);
@@ -138,25 +133,6 @@ function WorkoutPage() {
     }
   }
 
-  async function schedule() {
-    if (!scheduledAt) return;
-    await saveStatus({
-      data: {
-        workoutId,
-        status: "scheduled",
-        scheduled_at: new Date(scheduledAt).toISOString(),
-      },
-    });
-    setShowSchedule(false);
-    toast.success("Scheduled — it will show in your logbook calendar.");
-  }
-
-  async function clearSchedule() {
-    await saveStatus({ data: { workoutId, status: "created", scheduled_at: null } });
-    setScheduledAt("");
-    setShowSchedule(false);
-    toast.success("Schedule removed.");
-  }
 
   async function saveFeedback() {
     const { data: auth } = await supabase.auth.getUser();
@@ -242,56 +218,17 @@ function WorkoutPage() {
 
   return (
     <WorkoutDisplay workout={w} onComplete={complete}>
-      <section className="mt-6 rounded-2xl border border-border bg-card p-5">
-        <h3 className="text-lg font-bold">Workout status</h3>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {done
-            ? "Completed — nice work."
-            : scheduledAt
-              ? `Scheduled for ${new Date(scheduledAt).toLocaleString()}`
-              : "Not completed yet."}
-        </p>
-        <div className="mt-4 grid gap-2 sm:grid-cols-3">
-          <Button size="lg" className="h-12 rounded-2xl" onClick={complete} disabled={done}>
-            <CheckCircle2 className="mr-2 h-4 w-4" /> Completed
-          </Button>
-          <Button
-            size="lg"
-            variant="secondary"
-            className="h-12 rounded-2xl"
-            onClick={markNotCompleted}
-            disabled={!done}
-          >
-            <RotateCcw className="mr-2 h-4 w-4" /> Not completed
-          </Button>
-          <Button
-            size="lg"
-            variant="secondary"
-            className="h-12 rounded-2xl"
-            onClick={() => setShowSchedule((v) => !v)}
-          >
-            <CalendarClock className="mr-2 h-4 w-4" /> Schedule
-          </Button>
-        </div>
-        {showSchedule ? (
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <input
-              type="datetime-local"
-              value={scheduledAt}
-              onChange={(e) => setScheduledAt(e.target.value)}
-              className="h-12 flex-1 rounded-2xl border border-border bg-background px-3 text-sm"
-            />
-            <Button className="h-12 rounded-2xl" onClick={schedule}>
-              Save date
-            </Button>
-            {scheduledAt ? (
-              <Button variant="ghost" className="h-12 rounded-2xl" onClick={clearSchedule}>
-                Clear
-              </Button>
-            ) : null}
-          </div>
-        ) : null}
-      </section>
+      <WorkoutStatusPanel
+        workoutId={workoutId}
+        status={done ? "completed" : scheduledAt ? "scheduled" : "created"}
+        scheduledAt={scheduledAt}
+        onChange={(next) => {
+          setDone(next.status === "completed");
+          if (next.status !== "completed") setSaved(false);
+          setScheduledAt(next.scheduledAt);
+        }}
+      />
+
 
       <section className="mt-6 rounded-2xl border-2 border-blue-400 bg-card p-5">
         <h3 className="flex items-center gap-2 text-lg font-bold">

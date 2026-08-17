@@ -330,33 +330,28 @@ function Panel({
           {title}
         </h2>
         <div className="mt-3 rounded-2xl border border-blue-300 p-3 dark:border-blue-500/40">
-          <p className="text-xs font-bold uppercase tracking-wider text-primary">Filters</p>
-          <div className="mt-2 grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             {[0, 1].map((i) => {
               const f = filters[i];
-              if (!f) return <div key={i} aria-hidden className="hidden sm:block" />;
+              if (!f) return <div key={i} aria-hidden />;
               return (
-                <div key={f.label}>
-                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    {f.label}
-                  </p>
-                  <Select value={f.value} onValueChange={f.onChange}>
-                    <SelectTrigger className="h-10 rounded-xl border-blue-300 text-sm font-semibold dark:border-blue-500/50">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {f.options.map((o) => (
-                        <SelectItem key={o.value} value={o.value}>
-                          {o.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <Select key={f.label} value={f.value} onValueChange={f.onChange}>
+                  <SelectTrigger className="h-10 rounded-xl border-blue-300 text-sm font-semibold dark:border-blue-500/50">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {f.options.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               );
             })}
           </div>
         </div>
+
       </header>
       <div className="min-h-0 flex-1 overflow-y-auto p-3">{children}</div>
     </section>
@@ -652,7 +647,11 @@ function TalkPanel({
                     <span className="ml-1 font-normal text-muted-foreground">on</span>{" "}
                     <span className="text-primary">{c.workout_name || "a shared workout"}</span>
                   </p>
-                  <p className="mt-1 line-clamp-3 break-words text-sm">{c.body}</p>
+                  <p className="mt-1 line-clamp-2 break-words text-sm">{c.body}</p>
+                  <p className="mt-1 text-[11px] font-semibold text-primary">
+                    Tap to read all comments
+                  </p>
+
                 </div>
               </button>
             </li>
