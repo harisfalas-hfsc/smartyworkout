@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, CheckCircle2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { WorkoutStatusPanel } from "@/components/workout/WorkoutStatusPanel";
 
 import { useServerFn } from "@tanstack/react-start";
@@ -77,7 +77,7 @@ function WorkoutPage() {
   const [repeat, setRepeat] = useState("Yes");
   const [comment, setComment] = useState("");
   const [scheduledAt, setScheduledAt] = useState<string>("");
-  const [showSchedule, setShowSchedule] = useState(false);
+  
   const [parqFlags, setParqFlags] = useState<string[]>([]);
   const [parqOpen, setParqOpen] = useState(false);
   const [parqBlocked, setParqBlocked] = useState(false);
