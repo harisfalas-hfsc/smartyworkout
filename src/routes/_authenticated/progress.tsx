@@ -1,9 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useMemo, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
-import { Loader2, Flame, Trophy, Timer, Activity } from "lucide-react";
+import {
+  Loader2,
+  Flame,
+  Trophy,
+  Timer,
+  Activity,
+  Crown,
+  Sparkles,
+  Medal,
+  Lock,
+} from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
+import { getProgressOverview, type ProgressOverview } from "@/lib/progress.functions";
+import { CATEGORY_LABEL, CATEGORY_UNIT } from "@/lib/progress-config";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/progress")({
   head: () => ({
@@ -11,7 +24,8 @@ export const Route = createFileRoute("/_authenticated/progress")({
       { title: "Progress — Smarty Workout" },
       {
         name: "description",
-        content: "Streaks, training minutes, favourite categories and consistency at a glance.",
+        content:
+          "Your Smarty Progress Score, ranking, streaks, awards and personal training records.",
       },
       { name: "robots", content: "noindex" },
     ],
@@ -19,40 +33,16 @@ export const Route = createFileRoute("/_authenticated/progress")({
   component: Progress,
 });
 
-type Row = {
-  id: string;
-  category: string;
-  duration_min: number;
-  status: string;
-  is_favorite: boolean | null;
-  created_at: string;
+const ICONS: Record<string, typeof Trophy> = {
+  trophy: Trophy,
+  flame: Flame,
+  crown: Crown,
+  sparkles: Sparkles,
+  medal: Medal,
 };
 
-function dayKey(d: Date) {
-  return d.toISOString().slice(0, 10);
-}
-
-function streaks(dates: string[]) {
-  const set = new Set(dates);
-  let current = 0;
-  const cursor = new Date();
-  // allow today or yesterday to keep a streak alive
-  if (!set.has(dayKey(cursor))) cursor.setDate(cursor.getDate() - 1);
-  while (set.has(dayKey(cursor))) {
-    current += 1;
-    cursor.setDate(cursor.getDate() - 1);
-  }
-  const sorted = Array.from(set).sort();
-  let longest = 0;
-  let run = 0;
-  let prev: Date | null = null;
-  for (const d of sorted) {
-    const cur = new Date(d);
-    run = prev && (cur.getTime() - prev.getTime()) / 86400000 === 1 ? run + 1 : 1;
-    longest = Math.max(longest, run);
-    prev = cur;
-  }
-  return { current, longest };
+function num(n: number) {
+  return n.toLocaleString();
 }
 
 function Stat({
@@ -73,13 +63,12 @@ function Stat({
       <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
     </>
   );
-  if (!to)
-    return <div className="rounded-2xl border border-border bg-card p-4">{body}</div>;
+  if (!to) return <div className="rounded-2xl border border-blue-400 bg-card p-4">{body}</div>;
   return (
     <Link
       to="/logbook"
       search={{ filter: to.filter, view: "list" as const }}
-      className="block rounded-2xl border border-border bg-card p-4 transition hover:border-primary/60"
+      className="block rounded-2xl border border-blue-400 bg-card p-4 transition hover:border-primary/60"
     >
       {body}
       <span className="mt-2 block text-[11px] font-semibold text-primary">View in logbook →</span>
@@ -87,38 +76,77 @@ function Stat({
   );
 }
 
+function BadgeUnlockedToast({ names, onClose }: { names: string[]; onClose: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onClose, 8000);
+    return () => clearTimeout(t);
+  }, [onClose]);
+  return (
+    <div className="fixed inset-x-3 bottom-20 z-50 mx-auto max-w-sm animate-in fade-in slide-in-from-bottom-4 rounded-2xl border-2 border-blue-400 bg-card p-4 shadow-lg sm:bottom-6">
+      <p className="text-xs font-bold uppercase tracking-wider text-primary">Badge unlocked</p>
+      <p className="mt-1 font-extrabold">{names.join(" • ")}</p>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Your Smarty Progress Score has increased.
+      </p>
+      <button
+        type="button"
+        onClick={onClose}
+        className="mt-3 text-xs font-semibold text-primary"
+      >
+        Nice!
+      </button>
+    </div>
+  );
+}
 
 function Progress() {
-  const [rows, setRows] = useState<Row[] | null>(null);
+  const fetchOverview = useServerFn(getProgressOverview);
+  const [data, setData] = useState<ProgressOverview | null>(null);
+  const [unlocked, setUnlocked] = useState<string[]>([]);
 
   useEffect(() => {
-    (async () => {
-      const { data } = await supabase
-        .from("workouts")
-        .select("id,category,duration_min,status,is_favorite,created_at")
-        .order("created_at", { ascending: false })
-        .limit(500);
-      setRows((data as unknown as Row[]) ?? []);
-    })();
-  }, []);
+    let active = true;
+    void fetchOverview({ data: {} } as never)
+      .then((r) => {
+        if (!active) return;
+        setData(r);
+        if (r.newlyEarned.length) setUnlocked(r.newlyEarned.map((b) => b.name));
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [fetchOverview]);
 
-  if (!rows)
+  const byCategory = useMemo(() => {
+    if (!data) return [];
+    const earned = new Set(data.badges.map((b) => b.badge_id));
+    const value = (c: string) =>
+      c === "subscription"
+        ? data.stats.subscription_months
+        : c === "generated"
+          ? data.stats.workouts_generated
+          : c === "completed"
+            ? data.stats.workouts_completed
+            : data.stats.longest_streak;
+    const cats = ["completed", "streak", "generated", "subscription"];
+    return cats.map((c) => {
+      const defs = data.definitions
+        .filter((d) => d.category === c)
+        .sort((a, b) => a.threshold - b.threshold);
+      const next = defs.find((d) => !earned.has(d.id));
+      return { category: c, defs, next, value: value(c), earned };
+    });
+  }, [data]);
+
+  if (!data)
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
 
-  const completed = rows.filter((r) => r.status === "completed");
-  const now = Date.now();
-  const week = completed.filter((r) => now - new Date(r.created_at).getTime() < 7 * 86400000);
-  const month = completed.filter((r) => now - new Date(r.created_at).getTime() < 30 * 86400000);
-  const minutes = completed.reduce((s, r) => s + (r.duration_min || 0), 0);
-  const { current, longest } = streaks(completed.map((r) => r.created_at.slice(0, 10)));
-  const favourites = rows.filter((r) => r.is_favorite).length;
-  const counts = new Map<string, number>();
-  for (const r of completed) counts.set(r.category, (counts.get(r.category) ?? 0) + 1);
-  const favourite = Array.from(counts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
+  const s = data.stats;
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">
@@ -129,42 +157,159 @@ function Progress() {
         subtitle="Keep showing up — Smarty Coach is tracking it all."
       />
 
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      {/* Smarty Progress summary */}
+      <section className="mt-6 rounded-3xl border-2 border-blue-400 bg-card p-5 sm:p-7">
+        <p className="text-xs font-bold uppercase tracking-wider text-primary">Smarty Progress</p>
+        <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div>
+            <p className="text-3xl font-black leading-none">{num(s.score)}</p>
+            <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">Score</p>
+          </div>
+          <div>
+            <p className="text-3xl font-black leading-none">#{data.rank}</p>
+            <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">
+              Rank of {num(data.totalRanked)}
+            </p>
+          </div>
+          <div>
+            <p className="text-3xl font-black leading-none">{s.current_streak}d</p>
+            <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">
+              Current streak
+            </p>
+          </div>
+          <div>
+            <p className="text-3xl font-black leading-none">{s.longest_streak}d</p>
+            <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">
+              Longest streak
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Workout progress */}
+      <h2 className="mt-8 text-lg font-extrabold">Workout progress</h2>
+      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat
           icon={Activity}
           label="Completed"
-          value={completed.length}
+          value={num(s.workouts_completed)}
           to={{ filter: "completed" }}
+        />
+        <Stat
+          icon={Sparkles}
+          label="Generated"
+          value={num(s.workouts_generated)}
+          to={{ filter: "all" }}
         />
         <Stat
           icon={Activity}
           label="Not completed"
-          value={rows.length - completed.length}
+          value={num(Math.max(0, s.workouts_generated - s.workouts_completed))}
           to={{ filter: "planned" }}
         />
-        <Stat icon={Timer} label="Training minutes" value={minutes} />
-        <Stat icon={Flame} label="Current streak" value={`${current}d`} />
-        <Stat icon={Trophy} label="Longest streak" value={`${longest}d`} />
-        <Stat
-          icon={Activity}
-          label="This week"
-          value={week.length}
-          to={{ filter: "completed" }}
-        />
-        <Stat
-          icon={Activity}
-          label="Favourites"
-          value={favourites}
-          to={{ filter: "favorites" }}
-        />
-        <Stat icon={Trophy} label="Favourite category" value={favourite} />
-        <Stat icon={Activity} label="Created" value={rows.length} to={{ filter: "all" }} />
+        <Stat icon={Timer} label="Training days" value={num(s.active_days)} />
       </div>
 
+      {/* Awards */}
+      <h2 className="mt-8 text-lg font-extrabold">Awards</h2>
+      <div className="mt-3 space-y-4">
+        {byCategory.map(({ category, defs, next, value, earned }) => {
+          const unit = CATEGORY_UNIT[category] ?? "";
+          const pct = next ? Math.min(100, Math.round((value / next.threshold) * 100)) : 100;
+          return (
+            <div key={category} className="rounded-2xl border border-blue-400 bg-card p-4">
+              <div className="flex items-baseline justify-between gap-3">
+                <p className="font-bold">{CATEGORY_LABEL[category]}</p>
+                <p className="text-xs text-muted-foreground">
+                  {defs.filter((d) => earned.has(d.id)).length}/{defs.length} earned
+                </p>
+              </div>
+
+              {next ? (
+                <div className="mt-3">
+                  <p className="text-sm font-semibold">
+                    Next: {next.name}
+                  </p>
+                  <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
+                    <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {num(value)} / {num(next.threshold)} — {num(Math.max(0, next.threshold - value))}{" "}
+                    {unit} to go
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-3 text-sm font-semibold text-primary">
+                  Maximum current level — keep improving your score and ranking.
+                </p>
+              )}
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                {defs.map((d) => {
+                  const Icon = ICONS[d.icon] ?? Trophy;
+                  const has = earned.has(d.id);
+                  const when = data.badges.find((b) => b.badge_id === d.id)?.earned_at;
+                  return (
+                    <div
+                      key={d.id}
+                      title={
+                        has && when
+                          ? `${d.description} — earned ${new Date(when).toLocaleDateString()}`
+                          : d.description
+                      }
+                      className={cn(
+                        "flex min-w-[92px] flex-1 flex-col items-center gap-1 rounded-xl border p-3 text-center sm:flex-none",
+                        has
+                          ? "border-blue-400 bg-primary/10 text-foreground"
+                          : "border-border bg-muted/40 text-muted-foreground",
+                      )}
+                    >
+                      {has ? (
+                        <Icon className="h-5 w-5 text-primary" />
+                      ) : (
+                        <Lock className="h-5 w-5" />
+                      )}
+                      <span className="text-[11px] font-semibold leading-tight">
+                        {num(d.threshold)} {unit}
+                      </span>
+                      {has && when && (
+                        <span className="text-[10px]">
+                          {new Date(when).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Personal records */}
+      <h2 className="mt-8 text-lg font-extrabold">Personal records</h2>
+      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <Stat icon={Sparkles} label="Total generated" value={num(s.workouts_generated)} />
+        <Stat icon={Trophy} label="Total completed" value={num(s.workouts_completed)} />
+        <Stat icon={Flame} label="Current streak" value={`${s.current_streak}d`} />
+        <Stat icon={Flame} label="Longest streak" value={`${s.longest_streak}d`} />
+        <Stat
+          icon={Crown}
+          label="Membership"
+          value={`${s.subscription_months} mo`}
+        />
+        <Stat icon={Medal} label="Progress score" value={num(s.score)} />
+        <Stat icon={Trophy} label="Ranking" value={`#${data.rank}`} />
+        <Stat icon={Medal} label="Awards earned" value={num(data.badges.length)} />
+      </div>
 
       <Button asChild className="mt-8">
         <Link to="/coach">Train now</Link>
       </Button>
+
+      {unlocked.length > 0 && (
+        <BadgeUnlockedToast names={unlocked} onClose={() => setUnlocked([])} />
+      )}
     </div>
   );
 }
