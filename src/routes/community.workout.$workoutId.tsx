@@ -23,6 +23,9 @@ import { fetchComments } from "@/lib/community-queries";
 import type { CommunityComment, SharedWorkoutFull } from "@/lib/community";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { WorkoutStatusPanel } from "@/components/workout/WorkoutStatusPanel";
+import { COMMENT_MAX } from "@/lib/community";
+
 
 export const Route = createFileRoute("/community/workout/$workoutId")({
   head: () => ({
@@ -57,6 +60,16 @@ function SharedWorkoutPage() {
   const [draft, setDraft] = useState("");
   const [me, setMe] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [copy, setCopy] = useState<{ id: string; status: string; scheduledAt: string } | null>(null);
+
+  /** Lazily creates (or reuses) the member's own copy so status can be tracked. */
+  async function ensureCopy(): Promise<string> {
+    if (copy?.id) return copy.id;
+    const r = await doWorkout({ data: { workoutId } });
+    setCopy((c) => ({ id: r.workoutId, status: c?.status ?? "created", scheduledAt: c?.scheduledAt ?? "" }));
+    return r.workoutId;
+  }
+
 
   async function refreshCounts() {
     const { data } = await supabase
