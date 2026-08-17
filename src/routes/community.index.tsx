@@ -102,7 +102,6 @@ function badgeFor(index: number) {
 function CommunityPage() {
   const navigate = useNavigate();
   const access = useCommunityAccess();
-  const doWorkout = useServerFn(startSharedWorkout);
 
   const [mobileApi, setMobileApi] = useState<CarouselApi>();
   const [desktopApi, setDesktopApi] = useState<CarouselApi>();
@@ -120,7 +119,6 @@ function CommunityPage() {
   const [comments, setComments] = useState<
     (CommunityComment & { workout_name?: string | null })[] | null
   >(null);
-  const [starting, setStarting] = useState(false);
 
   useEffect(() => {
     void fetchCategories().then(setCategories);
@@ -195,17 +193,6 @@ function CommunityPage() {
     access.guard(() =>
       navigate({ to: "/community/workout/$workoutId", params: { workoutId: id } }),
     );
-  }
-
-  function start(id: string) {
-    access.guard(() => {
-      if (starting) return;
-      setStarting(true);
-      void doWorkout({ data: { workoutId: id } })
-        .then((r) => navigate({ to: "/workout/$workoutId", params: { workoutId: r.workoutId } }))
-        .catch((e: Error) => toast.error(e.message))
-        .finally(() => setStarting(false));
-    });
   }
 
   const panels = [
