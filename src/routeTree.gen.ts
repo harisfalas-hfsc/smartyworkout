@@ -38,12 +38,15 @@ import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedProgressRouteImport } from './routes/_authenticated/progress'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminExerciseLibraryRouteImport } from './routes/admin.exercise-library'
+import { Route as CommunityIndexRouteImport } from './routes/community.index'
+import { Route as CommunityWorkoutsRouteImport } from './routes/community.workouts'
 import { Route as ToolsIndexRouteImport } from './routes/tools.index'
 import { Route as Tools1rmCalculatorRouteImport } from './routes/tools.1rm-calculator'
 import { Route as ToolsRoundsTrackerRouteImport } from './routes/tools.rounds-tracker'
 import { Route as ToolsWorkoutTimerRouteImport } from './routes/tools.workout-timer'
 import { Route as AuthenticatedCheckoutReturnRouteImport } from './routes/_authenticated/checkout.return'
 import { Route as AuthenticatedWorkoutWorkoutIdRouteImport } from './routes/_authenticated/workout.$workoutId'
+import { Route as CommunityWorkoutWorkoutIdRouteImport } from './routes/community.workout.$workoutId'
 import { Route as ApiPublicHooksDailyRunRouteImport } from './routes/api/public/hooks/daily-run'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
@@ -193,6 +196,16 @@ const AdminExerciseLibraryRoute = AdminExerciseLibraryRouteImport.update({
   path: '/admin/exercise-library',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CommunityIndexRoute = CommunityIndexRouteImport.update({
+  id: '/community/',
+  path: '/community/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommunityWorkoutsRoute = CommunityWorkoutsRouteImport.update({
+  id: '/community/workouts',
+  path: '/community/workouts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ToolsIndexRoute = ToolsIndexRouteImport.update({
   id: '/tools/',
   path: '/tools/',
@@ -224,6 +237,12 @@ const AuthenticatedWorkoutWorkoutIdRoute =
     id: '/workout/$workoutId',
     path: '/workout/$workoutId',
     getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const CommunityWorkoutWorkoutIdRoute =
+  CommunityWorkoutWorkoutIdRouteImport.update({
+    id: '/community/workout/$workoutId',
+    path: '/community/workout/$workoutId',
+    getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicHooksDailyRunRoute = ApiPublicHooksDailyRunRouteImport.update({
   id: '/api/public/hooks/daily-run',
@@ -271,13 +290,16 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRoute
   '/progress': typeof AuthenticatedProgressRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
+  '/community/workouts': typeof CommunityWorkoutsRoute
   '/tools/1rm-calculator': typeof Tools1rmCalculatorRoute
   '/tools/rounds-tracker': typeof ToolsRoundsTrackerRoute
   '/tools/workout-timer': typeof ToolsWorkoutTimerRoute
   '/admin/': typeof AdminIndexRoute
+  '/community/': typeof CommunityIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/checkout/return': typeof AuthenticatedCheckoutReturnRoute
   '/workout/$workoutId': typeof AuthenticatedWorkoutWorkoutIdRoute
+  '/community/workout/$workoutId': typeof CommunityWorkoutWorkoutIdRoute
   '/api/public/hooks/daily-run': typeof ApiPublicHooksDailyRunRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -310,13 +332,16 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileRoute
   '/progress': typeof AuthenticatedProgressRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
+  '/community/workouts': typeof CommunityWorkoutsRoute
   '/tools/1rm-calculator': typeof Tools1rmCalculatorRoute
   '/tools/rounds-tracker': typeof ToolsRoundsTrackerRoute
   '/tools/workout-timer': typeof ToolsWorkoutTimerRoute
   '/admin': typeof AdminIndexRoute
+  '/community': typeof CommunityIndexRoute
   '/tools': typeof ToolsIndexRoute
   '/checkout/return': typeof AuthenticatedCheckoutReturnRoute
   '/workout/$workoutId': typeof AuthenticatedWorkoutWorkoutIdRoute
+  '/community/workout/$workoutId': typeof CommunityWorkoutWorkoutIdRoute
   '/api/public/hooks/daily-run': typeof ApiPublicHooksDailyRunRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -351,13 +376,16 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/progress': typeof AuthenticatedProgressRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
+  '/community/workouts': typeof CommunityWorkoutsRoute
   '/tools/1rm-calculator': typeof Tools1rmCalculatorRoute
   '/tools/rounds-tracker': typeof ToolsRoundsTrackerRoute
   '/tools/workout-timer': typeof ToolsWorkoutTimerRoute
   '/admin/': typeof AdminIndexRoute
+  '/community/': typeof CommunityIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/_authenticated/checkout/return': typeof AuthenticatedCheckoutReturnRoute
   '/_authenticated/workout/$workoutId': typeof AuthenticatedWorkoutWorkoutIdRoute
+  '/community/workout/$workoutId': typeof CommunityWorkoutWorkoutIdRoute
   '/api/public/hooks/daily-run': typeof ApiPublicHooksDailyRunRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -392,13 +420,16 @@ export interface FileRouteTypes {
     | '/profile'
     | '/progress'
     | '/admin/exercise-library'
+    | '/community/workouts'
     | '/tools/1rm-calculator'
     | '/tools/rounds-tracker'
     | '/tools/workout-timer'
     | '/admin/'
+    | '/community/'
     | '/tools/'
     | '/checkout/return'
     | '/workout/$workoutId'
+    | '/community/workout/$workoutId'
     | '/api/public/hooks/daily-run'
     | '/api/public/payments/webhook'
     | '/lovable/email/transactional/preview'
@@ -431,13 +462,16 @@ export interface FileRouteTypes {
     | '/profile'
     | '/progress'
     | '/admin/exercise-library'
+    | '/community/workouts'
     | '/tools/1rm-calculator'
     | '/tools/rounds-tracker'
     | '/tools/workout-timer'
     | '/admin'
+    | '/community'
     | '/tools'
     | '/checkout/return'
     | '/workout/$workoutId'
+    | '/community/workout/$workoutId'
     | '/api/public/hooks/daily-run'
     | '/api/public/payments/webhook'
     | '/lovable/email/transactional/preview'
@@ -471,13 +505,16 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/_authenticated/progress'
     | '/admin/exercise-library'
+    | '/community/workouts'
     | '/tools/1rm-calculator'
     | '/tools/rounds-tracker'
     | '/tools/workout-timer'
     | '/admin/'
+    | '/community/'
     | '/tools/'
     | '/_authenticated/checkout/return'
     | '/_authenticated/workout/$workoutId'
+    | '/community/workout/$workoutId'
     | '/api/public/hooks/daily-run'
     | '/api/public/payments/webhook'
     | '/lovable/email/transactional/preview'
@@ -503,11 +540,14 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   WodRoute: typeof WodRoute
   AdminExerciseLibraryRoute: typeof AdminExerciseLibraryRoute
+  CommunityWorkoutsRoute: typeof CommunityWorkoutsRoute
   Tools1rmCalculatorRoute: typeof Tools1rmCalculatorRoute
   ToolsRoundsTrackerRoute: typeof ToolsRoundsTrackerRoute
   ToolsWorkoutTimerRoute: typeof ToolsWorkoutTimerRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  CommunityIndexRoute: typeof CommunityIndexRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
+  CommunityWorkoutWorkoutIdRoute: typeof CommunityWorkoutWorkoutIdRoute
   ApiPublicHooksDailyRunRoute: typeof ApiPublicHooksDailyRunRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
@@ -718,6 +758,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminExerciseLibraryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/community/': {
+      id: '/community/'
+      path: '/community'
+      fullPath: '/community/'
+      preLoaderRoute: typeof CommunityIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/community/workouts': {
+      id: '/community/workouts'
+      path: '/community/workouts'
+      fullPath: '/community/workouts'
+      preLoaderRoute: typeof CommunityWorkoutsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tools/': {
       id: '/tools/'
       path: '/tools'
@@ -759,6 +813,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/workout/$workoutId'
       preLoaderRoute: typeof AuthenticatedWorkoutWorkoutIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/community/workout/$workoutId': {
+      id: '/community/workout/$workoutId'
+      path: '/community/workout/$workoutId'
+      fullPath: '/community/workout/$workoutId'
+      preLoaderRoute: typeof CommunityWorkoutWorkoutIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/daily-run': {
       id: '/api/public/hooks/daily-run'
@@ -846,11 +907,14 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   WodRoute: WodRoute,
   AdminExerciseLibraryRoute: AdminExerciseLibraryRoute,
+  CommunityWorkoutsRoute: CommunityWorkoutsRoute,
   Tools1rmCalculatorRoute: Tools1rmCalculatorRoute,
   ToolsRoundsTrackerRoute: ToolsRoundsTrackerRoute,
   ToolsWorkoutTimerRoute: ToolsWorkoutTimerRoute,
   AdminIndexRoute: AdminIndexRoute,
+  CommunityIndexRoute: CommunityIndexRoute,
   ToolsIndexRoute: ToolsIndexRoute,
+  CommunityWorkoutWorkoutIdRoute: CommunityWorkoutWorkoutIdRoute,
   ApiPublicHooksDailyRunRoute: ApiPublicHooksDailyRunRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,

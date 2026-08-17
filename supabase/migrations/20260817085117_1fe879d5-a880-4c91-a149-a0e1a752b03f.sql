@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.credit_community_completion() FROM PUBLIC, anon, authenticated;
