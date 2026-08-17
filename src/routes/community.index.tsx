@@ -24,7 +24,6 @@ import {
   useCommunityAccess,
 } from "@/components/community/useCommunityAccess";
 import {
-  fetchCategories,
   fetchCommunityCreators,
   fetchCommunityWorkouts,
   fetchLatestComments,
@@ -104,8 +103,6 @@ function CommunityPage() {
   const [desktopApi, setDesktopApi] = useState<CarouselApi>();
 
   const [workoutSort, setWorkoutSort] = useState<WorkoutSortKey>("latest");
-  const [category, setCategory] = useState<string>("");
-  const [categories, setCategories] = useState<string[]>([]);
   const [memberSort, setMemberSort] = useState<MemberSortKey>("score");
   const [rankSort, setRankSort] = useState<RankSortKey>("completions");
   const [talkSort, setTalkSort] = useState<TalkSortKey>("newest");
@@ -118,29 +115,15 @@ function CommunityPage() {
   >(null);
 
   useEffect(() => {
-    void fetchCategories().then(setCategories);
-  }, []);
-
-  useEffect(() => {
     let active = true;
     setWorkouts(null);
-    void fetchCommunityWorkouts({
-      sort: workoutSort,
-      category: category || null,
-      limit: SLOTS,
-    }).then((r) => {
+    void fetchCommunityWorkouts({ sort: workoutSort, limit: SLOTS }).then((r) => {
       if (active) setWorkouts(r);
     });
     return () => {
       active = false;
     };
-  }, [workoutSort, category]);
-
-  useEffect(() => {
-    if (categories.length && (!category || category === "all")) {
-      setCategory(categories[0]);
-    }
-  }, [categories, category]);
+  }, [workoutSort]);
 
   useEffect(() => {
     let active = true;
@@ -204,9 +187,6 @@ function CommunityPage() {
       rows={workouts}
       sort={workoutSort}
       onSort={setWorkoutSort}
-      category={category}
-      categories={categories}
-      onCategory={setCategory}
       onOpen={open}
     />,
     <MemberRankingPanel key="members" rows={members} sort={memberSort} onSort={setMemberSort} />,
@@ -380,17 +360,11 @@ function SharedWorkoutsPanel({
   rows,
   sort,
   onSort,
-  category,
-  categories,
-  onCategory,
   onOpen,
 }: {
   rows: CardData[] | null;
   sort: WorkoutSortKey;
   onSort: (s: WorkoutSortKey) => void;
-  category: string;
-  categories: string[];
-  onCategory: (c: string) => void;
   onOpen: (id: string) => void;
 }) {
   return (
@@ -398,12 +372,6 @@ function SharedWorkoutsPanel({
       title="Shared workouts"
       icon={Dumbbell}
       filters={[
-        {
-          label: "Category",
-          value: category,
-          onChange: onCategory,
-          options: categories.map((c) => ({ value: c, label: c })),
-        },
         {
           label: "Sort",
           value: sort,
