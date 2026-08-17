@@ -20,7 +20,7 @@ import {
 } from "@/components/community/useCommunityAccess";
 import { fetchBadgesFor, fetchCategories, fetchCommunityWorkouts } from "@/lib/community-queries";
 import { SORTS, type CommunityBadge, type CommunitySort, type CommunityWorkoutCard as CardData } from "@/lib/community";
-import { MAX_STARS } from "@/lib/workout/spec";
+import { CATEGORIES, MAX_STARS } from "@/lib/workout/spec";
 
 const searchSchema = z.object({
   sort: fallback(z.string(), "latest").default("latest"),
@@ -70,7 +70,10 @@ function BrowsePage() {
   const difficulty = Math.max(0, Math.min(MAX_STARS, search.difficulty));
 
   useEffect(() => {
-    void fetchCategories().then(setCategories);
+    void fetchCategories().then((rows) => {
+      const merged = Array.from(new Set([...CATEGORIES, ...rows]));
+      setCategories(merged);
+    });
   }, []);
 
   useEffect(() => {
