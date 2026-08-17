@@ -218,7 +218,6 @@ function CommunityPage() {
       categories={categories}
       onCategory={setCategory}
       onOpen={open}
-      onDo={start}
     />,
     <MemberRankingPanel key="members" rows={members} sort={memberSort} onSort={setMemberSort} />,
     <WorkoutRankingPanel
@@ -395,7 +394,6 @@ function SharedWorkoutsPanel({
   categories,
   onCategory,
   onOpen,
-  onDo,
 }: {
   rows: CardData[] | null;
   sort: WorkoutSortKey;
@@ -404,7 +402,6 @@ function SharedWorkoutsPanel({
   categories: string[];
   onCategory: (c: string) => void;
   onOpen: (id: string) => void;
-  onDo: (id: string) => void;
 }) {
   return (
     <Panel
