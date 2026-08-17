@@ -1,4 +1,6 @@
+import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { Navigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/PageHeader";
@@ -20,6 +22,9 @@ export const Route = createFileRoute("/_authenticated/checkout/return")({
 });
 
 function CheckoutReturn() {
+  const { freeAccessMode, loading } = useFreeAccessMode();
+  if (loading) return null;
+  if (freeAccessMode) return <Navigate to="/" replace />;
   const { session_id: sessionId } = Route.useSearch();
   const [profileReady, setProfileReady] = useState<boolean | null>(null);
 
