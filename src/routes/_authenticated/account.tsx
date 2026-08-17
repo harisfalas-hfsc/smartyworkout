@@ -1,3 +1,4 @@
+import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -174,6 +175,7 @@ function Account() {
 
       <DailyCoachingSettings premium={premium === true} />
 
+      {!freeAccessMode && (
       <section className="mt-4 rounded-2xl border border-blue-400 bg-card p-5">
         <div className="flex items-center gap-3">
           <span className="grid h-11 w-11 place-items-center rounded-2xl bg-primary/10 text-primary">
@@ -245,12 +247,12 @@ function Account() {
           </p>
         ) : null}
       </section>
+      )}
 
       <section className="mt-4 rounded-2xl border border-blue-400 bg-card p-5">
         <p className="font-bold">Delete account</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          This permanently removes your profile, workouts, logbook and notifications. Cancel your
-          membership first so you are not billed again.
+          This permanently removes your profile, workouts, logbook and notifications.
         </p>
         <AlertDialog>
           <AlertDialogTrigger asChild>
