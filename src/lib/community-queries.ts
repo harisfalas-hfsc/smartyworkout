@@ -128,3 +128,24 @@ export async function fetchCategories(): Promise<string[]> {
     .returns<{ category: string }[]>();
   return Array.from(new Set((data ?? []).map((r) => r.category).filter(Boolean))).sort();
 }
+
+/** Newest comments across every shared workout — community activity feed. */
+export async function fetchLatestComments(limit = 20): Promise<
+  (CommunityComment & { workout_name?: string | null })[]
+> {
+  const { data } = await supabase
+    .from("community_comments_public")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(limit)
+    .returns<CommunityComment[]>();
+  const rows = data ?? [];
+  if (!rows.length) return [];
+  const { data: workouts } = await supabase
+    .from("community_workouts_public")
+    .select("id,name")
+    .in("id", Array.from(new Set(rows.map((c) => c.workout_id))))
+    .returns<{ id: string; name: string }[]>();
+  const nameById = new Map((workouts ?? []).map((w) => [w.id, w.name]));
+  return rows.map((c) => ({ ...c, workout_name: nameById.get(c.workout_id) ?? null }));
+}
