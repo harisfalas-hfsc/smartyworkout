@@ -104,7 +104,7 @@ function CommunityPage() {
   const [desktopApi, setDesktopApi] = useState<CarouselApi>();
 
   const [workoutSort, setWorkoutSort] = useState<WorkoutSortKey>("latest");
-  const [category, setCategory] = useState<string>("all");
+  const [category, setCategory] = useState<string>("");
   const [categories, setCategories] = useState<string[]>([]);
   const [memberSort, setMemberSort] = useState<MemberSortKey>("score");
   const [rankSort, setRankSort] = useState<RankSortKey>("completions");
