@@ -399,13 +399,10 @@ function SharedWorkoutsPanel({
       icon={Dumbbell}
       filters={[
         {
-          label: "Type",
+          label: "Category",
           value: category,
           onChange: onCategory,
-          options: [
-            { value: "all", label: "All" },
-            ...categories.map((c) => ({ value: c, label: c })),
-          ],
+          options: categories.map((c) => ({ value: c, label: c })),
         },
         {
           label: "Sort",
