@@ -8,6 +8,13 @@ import { Loader2, SlidersHorizontal, X } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { CommunityWorkoutCard } from "@/components/community/CommunityWorkoutCard";
 import {
   CommunityGateDialog,
@@ -16,7 +23,7 @@ import {
 import { fetchBadgesFor, fetchCategories, fetchCommunityWorkouts } from "@/lib/community-queries";
 import { startSharedWorkout } from "@/lib/community.functions";
 import { SORTS, type CommunityBadge, type CommunitySort, type CommunityWorkoutCard as CardData } from "@/lib/community";
-import { cn } from "@/lib/utils";
+import { MAX_STARS } from "@/lib/workout/spec";
 
 const searchSchema = z.object({
   sort: fallback(z.string(), "latest").default("latest"),
@@ -125,79 +132,83 @@ function BrowsePage() {
     sort !== "latest" || difficulty > 0 || Boolean(search.category) || Boolean(search.q) || Boolean(creatorQuery);
 
   const filterBody = (
-    <div className="space-y-5">
-      <div>
-        <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Sort</p>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {SORTS.map((s) => (
-            <Chip key={s.id} active={sort === s.id} onClick={() => update({ sort: s.id })}>
-              {s.label}
-            </Chip>
-          ))}
-        </div>
-      </div>
-      <div>
-        <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Difficulty</p>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {[1, 2, 3, 4, 5, 6].map((n) => (
-            <Chip
-              key={n}
-              active={difficulty === n}
-              onClick={() => update({ difficulty: difficulty === n ? 0 : n })}
-            >
-              {n} {n === 1 ? "star" : "stars"}
-            </Chip>
-          ))}
-        </div>
-      </div>
-      {categories.length > 0 && (
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Category</p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {categories.map((c) => (
-              <Chip
-                key={c}
-                active={search.category === c}
-                onClick={() => update({ category: search.category === c ? "" : c })}
-              >
-                {c}
-              </Chip>
+    <div className="space-y-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Select value={sort} onValueChange={(v) => update({ sort: v })}>
+          <SelectTrigger className="h-11 rounded-2xl border-blue-300 text-sm font-semibold dark:border-blue-500/50">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {SORTS.map((sOpt) => (
+              <SelectItem key={sOpt.id} value={sOpt.id}>
+                {sOpt.label}
+              </SelectItem>
             ))}
-          </div>
-        </div>
-      )}
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Workout name</p>
-          <Input
-            value={search.q}
-            onChange={(e) => update({ q: e.target.value })}
-            placeholder="Search workouts"
-            className="mt-2 h-11 rounded-2xl"
-          />
-        </div>
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Creator</p>
-          <Input
-            value={creatorQuery}
-            onChange={(e) => setCreatorQuery(e.target.value)}
-            placeholder="Search creator"
-            className="mt-2 h-11 rounded-2xl"
-          />
-        </div>
-      </div>
-      {filtersActive && (
-        <Button
-          variant="secondary"
-          className="h-11 w-full rounded-2xl font-bold"
-          onClick={() => {
-            setCreatorQuery("");
-            update({ sort: "latest", difficulty: 0, category: "", q: "" });
-          }}
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={String(difficulty)}
+          onValueChange={(v) => update({ difficulty: Number(v) })}
         >
-          Clear filters
-        </Button>
-      )}
+          <SelectTrigger className="h-11 rounded-2xl border-blue-300 text-sm font-semibold dark:border-blue-500/50">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="0">Any difficulty</SelectItem>
+            {Array.from({ length: MAX_STARS }, (_, i) => i + 1).map((n) => (
+              <SelectItem key={n} value={String(n)}>
+                {n} {n === 1 ? "star" : "stars"}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={search.category || "all"}
+          onValueChange={(v) => update({ category: v === "all" ? "" : v })}
+        >
+          <SelectTrigger className="h-11 rounded-2xl border-blue-300 text-sm font-semibold dark:border-blue-500/50">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All categories</SelectItem>
+            {categories.map((c) => (
+              <SelectItem key={c} value={c}>
+                {c}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Input
+          value={search.q}
+          onChange={(e) => update({ q: e.target.value })}
+          placeholder="Search workouts"
+          className="h-11 rounded-2xl"
+        />
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Input
+          value={creatorQuery}
+          onChange={(e) => setCreatorQuery(e.target.value)}
+          placeholder="Search creator"
+          className="h-11 rounded-2xl"
+        />
+        {filtersActive && (
+          <Button
+            variant="secondary"
+            className="h-11 rounded-2xl font-bold"
+            onClick={() => {
+              setCreatorQuery("");
+              update({ sort: "latest", difficulty: 0, category: "", q: "" });
+            }}
+          >
+            Clear filters
+          </Button>
+        )}
+      </div>
     </div>
   );
 
@@ -288,30 +299,5 @@ function BrowsePage() {
         signedIn={access.signedIn}
       />
     </div>
-  );
-}
-
-function Chip({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "rounded-full border px-3 py-1.5 text-xs font-semibold transition",
-        active
-          ? "border-primary bg-primary text-primary-foreground"
-          : "border-border hover:border-primary/50",
-      )}
-    >
-      {children}
-    </button>
   );
 }

@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/carousel";
 import { SwipeToExplore } from "@/components/ui/SwipeToExplore";
 import { MemberAvatar } from "@/components/community/MemberCard";
+import { normalizeStars } from "@/lib/workout/spec";
 import {
   CommunityGateDialog,
   useCommunityAccess,
@@ -263,10 +264,10 @@ function CommunityPage() {
           onPrev={() => mobileApi?.scrollPrev()}
           onNext={() => mobileApi?.scrollNext()}
         />
-        <Carousel setApi={setMobileApi} className="w-full">
-          <CarouselContent className="-ml-2">
+        <Carousel setApi={setMobileApi} opts={{ loop: true, align: "center" }} className="w-full">
+          <CarouselContent className="-ml-3">
             {panels.map((panel, i) => (
-              <CarouselItem key={i} className="basis-[88%] pl-2">
+              <CarouselItem key={i} className="basis-[84%] pl-3">
                 <div className="h-[560px]">{panel}</div>
               </CarouselItem>
             ))}
@@ -279,23 +280,15 @@ function CommunityPage() {
           onPrev={() => desktopApi?.scrollPrev()}
           onNext={() => desktopApi?.scrollNext()}
         />
-        <Carousel setApi={setDesktopApi} className="w-full">
+        <Carousel setApi={setDesktopApi} opts={{ loop: true, align: "center" }} className="w-full">
           <CarouselContent className="-ml-4">
             {panels.map((panel, i) => (
-              <CarouselItem key={i} className="basis-[70%] pl-4 lg:basis-[55%]">
+              <CarouselItem key={i} className="basis-[72%] pl-4 lg:basis-[56%]">
                 <div className="h-[620px]">{panel}</div>
               </CarouselItem>
             ))}
           </CarouselContent>
         </Carousel>
-      </div>
-
-      <div className="mt-8 text-center">
-        <Button asChild variant="secondary" className="h-12 rounded-2xl font-bold">
-          <Link to="/community/workouts" search={{ sort: "latest", difficulty: 0, category: "", q: "" }}>
-            See all shared workouts
-          </Link>
-        </Button>
       </div>
 
       <CommunityGateDialog
@@ -315,11 +308,13 @@ function Panel({
   title,
   icon: Icon,
   filters,
+  action,
   children,
 }: {
   title: string;
   icon: typeof Trophy;
   filters: FilterDef[];
+  action?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
@@ -331,9 +326,7 @@ function Panel({
         </h2>
         <div className="mt-3 rounded-2xl border border-blue-300 p-3 dark:border-blue-500/40">
           <div className="grid grid-cols-2 gap-3">
-            {[0, 1].map((i) => {
-              const f = filters[i];
-              if (!f) return <div key={i} aria-hidden />;
+            {filters.map((f) => {
               return (
                 <Select key={f.label} value={f.value} onValueChange={f.onChange}>
                   <SelectTrigger className="h-10 rounded-xl border-blue-300 text-sm font-semibold dark:border-blue-500/50">
@@ -349,9 +342,9 @@ function Panel({
                 </Select>
               );
             })}
+            {action}
           </div>
         </div>
-
       </header>
       <div className="min-h-0 flex-1 overflow-y-auto p-3">{children}</div>
     </section>
@@ -369,8 +362,9 @@ function Spinner() {
 /** Reserved position for a rank that nobody has claimed yet. */
 function EmptySlot({ index, label }: { index: number; label: string }) {
   return (
-    <li className="flex items-center gap-3 rounded-2xl border border-dashed border-blue-200 p-2.5 opacity-70 dark:border-blue-500/30">
-      <span className="w-7 shrink-0 text-center text-sm">{badgeFor(index)}</span>
+    <li className="flex items-center gap-3 rounded-2xl border border-blue-200 p-2.5 dark:border-blue-500/40">
+      <span className="w-7 shrink-0 text-center text-sm opacity-60">{badgeFor(index)}</span>
+      <span className="h-8 w-8 shrink-0 rounded-full border border-dashed border-blue-300 dark:border-blue-500/50" />
       <p className="min-w-0 flex-1 truncate text-[11px] font-semibold text-muted-foreground">
         {label}
       </p>
@@ -424,6 +418,20 @@ function SharedWorkoutsPanel({
           options: WORKOUT_FILTERS.map((f) => ({ value: f.value, label: f.label })),
         },
       ]}
+      action={
+        <Button
+          asChild
+          variant="secondary"
+          className="col-span-2 h-10 rounded-xl text-sm font-bold"
+        >
+          <Link
+            to="/community/workouts"
+            search={{ sort: "latest", difficulty: 0, category: "", q: "" }}
+          >
+            See all shared workouts
+          </Link>
+        </Button>
+      }
     >
       {!rows ? (
         <Spinner />
@@ -444,7 +452,7 @@ function SharedWorkoutsPanel({
                   <p className="truncate text-sm font-extrabold">{w.name}</p>
                   <p className="truncate text-[11px] text-muted-foreground">
                     {w.creator_name || "Smarty member"} · {w.category} · {w.duration_min} min ·{" "}
-                    {"★".repeat(Math.max(1, Math.min(6, w.difficulty_stars)))}
+                    {"★".repeat(normalizeStars(w.difficulty_stars) || 1)}
                   </p>
                   <p className="mt-1 text-[11px] font-semibold text-muted-foreground">
                     👍 {w.likes} · 💬 {w.comments_count} · ✅ {w.completions}
