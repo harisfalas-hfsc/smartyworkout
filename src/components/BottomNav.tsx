@@ -1,11 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { BookOpen, ClipboardList, Sparkles, User } from "lucide-react";
+import { BookOpen, Sparkles, User, Users } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 const ITEMS = [
   { to: "/coach", label: "Coach", Icon: Sparkles },
   { to: "/logbook", label: "Logbook", Icon: BookOpen },
-  { to: "/progress", label: "Progress", Icon: ClipboardList },
+  { to: "/community", label: "Community", Icon: Users },
   { to: "/account", label: "Account", Icon: User },
 ] as const;
 

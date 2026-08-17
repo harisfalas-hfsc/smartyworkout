@@ -77,6 +77,176 @@ export type Database = {
         }
         Relationships: []
       }
+      community_comments: {
+        Row: {
+          body: string
+          created_at: string
+          deleted_at: string | null
+          id: string
+          updated_at: string
+          user_id: string
+          workout_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+          workout_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+          workout_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_comments_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "community_workouts_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_comments_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_completions: {
+        Row: {
+          completed_at: string
+          copy_workout_id: string | null
+          id: string
+          user_id: string
+          workout_id: string
+        }
+        Insert: {
+          completed_at?: string
+          copy_workout_id?: string | null
+          id?: string
+          user_id: string
+          workout_id: string
+        }
+        Update: {
+          completed_at?: string
+          copy_workout_id?: string | null
+          id?: string
+          user_id?: string
+          workout_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_completions_copy_workout_id_fkey"
+            columns: ["copy_workout_id"]
+            isOneToOne: true
+            referencedRelation: "community_workouts_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_completions_copy_workout_id_fkey"
+            columns: ["copy_workout_id"]
+            isOneToOne: true
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_completions_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "community_workouts_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_completions_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_reactions: {
+        Row: {
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+          value: number
+          workout_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          value: number
+          workout_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          value?: number
+          workout_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_reactions_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "community_workouts_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_reactions_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_reports: {
+        Row: {
+          created_at: string
+          id: string
+          reason: string | null
+          reporter_id: string
+          status: string
+          target_id: string
+          target_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reason?: string | null
+          reporter_id: string
+          status?: string
+          target_id: string
+          target_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reason?: string | null
+          reporter_id?: string
+          status?: string
+          target_id?: string
+          target_type?: string
+        }
+        Relationships: []
+      }
       exercises: {
         Row: {
           body_part: string | null
@@ -226,6 +396,13 @@ export type Database = {
             foreignKeyName: "notifications_workout_id_fkey"
             columns: ["workout_id"]
             isOneToOne: false
+            referencedRelation: "community_workouts_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
             referencedRelation: "workouts"
             referencedColumns: ["id"]
           },
@@ -263,6 +440,13 @@ export type Database = {
           workout_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "personal_records_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "community_workouts_public"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "personal_records_workout_id_fkey"
             columns: ["workout_id"]
@@ -481,6 +665,13 @@ export type Database = {
           workout_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "set_logs_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "community_workouts_public"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "set_logs_workout_id_fkey"
             columns: ["workout_id"]
@@ -759,6 +950,13 @@ export type Database = {
             foreignKeyName: "workout_feedback_workout_id_fkey"
             columns: ["workout_id"]
             isOneToOne: false
+            referencedRelation: "community_workouts_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_feedback_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
             referencedRelation: "workouts"
             referencedColumns: ["id"]
           },
@@ -812,6 +1010,8 @@ export type Database = {
         Row: {
           activation: string | null
           category: string
+          community_hidden: boolean
+          community_source_id: string | null
           completed_at: string | null
           cool_down: string | null
           created_at: string
@@ -831,6 +1031,7 @@ export type Database = {
           instructions: string | null
           instructions_html: string | null
           is_favorite: boolean
+          is_shared: boolean
           is_wod: boolean
           location: string | null
           main_workout: string | null
@@ -843,6 +1044,7 @@ export type Database = {
           review_warnings: string[]
           scheduled_at: string | null
           serial: number
+          shared_at: string | null
           soft_tissue: string | null
           status: string
           tips: string[]
@@ -858,6 +1060,8 @@ export type Database = {
         Insert: {
           activation?: string | null
           category: string
+          community_hidden?: boolean
+          community_source_id?: string | null
           completed_at?: string | null
           cool_down?: string | null
           created_at?: string
@@ -877,6 +1081,7 @@ export type Database = {
           instructions?: string | null
           instructions_html?: string | null
           is_favorite?: boolean
+          is_shared?: boolean
           is_wod?: boolean
           location?: string | null
           main_workout?: string | null
@@ -889,6 +1094,7 @@ export type Database = {
           review_warnings?: string[]
           scheduled_at?: string | null
           serial?: number
+          shared_at?: string | null
           soft_tissue?: string | null
           status?: string
           tips?: string[]
@@ -904,6 +1110,8 @@ export type Database = {
         Update: {
           activation?: string | null
           category?: string
+          community_hidden?: boolean
+          community_source_id?: string | null
           completed_at?: string | null
           cool_down?: string | null
           created_at?: string
@@ -923,6 +1131,7 @@ export type Database = {
           instructions?: string | null
           instructions_html?: string | null
           is_favorite?: boolean
+          is_shared?: boolean
           is_wod?: boolean
           location?: string | null
           main_workout?: string | null
@@ -935,6 +1144,7 @@ export type Database = {
           review_warnings?: string[]
           scheduled_at?: string | null
           serial?: number
+          shared_at?: string | null
           soft_tissue?: string | null
           status?: string
           tips?: string[]
@@ -947,11 +1157,112 @@ export type Database = {
           wod_date?: string | null
           wod_variant?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "workouts_community_source_id_fkey"
+            columns: ["community_source_id"]
+            isOneToOne: false
+            referencedRelation: "community_workouts_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workouts_community_source_id_fkey"
+            columns: ["community_source_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
-      [_ in never]: never
+      community_badges_public: {
+        Row: {
+          badge_id: string | null
+          badge_name: string | null
+          category: string | null
+          earned_at: string | null
+          icon: string | null
+          points: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      community_comments_public: {
+        Row: {
+          author_avatar: string | null
+          author_name: string | null
+          body: string | null
+          created_at: string | null
+          id: string | null
+          user_id: string | null
+          workout_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_comments_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "community_workouts_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_comments_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_members_public: {
+        Row: {
+          avatar_url: string | null
+          badge_points: number | null
+          current_streak: number | null
+          display_name: string | null
+          longest_streak: number | null
+          received_comments: number | null
+          received_completions: number | null
+          received_likes: number | null
+          score: number | null
+          subscription_months: number | null
+          user_id: string | null
+          workouts_completed: number | null
+          workouts_generated: number | null
+          workouts_shared: number | null
+        }
+        Relationships: []
+      }
+      community_workouts_public: {
+        Row: {
+          category: string | null
+          comments_count: number | null
+          completions: number | null
+          creator_avatar: string | null
+          creator_completed: number | null
+          creator_generated: number | null
+          creator_id: string | null
+          creator_name: string | null
+          creator_score: number | null
+          creator_streak: number | null
+          description: string | null
+          difficulty_stars: number | null
+          dislikes: number | null
+          duration_min: number | null
+          equipment: string[] | null
+          focus: string | null
+          format: string | null
+          id: string | null
+          image_url: string | null
+          likes: number | null
+          location: string | null
+          name: string | null
+          shared_at: string | null
+          unique_completions: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
