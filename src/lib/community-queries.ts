@@ -130,17 +130,19 @@ export async function fetchCategories(): Promise<string[]> {
 }
 
 /** Newest comments across every shared workout — community activity feed. */
-export async function fetchLatestComments(limit = 20): Promise<
-  (CommunityComment & { workout_name?: string | null })[]
-> {
+export async function fetchLatestComments(
+  limit = 20,
+  order: "newest" | "oldest" = "newest",
+): Promise<(CommunityComment & { workout_name?: string | null })[]> {
   const { data } = await supabase
     .from("community_comments_public")
     .select("*")
-    .order("created_at", { ascending: false })
+    .order("created_at", { ascending: order === "oldest" })
     .limit(limit)
     .returns<CommunityComment[]>();
   const rows = data ?? [];
   if (!rows.length) return [];
+
   const { data: workouts } = await supabase
     .from("community_workouts_public")
     .select("id,name")
