@@ -335,11 +335,11 @@ function Panel({
           {title}
         </h2>
         <div className="mt-3 rounded-2xl border border-blue-300 p-3 dark:border-blue-500/40">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-2">
             {filters.map((f) => {
               return (
                 <Select key={f.label} value={f.value} onValueChange={f.onChange}>
-                  <SelectTrigger className="h-10 rounded-xl border-blue-300 text-sm font-semibold dark:border-blue-500/50">
+                  <SelectTrigger className="h-10 w-full rounded-xl border-blue-300 text-sm font-semibold dark:border-blue-500/50">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -450,23 +450,11 @@ function SharedWorkoutsPanel({
                     {"★".repeat(normalizeStars(w.difficulty_stars) || 1)}
                   </p>
                   <p className="mt-1 text-[11px] font-semibold text-muted-foreground">
-                    👍 {w.likes} · 💬 {w.comments_count} · ✅ {w.completions}
+                    ⭐ {w.rating_count ? Number(w.rating_avg).toFixed(1) : "—"} · 👍 {w.likes} · 💬{" "}
+                    {w.comments_count} · ✅ {w.completions}
                   </p>
                 </div>
               </button>
-              <div className="mt-2 flex gap-2">
-                <Button size="sm" className="h-9 flex-1 rounded-xl font-bold" onClick={() => onDo(w.id)}>
-                  Do workout
-                </Button>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  className="h-9 flex-1 rounded-xl"
-                  onClick={() => onOpen(w.id)}
-                >
-                  View
-                </Button>
-              </div>
             </li>
           ))}
           {fillSlots(rows.length).map((i) => (
