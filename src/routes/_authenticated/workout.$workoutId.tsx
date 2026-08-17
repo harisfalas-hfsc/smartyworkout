@@ -242,56 +242,17 @@ function WorkoutPage() {
 
   return (
     <WorkoutDisplay workout={w} onComplete={complete}>
-      <section className="mt-6 rounded-2xl border border-border bg-card p-5">
-        <h3 className="text-lg font-bold">Workout status</h3>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {done
-            ? "Completed — nice work."
-            : scheduledAt
-              ? `Scheduled for ${new Date(scheduledAt).toLocaleString()}`
-              : "Not completed yet."}
-        </p>
-        <div className="mt-4 grid gap-2 sm:grid-cols-3">
-          <Button size="lg" className="h-12 rounded-2xl" onClick={complete} disabled={done}>
-            <CheckCircle2 className="mr-2 h-4 w-4" /> Completed
-          </Button>
-          <Button
-            size="lg"
-            variant="secondary"
-            className="h-12 rounded-2xl"
-            onClick={markNotCompleted}
-            disabled={!done}
-          >
-            <RotateCcw className="mr-2 h-4 w-4" /> Not completed
-          </Button>
-          <Button
-            size="lg"
-            variant="secondary"
-            className="h-12 rounded-2xl"
-            onClick={() => setShowSchedule((v) => !v)}
-          >
-            <CalendarClock className="mr-2 h-4 w-4" /> Schedule
-          </Button>
-        </div>
-        {showSchedule ? (
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <input
-              type="datetime-local"
-              value={scheduledAt}
-              onChange={(e) => setScheduledAt(e.target.value)}
-              className="h-12 flex-1 rounded-2xl border border-border bg-background px-3 text-sm"
-            />
-            <Button className="h-12 rounded-2xl" onClick={schedule}>
-              Save date
-            </Button>
-            {scheduledAt ? (
-              <Button variant="ghost" className="h-12 rounded-2xl" onClick={clearSchedule}>
-                Clear
-              </Button>
-            ) : null}
-          </div>
-        ) : null}
-      </section>
+      <WorkoutStatusPanel
+        workoutId={workoutId}
+        status={done ? "completed" : scheduledAt ? "scheduled" : "created"}
+        scheduledAt={scheduledAt}
+        onChange={(next) => {
+          setDone(next.status === "completed");
+          if (next.status !== "completed") setSaved(false);
+          setScheduledAt(next.scheduledAt);
+        }}
+      />
+
 
       <section className="mt-6 rounded-2xl border-2 border-blue-400 bg-card p-5">
         <h3 className="flex items-center gap-2 text-lg font-bold">
