@@ -115,9 +115,11 @@ export async function getAccessStateForUser(
   const periodEnd = subscription?.current_period_end
     ? new Date(subscription.current_period_end).getTime()
     : null;
-  const premium = Boolean(
-    subscription && (!periodEnd || Number.isNaN(periodEnd) || periodEnd > Date.now()),
-  );
+  const { isFreeAccessMode } = await import("@/lib/free-access.server");
+  const freeAccessMode = await isFreeAccessMode();
+  const premium =
+    freeAccessMode ||
+    Boolean(subscription && (!periodEnd || Number.isNaN(periodEnd) || periodEnd > Date.now()));
 
   const { getWorkoutRules } = await import("@/lib/settings.server");
   const rules = await getWorkoutRules();

@@ -224,7 +224,7 @@ function AboutPage() {
           </p>
           <p className="mt-2 text-base font-extrabold uppercase">Planned for you, every day</p>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            Subscribe once and receive two ready workouts every day — one with equipment, one
+            Turn it on once and receive two ready workouts every day — one with equipment, one
             bodyweight only — adapted to your profile and sequenced by a scientific periodization
             plan, so you never overtrain, never undertrain and develop every fitness quality in the
             right order. It is like having a personal trainer who already knows what you must do

@@ -749,3 +749,28 @@ export const adminGetWorkout = createServerFn({ method: "POST" })
       }
     },
   );
+
+export const adminGetFreeAccessMode = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ enabled: boolean } | { error: string }> => {
+    try {
+      await assertAdmin(context as any);
+      const { isFreeAccessMode } = await import("@/lib/free-access.server");
+      return { enabled: await isFreeAccessMode() };
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : "Failed" };
+    }
+  });
+
+export const adminSetFreeAccessMode = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { enabled: boolean }) => data)
+  .handler(async ({ context, data }): Promise<{ enabled: boolean } | { error: string }> => {
+    try {
+      await assertAdmin(context as any);
+      const { setFreeAccessMode } = await import("@/lib/free-access.server");
+      return { enabled: await setFreeAccessMode(Boolean(data.enabled)) };
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : "Failed" };
+    }
+  });

@@ -16,6 +16,7 @@ import {
   Trophy,
   Flag,
   ArrowLeft,
+  Lock,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,7 @@ import { AdminWorkoutsTab } from "@/components/admin/AdminWorkoutsTab";
 import { AdminMessagesTab } from "@/components/admin/AdminMessagesTab";
 import { AdminAwardsTab } from "@/components/admin/AdminAwardsTab";
 import { AdminReportsTab } from "@/components/admin/AdminReportsTab";
+import { AdminPaymentsTab } from "@/components/admin/AdminPaymentsTab";
 
 export const Route = createFileRoute("/admin/")({
   component: AdminPage,
@@ -56,9 +58,16 @@ type SectionKey =
   | "workouts"
   | "messages"
   | "awards"
-  | "reports";
+  | "reports"
+  | "payments";
 
 const SECTIONS: { key: SectionKey; label: string; description: string; Icon: LucideIcon }[] = [
+  {
+    key: "payments",
+    label: "Payments",
+    description: "Global Free Access Mode master switch",
+    Icon: Lock,
+  },
   { key: "revenue", label: "Revenue", description: "Payments and monthly totals", Icon: TrendingUp },
   {
     key: "workouts",
@@ -153,6 +162,7 @@ function AdminPage() {
           <Button variant="ghost" size="sm" onClick={() => setSection(null)}>
             <ArrowLeft className="mr-2 h-4 w-4" /> All sections
           </Button>
+          {section === "payments" && <AdminPaymentsTab />}
           {section === "revenue" && <AdminRevenueTab />}
           {section === "customers" && <AdminUsersTab />}
           {section === "subscribers" && <AdminUsersTab onlySubscribers />}

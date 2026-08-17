@@ -42,8 +42,13 @@ const ENTRIES: SitemapEntry[] = [
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
-      GET: () => {
-        const urls = ENTRIES.map((e) =>
+      GET: async () => {
+        const { isFreeAccessMode } = await import("@/lib/free-access.server");
+        const freeAccessMode = await isFreeAccessMode();
+        const entries = freeAccessMode
+          ? ENTRIES.filter((e) => e.path !== "/pricing")
+          : ENTRIES;
+        const urls = entries.map((e) =>
           [
             "  <url>",
             `    <loc>${BASE_URL}${e.path}</loc>`,

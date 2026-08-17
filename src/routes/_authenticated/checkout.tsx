@@ -1,4 +1,6 @@
+import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
 import { createFileRoute } from "@tanstack/react-router";
+import { Navigate } from "@tanstack/react-router";
 import { StripeEmbeddedCheckout } from "@/components/StripeEmbeddedCheckout";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { PageHeader } from "@/components/PageHeader";
@@ -19,6 +21,9 @@ export const Route = createFileRoute("/_authenticated/checkout")({
 });
 
 function CheckoutPage() {
+  const { freeAccessMode, loading } = useFreeAccessMode();
+  if (loading) return null;
+  if (freeAccessMode) return <Navigate to="/" replace />;
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-8 sm:py-12 lg:max-w-4xl lg:px-8 lg:py-16">
       <PaymentTestModeBanner />
