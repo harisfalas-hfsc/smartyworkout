@@ -6,6 +6,13 @@ import { Loader2, Trophy, Users, Star, MessageSquare, Dumbbell, Flame } from "lu
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Carousel,
   CarouselContent,
   CarouselItem,
@@ -18,6 +25,7 @@ import {
   useCommunityAccess,
 } from "@/components/community/useCommunityAccess";
 import {
+  fetchCategories,
   fetchCommunityCreators,
   fetchCommunityWorkouts,
   fetchLatestComments,
@@ -29,7 +37,6 @@ import type {
   CommunityMember,
   CommunityWorkoutCard as CardData,
 } from "@/lib/community";
-import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/community/")({
   head: () => ({
@@ -38,12 +45,12 @@ export const Route = createFileRoute("/community/")({
       {
         name: "description",
         content:
-          "Shared workouts from every Smarty member, member rankings, workout rankings and the latest community activity.",
+          "Shared workouts from every Smarty member, member rankings, workout rankings and the comments on every shared session.",
       },
       { property: "og:title", content: "Smarty Community — Train together" },
       {
         property: "og:description",
-        content: "Shared workouts, member rankings, workout rankings and community activity.",
+        content: "Shared workouts, member rankings, workout rankings and shared-workout comments.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -54,7 +61,10 @@ export const Route = createFileRoute("/community/")({
 
 type WorkoutSortKey = "latest" | "completed" | "liked" | "rated";
 type MemberSortKey = "score" | "current_streak" | "workouts_completed" | "workouts_shared";
-type RankSortKey = "completions" | "likes" | "comments";
+type RankSortKey = "completions" | "likes";
+type TalkSortKey = "newest" | "oldest" | "discussed";
+
+const SLOTS = 10;
 
 const MEMBER_FILTERS: { value: MemberSortKey; label: string; unit: string }[] = [
   { value: "score", label: "Score", unit: "pts" },
@@ -71,13 +81,21 @@ const WORKOUT_FILTERS: { value: WorkoutSortKey; label: string }[] = [
 ];
 
 const RANK_FILTERS: { value: RankSortKey; label: string; unit: string }[] = [
-  { value: "completions", label: "Completions", unit: "done" },
-  { value: "likes", label: "Likes", unit: "likes" },
-  { value: "comments", label: "Comments", unit: "talk" },
+  { value: "completions", label: "Most completed", unit: "done" },
+  { value: "likes", label: "Most liked", unit: "likes" },
 ];
 
-function medal(index: number) {
-  return index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `#${index + 1}`;
+const TALK_FILTERS: { value: TalkSortKey; label: string }[] = [
+  { value: "newest", label: "Newest" },
+  { value: "oldest", label: "Oldest" },
+  { value: "discussed", label: "Most discussed" },
+];
+
+/** A distinct badge for every one of the ten positions. */
+const POSITION_BADGES = ["🥇", "🥈", "🥉", "🏅", "🎖️", "⭐", "🔥", "💪", "⚡", "🎯"];
+
+function badgeFor(index: number) {
+  return POSITION_BADGES[index] ?? "•";
 }
 
 function CommunityPage() {
@@ -89,33 +107,46 @@ function CommunityPage() {
   const [desktopApi, setDesktopApi] = useState<CarouselApi>();
 
   const [workoutSort, setWorkoutSort] = useState<WorkoutSortKey>("latest");
+  const [category, setCategory] = useState<string>("all");
+  const [categories, setCategories] = useState<string[]>([]);
   const [memberSort, setMemberSort] = useState<MemberSortKey>("score");
   const [rankSort, setRankSort] = useState<RankSortKey>("completions");
+  const [talkSort, setTalkSort] = useState<TalkSortKey>("newest");
 
   const [workouts, setWorkouts] = useState<CardData[] | null>(null);
   const [members, setMembers] = useState<CommunityMember[] | null>(null);
   const [ranked, setRanked] = useState<CardData[] | null>(null);
-  const [comments, setComments] = useState<(CommunityComment & { workout_name?: string | null })[]>([]);
+  const [comments, setComments] = useState<
+    (CommunityComment & { workout_name?: string | null })[] | null
+  >(null);
   const [starting, setStarting] = useState(false);
+
+  useEffect(() => {
+    void fetchCategories().then(setCategories);
+  }, []);
 
   useEffect(() => {
     let active = true;
     setWorkouts(null);
-    void fetchCommunityWorkouts({ sort: workoutSort, limit: 12 }).then((r) => {
+    void fetchCommunityWorkouts({
+      sort: workoutSort,
+      category: category === "all" ? null : category,
+      limit: SLOTS,
+    }).then((r) => {
       if (active) setWorkouts(r);
     });
     return () => {
       active = false;
     };
-  }, [workoutSort]);
+  }, [workoutSort, category]);
 
   useEffect(() => {
     let active = true;
     setMembers(null);
     const load =
       memberSort === "workouts_shared"
-        ? fetchCommunityCreators("workouts_shared", 10)
-        : fetchLeaders(memberSort, 10);
+        ? fetchCommunityCreators("workouts_shared", SLOTS)
+        : fetchLeaders(memberSort, SLOTS);
     void load.then((r) => {
       if (active) setMembers(r);
     });
@@ -127,8 +158,8 @@ function CommunityPage() {
   useEffect(() => {
     let active = true;
     setRanked(null);
-    const sort = rankSort === "completions" ? "completed" : rankSort === "likes" ? "liked" : "commented";
-    void fetchCommunityWorkouts({ sort, limit: 10 }).then((r) => {
+    const sort = rankSort === "completions" ? "completed" : "liked";
+    void fetchCommunityWorkouts({ sort, limit: SLOTS }).then((r) => {
       if (active) setRanked(r);
     });
     return () => {
@@ -137,8 +168,27 @@ function CommunityPage() {
   }, [rankSort]);
 
   useEffect(() => {
-    void fetchLatestComments(15).then(setComments);
-  }, []);
+    let active = true;
+    setComments(null);
+    void fetchLatestComments(30, talkSort === "oldest" ? "oldest" : "newest").then((rows) => {
+      if (!active) return;
+      if (talkSort !== "discussed") return setComments(rows.slice(0, SLOTS));
+      const counts = new Map<string, number>();
+      for (const c of rows) counts.set(c.workout_id, (counts.get(c.workout_id) ?? 0) + 1);
+      setComments(
+        [...rows]
+          .sort(
+            (a, b) =>
+              (counts.get(b.workout_id) ?? 0) - (counts.get(a.workout_id) ?? 0) ||
+              +new Date(b.created_at) - +new Date(a.created_at),
+          )
+          .slice(0, SLOTS),
+      );
+    });
+    return () => {
+      active = false;
+    };
+  }, [talkSort]);
 
   function open(id: string) {
     access.guard(() =>
@@ -163,6 +213,9 @@ function CommunityPage() {
       rows={workouts}
       sort={workoutSort}
       onSort={setWorkoutSort}
+      category={category}
+      categories={categories}
+      onCategory={setCategory}
       onOpen={open}
       onDo={start}
     />,
@@ -174,7 +227,13 @@ function CommunityPage() {
       onSort={setRankSort}
       onOpen={open}
     />,
-    <ActivityPanel key="activity" comments={comments} onOpen={open} />,
+    <TalkPanel
+      key="talk"
+      comments={comments}
+      sort={talkSort}
+      onSort={setTalkSort}
+      onOpen={open}
+    />,
   ];
 
   return (
@@ -208,7 +267,7 @@ function CommunityPage() {
           <CarouselContent className="-ml-2">
             {panels.map((panel, i) => (
               <CarouselItem key={i} className="basis-[88%] pl-2">
-                <div className="h-[520px]">{panel}</div>
+                <div className="h-[560px]">{panel}</div>
               </CarouselItem>
             ))}
           </CarouselContent>
@@ -224,7 +283,7 @@ function CommunityPage() {
           <CarouselContent className="-ml-4">
             {panels.map((panel, i) => (
               <CarouselItem key={i} className="basis-[70%] pl-4 lg:basis-[55%]">
-                <div className="h-[600px]">{panel}</div>
+                <div className="h-[620px]">{panel}</div>
               </CarouselItem>
             ))}
           </CarouselContent>
@@ -234,7 +293,7 @@ function CommunityPage() {
       <div className="mt-8 text-center">
         <Button asChild variant="secondary" className="h-12 rounded-2xl font-bold">
           <Link to="/community/workouts" search={{ sort: "latest", difficulty: 0, category: "", q: "" }}>
-            Browse every shared workout
+            See all shared workouts
           </Link>
         </Button>
       </div>
@@ -248,7 +307,9 @@ function CommunityPage() {
   );
 }
 
-/* ---------------- panels ---------------- */
+/* ---------------- shared shell ---------------- */
+
+type FilterDef = { label: string; value: string; options: { value: string; label: string }[]; onChange: (v: string) => void };
 
 function Panel({
   title,
@@ -258,70 +319,92 @@ function Panel({
 }: {
   title: string;
   icon: typeof Trophy;
-  filters: React.ReactNode;
+  filters: FilterDef[];
   children: React.ReactNode;
 }) {
   return (
     <section className="flex h-full flex-col overflow-hidden rounded-3xl border-2 border-blue-400 bg-card shadow-soft">
       <header className="border-b border-blue-200 bg-blue-50 p-4 dark:border-blue-500/40 dark:bg-blue-500/10">
-        <h2 className="flex items-center gap-2 text-lg font-extrabold uppercase tracking-tight">
+        <h2 className="flex h-7 items-center gap-2 text-lg font-extrabold uppercase tracking-tight">
           <Icon className="h-5 w-5 text-primary" />
           {title}
         </h2>
-        <div className="mt-3 flex flex-wrap gap-1.5">{filters}</div>
+        <div className="mt-3 rounded-2xl border border-blue-300 p-3 dark:border-blue-500/40">
+          <p className="text-xs font-bold uppercase tracking-wider text-primary">Filters</p>
+          <div className="mt-2 grid grid-cols-2 gap-3">
+            {[0, 1].map((i) => {
+              const f = filters[i];
+              if (!f) return <div key={i} aria-hidden className="hidden sm:block" />;
+              return (
+                <div key={f.label}>
+                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    {f.label}
+                  </p>
+                  <Select value={f.value} onValueChange={f.onChange}>
+                    <SelectTrigger className="h-10 rounded-xl border-blue-300 text-sm font-semibold dark:border-blue-500/50">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {f.options.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>
+                          {o.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </header>
       <div className="min-h-0 flex-1 overflow-y-auto p-3">{children}</div>
     </section>
   );
 }
 
-function Chip({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "rounded-full border px-3 py-1 text-[11px] font-bold transition",
-        active
-          ? "border-primary bg-primary text-primary-foreground"
-          : "border-blue-300 text-primary hover:bg-primary/10 dark:border-blue-500/50",
-      )}
-    >
-      {children}
-    </button>
-  );
-}
-
-function Empty({ label }: { label: string }) {
-  return <p className="px-2 py-6 text-center text-sm text-muted-foreground">{label}</p>;
-}
-
 function Spinner() {
   return (
-    <div className="flex h-full items-center justify-center">
-      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+    <div className="grid h-full place-items-center">
+      <Loader2 className="h-6 w-6 animate-spin text-primary" />
     </div>
   );
 }
+
+/** Reserved position for a rank that nobody has claimed yet. */
+function EmptySlot({ index, label }: { index: number; label: string }) {
+  return (
+    <li className="flex items-center gap-3 rounded-2xl border border-dashed border-blue-200 p-2.5 opacity-70 dark:border-blue-500/30">
+      <span className="w-7 shrink-0 text-center text-sm">{badgeFor(index)}</span>
+      <p className="min-w-0 flex-1 truncate text-[11px] font-semibold text-muted-foreground">
+        {label}
+      </p>
+    </li>
+  );
+}
+
+function fillSlots(count: number) {
+  return Array.from({ length: Math.max(0, SLOTS - count) }, (_, i) => count + i);
+}
+
+/* ---------------- panels ---------------- */
 
 function SharedWorkoutsPanel({
   rows,
   sort,
   onSort,
+  category,
+  categories,
+  onCategory,
   onOpen,
   onDo,
 }: {
   rows: CardData[] | null;
   sort: WorkoutSortKey;
   onSort: (s: WorkoutSortKey) => void;
+  category: string;
+  categories: string[];
+  onCategory: (c: string) => void;
   onOpen: (id: string) => void;
   onDo: (id: string) => void;
 }) {
@@ -329,24 +412,38 @@ function SharedWorkoutsPanel({
     <Panel
       title="Shared workouts"
       icon={Dumbbell}
-      filters={WORKOUT_FILTERS.map((f) => (
-        <Chip key={f.value} active={sort === f.value} onClick={() => onSort(f.value)}>
-          {f.label}
-        </Chip>
-      ))}
+      filters={[
+        {
+          label: "Type",
+          value: category,
+          onChange: onCategory,
+          options: [
+            { value: "all", label: "All" },
+            ...categories.map((c) => ({ value: c, label: c })),
+          ],
+        },
+        {
+          label: "Sort",
+          value: sort,
+          onChange: (v) => onSort(v as WorkoutSortKey),
+          options: WORKOUT_FILTERS.map((f) => ({ value: f.value, label: f.label })),
+        },
+      ]}
     >
       {!rows ? (
         <Spinner />
-      ) : rows.length === 0 ? (
-        <Empty label="No shared workouts yet — be the first to share one from your logbook." />
       ) : (
         <ul className="space-y-2">
-          {rows.map((w) => (
+          {rows.slice(0, SLOTS).map((w) => (
             <li
               key={w.id}
               className="rounded-2xl border border-blue-200 p-3 dark:border-blue-500/40"
             >
-              <div className="flex items-start gap-3">
+              <button
+                type="button"
+                onClick={() => onOpen(w.id)}
+                className="flex w-full items-start gap-3 text-left"
+              >
                 <MemberAvatar name={w.creator_name} avatar={w.creator_avatar} size={8} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-extrabold">{w.name}</p>
@@ -358,7 +455,7 @@ function SharedWorkoutsPanel({
                     👍 {w.likes} · 💬 {w.comments_count} · ✅ {w.completions}
                   </p>
                 </div>
-              </div>
+              </button>
               <div className="mt-2 flex gap-2">
                 <Button size="sm" className="h-9 flex-1 rounded-xl font-bold" onClick={() => onDo(w.id)}>
                   Do workout
@@ -373,6 +470,9 @@ function SharedWorkoutsPanel({
                 </Button>
               </div>
             </li>
+          ))}
+          {fillSlots(rows.length).map((i) => (
+            <EmptySlot key={i} index={i} label="Free slot — share a workout to fill it" />
           ))}
         </ul>
       )}
@@ -403,25 +503,26 @@ function MemberRankingPanel({
     <Panel
       title="Member ranking"
       icon={Trophy}
-      filters={MEMBER_FILTERS.map((f) => (
-        <Chip key={f.value} active={sort === f.value} onClick={() => onSort(f.value)}>
-          {f.label}
-        </Chip>
-      ))}
+      filters={[
+        {
+          label: "Sort",
+          value: sort,
+          onChange: (v) => onSort(v as MemberSortKey),
+          options: MEMBER_FILTERS.map((f) => ({ value: f.value, label: f.label })),
+        },
+      ]}
     >
       {!rows ? (
         <Spinner />
-      ) : rows.length === 0 ? (
-        <Empty label="The ranking fills up as members train." />
       ) : (
         <ol className="space-y-2">
-          {rows.map((m, i) => (
+          {rows.slice(0, SLOTS).map((m, i) => (
             <li
               key={m.user_id}
               className="flex items-center gap-3 rounded-2xl border border-blue-200 p-2.5 dark:border-blue-500/40"
             >
               <span className="w-7 shrink-0 text-center text-sm font-black text-primary">
-                {medal(i)}
+                {badgeFor(i)}
               </span>
               <MemberAvatar name={m.display_name} avatar={m.avatar_url} size={8} />
               <div className="min-w-0 flex-1">
@@ -436,6 +537,9 @@ function MemberRankingPanel({
                 <span className="text-[10px] font-semibold uppercase">{unit}</span>
               </span>
             </li>
+          ))}
+          {fillSlots(rows.length).map((i) => (
+            <EmptySlot key={i} index={i} label="Waiting for someone to take this position" />
           ))}
         </ol>
       )}
@@ -455,26 +559,26 @@ function WorkoutRankingPanel({
   onOpen: (id: string) => void;
 }) {
   const unit = RANK_FILTERS.find((f) => f.value === sort)?.unit ?? "";
-  const valueOf = (w: CardData) =>
-    sort === "completions" ? w.completions : sort === "likes" ? w.likes : w.comments_count;
+  const valueOf = (w: CardData) => (sort === "completions" ? w.completions : w.likes);
 
   return (
     <Panel
       title="Workout ranking"
       icon={Star}
-      filters={RANK_FILTERS.map((f) => (
-        <Chip key={f.value} active={sort === f.value} onClick={() => onSort(f.value)}>
-          {f.label}
-        </Chip>
-      ))}
+      filters={[
+        {
+          label: "Sort",
+          value: sort,
+          onChange: (v) => onSort(v as RankSortKey),
+          options: RANK_FILTERS.map((f) => ({ value: f.value, label: f.label })),
+        },
+      ]}
     >
       {!rows ? (
         <Spinner />
-      ) : rows.length === 0 ? (
-        <Empty label="Rankings appear once members share and train workouts." />
       ) : (
         <ol className="space-y-2">
-          {rows.map((w, i) => (
+          {rows.slice(0, SLOTS).map((w, i) => (
             <li key={w.id}>
               <button
                 type="button"
@@ -482,7 +586,7 @@ function WorkoutRankingPanel({
                 className="flex w-full items-center gap-3 rounded-2xl border border-blue-200 p-2.5 text-left transition hover:border-primary dark:border-blue-500/40"
               >
                 <span className="w-7 shrink-0 text-center text-sm font-black text-primary">
-                  {medal(i)}
+                  {badgeFor(i)}
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-bold">{w.name}</p>
@@ -497,23 +601,41 @@ function WorkoutRankingPanel({
               </button>
             </li>
           ))}
+          {fillSlots(rows.length).map((i) => (
+            <EmptySlot key={i} index={i} label="Waiting for a shared workout to take this position" />
+          ))}
         </ol>
       )}
     </Panel>
   );
 }
 
-function ActivityPanel({
+function TalkPanel({
   comments,
+  sort,
+  onSort,
   onOpen,
 }: {
-  comments: (CommunityComment & { workout_name?: string | null })[];
+  comments: (CommunityComment & { workout_name?: string | null })[] | null;
+  sort: TalkSortKey;
+  onSort: (s: TalkSortKey) => void;
   onOpen: (id: string) => void;
 }) {
   return (
-    <Panel title="Community talk" icon={MessageSquare} filters={null}>
-      {comments.length === 0 ? (
-        <Empty label="No comments yet — say something about a shared workout." />
+    <Panel
+      title="Workout comments"
+      icon={MessageSquare}
+      filters={[
+        {
+          label: "Sort",
+          value: sort,
+          onChange: (v) => onSort(v as TalkSortKey),
+          options: TALK_FILTERS.map((f) => ({ value: f.value, label: f.label })),
+        },
+      ]}
+    >
+      {!comments ? (
+        <Spinner />
       ) : (
         <ul className="space-y-2">
           {comments.map((c) => (
@@ -527,14 +649,16 @@ function ActivityPanel({
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-xs font-bold">
                     {c.author_name || "Smarty member"}
-                    <span className="ml-1 font-normal text-muted-foreground">
-                      on {c.workout_name || "a workout"}
-                    </span>
+                    <span className="ml-1 font-normal text-muted-foreground">on</span>{" "}
+                    <span className="text-primary">{c.workout_name || "a shared workout"}</span>
                   </p>
                   <p className="mt-1 line-clamp-3 break-words text-sm">{c.body}</p>
                 </div>
               </button>
             </li>
+          ))}
+          {fillSlots(comments.length).map((i) => (
+            <EmptySlot key={i} index={i} label="No comment here yet — open a shared workout to talk" />
           ))}
         </ul>
       )}
