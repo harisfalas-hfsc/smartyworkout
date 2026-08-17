@@ -3,7 +3,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, CalendarClock, CheckCircle2, RotateCcw } from "lucide-react";
+import { Loader2, CheckCircle2 } from "lucide-react";
+import { WorkoutStatusPanel } from "@/components/workout/WorkoutStatusPanel";
+
 import { useServerFn } from "@tanstack/react-start";
 import { setWorkoutStatus } from "@/lib/coach.functions";
 import { shareWorkout } from "@/lib/community.functions";
