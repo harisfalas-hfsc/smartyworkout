@@ -19,6 +19,7 @@ import {
   User,
   Dumbbell,
   CalendarCheck,
+  Users,
   Sun,
   Moon,
 } from "lucide-react";
@@ -138,6 +139,9 @@ export function Navigation() {
                   <Link to="/logbook" search={{ filter: "all" as const, view: "list" as const }}>Logbook</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
+                  <Link to="/community">Smarty Community</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <Link to="/progress">Progress</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
@@ -226,6 +230,7 @@ function NavDrawer({ onClose, isAuthed, isAdmin }: { onClose: () => void; isAuth
               { to: "/coach", label: "Smarty Coach", Icon: Sparkles },
               { to: "/wod", label: "Workout of the Day", Icon: CalendarCheck },
               { to: "/logbook", label: "Logbook", Icon: BookOpen },
+              { to: "/community", label: "Smarty Community", Icon: Users },
               { to: "/progress", label: "Progress", Icon: ClipboardList },
               { to: "/profile", label: "Training profile", Icon: Info },
               { to: "/inbox", label: "Inbox & messages", Icon: Mail },
@@ -243,6 +248,7 @@ function NavDrawer({ onClose, isAuthed, isAdmin }: { onClose: () => void; isAuth
         { to: "/about", label: "About", Icon: Info },
         { to: "/how-it-works", label: "How It Works", Icon: BookOpen },
         ...(isAuthed ? [] : [{ to: "/wod", label: "Workout of the Day", Icon: CalendarCheck }]),
+        ...(isAuthed ? [] : [{ to: "/community", label: "Smarty Community", Icon: Users }]),
         { to: "/exercise-library", label: "Exercise Library", Icon: Dumbbell },
         { to: "/pricing", label: "Pricing", Icon: Crown },
         { to: "/tools", label: "Tools", Icon: Wrench },
