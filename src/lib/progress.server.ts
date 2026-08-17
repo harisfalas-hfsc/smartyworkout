@@ -149,16 +149,17 @@ export async function recomputeProgress(admin: SupabaseClient, userId: string) {
       })) as never,
       { onConflict: "user_id,badge_id", ignoreDuplicates: true },
     );
-    await admin.from("notifications").upsert(
-      newlyEarned.map((d) => ({
-        user_id: userId,
-        kind: "badge",
-        title: `Badge unlocked — ${d.name}`,
-        body: "Your Smarty Progress Score has increased.",
-        dedupe_key: `badge:${d.id}`,
-      })) as never,
-      { onConflict: "user_id,dedupe_key", ignoreDuplicates: true },
-    );
+    for (const d of newlyEarned) {
+      await admin
+        .from("notifications")
+        .insert({
+          user_id: userId,
+          kind: "badge",
+          title: `Badge unlocked — ${d.name}`,
+          body: "Your Smarty Progress Score has increased.",
+          dedupe_key: `badge:${d.id}`,
+        } as never);
+    }
   }
 
   const { data: allBadges } = await admin
