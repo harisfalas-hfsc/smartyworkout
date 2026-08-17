@@ -57,6 +57,13 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
     return data;
   })
   .handler(async ({ data, context }): Promise<CheckoutSessionResult> => {
+    const { isFreeAccessMode, FREE_ACCESS_BLOCK } = await import("@/lib/free-access.server");
+    if (await isFreeAccessMode()) {
+      throw new Response(JSON.stringify(FREE_ACCESS_BLOCK), {
+        status: 403,
+        headers: { "content-type": "application/json" },
+      });
+    }
     try {
       const { supabase, userId } = context;
       const {
