@@ -142,7 +142,7 @@ function Account() {
   const renewLabel = formatDate(membership?.currentPeriodEnd ?? null);
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-4 py-8 sm:py-12 lg:max-w-4xl lg:px-8 lg:py-16">
+    <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">
       <PageHeader
         className="mb-2"
         eyebrow="Smarty Workout"

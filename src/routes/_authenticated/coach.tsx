@@ -253,7 +253,7 @@ function CoachPage() {
 
   if (profileReady === false) {
     return (
-      <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:py-12 lg:max-w-5xl lg:px-8 lg:py-16">
+      <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">
         <PageHeader
           className="mb-6"
           eyebrow="Smarty Coach"
@@ -276,7 +276,7 @@ function CoachPage() {
 
   return (
 
-    <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:py-12 lg:max-w-5xl lg:px-8 lg:py-16">
+    <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">
       <PageHeader
         className="mb-6"
         eyebrow="Smarty Coach"

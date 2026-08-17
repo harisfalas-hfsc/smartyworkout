@@ -101,7 +101,7 @@ function Contact() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-[760px] px-4 pb-6 pt-4 space-y-6 lg:max-w-4xl lg:px-8 lg:pt-10">
+    <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">
       {/* Hero card */}
       <Card className="border-2 border-primary">
         <CardContent className="p-6">
