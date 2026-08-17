@@ -104,7 +104,7 @@ function CommunityPage() {
   const [desktopApi, setDesktopApi] = useState<CarouselApi>();
 
   const [workoutSort, setWorkoutSort] = useState<WorkoutSortKey>("latest");
-  const [category, setCategory] = useState<string>("all");
+  const [category, setCategory] = useState<string>("");
   const [categories, setCategories] = useState<string[]>([]);
   const [memberSort, setMemberSort] = useState<MemberSortKey>("score");
   const [rankSort, setRankSort] = useState<RankSortKey>("completions");
@@ -126,7 +126,7 @@ function CommunityPage() {
     setWorkouts(null);
     void fetchCommunityWorkouts({
       sort: workoutSort,
-      category: category === "all" ? null : category,
+      category: category || null,
       limit: SLOTS,
     }).then((r) => {
       if (active) setWorkouts(r);
@@ -135,6 +135,12 @@ function CommunityPage() {
       active = false;
     };
   }, [workoutSort, category]);
+
+  useEffect(() => {
+    if (categories.length && (!category || category === "all")) {
+      setCategory(categories[0]);
+    }
+  }, [categories, category]);
 
   useEffect(() => {
     let active = true;
@@ -393,13 +399,10 @@ function SharedWorkoutsPanel({
       icon={Dumbbell}
       filters={[
         {
-          label: "Type",
+          label: "Category",
           value: category,
           onChange: onCategory,
-          options: [
-            { value: "all", label: "All" },
-            ...categories.map((c) => ({ value: c, label: c })),
-          ],
+          options: categories.map((c) => ({ value: c, label: c })),
         },
         {
           label: "Sort",
