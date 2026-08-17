@@ -1,8 +1,7 @@
 import { Star, ThumbsUp, ThumbsDown, MessageCircle, CheckCircle2, Flame, Clock } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { MAX_STARS, normalizeStars } from "@/lib/workout/spec";
-import type { CommunityBadge, CommunityWorkoutCard as CardData } from "@/lib/community";
+import { creatorOrigin, RATING_STARS, type CommunityBadge, type CommunityWorkoutCard as CardData } from "@/lib/community";
 
 function Stars({ n }: { n: number }) {
   const filled = normalizeStars(n);
@@ -34,14 +33,10 @@ export function CommunityWorkoutCard({
   workout,
   badges = [],
   onOpen,
-  onDo,
-  compact = false,
 }: {
   workout: CardData;
   badges?: CommunityBadge[];
   onOpen: (id: string) => void;
-  onDo: (id: string) => void;
-  compact?: boolean;
 }) {
   const shared = workout.shared_at
     ? new Date(workout.shared_at).toLocaleDateString(undefined, {
@@ -53,7 +48,15 @@ export function CommunityWorkoutCard({
   const initial = (workout.creator_name || "S").slice(0, 1).toUpperCase();
 
   return (
-    <article className="flex h-full flex-col rounded-3xl border-2 border-blue-400 bg-card p-5 shadow-soft">
+    <article
+      role="button"
+      tabIndex={0}
+      onClick={() => onOpen(workout.id)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") onOpen(workout.id);
+      }}
+      className="flex h-full cursor-pointer flex-col rounded-3xl border-2 border-blue-400 bg-card p-5 text-left shadow-soft transition hover:shadow-md"
+    >
       <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-primary">
         <span className="truncate">{workout.category}</span>
         {workout.format ? <span className="truncate text-muted-foreground">· {workout.format}</span> : null}
@@ -111,6 +114,27 @@ export function CommunityWorkoutCard({
         )}
       </div>
 
+      <p className="mt-3 text-[11px] font-semibold text-muted-foreground">{creatorOrigin(workout)}</p>
+
+      <div className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+        <span className="inline-flex items-center gap-0.5">
+          {Array.from({ length: RATING_STARS }).map((_, i) => (
+            <Star
+              key={i}
+              className={cn(
+                "h-3.5 w-3.5",
+                i < Math.round(Number(workout.rating_avg))
+                  ? "fill-amber-400 text-amber-400"
+                  : "text-muted-foreground/30",
+              )}
+            />
+          ))}
+        </span>
+        {workout.rating_count > 0
+          ? `${Number(workout.rating_avg).toFixed(1)} (${workout.rating_count})`
+          : "Not rated yet"}
+      </div>
+
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <Metric icon={ThumbsUp} value={workout.likes} />
         <Metric icon={ThumbsDown} value={workout.dislikes} />
@@ -118,25 +142,6 @@ export function CommunityWorkoutCard({
         <Metric icon={CheckCircle2} value={workout.completions} />
       </div>
 
-      {!compact && (
-        <div className="mt-5 grid grid-cols-2 gap-2">
-          <Button className="h-11 rounded-2xl font-bold" onClick={() => onDo(workout.id)}>
-            Do workout
-          </Button>
-          <Button
-            variant="secondary"
-            className="h-11 rounded-2xl font-bold"
-            onClick={() => onOpen(workout.id)}
-          >
-            View
-          </Button>
-        </div>
-      )}
-      {compact && (
-        <Button className="mt-5 h-11 rounded-2xl font-bold" onClick={() => onDo(workout.id)}>
-          Do workout
-        </Button>
-      )}
     </article>
   );
 }

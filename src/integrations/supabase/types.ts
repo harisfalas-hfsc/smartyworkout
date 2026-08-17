@@ -175,6 +175,48 @@ export type Database = {
           },
         ]
       }
+      community_ratings: {
+        Row: {
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+          value: number
+          workout_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          value: number
+          workout_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          value?: number
+          workout_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_ratings_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "community_workouts_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_ratings_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       community_reactions: {
         Row: {
           created_at: string
@@ -1239,6 +1281,7 @@ export type Database = {
           category: string | null
           comments_count: number | null
           completions: number | null
+          created_by: string | null
           creator_avatar: string | null
           creator_completed: number | null
           creator_generated: number | null
@@ -1255,11 +1298,15 @@ export type Database = {
           format: string | null
           id: string | null
           image_url: string | null
+          is_wod: boolean | null
           likes: number | null
           location: string | null
           name: string | null
+          rating_avg: number | null
+          rating_count: number | null
           shared_at: string | null
           unique_completions: number | null
+          wod_date: string | null
         }
         Relationships: []
       }

@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Loader2, ThumbsUp, ThumbsDown, Flag, Trash2, Send } from "lucide-react";
+import { Loader2, ThumbsUp, ThumbsDown, Flag, Trash2, Send, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { WorkoutDisplay } from "@/components/workout/WorkoutDisplay";
@@ -16,6 +16,7 @@ import {
   deleteComment,
   getSharedWorkout,
   reactToWorkout,
+  rateWorkout,
   reportContent,
   startSharedWorkout,
 } from "@/lib/community.functions";
@@ -24,7 +25,7 @@ import type { CommunityComment, SharedWorkoutFull } from "@/lib/community";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { WorkoutStatusPanel } from "@/components/workout/WorkoutStatusPanel";
-import { COMMENT_MAX } from "@/lib/community";
+import { COMMENT_MAX, RATING_STARS, creatorOrigin } from "@/lib/community";
 
 
 export const Route = createFileRoute("/community/workout/$workoutId")({
@@ -51,6 +52,7 @@ function SharedWorkoutPage() {
   const removeComment = useServerFn(deleteComment);
   const report = useServerFn(reportContent);
   const doWorkout = useServerFn(startSharedWorkout);
+  const rate = useServerFn(rateWorkout);
 
   const [workout, setWorkout] = useState<SharedWorkoutFull | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +63,11 @@ function SharedWorkoutPage() {
   const [me, setMe] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [copy, setCopy] = useState<{ id: string; status: string; scheduledAt: string } | null>(null);
+  const [myRating, setMyRating] = useState(0);
+  const [ratingStats, setRatingStats] = useState({ avg: 0, count: 0 });
+  const [creator, setCreator] = useState<{ display_name: string | null; avatar_url: string | null } | null>(
+    null,
+  );
 
   /** Lazily creates (or reuses) the member's own copy so status can be tracked. */
   async function ensureCopy(): Promise<string> {
@@ -74,11 +81,14 @@ function SharedWorkoutPage() {
   async function refreshCounts() {
     const { data } = await supabase
       .from("community_workouts_public")
-      .select("likes,dislikes")
+      .select("likes,dislikes,rating_avg,rating_count")
       .eq("id", workoutId)
       .maybeSingle()
-      .returns<{ likes: number; dislikes: number }>();
-    if (data) setCounts({ likes: data.likes, dislikes: data.dislikes });
+      .returns<{ likes: number; dislikes: number; rating_avg: number; rating_count: number }>();
+    if (data) {
+      setCounts({ likes: data.likes, dislikes: data.dislikes });
+      setRatingStats({ avg: Number(data.rating_avg ?? 0), count: Number(data.rating_count ?? 0) });
+    }
   }
 
   useEffect(() => {
@@ -92,6 +102,8 @@ function SharedWorkoutPage() {
         setWorkout(res.workout);
         setMyReaction(res.myReaction);
         if (res.myCopy) setCopy({ id: res.myCopy.id, status: res.myCopy.status, scheduledAt: "" });
+        setMyRating(res.myRating ?? 0);
+        setCreator(res.creator ?? null);
 
       } catch (e) {
         if (active) setError((e as Error).message);
@@ -113,6 +125,20 @@ function SharedWorkoutPage() {
         .catch((e: Error) => {
           toast.error(e.message);
           setMyReaction(myReaction);
+        });
+    });
+  }
+
+  function setRating(value: number) {
+    access.guard(() => {
+      const next = myRating === value ? 0 : value;
+      const previous = myRating;
+      setMyRating(next);
+      void rate({ data: { workoutId, value: next } })
+        .then(refreshCounts)
+        .catch((e: Error) => {
+          toast.error(e.message);
+          setMyRating(previous);
         });
     });
   }
@@ -202,6 +228,53 @@ function SharedWorkoutPage() {
 
       <section className="mt-6 rounded-3xl border-2 border-blue-400 bg-card p-5">
         <p className="text-xs font-bold uppercase tracking-wider text-primary">Community workout</p>
+
+        <div className="mt-3 flex items-center gap-3 rounded-2xl border border-blue-200 p-3 dark:border-blue-500/40">
+          <MemberAvatar name={creator?.display_name ?? null} avatar={creator?.avatar_url ?? null} />
+          <div className="min-w-0">
+            <p className="truncate text-sm font-bold">
+              Shared by {creator?.display_name || "Smarty member"}
+            </p>
+            <p className="truncate text-[11px] text-muted-foreground">{creatorOrigin(workout)}</p>
+          </div>
+        </div>
+
+        <div className="mt-3 rounded-2xl border border-blue-200 p-3 dark:border-blue-500/40">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-primary">Rate this workout</p>
+          <div className="mt-2 flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              {Array.from({ length: RATING_STARS }, (_, i) => i + 1).map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  aria-label={`${n} star${n === 1 ? "" : "s"}`}
+                  onClick={() => setRating(n)}
+                  className="p-0.5"
+                >
+                  <Star
+                    className={cn(
+                      "h-6 w-6 transition",
+                      n <= (myRating || Math.round(ratingStats.avg))
+                        ? "fill-amber-400 text-amber-400"
+                        : "text-muted-foreground/40",
+                    )}
+                    strokeWidth={myRating && n <= myRating ? 2 : 1.5}
+                  />
+                </button>
+              ))}
+            </div>
+            <span className="text-xs font-semibold text-muted-foreground">
+              {ratingStats.count > 0
+                ? `${ratingStats.avg.toFixed(1)} / 5 · ${ratingStats.count} rating${ratingStats.count === 1 ? "" : "s"}`
+                : "Be the first to rate"}
+            </span>
+          </div>
+          {myRating > 0 && (
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Your rating: {myRating}/5 — tap the same star to remove it.
+            </p>
+          )}
+        </div>
         <p className="mt-2 text-sm text-muted-foreground">
           This workout is shown exactly as its creator generated it and cannot be edited. Start it to
           add your own copy to your logbook — your completion is credited to the creator.

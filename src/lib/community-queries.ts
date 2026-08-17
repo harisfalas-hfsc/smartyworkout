@@ -10,7 +10,7 @@ import {
 } from "@/lib/community";
 
 const CARD_COLUMNS =
-  "id,name,category,format,focus,difficulty_stars,duration_min,equipment,location,image_url,description,shared_at,creator_id,creator_name,creator_avatar,creator_score,creator_streak,creator_completed,creator_generated,likes,dislikes,comments_count,completions,unique_completions";
+  "id,name,category,format,focus,difficulty_stars,duration_min,equipment,location,image_url,description,shared_at,creator_id,creator_name,creator_avatar,creator_score,creator_streak,creator_completed,creator_generated,likes,dislikes,comments_count,completions,unique_completions,created_by,is_wod,wod_date,rating_avg,rating_count";
 
 export type WorkoutFilters = {
   sort?: CommunitySort;
@@ -35,7 +35,7 @@ export async function fetchCommunityWorkouts(
     offset = 0,
   } = filters;
 
-  // Top Rated needs a like ratio, so fetch a wider window and rank client-side.
+  // Top Rated needs a minimum number of ratings, so rank client-side.
   const isRated = sort === "rated";
   let query = supabase
     .from("community_workouts_public")
@@ -56,8 +56,8 @@ export async function fetchCommunityWorkouts(
   const rows = data ?? [];
   if (!isRated) return rows;
   return rows
-    .filter((w) => w.likes + w.dislikes >= MIN_RATINGS)
-    .sort((a, b) => ratingScore(b) - ratingScore(a) || b.likes - a.likes)
+    .filter((w) => w.rating_count >= MIN_RATINGS)
+    .sort((a, b) => ratingScore(b) - ratingScore(a) || b.rating_count - a.rating_count)
     .slice(0, limit);
 }
 
