@@ -102,6 +102,13 @@ export const createPortalSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { returnUrl?: string; environment: StripeEnv }) => data)
   .handler(async ({ data, context }): Promise<PortalSessionResult> => {
+    const { isFreeAccessMode, FREE_ACCESS_BLOCK } = await import("@/lib/free-access.server");
+    if (await isFreeAccessMode()) {
+      throw new Response(JSON.stringify(FREE_ACCESS_BLOCK), {
+        status: 403,
+        headers: { "content-type": "application/json" },
+      });
+    }
     const { supabase, userId } = context;
     const { data: sub } = await supabase
       .from("subscriptions")
