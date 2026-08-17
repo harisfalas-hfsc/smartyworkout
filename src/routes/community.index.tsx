@@ -1,7 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
-import { toast } from "sonner";
 import { Loader2, Trophy, Users, Star, MessageSquare, Dumbbell, Flame } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -32,7 +30,6 @@ import {
   fetchLatestComments,
   fetchLeaders,
 } from "@/lib/community-queries";
-import { startSharedWorkout } from "@/lib/community.functions";
 import type {
   CommunityComment,
   CommunityMember,
