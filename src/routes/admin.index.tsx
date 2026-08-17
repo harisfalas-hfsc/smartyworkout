@@ -14,6 +14,7 @@ import {
   Dumbbell,
   MessagesSquare,
   Trophy,
+  Flag,
   ArrowLeft,
   type LucideIcon,
 } from "lucide-react";
@@ -54,7 +55,8 @@ type SectionKey =
   | "cycle"
   | "workouts"
   | "messages"
-  | "awards";
+  | "awards"
+  | "reports";
 
 const SECTIONS: { key: SectionKey; label: string; description: string; Icon: LucideIcon }[] = [
   { key: "revenue", label: "Revenue", description: "Payments and monthly totals", Icon: TrendingUp },
