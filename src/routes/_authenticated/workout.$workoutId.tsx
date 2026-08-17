@@ -115,13 +115,6 @@ function WorkoutPage() {
     toast.success("Marked as completed.");
   }
 
-  async function markNotCompleted() {
-    await saveStatus({ data: { workoutId, status: "created" } });
-    setDone(false);
-    setSaved(false);
-    toast.success("Marked as not completed.");
-  }
-
   async function toggleShare() {
     const next = !shared;
     setSharing(true);
@@ -140,25 +133,6 @@ function WorkoutPage() {
     }
   }
 
-  async function schedule() {
-    if (!scheduledAt) return;
-    await saveStatus({
-      data: {
-        workoutId,
-        status: "scheduled",
-        scheduled_at: new Date(scheduledAt).toISOString(),
-      },
-    });
-    setShowSchedule(false);
-    toast.success("Scheduled — it will show in your logbook calendar.");
-  }
-
-  async function clearSchedule() {
-    await saveStatus({ data: { workoutId, status: "created", scheduled_at: null } });
-    setScheduledAt("");
-    setShowSchedule(false);
-    toast.success("Schedule removed.");
-  }
 
   async function saveFeedback() {
     const { data: auth } = await supabase.auth.getUser();
