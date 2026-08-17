@@ -56,6 +56,35 @@ export const reactToWorkout = createServerFn({ method: "POST" })
     return { ok: true as const, value: data.value };
   });
 
+export const rateWorkout = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { workoutId: string; value: number }) => input)
+  .handler(async ({ context, data }) => {
+    await requirePremium(context as never);
+    const value = Math.round(data.value);
+    if (value === 0) {
+      const { error } = await context.supabase
+        .from("community_ratings")
+        .delete()
+        .eq("workout_id", data.workoutId)
+        .eq("user_id", context.userId);
+      if (error) throw new Error(error.message);
+      return { ok: true as const, value: 0 };
+    }
+    if (value < 1 || value > 5) throw new Error("Rate between 1 and 5 stars.");
+    const { error } = await context.supabase.from("community_ratings").upsert(
+      {
+        workout_id: data.workoutId,
+        user_id: context.userId,
+        value,
+        updated_at: new Date().toISOString(),
+      } as never,
+      { onConflict: "workout_id,user_id" },
+    );
+    if (error) throw new Error(error.message);
+    return { ok: true as const, value };
+  });
+
 export const addComment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { workoutId: string; body: string }) => input)
@@ -145,7 +174,7 @@ export const getSharedWorkout = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!row) throw new Error("This workout is no longer shared with the community.");
-    const [{ data: reaction }, { data: mine }] = await Promise.all([
+    const [{ data: reaction }, { data: mine }, { data: rating }, { data: creator }] = await Promise.all([
       supabaseAdmin
         .from("community_reactions")
         .select("value")
@@ -160,11 +189,24 @@ export const getSharedWorkout = createServerFn({ method: "POST" })
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
+      supabaseAdmin
+        .from("community_ratings")
+        .select("value")
+        .eq("workout_id", data.workoutId)
+        .eq("user_id", context.userId)
+        .maybeSingle(),
+      supabaseAdmin
+        .from("profiles")
+        .select("id,display_name,avatar_url")
+        .eq("id", (row as { user_id: string }).user_id)
+        .maybeSingle(),
     ]);
     return {
       workout: row as unknown as SharedWorkoutFull,
       myReaction: ((reaction as { value?: number } | null)?.value ?? 0) as 1 | -1 | 0,
       myCopy: (mine as { id: string; status: string } | null) ?? null,
+      myRating: Number((rating as { value?: number } | null)?.value ?? 0),
+      creator: (creator as { id: string; display_name: string | null; avatar_url: string | null } | null) ?? null,
     };
   });
 
