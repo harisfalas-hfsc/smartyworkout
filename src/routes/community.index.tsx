@@ -125,8 +125,6 @@ function CommunityPage() {
   const [desktopApi, setDesktopApi] = useState<CarouselApi>();
 
   const [workoutSort, setWorkoutSort] = useState<WorkoutSortKey>("latest");
-  const [workoutCategory, setWorkoutCategory] = useState<string>("all");
-  const [workoutDifficulty, setWorkoutDifficulty] = useState<string>("0");
   const [memberSort, setMemberSort] = useState<MemberSortKey>("score");
   const [rankSort, setRankSort] = useState<RankSortKey>("completed");
   const [talkSort, setTalkSort] = useState<TalkSortKey>("newest");
@@ -141,18 +139,13 @@ function CommunityPage() {
   useEffect(() => {
     let active = true;
     setWorkouts(null);
-    void fetchCommunityWorkouts({
-      sort: workoutSort,
-      category: workoutCategory === "all" ? null : workoutCategory,
-      difficulty: Number(workoutDifficulty) || null,
-      limit: SLOTS,
-    }).then((r) => {
+    void fetchCommunityWorkouts({ sort: workoutSort, limit: SLOTS }).then((r) => {
       if (active) setWorkouts(r);
     });
     return () => {
       active = false;
     };
-  }, [workoutSort, workoutCategory, workoutDifficulty]);
+  }, [workoutSort]);
 
   useEffect(() => {
     let active = true;
@@ -215,11 +208,6 @@ function CommunityPage() {
       rows={workouts}
       sort={workoutSort}
       onSort={setWorkoutSort}
-      category={workoutCategory}
-      onCategory={setWorkoutCategory}
-      difficulty={workoutDifficulty}
-      onDifficulty={setWorkoutDifficulty}
-      categories={[...CATEGORIES]}
       onOpen={open}
     />,
     <MemberRankingPanel key="members" rows={members} sort={memberSort} onSort={setMemberSort} />,
@@ -294,7 +282,7 @@ function CommunityPage() {
       </div>
 
       <div className="mt-8 text-center">
-        <Button asChild variant="secondary" className="h-12 rounded-2xl font-bold">
+        <Button asChild className="h-12 rounded-2xl px-6 font-bold">
           <Link
             to="/community/workouts"
             search={{ sort: "latest", difficulty: 0, category: "", q: "" }}
@@ -395,84 +383,25 @@ function SharedWorkoutsPanel({
   rows,
   sort,
   onSort,
-  category,
-  onCategory,
-  difficulty,
-  onDifficulty,
-  categories,
   onOpen,
 }: {
   rows: CardData[] | null;
   sort: WorkoutSortKey;
   onSort: (s: WorkoutSortKey) => void;
-  category: string;
-  onCategory: (v: string) => void;
-  difficulty: string;
-  onDifficulty: (v: string) => void;
-  categories: string[];
   onOpen: (id: string) => void;
 }) {
-  const activeCategory = category === "all" ? "Any category" : category;
-  const activeDifficulty = DIFFICULTY_FILTERS.find((item) => item.value === difficulty)?.label;
-  const summary = [sort === "latest" ? "Latest" : "Oldest", activeCategory, activeDifficulty]
-    .filter(Boolean)
-    .join(" · ");
-
   return (
     <Panel
       title="Shared workouts"
       icon={Dumbbell}
-      filters={[]}
-      filterControl={
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="h-10 w-full justify-between rounded-xl border-blue-300 bg-transparent px-3 text-sm font-semibold shadow-sm hover:bg-transparent dark:border-blue-500/50">
-              <span className="min-w-0 truncate">{summary}</span>
-              <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="max-h-[70vh] w-[var(--radix-dropdown-menu-trigger-width)] rounded-md border bg-popover p-1 text-popover-foreground shadow-md">
-            <DropdownMenuLabel>Order</DropdownMenuLabel>
-            {WORKOUT_FILTERS.map((item) => (
-              <DropdownMenuCheckboxItem
-                key={item.value}
-                checked={sort === item.value}
-                className="data-[state=checked]:bg-primary/10 data-[state=checked]:font-semibold data-[state=checked]:text-primary"
-                onSelect={(event) => event.preventDefault()}
-                onCheckedChange={() => onSort(item.value)}
-              >
-                {item.label}
-              </DropdownMenuCheckboxItem>
-            ))}
-            <DropdownMenuSeparator />
-            <DropdownMenuLabel>Category</DropdownMenuLabel>
-            {[{ value: "all", label: "Any category" }, ...categories.map((item) => ({ value: item, label: item }))].map((item) => (
-              <DropdownMenuCheckboxItem
-                key={item.value}
-                checked={category === item.value}
-                className="data-[state=checked]:bg-primary/10 data-[state=checked]:font-semibold data-[state=checked]:text-primary"
-                onSelect={(event) => event.preventDefault()}
-                onCheckedChange={() => onCategory(item.value)}
-              >
-                {item.label}
-              </DropdownMenuCheckboxItem>
-            ))}
-            <DropdownMenuSeparator />
-            <DropdownMenuLabel>Difficulty</DropdownMenuLabel>
-            {DIFFICULTY_FILTERS.map((item) => (
-              <DropdownMenuCheckboxItem
-                key={item.value}
-                checked={difficulty === item.value}
-                className="data-[state=checked]:bg-primary/10 data-[state=checked]:font-semibold data-[state=checked]:text-primary"
-                onSelect={(event) => event.preventDefault()}
-                onCheckedChange={() => onDifficulty(item.value)}
-              >
-                {item.label}
-              </DropdownMenuCheckboxItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      }
+      filters={[
+        {
+          label: "sort",
+          value: sort,
+          options: WORKOUT_FILTERS.map((f) => ({ value: f.value, label: f.label })),
+          onChange: (v) => onSort(v as WorkoutSortKey),
+        },
+      ]}
     >
       {!rows ? (
         <Spinner />
@@ -708,26 +637,42 @@ function TalkPanel({
       )}
     </Panel>
     <Dialog open={selectedComment !== null} onOpenChange={(open) => !open && setSelectedComment(null)}>
-      <DialogContent className="w-[calc(100%-2rem)] max-w-sm rounded-2xl border-blue-300 p-5 dark:border-blue-500/50">
-        <DialogHeader className="pr-6 text-left">
-          <DialogTitle>{selectedComment?.author_name || "Smarty member"}</DialogTitle>
-          <DialogDescription>Comment on a shared workout</DialogDescription>
+      <DialogContent className="w-[calc(100%-2rem)] max-w-sm overflow-hidden rounded-3xl border-2 border-blue-400 bg-card p-0 shadow-soft">
+        <DialogHeader className="space-y-0 border-b border-blue-200 bg-blue-50 p-4 text-left dark:border-blue-500/40 dark:bg-blue-500/10">
+          <DialogTitle className="flex items-center gap-2 pr-6 text-lg font-extrabold uppercase tracking-tight">
+            <MessageSquare className="h-5 w-5 text-primary" />
+            Comment
+          </DialogTitle>
+          <DialogDescription className="sr-only">Full comment on a shared workout</DialogDescription>
         </DialogHeader>
-        <p className="break-words text-sm leading-6">{selectedComment?.body}</p>
-        {selectedComment ? (
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full rounded-xl border-blue-300 font-bold dark:border-blue-500/50"
-            onClick={() => {
-              const workoutId = selectedComment.workout_id;
-              setSelectedComment(null);
-              onOpen(workoutId);
-            }}
-          >
-            {selectedComment.workout_name || "Open shared workout"}
-          </Button>
-        ) : null}
+        <div className="space-y-3 p-4">
+          <div className="flex items-center gap-3">
+            <MemberAvatar
+              name={selectedComment?.author_name}
+              avatar={selectedComment?.author_avatar}
+              size={9}
+            />
+            <p className="min-w-0 truncate text-sm font-bold">
+              {selectedComment?.author_name || "Smarty member"}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-blue-200 p-3 dark:border-blue-500/40">
+            <p className="break-words text-sm leading-6">{selectedComment?.body}</p>
+          </div>
+          {selectedComment ? (
+            <Button
+              type="button"
+              className="w-full rounded-2xl font-bold"
+              onClick={() => {
+                const workoutId = selectedComment.workout_id;
+                setSelectedComment(null);
+                onOpen(workoutId);
+              }}
+            >
+              {selectedComment.workout_name || "Open shared workout"}
+            </Button>
+          ) : null}
+        </div>
       </DialogContent>
     </Dialog>
     </>
