@@ -17,20 +17,6 @@ type SisterApp = {
 
 const SISTER_APPS: SisterApp[] = [
   {
-    id: "gym",
-    name: "SmartyGym",
-    tagline: "Train smart. Get stronger. Feel younger.",
-    url: "https://smartygym.com",
-    image: logoGym,
-  },
-  {
-    id: "move",
-    name: "SmartyMove",
-    tagline: "Check your posture. Correct your movement. Live better.",
-    url: "https://smartymove.com",
-    image: logoMove,
-  },
-  {
     id: "diet",
     name: "SmartyDiet",
     tagline: "Eat smart. Fuel your body. Live longer.",
@@ -38,11 +24,11 @@ const SISTER_APPS: SisterApp[] = [
     image: logoDiet,
   },
   {
-    id: "logbook",
-    name: "SmartyLogbook",
-    tagline: "Track your life. Stay organized. Live better.",
-    url: "https://smartylogbook.lovable.app",
-    image: logoLogbook,
+    id: "move",
+    name: "SmartyMove",
+    tagline: "Check your posture. Correct your movement. Live better.",
+    url: "https://smartymove.com",
+    image: logoMove,
   },
 ];
 
