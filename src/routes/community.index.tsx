@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Loader2, Trophy, Users, Star, MessageSquare, Dumbbell, Flame, ChevronDown } from "lucide-react";
+import { Loader2, Trophy, Users, Star, MessageSquare, Dumbbell, Flame } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,12 +11,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
   Dialog,
@@ -33,7 +27,7 @@ import {
 } from "@/components/ui/carousel";
 import { SwipeToExplore } from "@/components/ui/SwipeToExplore";
 import { MemberAvatar } from "@/components/community/MemberCard";
-import { CATEGORIES, normalizeStars } from "@/lib/workout/spec";
+import { normalizeStars } from "@/lib/workout/spec";
 import {
   CommunityGateDialog,
   useCommunityAccess,
@@ -88,13 +82,6 @@ const MEMBER_FILTERS: { value: MemberSortKey; label: string; unit: string }[] = 
 const WORKOUT_FILTERS: { value: WorkoutSortKey; label: string }[] = [
   { value: "latest", label: "Sort by: Latest" },
   { value: "oldest", label: "Sort by: Oldest" },
-];
-
-const DIFFICULTY_FILTERS: { value: string; label: string }[] = [
-  { value: "0", label: "Any difficulty" },
-  { value: "1", label: "★ 1 star" },
-  { value: "2", label: "★★ 2 stars" },
-  { value: "3", label: "★★★ 3 stars" },
 ];
 
 const RANK_FILTERS: { value: RankSortKey; label: string; unit: string }[] = [
