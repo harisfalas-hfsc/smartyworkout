@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Loader2, SlidersHorizontal, X } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,11 +68,10 @@ function BrowsePage() {
   const [loading, setLoading] = useState(true);
   const [done, setDone] = useState(false);
   const [page, setPage] = useState(0);
-  const [panel, setPanel] = useState(false);
   const [creatorQuery, setCreatorQuery] = useState("");
 
   const sort = (SORTS.some((s) => s.id === search.sort) ? search.sort : "latest") as CommunitySort;
-  const difficulty = Math.max(0, Math.min(6, search.difficulty));
+  const difficulty = Math.max(0, Math.min(MAX_STARS, search.difficulty));
 
   useEffect(() => {
     void fetchCategories().then(setCategories);
@@ -224,39 +223,9 @@ function BrowsePage() {
         <Link to="/community" className="text-xs font-bold uppercase tracking-wider text-primary">
           ← Community
         </Link>
-        <Button
-          variant="secondary"
-          className="h-10 rounded-2xl lg:hidden"
-          onClick={() => setPanel(true)}
-        >
-          <SlidersHorizontal className="mr-2 h-4 w-4" /> Filters
-        </Button>
       </div>
 
-      <div className="hidden rounded-3xl border-2 border-blue-400 bg-card p-5 lg:block">{filterBody}</div>
-
-      {panel && (
-        <div className="fixed inset-0 z-[80] lg:hidden" role="dialog" aria-modal="true">
-          <div className="absolute inset-0 bg-black/60" onClick={() => setPanel(false)} />
-          <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-3xl bg-background p-5">
-            <div className="mb-4 flex items-center justify-between">
-              <p className="font-extrabold uppercase">Filters</p>
-              <button
-                type="button"
-                aria-label="Close filters"
-                onClick={() => setPanel(false)}
-                className="grid h-9 w-9 place-items-center rounded-full bg-secondary"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            {filterBody}
-            <Button className="mt-5 h-12 w-full rounded-2xl font-bold" onClick={() => setPanel(false)}>
-              Show results
-            </Button>
-          </div>
-        </div>
-      )}
+      <div className="rounded-3xl border-2 border-blue-400 bg-card p-5">{filterBody}</div>
 
       {loading && rows.length === 0 ? (
         <div className="flex min-h-[30vh] items-center justify-center">
