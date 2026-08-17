@@ -35,6 +35,48 @@ export type Database = {
         }
         Relationships: []
       }
+      badge_definitions: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          icon: string
+          id: string
+          is_active: boolean
+          name: string
+          points: number
+          sort_order: number
+          threshold: number
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string
+          icon?: string
+          id: string
+          is_active?: boolean
+          name: string
+          points?: number
+          sort_order?: number
+          threshold?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          points?: number
+          sort_order?: number
+          threshold?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       exercises: {
         Row: {
           body_part: string | null
@@ -576,6 +618,84 @@ export type Database = {
           user_deleted?: boolean
           user_id?: string | null
           user_unread?: boolean
+        }
+        Relationships: []
+      }
+      user_badges: {
+        Row: {
+          badge_id: string
+          badge_name: string
+          category: string
+          earned_at: string
+          id: string
+          points: number
+          threshold: number
+          user_id: string
+        }
+        Insert: {
+          badge_id: string
+          badge_name: string
+          category: string
+          earned_at?: string
+          id?: string
+          points?: number
+          threshold?: number
+          user_id: string
+        }
+        Update: {
+          badge_id?: string
+          badge_name?: string
+          category?: string
+          earned_at?: string
+          id?: string
+          points?: number
+          threshold?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_progress: {
+        Row: {
+          active_days: number
+          badge_points: number
+          created_at: string
+          current_streak: number
+          longest_streak: number
+          score: number
+          score_reached_at: string
+          subscription_months: number
+          updated_at: string
+          user_id: string
+          workouts_completed: number
+          workouts_generated: number
+        }
+        Insert: {
+          active_days?: number
+          badge_points?: number
+          created_at?: string
+          current_streak?: number
+          longest_streak?: number
+          score?: number
+          score_reached_at?: string
+          subscription_months?: number
+          updated_at?: string
+          user_id: string
+          workouts_completed?: number
+          workouts_generated?: number
+        }
+        Update: {
+          active_days?: number
+          badge_points?: number
+          created_at?: string
+          current_streak?: number
+          longest_streak?: number
+          score?: number
+          score_reached_at?: string
+          subscription_months?: number
+          updated_at?: string
+          user_id?: string
+          workouts_completed?: number
+          workouts_generated?: number
         }
         Relationships: []
       }

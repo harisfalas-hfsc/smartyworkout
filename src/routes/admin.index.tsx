@@ -13,6 +13,7 @@ import {
   ClipboardList,
   Dumbbell,
   MessagesSquare,
+  Trophy,
   ArrowLeft,
   type LucideIcon,
 } from "lucide-react";
@@ -27,6 +28,7 @@ import { AdminRulesTab } from "@/components/admin/AdminRulesTab";
 import { AdminCycleTab } from "@/components/admin/AdminCycleTab";
 import { AdminWorkoutsTab } from "@/components/admin/AdminWorkoutsTab";
 import { AdminMessagesTab } from "@/components/admin/AdminMessagesTab";
+import { AdminAwardsTab } from "@/components/admin/AdminAwardsTab";
 
 export const Route = createFileRoute("/admin/")({
   component: AdminPage,
@@ -50,7 +52,8 @@ type SectionKey =
   | "rules"
   | "cycle"
   | "workouts"
-  | "messages";
+  | "messages"
+  | "awards";
 
 const SECTIONS: { key: SectionKey; label: string; description: string; Icon: LucideIcon }[] = [
   { key: "revenue", label: "Revenue", description: "Payments and monthly totals", Icon: TrendingUp },
@@ -73,6 +76,12 @@ const SECTIONS: { key: SectionKey; label: string; description: string; Icon: Luc
     label: "Workout rules",
     description: "Limits, pricing, coaching rules",
     Icon: SlidersHorizontal,
+  },
+  {
+    key: "awards",
+    label: "Awards",
+    description: "Badges, thresholds and member progress",
+    Icon: Trophy,
   },
   {
     key: "cycle",
@@ -142,6 +151,7 @@ function AdminPage() {
           {section === "cycle" && <AdminCycleTab />}
           {section === "workouts" && <AdminWorkoutsTab />}
           {section === "messages" && <AdminMessagesTab />}
+          {section === "awards" && <AdminAwardsTab />}
         </div>
       ) : (
         <AdminHub onOpen={setSection} unreadMessages={unreadMessages} />
