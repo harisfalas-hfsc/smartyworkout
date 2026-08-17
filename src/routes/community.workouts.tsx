@@ -70,7 +70,10 @@ function BrowsePage() {
   const difficulty = Math.max(0, Math.min(MAX_STARS, search.difficulty));
 
   useEffect(() => {
-    void fetchCategories().then(setCategories);
+    void fetchCategories().then((rows) => {
+      const merged = Array.from(new Set([...CATEGORIES, ...rows]));
+      setCategories(merged);
+    });
   }, []);
 
   useEffect(() => {
