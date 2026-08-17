@@ -1,9 +1,7 @@
-import { useEffect, useState } from "react";
-import { ExternalLink, Sparkles, ChevronLeft } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ExternalLink, Sparkles, ChevronLeft, X } from "lucide-react";
 import logoMove from "@/assets/smartymove-logo.png";
 import logoDiet from "@/assets/smartydiet-logo.png";
-import logoGym from "@/assets/smartygym-icon.png";
-import logoLogbook from "@/assets/smartylogbook-logo.png";
 
 const CURRENT_APP: "workout" | "gym" | "move" | "diet" | "logbook" = "workout";
 
