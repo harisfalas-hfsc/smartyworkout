@@ -42,8 +42,7 @@ export async function fetchCommunityWorkouts(
     .select(CARD_COLUMNS)
     .range(offset, offset + (isRated ? 199 : limit - 1));
 
-  if (difficulty)
-    query = query.in("difficulty_stars", [difficulty, difficulty * 2 - 1, difficulty * 2]);
+  if (difficulty) query = query.eq("difficulty_stars", difficulty);
   if (category) query = query.eq("category", category);
   if (creatorId) query = query.eq("creator_id", creatorId);
   if (search) query = query.ilike("name", `%${search}%`);
