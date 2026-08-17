@@ -13,7 +13,7 @@ const CARD_COLUMNS =
   "id,name,category,format,focus,difficulty_stars,duration_min,equipment,location,image_url,description,shared_at,creator_id,creator_name,creator_avatar,creator_score,creator_streak,creator_completed,creator_generated,likes,dislikes,comments_count,completions,unique_completions,created_by,is_wod,wod_date,rating_avg,rating_count";
 
 export type WorkoutFilters = {
-  sort?: CommunitySort;
+  sort?: CommunitySort | "oldest";
   difficulty?: number | null;
   category?: string | null;
   creatorId?: string | null;
@@ -50,7 +50,7 @@ export async function fetchCommunityWorkouts(
   if (sort === "completed") query = query.order("completions", { ascending: false });
   else if (sort === "liked") query = query.order("likes", { ascending: false });
   else if (sort === "commented") query = query.order("comments_count", { ascending: false });
-  else query = query.order("shared_at", { ascending: false });
+  else query = query.order("shared_at", { ascending: sort === "oldest" });
 
   const { data } = await query.returns<CommunityWorkoutCard[]>();
   const rows = data ?? [];

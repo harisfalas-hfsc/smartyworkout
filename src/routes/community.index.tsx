@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Loader2, Trophy, Users, Star, MessageSquare, Dumbbell, Flame, SlidersHorizontal } from "lucide-react";
+import { Loader2, Trophy, Users, Star, MessageSquare, Dumbbell, Flame, ChevronDown } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,14 +33,13 @@ import {
 } from "@/components/ui/carousel";
 import { SwipeToExplore } from "@/components/ui/SwipeToExplore";
 import { MemberAvatar } from "@/components/community/MemberCard";
-import { normalizeStars } from "@/lib/workout/spec";
+import { CATEGORIES, normalizeStars } from "@/lib/workout/spec";
 import {
   CommunityGateDialog,
   useCommunityAccess,
 } from "@/components/community/useCommunityAccess";
 import {
   fetchCommunityCreators,
-  fetchCategories,
   fetchCommunityWorkouts,
   fetchLatestComments,
   fetchLeaders,
@@ -128,7 +127,6 @@ function CommunityPage() {
   const [workoutSort, setWorkoutSort] = useState<WorkoutSortKey>("latest");
   const [workoutCategory, setWorkoutCategory] = useState<string>("all");
   const [workoutDifficulty, setWorkoutDifficulty] = useState<string>("0");
-  const [categories, setCategories] = useState<string[]>([]);
   const [memberSort, setMemberSort] = useState<MemberSortKey>("score");
   const [rankSort, setRankSort] = useState<RankSortKey>("completed");
   const [talkSort, setTalkSort] = useState<TalkSortKey>("newest");
@@ -144,27 +142,17 @@ function CommunityPage() {
     let active = true;
     setWorkouts(null);
     void fetchCommunityWorkouts({
-      sort: "latest",
+      sort: workoutSort,
       category: workoutCategory === "all" ? null : workoutCategory,
       difficulty: Number(workoutDifficulty) || null,
       limit: SLOTS,
     }).then((r) => {
-      if (active) setWorkouts(workoutSort === "oldest" ? [...r].reverse() : r);
+      if (active) setWorkouts(r);
     });
     return () => {
       active = false;
     };
   }, [workoutSort, workoutCategory, workoutDifficulty]);
-
-  useEffect(() => {
-    let active = true;
-    void fetchCategories().then((r) => {
-      if (active) setCategories(r);
-    });
-    return () => {
-      active = false;
-    };
-  }, []);
 
   useEffect(() => {
     let active = true;
@@ -231,7 +219,7 @@ function CommunityPage() {
       onCategory={setWorkoutCategory}
       difficulty={workoutDifficulty}
       onDifficulty={setWorkoutDifficulty}
-      categories={categories}
+      categories={[...CATEGORIES]}
       onOpen={open}
     />,
     <MemberRankingPanel key="members" rows={members} sort={memberSort} onSort={setMemberSort} />,
@@ -438,17 +426,18 @@ function SharedWorkoutsPanel({
       filterControl={
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="h-10 w-full justify-start rounded-xl border-blue-300 px-3 text-sm font-semibold dark:border-blue-500/50">
-              <SlidersHorizontal className="h-4 w-4 shrink-0" />
+            <Button variant="outline" className="h-10 w-full justify-between rounded-xl border-blue-300 bg-transparent px-3 text-sm font-semibold shadow-sm hover:bg-transparent dark:border-blue-500/50">
               <span className="min-w-0 truncate">{summary}</span>
+              <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="max-h-[70vh] w-[var(--radix-dropdown-menu-trigger-width)]">
+          <DropdownMenuContent align="start" className="max-h-[70vh] w-[var(--radix-dropdown-menu-trigger-width)] rounded-md border bg-popover p-1 text-popover-foreground shadow-md">
             <DropdownMenuLabel>Order</DropdownMenuLabel>
             {WORKOUT_FILTERS.map((item) => (
               <DropdownMenuCheckboxItem
                 key={item.value}
                 checked={sort === item.value}
+                className="data-[state=checked]:bg-primary/10 data-[state=checked]:font-semibold data-[state=checked]:text-primary"
                 onSelect={(event) => event.preventDefault()}
                 onCheckedChange={() => onSort(item.value)}
               >
@@ -461,6 +450,7 @@ function SharedWorkoutsPanel({
               <DropdownMenuCheckboxItem
                 key={item.value}
                 checked={category === item.value}
+                className="data-[state=checked]:bg-primary/10 data-[state=checked]:font-semibold data-[state=checked]:text-primary"
                 onSelect={(event) => event.preventDefault()}
                 onCheckedChange={() => onCategory(item.value)}
               >
@@ -473,6 +463,7 @@ function SharedWorkoutsPanel({
               <DropdownMenuCheckboxItem
                 key={item.value}
                 checked={difficulty === item.value}
+                className="data-[state=checked]:bg-primary/10 data-[state=checked]:font-semibold data-[state=checked]:text-primary"
                 onSelect={(event) => event.preventDefault()}
                 onCheckedChange={() => onDifficulty(item.value)}
               >
