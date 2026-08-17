@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { CalendarCheck, Dumbbell, PenLine } from "lucide-react";
 import heroTraining from "@/assets/hero-training.jpg";
 import { PageHeader } from "@/components/PageHeader";
+import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -60,6 +61,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
+  const { freeAccessMode } = useFreeAccessMode();
   return (
     <div className="mx-auto flex max-w-6xl flex-col px-4 pb-8 pt-0 sm:pb-12">
       {/* MOBILE — consistent with every other page: centered header + CTAs */}
@@ -89,15 +91,19 @@ function Home() {
             <CalendarCheck className="h-4 w-4 shrink-0" />
             Follow Workout of the Day
           </Link>
-          <Link
-            to="/pricing"
-            className="flex h-12 w-full items-center justify-center rounded-full border-2 border-primary text-[15px] font-extrabold text-primary"
-          >
-            See pricing
-          </Link>
+          {!freeAccessMode && (
+            <Link
+              to="/pricing"
+              className="flex h-12 w-full items-center justify-center rounded-full border-2 border-primary text-[15px] font-extrabold text-primary"
+            >
+              See pricing
+            </Link>
+          )}
         </div>
         <p className="mt-4 text-center text-[13px] text-muted-foreground">
-          One membership. Two personalized workouts every day.
+          {freeAccessMode
+            ? "Two personalized workouts every day."
+            : "One membership. Two personalized workouts every day."}
         </p>
         <div className="mt-4 flex justify-center">
           <Link
@@ -150,15 +156,19 @@ function Home() {
                 <CalendarCheck className="h-4 w-4 shrink-0" />
                 Follow Workout of the Day
               </Link>
-              <Link
-                to="/pricing"
-                className="inline-flex h-12 items-center rounded-full border-2 border-primary px-8 text-base font-bold text-primary hover:bg-primary/10"
-              >
-                See pricing
-              </Link>
+              {!freeAccessMode && (
+                <Link
+                  to="/pricing"
+                  className="inline-flex h-12 items-center rounded-full border-2 border-primary px-8 text-base font-bold text-primary hover:bg-primary/10"
+                >
+                  See pricing
+                </Link>
+              )}
             </div>
             <p className="mt-4 text-sm text-white/60">
-              One membership. Two personalized workouts every day.
+              {freeAccessMode
+                ? "Two personalized workouts every day."
+                : "One membership. Two personalized workouts every day."}
             </p>
             <Link
               to="/founder-note"
