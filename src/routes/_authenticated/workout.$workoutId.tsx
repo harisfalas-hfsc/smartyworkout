@@ -6,6 +6,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2, CalendarClock, CheckCircle2, RotateCcw } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { setWorkoutStatus } from "@/lib/coach.functions";
+import { shareWorkout } from "@/lib/community.functions";
+import { Share2 } from "lucide-react";
 import { getMyAccessState } from "@/lib/access.functions";
 import { toast } from "sonner";
 import { WorkoutDisplay, type WorkoutRow } from "@/components/workout/WorkoutDisplay";
@@ -77,7 +79,10 @@ function WorkoutPage() {
   const [parqFlags, setParqFlags] = useState<string[]>([]);
   const [parqOpen, setParqOpen] = useState(false);
   const [parqBlocked, setParqBlocked] = useState(false);
+  const [shared, setShared] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const saveStatus = useServerFn(setWorkoutStatus);
+  const saveShare = useServerFn(shareWorkout);
 
   useEffect(() => {
     (async () => {
@@ -93,6 +98,7 @@ function WorkoutPage() {
         setParqBlocked(true);
         setParqOpen(true);
       }
+      setShared(Boolean((data as { is_shared?: boolean } | null)?.is_shared));
       if (row?.status === "completed") setDone(true);
       const sched = (data as { scheduled_at?: string | null } | null)?.scheduled_at;
       if (sched) setScheduledAt(new Date(sched).toISOString().slice(0, 16));
@@ -112,6 +118,24 @@ function WorkoutPage() {
     setDone(false);
     setSaved(false);
     toast.success("Marked as not completed.");
+  }
+
+  async function toggleShare() {
+    const next = !shared;
+    setSharing(true);
+    try {
+      await saveShare({ data: { workoutId, shared: next } });
+      setShared(next);
+      toast.success(
+        next
+          ? "Shared with the Smarty Community."
+          : "Removed from the Smarty Community.",
+      );
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setSharing(false);
+    }
   }
 
   async function schedule() {
@@ -267,6 +291,30 @@ function WorkoutPage() {
             ) : null}
           </div>
         ) : null}
+      </section>
+
+      <section className="mt-6 rounded-2xl border-2 border-blue-400 bg-card p-5">
+        <h3 className="flex items-center gap-2 text-lg font-bold">
+          <Share2 className="h-4 w-4 text-primary" /> Smarty Community
+        </h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {shared
+            ? "This workout is shared. Members can discover it, do it, like it and comment on it — it can never be edited."
+            : "Share this workout with the community so other members can train it exactly as generated."}
+        </p>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          <Button
+            className="h-12 rounded-2xl font-bold"
+            variant={shared ? "secondary" : "default"}
+            onClick={toggleShare}
+            disabled={sharing}
+          >
+            {shared ? "Stop sharing" : "Share with community"}
+          </Button>
+          <Button asChild variant="secondary" className="h-12 rounded-2xl">
+            <Link to="/community">Open community</Link>
+          </Button>
+        </div>
       </section>
 
       {!done ? (
