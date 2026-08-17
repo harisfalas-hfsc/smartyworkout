@@ -78,8 +78,8 @@ const MEMBER_FILTERS: { value: MemberSortKey; label: string; unit: string }[] = 
 ];
 
 const WORKOUT_FILTERS: { value: WorkoutSortKey; label: string }[] = [
-  { value: "latest", label: "Sort by: Latest" },
-  { value: "oldest", label: "Sort by: Oldest" },
+  { value: "latest", label: "Latest" },
+  { value: "oldest", label: "Oldest" },
 ];
 
 const RANK_FILTERS: { value: RankSortKey; label: string; unit: string }[] = [
@@ -108,6 +108,8 @@ function CommunityPage() {
 
   const [mobileApi, setMobileApi] = useState<CarouselApi>();
   const [desktopApi, setDesktopApi] = useState<CarouselApi>();
+  const [mobilePanel, setMobilePanel] = useState(0);
+  const [desktopPanel, setDesktopPanel] = useState(0);
 
   const [workoutSort, setWorkoutSort] = useState<WorkoutSortKey>("latest");
   const [memberSort, setMemberSort] = useState<MemberSortKey>("score");
@@ -181,6 +183,30 @@ function CommunityPage() {
     };
   }, [talkSort]);
 
+  useEffect(() => {
+    if (!mobileApi) return;
+    const updatePanel = () => setMobilePanel(mobileApi.selectedScrollSnap());
+    updatePanel();
+    mobileApi.on("select", updatePanel);
+    mobileApi.on("reInit", updatePanel);
+    return () => {
+      mobileApi.off("select", updatePanel);
+      mobileApi.off("reInit", updatePanel);
+    };
+  }, [mobileApi]);
+
+  useEffect(() => {
+    if (!desktopApi) return;
+    const updatePanel = () => setDesktopPanel(desktopApi.selectedScrollSnap());
+    updatePanel();
+    desktopApi.on("select", updatePanel);
+    desktopApi.on("reInit", updatePanel);
+    return () => {
+      desktopApi.off("select", updatePanel);
+      desktopApi.off("reInit", updatePanel);
+    };
+  }, [desktopApi]);
+
   function open(id: string) {
     access.guard(() =>
       navigate({ to: "/community/workout/$workoutId", params: { workoutId: id } }),
@@ -239,6 +265,7 @@ function CommunityPage() {
           onPrev={() => mobileApi?.scrollPrev()}
           onNext={() => mobileApi?.scrollNext()}
         />
+        <CarouselDots api={mobileApi} activeIndex={mobilePanel} count={panels.length} />
         <Carousel setApi={setMobileApi} opts={{ loop: true, align: "center" }} className="w-full">
           <CarouselContent className="-ml-3">
             {panels.map((panel, i) => (
@@ -255,6 +282,7 @@ function CommunityPage() {
           onPrev={() => desktopApi?.scrollPrev()}
           onNext={() => desktopApi?.scrollNext()}
         />
+        <CarouselDots api={desktopApi} activeIndex={desktopPanel} count={panels.length} />
         <Carousel setApi={setDesktopApi} opts={{ loop: true, align: "center" }} className="w-full">
           <CarouselContent className="-ml-4">
             {panels.map((panel, i) => (
@@ -283,6 +311,39 @@ function CommunityPage() {
         onOpenChange={access.setGateOpen}
         signedIn={access.signedIn}
       />
+    </div>
+  );
+}
+
+function CarouselDots({
+  api,
+  activeIndex,
+  count,
+}: {
+  api: CarouselApi | undefined;
+  activeIndex: number;
+  count: number;
+}) {
+  return (
+    <div className="mb-3 flex h-5 items-center justify-center gap-2" aria-label="Community panels">
+      {Array.from({ length: count }, (_, index) => (
+        <Button
+          key={index}
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label={`Go to panel ${index + 1}${index === 0 ? ": Shared workouts" : ""}`}
+          aria-current={activeIndex === index ? "true" : undefined}
+          onClick={() => api?.scrollTo(index)}
+          className="h-5 w-5 rounded-full p-0 hover:bg-transparent"
+        >
+          <span
+            className={`block rounded-full transition-all ${
+              activeIndex === index ? "h-2.5 w-5 bg-primary" : "h-2 w-2 bg-muted-foreground/35"
+            }`}
+          />
+        </Button>
+      ))}
     </div>
   );
 }
