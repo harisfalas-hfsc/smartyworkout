@@ -1,9 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -21,7 +19,6 @@ import {
   useCommunityAccess,
 } from "@/components/community/useCommunityAccess";
 import { fetchBadgesFor, fetchCategories, fetchCommunityWorkouts } from "@/lib/community-queries";
-import { startSharedWorkout } from "@/lib/community.functions";
 import { SORTS, type CommunityBadge, type CommunitySort, type CommunityWorkoutCard as CardData } from "@/lib/community";
 import { MAX_STARS } from "@/lib/workout/spec";
 
@@ -60,7 +57,6 @@ function BrowsePage() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/community/workouts" });
   const access = useCommunityAccess();
-  const doWorkout = useServerFn(startSharedWorkout);
 
   const [rows, setRows] = useState<CardData[]>([]);
   const [badges, setBadges] = useState<Record<string, CommunityBadge[]>>({});
@@ -113,14 +109,6 @@ function BrowsePage() {
 
   function update(patch: Record<string, unknown>) {
     void navigate({ search: (prev) => ({ ...prev, ...patch }) as never });
-  }
-
-  function start(id: string) {
-    access.guard(() => {
-      void doWorkout({ data: { workoutId: id } })
-        .then((r) => window.location.assign(`/workout/${r.workoutId}`))
-        .catch((e: Error) => toast.error(e.message));
-    });
   }
 
   function open(id: string) {
@@ -243,7 +231,6 @@ function BrowsePage() {
               workout={w}
               badges={badges[w.creator_id] ?? []}
               onOpen={open}
-              onDo={start}
             />
           ))}
         </div>
