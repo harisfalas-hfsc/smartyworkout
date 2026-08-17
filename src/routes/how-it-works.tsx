@@ -129,6 +129,30 @@ const WOD_STEPS = [
   },
 ];
 
+const COMMUNITY_STEPS = [
+  {
+    n: "01",
+    title: "Members share",
+    desc: "Any workout • Exactly as generated • Never edited",
+  },
+  {
+    n: "02",
+    title: "You browse",
+    desc: "Shared workouts • Member ranking • Workout ranking • Comments",
+  },
+  {
+    n: "03",
+    title: "You train it",
+    desc: "A copy lands in your logbook • Completed, not completed or scheduled",
+  },
+  {
+    n: "04",
+    title: "You react",
+    desc: "Like it • Comment in 160 characters • Climb the rankings",
+  },
+];
+
+
 function HowItWorks() {
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">
@@ -139,7 +163,7 @@ function HowItWorks() {
             Simple &amp; <span className="text-primary">transparent</span>
           </>
         }
-        subtitle="Two ways to train: create your own workout on demand, or follow the Workout of the Day."
+        subtitle="Three ways to train: create your own workout on demand, follow the Workout of the Day, or train a workout shared by the Smarty Community."
       />
 
       <section className="rounded-2xl border-2 border-blue-400 bg-card p-5 sm:p-8">
