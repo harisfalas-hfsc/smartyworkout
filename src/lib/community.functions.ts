@@ -217,3 +217,112 @@ export const startSharedWorkout = createServerFn({ method: "POST" })
     if (insertError) throw new Error(insertError.message);
     return { ok: true as const, workoutId: (created as { id: string }).id };
   });
+
+async function assertAdmin(ctx: { userId: string; claims: any }) {
+  const { isAdminEmail } = await import("@/lib/admin");
+  if (isAdminEmail(ctx.claims?.email as string | undefined)) return;
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await supabaseAdmin
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", ctx.userId)
+    .eq("role", "admin")
+    .maybeSingle();
+  if (!data) throw new Error("Forbidden: admin access required");
+}
+
+export type AdminReportRow = {
+  id: string;
+  target_type: "workout" | "comment";
+  target_id: string;
+  reason: string | null;
+  status: string;
+  created_at: string;
+  reporter_name: string | null;
+  preview: string | null;
+};
+
+export const adminListReports = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ reports: AdminReportRow[] }> => {
+    await assertAdmin(context as never);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin
+      .from("community_reports")
+      .select("id,target_type,target_id,reason,status,created_at,reporter_id")
+      .order("created_at", { ascending: false })
+      .limit(300);
+    const rows = (data ?? []) as {
+      id: string;
+      target_type: "workout" | "comment";
+      target_id: string;
+      reason: string | null;
+      status: string;
+      created_at: string;
+      reporter_id: string;
+    }[];
+    const reporterIds = Array.from(new Set(rows.map((r) => r.reporter_id)));
+    const workoutIds = rows.filter((r) => r.target_type === "workout").map((r) => r.target_id);
+    const commentIds = rows.filter((r) => r.target_type === "comment").map((r) => r.target_id);
+    const [{ data: profiles }, { data: workouts }, { data: comments }] = await Promise.all([
+      reporterIds.length
+        ? supabaseAdmin.from("profiles").select("id,display_name").in("id", reporterIds)
+        : Promise.resolve({ data: [] as never[] }),
+      workoutIds.length
+        ? supabaseAdmin.from("workouts").select("id,name").in("id", workoutIds)
+        : Promise.resolve({ data: [] as never[] }),
+      commentIds.length
+        ? supabaseAdmin.from("community_comments").select("id,body").in("id", commentIds)
+        : Promise.resolve({ data: [] as never[] }),
+    ]);
+    const nameById = new Map(
+      ((profiles ?? []) as { id: string; display_name: string | null }[]).map((p) => [p.id, p.display_name]),
+    );
+    const previewById = new Map<string, string>();
+    for (const w of (workouts ?? []) as { id: string; name: string }[]) previewById.set(w.id, w.name);
+    for (const c of (comments ?? []) as { id: string; body: string }[]) previewById.set(c.id, c.body);
+    return {
+      reports: rows.map((r) => ({
+        id: r.id,
+        target_type: r.target_type,
+        target_id: r.target_id,
+        reason: r.reason,
+        status: r.status,
+        created_at: r.created_at,
+        reporter_name: nameById.get(r.reporter_id) ?? null,
+        preview: previewById.get(r.target_id) ?? null,
+      })),
+    };
+  });
+
+export const adminResolveReport = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { reportId: string; action: "dismiss" | "remove" }) => input)
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context as never);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: report } = await supabaseAdmin
+      .from("community_reports")
+      .select("target_type,target_id")
+      .eq("id", data.reportId)
+      .maybeSingle();
+    const target = report as { target_type: "workout" | "comment"; target_id: string } | null;
+    if (data.action === "remove" && target) {
+      if (target.target_type === "comment") {
+        await supabaseAdmin
+          .from("community_comments")
+          .update({ deleted_at: new Date().toISOString() } as never)
+          .eq("id", target.target_id);
+      } else {
+        await supabaseAdmin
+          .from("workouts")
+          .update({ is_shared: false, shared_at: null } as never)
+          .eq("id", target.target_id);
+      }
+    }
+    await supabaseAdmin
+      .from("community_reports")
+      .update({ status: data.action === "remove" ? "removed" : "dismissed" } as never)
+      .eq("id", data.reportId);
+    return { ok: true as const };
+  });
