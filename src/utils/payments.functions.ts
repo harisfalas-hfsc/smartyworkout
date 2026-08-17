@@ -184,6 +184,13 @@ export const setMembershipCancellation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { cancel: boolean; environment: StripeEnv }) => data)
   .handler(async ({ data, context }): Promise<{ ok: true } | { error: string }> => {
+    const { isFreeAccessMode, FREE_ACCESS_BLOCK } = await import("@/lib/free-access.server");
+    if (await isFreeAccessMode()) {
+      throw new Response(JSON.stringify(FREE_ACCESS_BLOCK), {
+        status: 403,
+        headers: { "content-type": "application/json" },
+      });
+    }
     const row = await latestSubscriptionRow(
       context.supabase as never,
       context.userId,
