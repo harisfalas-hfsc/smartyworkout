@@ -1,9 +1,7 @@
-import { useEffect, useState } from "react";
-import { ExternalLink, Sparkles, ChevronLeft } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ExternalLink, Sparkles, X } from "lucide-react";
 import logoMove from "@/assets/smartymove-logo.png";
 import logoDiet from "@/assets/smartydiet-logo.png";
-import logoGym from "@/assets/smartygym-icon.png";
-import logoLogbook from "@/assets/smartylogbook-logo.png";
 
 const CURRENT_APP: "workout" | "gym" | "move" | "diet" | "logbook" = "workout";
 
@@ -17,20 +15,6 @@ type SisterApp = {
 
 const SISTER_APPS: SisterApp[] = [
   {
-    id: "gym",
-    name: "SmartyGym",
-    tagline: "Train smart. Get stronger. Feel younger.",
-    url: "https://smartygym.com",
-    image: logoGym,
-  },
-  {
-    id: "move",
-    name: "SmartyMove",
-    tagline: "Check your posture. Correct your movement. Live better.",
-    url: "https://smartymove.com",
-    image: logoMove,
-  },
-  {
     id: "diet",
     name: "SmartyDiet",
     tagline: "Eat smart. Fuel your body. Live longer.",
@@ -38,11 +22,11 @@ const SISTER_APPS: SisterApp[] = [
     image: logoDiet,
   },
   {
-    id: "logbook",
-    name: "SmartyLogbook",
-    tagline: "Track your life. Stay organized. Live better.",
-    url: "https://smartylogbook.lovable.app",
-    image: logoLogbook,
+    id: "move",
+    name: "SmartyMove",
+    tagline: "Check your posture. Correct your movement. Live better.",
+    url: "https://smartymove.com",
+    image: logoMove,
   },
 ];
 
@@ -52,6 +36,7 @@ const DELAY_MS = 30000;
 export const SisterAppsPopup = () => {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const t = window.setTimeout(() => {
@@ -61,13 +46,34 @@ export const SisterAppsPopup = () => {
     return () => window.clearTimeout(t);
   }, []);
 
+  useEffect(() => {
+    if (!open) return;
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (panelRef.current && !panelRef.current.contains(target)) {
+        setOpen(false);
+      }
+    };
+    window.addEventListener("mousedown", handleClick);
+    return () => window.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
   const others = SISTER_APPS.filter((a) => a.id !== CURRENT_APP);
 
   if (!mounted) return null;
 
   return (
     <>
+      {open && (
+        <div
+          aria-hidden="false"
+          className="fixed inset-0 z-[58] bg-black/20"
+          onClick={() => setOpen(false)}
+        />
+      )}
+
       <div
+        ref={panelRef}
         aria-hidden={!open}
         className={`fixed top-1/2 -translate-y-1/2 left-0 z-[60] flex items-center transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${open ? "translate-x-0" : "-translate-x-[calc(100%+10px)]"}`}
       >
@@ -112,9 +118,9 @@ export const SisterAppsPopup = () => {
           type="button"
           onClick={() => setOpen(false)}
           aria-label="Hide panel"
-          className="h-12 w-6 rounded-r-full bg-white text-slate-900 flex items-center justify-center hover:bg-slate-50 transition-colors shadow-[4px_0_12px_rgba(15,23,42,0.08)]"
+          className="ml-2 h-14 w-14 rounded-full bg-white text-slate-900 flex items-center justify-center hover:bg-slate-50 hover:text-primary transition-colors shadow-[4px_0_12px_rgba(15,23,42,0.08)] border border-slate-100"
         >
-          <ChevronLeft className="w-5 h-5" />
+          <X className="w-7 h-7" />
         </button>
       </div>
 
