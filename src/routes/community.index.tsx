@@ -647,7 +647,11 @@ function TalkPanel({
                     <span className="ml-1 font-normal text-muted-foreground">on</span>{" "}
                     <span className="text-primary">{c.workout_name || "a shared workout"}</span>
                   </p>
-                  <p className="mt-1 line-clamp-3 break-words text-sm">{c.body}</p>
+                  <p className="mt-1 line-clamp-2 break-words text-sm">{c.body}</p>
+                  <p className="mt-1 text-[11px] font-semibold text-primary">
+                    Tap to read all comments
+                  </p>
+
                 </div>
               </button>
             </li>
