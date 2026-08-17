@@ -83,7 +83,7 @@ function AboutPage() {
       />
 
       {/* What / How / When — the core story */}
-      <div className="mx-auto grid max-w-xl gap-4 lg:max-w-5xl lg:grid-cols-3 lg:gap-5">
+      <div className="mx-auto grid max-w-xl gap-4 lg:max-w-6xl lg:grid-cols-3 lg:gap-5">
         <SmartyCard
           tone="blue"
           eyebrow="What"
@@ -162,7 +162,7 @@ function AboutPage() {
             <span className="text-primary">Adaptive</span>
           </>
         }
-        className="mx-auto mt-4 max-w-xl lg:max-w-5xl"
+        className="mx-auto mt-4 max-w-xl lg:max-w-6xl"
       >
         <div className="grid gap-3 sm:grid-cols-2">
           <SmartyRow
@@ -202,7 +202,7 @@ function AboutPage() {
         Three ways to <span className="text-primary">benefit</span>
       </h2>
 
-      <div className="mx-auto mt-4 grid max-w-xl gap-4 lg:max-w-5xl lg:grid-cols-3">
+      <div className="mx-auto mt-4 grid max-w-xl gap-4 lg:max-w-6xl lg:grid-cols-3">
         <div className="rounded-2xl border-2 border-blue-400 bg-card p-5">
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">
             Create your workout

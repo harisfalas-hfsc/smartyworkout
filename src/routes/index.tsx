@@ -141,17 +141,17 @@ function Home() {
               Answer a smart questionnaire. Get a full tailor-made workout built
               around your body, goals, equipment and constraints.
             </p>
-            <div className="mt-7 flex flex-wrap items-center gap-3">
+            <div className="mt-7 flex flex-wrap items-center gap-3 lg:flex-nowrap">
               <Link
                 to="/coach"
-                className="inline-flex h-12 items-center gap-2 rounded-full bg-primary px-8 text-base font-bold text-primary-foreground hover:opacity-95"
+                className="inline-flex h-12 items-center gap-2 whitespace-nowrap rounded-full bg-primary px-6 text-base font-bold text-primary-foreground hover:opacity-95 lg:px-8"
               >
                 <Dumbbell className="h-4 w-4 shrink-0" />
                 Create your workout
               </Link>
               <Link
                 to="/wod"
-                className="inline-flex h-12 items-center gap-2 rounded-full border-2 border-primary px-8 text-base font-bold text-primary hover:bg-primary/10"
+                className="inline-flex h-12 items-center gap-2 whitespace-nowrap rounded-full border-2 border-primary px-6 text-base font-bold text-primary hover:bg-primary/10 lg:px-8"
               >
                 <CalendarCheck className="h-4 w-4 shrink-0" />
                 Follow Workout of the Day
@@ -159,7 +159,7 @@ function Home() {
               {!freeAccessMode && (
                 <Link
                   to="/pricing"
-                  className="inline-flex h-12 items-center rounded-full border-2 border-primary px-8 text-base font-bold text-primary hover:bg-primary/10"
+                  className="inline-flex h-12 items-center whitespace-nowrap rounded-full border-2 border-primary px-6 text-base font-bold text-primary hover:bg-primary/10 lg:px-8"
                 >
                   See pricing
                 </Link>

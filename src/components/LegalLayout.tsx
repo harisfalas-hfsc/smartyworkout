@@ -12,7 +12,7 @@ export function LegalLayout({
   children: ReactNode;
 }) {
   return (
-    <main className="mx-auto w-full max-w-[760px] flex-1 px-5 pb-6 pt-5 lg:max-w-4xl lg:pt-10">
+    <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">
       <div className="flex items-center gap-3">
         <span
           className="grid place-items-center text-primary-foreground"

@@ -270,7 +270,7 @@ function WodPage() {
   ].filter((s): s is { day: DayInfo; label: string } => Boolean(s.day));
 
   return (
-    <div className="mx-auto w-full max-w-xl space-y-5 px-4 py-8 sm:py-12 lg:max-w-5xl lg:px-8 lg:py-16">
+    <div className="mx-auto w-full max-w-4xl space-y-5 px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">
       <PageHeader
         className="mb-2"
         eyebrow="Smarty Coach"
