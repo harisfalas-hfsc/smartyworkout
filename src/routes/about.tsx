@@ -203,7 +203,7 @@ function AboutPage() {
       </h2>
 
       <div className="mx-auto mt-4 grid max-w-xl gap-4 lg:max-w-6xl lg:grid-cols-3">
-        <div className="rounded-2xl border-2 border-blue-400 bg-card p-5">
+        <div className="flex flex-col rounded-2xl border-2 border-blue-400 bg-card p-5">
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">
             Create your workout
           </p>
@@ -213,12 +213,12 @@ function AboutPage() {
             builds a complete one-off session around your Training Profile and your history. Ideal
             when your day, your energy or your available gear changes.
           </p>
-          <Button asChild className="mt-4 w-full font-extrabold uppercase">
+          <Button asChild className="mt-auto w-full font-extrabold uppercase">
             <Link to="/coach">Create your workout</Link>
           </Button>
         </div>
 
-        <div className="rounded-2xl border-2 border-blue-400 bg-card p-5">
+        <div className="flex flex-col rounded-2xl border-2 border-blue-400 bg-card p-5">
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">
             Workout of the Day
           </p>
@@ -230,12 +230,12 @@ function AboutPage() {
             right order. It is like having a personal trainer who already knows what you must do
             today, next week and next month.
           </p>
-          <Button asChild className="mt-4 w-full font-extrabold uppercase">
+          <Button asChild className="mt-auto w-full font-extrabold uppercase">
             <Link to="/wod">Follow Workout of the Day</Link>
           </Button>
         </div>
 
-        <div className="rounded-2xl border-2 border-blue-400 bg-card p-5">
+        <div className="flex flex-col rounded-2xl border-2 border-blue-400 bg-card p-5">
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">
             Smarty Community
           </p>
@@ -245,7 +245,7 @@ function AboutPage() {
             completed, like it and leave a short comment. Climb the member and workout rankings and
             see who is training, what they are training and what the community says about it.
           </p>
-          <Button asChild className="mt-4 w-full font-extrabold uppercase">
+          <Button asChild className="mt-auto w-full font-extrabold uppercase">
             <Link to="/community">Open Smarty Community</Link>
           </Button>
         </div>
