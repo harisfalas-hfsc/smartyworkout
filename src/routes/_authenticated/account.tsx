@@ -53,6 +53,7 @@ function formatDate(value: string | null) {
 
 function Account() {
   const { user, displayName } = useAuth();
+  const { freeAccessMode } = useFreeAccessMode();
   const [count, setCount] = useState<number | null>(null);
   const [premium, setPremium] = useState<boolean | null>(null);
   const [quota, setQuota] = useState<{ used: number; limit: number } | null>(null);
