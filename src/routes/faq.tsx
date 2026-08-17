@@ -64,9 +64,34 @@ const ITEMS: { q: string; a: string }[] = [
     a: "Yes — every workout is saved to your logbook and can be repeated or exported as a PDF.",
   },
   {
+    q: "What is the Smarty Community?",
+    a: "The social area of the app. Members share their workouts exactly as Smarty Coach generated them, and every other member can open, train, like and comment on them.",
+  },
+  {
+    q: "What happens when I open a shared workout?",
+    a: "It opens exactly like a workout in your own logbook — same reader, same player. Below it you can mark it completed, not completed or scheduled, like it and comment on it.",
+  },
+  {
+    q: "How do comments work?",
+    a: "You can only comment on shared workouts, in up to 160 characters — like a text message. Your comment appears in the community comments card with your name and the first two lines; tapping it opens the workout and all of its comments.",
+  },
+  {
+    q: "What are the rankings?",
+    a: "Two boards with ten positions each: the member ranking (score, streak, completed, shared) and the workout ranking (most completed and most liked, shared workouts only). Empty positions stay visible until someone takes them.",
+  },
+  {
+    q: "Can I schedule a workout?",
+    a: "Yes. Open any workout and choose Schedule. Only the button matching the current state is highlighted, and you can press Schedule again anytime to move it to another day.",
+  },
+  {
+    q: "Do I get reminders for a scheduled workout?",
+    a: "Yes — a reminder 30 minutes before, another at the scheduled time, and a follow-up the next day asking if you did it so you can mark it completed, favourite it or share it with the community.",
+  },
+  {
     q: "Is this medical advice?",
     a: "No. SmartyWorkout is a general fitness tool. Consult a professional if you have a medical condition.",
   },
+
   {
     q: "What happens to my data?",
     a: "It stays in your account to personalize your training. We never sell it. See the Privacy Policy.",
