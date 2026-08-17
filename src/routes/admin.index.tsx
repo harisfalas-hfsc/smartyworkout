@@ -29,6 +29,7 @@ import { AdminCycleTab } from "@/components/admin/AdminCycleTab";
 import { AdminWorkoutsTab } from "@/components/admin/AdminWorkoutsTab";
 import { AdminMessagesTab } from "@/components/admin/AdminMessagesTab";
 import { AdminAwardsTab } from "@/components/admin/AdminAwardsTab";
+import { AdminReportsTab } from "@/components/admin/AdminReportsTab";
 
 export const Route = createFileRoute("/admin/")({
   component: AdminPage,
@@ -82,6 +83,12 @@ const SECTIONS: { key: SectionKey; label: string; description: string; Icon: Luc
     label: "Awards",
     description: "Badges, thresholds and member progress",
     Icon: Trophy,
+  },
+  {
+    key: "reports",
+    label: "Community reports",
+    description: "Moderate shared workouts and comments",
+    Icon: Flag,
   },
   {
     key: "cycle",
@@ -152,6 +159,7 @@ function AdminPage() {
           {section === "workouts" && <AdminWorkoutsTab />}
           {section === "messages" && <AdminMessagesTab />}
           {section === "awards" && <AdminAwardsTab />}
+          {section === "reports" && <AdminReportsTab />}
         </div>
       ) : (
         <AdminHub onOpen={setSection} unreadMessages={unreadMessages} />
