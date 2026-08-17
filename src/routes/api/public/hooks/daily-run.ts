@@ -108,12 +108,22 @@ export const Route = createFileRoute("/api/public/hooks/daily-run")({
           failures.push(`renewals:${e instanceof Error ? e.message : "error"}`);
         }
 
+        let scheduleReminders = 0;
+        try {
+          const { runScheduleReminders } = await import("@/lib/schedule-notify.server");
+          scheduleReminders = await runScheduleReminders(db);
+        } catch (e) {
+          failures.push(`schedule:${e instanceof Error ? e.message : "error"}`);
+        }
+
         return Response.json({
           ok: true,
           scanned: profiles.length,
           motivations,
           workouts,
           renewalReminders,
+          scheduleReminders,
+
           failures,
         });
 
