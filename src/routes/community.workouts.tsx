@@ -23,6 +23,7 @@ import {
 import { fetchBadgesFor, fetchCategories, fetchCommunityWorkouts } from "@/lib/community-queries";
 import { startSharedWorkout } from "@/lib/community.functions";
 import { SORTS, type CommunityBadge, type CommunitySort, type CommunityWorkoutCard as CardData } from "@/lib/community";
+import { MAX_STARS } from "@/lib/workout/spec";
 
 const searchSchema = z.object({
   sort: fallback(z.string(), "latest").default("latest"),
