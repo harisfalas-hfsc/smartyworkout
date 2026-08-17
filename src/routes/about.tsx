@@ -223,7 +223,7 @@ function AboutPage() {
             Workout of the Day
           </p>
           <p className="mt-2 text-base font-extrabold uppercase">Planned for you, every day</p>
-          <p className="mt-2 flex-1 text-sm leading-6 text-muted-foreground">
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
             Turn it on once and receive two ready workouts every day — one with equipment, one
             bodyweight only — adapted to your profile and sequenced by a scientific periodization
             plan, so you never overtrain, never undertrain and develop every fitness quality in the
