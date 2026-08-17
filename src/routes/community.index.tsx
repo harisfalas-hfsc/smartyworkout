@@ -126,7 +126,7 @@ function CommunityPage() {
     setWorkouts(null);
     void fetchCommunityWorkouts({
       sort: workoutSort,
-      category: category === "all" ? null : category,
+      category: category || null,
       limit: SLOTS,
     }).then((r) => {
       if (active) setWorkouts(r);
@@ -135,6 +135,12 @@ function CommunityPage() {
       active = false;
     };
   }, [workoutSort, category]);
+
+  useEffect(() => {
+    if (categories.length && (!category || category === "all")) {
+      setCategory(categories[0]);
+    }
+  }, [categories, category]);
 
   useEffect(() => {
     let active = true;
