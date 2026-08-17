@@ -61,7 +61,9 @@ export const addComment = createServerFn({ method: "POST" })
   .inputValidator((input: { workoutId: string; body: string }) => input)
   .handler(async ({ context, data }) => {
     await requirePremium(context as never);
-    const body = data.body.trim().slice(0, 1000);
+    const { COMMENT_MAX } = await import("@/lib/community");
+    const body = data.body.trim().slice(0, COMMENT_MAX);
+
     if (!body) throw new Error("Write something first.");
     const { error } = await context.supabase.from("community_comments").insert({
       workout_id: data.workoutId,

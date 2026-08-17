@@ -91,6 +91,8 @@ function SharedWorkoutPage() {
         if (!active) return;
         setWorkout(res.workout);
         setMyReaction(res.myReaction);
+        if (res.myCopy) setCopy({ id: res.myCopy.id, status: res.myCopy.status, scheduledAt: "" });
+
       } catch (e) {
         if (active) setError((e as Error).message);
       }
