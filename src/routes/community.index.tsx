@@ -25,6 +25,7 @@ import {
 } from "@/components/community/useCommunityAccess";
 import {
   fetchCommunityCreators,
+  fetchCategories,
   fetchCommunityWorkouts,
   fetchLatestComments,
   fetchLeaders,
@@ -56,9 +57,9 @@ export const Route = createFileRoute("/community/")({
   component: CommunityPage,
 });
 
-type WorkoutSortKey = "latest" | "completed" | "liked" | "rated";
+type WorkoutSortKey = "latest" | "oldest";
 type MemberSortKey = "score" | "current_streak" | "workouts_completed" | "workouts_shared";
-type RankSortKey = "completions" | "likes";
+type RankSortKey = "completed" | "liked" | "rated" | "commented";
 type TalkSortKey = "newest" | "oldest" | "discussed";
 
 const SLOTS = 10;
@@ -71,15 +72,22 @@ const MEMBER_FILTERS: { value: MemberSortKey; label: string; unit: string }[] = 
 ];
 
 const WORKOUT_FILTERS: { value: WorkoutSortKey; label: string }[] = [
-  { value: "latest", label: "Latest" },
-  { value: "completed", label: "Most completed" },
-  { value: "liked", label: "Most liked" },
-  { value: "rated", label: "Top rated" },
+  { value: "latest", label: "Sort by: Latest" },
+  { value: "oldest", label: "Sort by: Oldest" },
+];
+
+const DIFFICULTY_FILTERS: { value: string; label: string }[] = [
+  { value: "0", label: "Any difficulty" },
+  { value: "1", label: "★ 1 star" },
+  { value: "2", label: "★★ 2 stars" },
+  { value: "3", label: "★★★ 3 stars" },
 ];
 
 const RANK_FILTERS: { value: RankSortKey; label: string; unit: string }[] = [
-  { value: "completions", label: "Most completed", unit: "done" },
-  { value: "likes", label: "Most liked", unit: "likes" },
+  { value: "completed", label: "Most completed", unit: "done" },
+  { value: "liked", label: "Most liked", unit: "likes" },
+  { value: "rated", label: "Top rated", unit: "avg" },
+  { value: "commented", label: "Most commented", unit: "comments" },
 ];
 
 const TALK_FILTERS: { value: TalkSortKey; label: string }[] = [
@@ -103,8 +111,11 @@ function CommunityPage() {
   const [desktopApi, setDesktopApi] = useState<CarouselApi>();
 
   const [workoutSort, setWorkoutSort] = useState<WorkoutSortKey>("latest");
+  const [workoutCategory, setWorkoutCategory] = useState<string>("all");
+  const [workoutDifficulty, setWorkoutDifficulty] = useState<string>("0");
+  const [categories, setCategories] = useState<string[]>([]);
   const [memberSort, setMemberSort] = useState<MemberSortKey>("score");
-  const [rankSort, setRankSort] = useState<RankSortKey>("completions");
+  const [rankSort, setRankSort] = useState<RankSortKey>("completed");
   const [talkSort, setTalkSort] = useState<TalkSortKey>("newest");
 
   const [workouts, setWorkouts] = useState<CardData[] | null>(null);
@@ -117,13 +128,28 @@ function CommunityPage() {
   useEffect(() => {
     let active = true;
     setWorkouts(null);
-    void fetchCommunityWorkouts({ sort: workoutSort, limit: SLOTS }).then((r) => {
-      if (active) setWorkouts(r);
+    void fetchCommunityWorkouts({
+      sort: "latest",
+      category: workoutCategory === "all" ? null : workoutCategory,
+      difficulty: Number(workoutDifficulty) || null,
+      limit: SLOTS,
+    }).then((r) => {
+      if (active) setWorkouts(workoutSort === "oldest" ? [...r].reverse() : r);
     });
     return () => {
       active = false;
     };
-  }, [workoutSort]);
+  }, [workoutSort, workoutCategory, workoutDifficulty]);
+
+  useEffect(() => {
+    let active = true;
+    void fetchCategories().then((r) => {
+      if (active) setCategories(r);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -143,8 +169,7 @@ function CommunityPage() {
   useEffect(() => {
     let active = true;
     setRanked(null);
-    const sort = rankSort === "completions" ? "completed" : "liked";
-    void fetchCommunityWorkouts({ sort, limit: SLOTS }).then((r) => {
+    void fetchCommunityWorkouts({ sort: rankSort, limit: SLOTS }).then((r) => {
       if (active) setRanked(r);
     });
     return () => {
@@ -187,6 +212,11 @@ function CommunityPage() {
       rows={workouts}
       sort={workoutSort}
       onSort={setWorkoutSort}
+      category={workoutCategory}
+      onCategory={setWorkoutCategory}
+      difficulty={workoutDifficulty}
+      onDifficulty={setWorkoutDifficulty}
+      categories={categories}
       onOpen={open}
     />,
     <MemberRankingPanel key="members" rows={members} sort={memberSort} onSort={setMemberSort} />,
@@ -360,11 +390,21 @@ function SharedWorkoutsPanel({
   rows,
   sort,
   onSort,
+  category,
+  onCategory,
+  difficulty,
+  onDifficulty,
+  categories,
   onOpen,
 }: {
   rows: CardData[] | null;
   sort: WorkoutSortKey;
   onSort: (s: WorkoutSortKey) => void;
+  category: string;
+  onCategory: (v: string) => void;
+  difficulty: string;
+  onDifficulty: (v: string) => void;
+  categories: string[];
   onOpen: (id: string) => void;
 }) {
   return (
@@ -377,6 +417,21 @@ function SharedWorkoutsPanel({
           value: sort,
           onChange: (v) => onSort(v as WorkoutSortKey),
           options: WORKOUT_FILTERS.map((f) => ({ value: f.value, label: f.label })),
+        },
+        {
+          label: "Category",
+          value: category,
+          onChange: onCategory,
+          options: [
+            { value: "all", label: "All categories" },
+            ...categories.map((c) => ({ value: c, label: c })),
+          ],
+        },
+        {
+          label: "Difficulty",
+          value: difficulty,
+          onChange: onDifficulty,
+          options: DIFFICULTY_FILTERS,
         },
       ]}
     >
@@ -497,7 +552,14 @@ function WorkoutRankingPanel({
   onOpen: (id: string) => void;
 }) {
   const unit = RANK_FILTERS.find((f) => f.value === sort)?.unit ?? "";
-  const valueOf = (w: CardData) => (sort === "completions" ? w.completions : w.likes);
+  const valueOf = (w: CardData) =>
+    sort === "completed"
+      ? w.completions
+      : sort === "liked"
+        ? w.likes
+        : sort === "commented"
+          ? w.comments_count
+          : Number(Number(w.rating_avg ?? 0).toFixed(1));
 
   return (
     <Panel
