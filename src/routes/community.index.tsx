@@ -291,6 +291,18 @@ function CommunityPage() {
         </Carousel>
       </div>
 
+      <div className="mt-8 text-center">
+        <Button asChild variant="secondary" className="h-12 rounded-2xl font-bold">
+          <Link
+            to="/community/workouts"
+            search={{ sort: "latest", difficulty: 0, category: "", q: "" }}
+          >
+            See all shared workouts
+          </Link>
+        </Button>
+      </div>
+
+
       <CommunityGateDialog
         open={access.gateOpen}
         onOpenChange={access.setGateOpen}
@@ -308,13 +320,11 @@ function Panel({
   title,
   icon: Icon,
   filters,
-  action,
   children,
 }: {
   title: string;
   icon: typeof Trophy;
   filters: FilterDef[];
-  action?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
@@ -342,7 +352,6 @@ function Panel({
                 </Select>
               );
             })}
-            {action}
           </div>
         </div>
       </header>
@@ -418,20 +427,6 @@ function SharedWorkoutsPanel({
           options: WORKOUT_FILTERS.map((f) => ({ value: f.value, label: f.label })),
         },
       ]}
-      action={
-        <Button
-          asChild
-          variant="secondary"
-          className="col-span-2 h-10 rounded-xl text-sm font-bold"
-        >
-          <Link
-            to="/community/workouts"
-            search={{ sort: "latest", difficulty: 0, category: "", q: "" }}
-          >
-            See all shared workouts
-          </Link>
-        </Button>
-      }
     >
       {!rows ? (
         <Spinner />
