@@ -23,8 +23,6 @@ export const Route = createFileRoute("/_authenticated/checkout/return")({
 
 function CheckoutReturn() {
   const { freeAccessMode, loading } = useFreeAccessMode();
-  if (loading) return null;
-  if (freeAccessMode) return <Navigate to="/" replace />;
   const { session_id: sessionId } = Route.useSearch();
   const [profileReady, setProfileReady] = useState<boolean | null>(null);
 
@@ -39,6 +37,9 @@ function CheckoutReturn() {
   }, []);
 
   const needsProfile = profileReady === false;
+
+  if (loading) return null;
+  if (freeAccessMode) return <Navigate to="/" replace />;
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-8 sm:py-12 lg:max-w-4xl lg:px-8 lg:py-16">
