@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Loader2, Trophy, Users, Star, MessageSquare, Dumbbell, Flame } from "lucide-react";
+import { Loader2, Trophy, Users, Star, MessageSquare, Dumbbell, Flame, SlidersHorizontal } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +10,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Carousel,
   CarouselContent,
@@ -319,11 +334,13 @@ function Panel({
   title,
   icon: Icon,
   filters,
+  filterControl,
   children,
 }: {
   title: string;
   icon: typeof Trophy;
   filters: FilterDef[];
+  filterControl?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
@@ -334,7 +351,7 @@ function Panel({
           {title}
         </h2>
         <div className="mt-3 rounded-2xl border border-blue-300 p-3 dark:border-blue-500/40">
-          <div className="grid grid-cols-1 gap-2">
+          {filterControl ?? <div className="grid grid-cols-1 gap-2">
             {filters.map((f) => {
               return (
                 <Select key={f.label} value={f.value} onValueChange={f.onChange}>
@@ -351,7 +368,7 @@ function Panel({
                 </Select>
               );
             })}
-          </div>
+          </div>}
         </div>
       </header>
       <div className="min-h-0 flex-1 overflow-y-auto p-3">{children}</div>
@@ -407,33 +424,64 @@ function SharedWorkoutsPanel({
   categories: string[];
   onOpen: (id: string) => void;
 }) {
+  const activeCategory = category === "all" ? "Any category" : category;
+  const activeDifficulty = DIFFICULTY_FILTERS.find((item) => item.value === difficulty)?.label;
+  const summary = [sort === "latest" ? "Latest" : "Oldest", activeCategory, activeDifficulty]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
     <Panel
       title="Shared workouts"
       icon={Dumbbell}
-      filters={[
-        {
-          label: "Sort",
-          value: sort,
-          onChange: (v) => onSort(v as WorkoutSortKey),
-          options: WORKOUT_FILTERS.map((f) => ({ value: f.value, label: f.label })),
-        },
-        {
-          label: "Category",
-          value: category,
-          onChange: onCategory,
-          options: [
-            { value: "all", label: "All categories" },
-            ...categories.map((c) => ({ value: c, label: c })),
-          ],
-        },
-        {
-          label: "Difficulty",
-          value: difficulty,
-          onChange: onDifficulty,
-          options: DIFFICULTY_FILTERS,
-        },
-      ]}
+      filters={[]}
+      filterControl={
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="h-10 w-full justify-start rounded-xl border-blue-300 px-3 text-sm font-semibold dark:border-blue-500/50">
+              <SlidersHorizontal className="h-4 w-4 shrink-0" />
+              <span className="min-w-0 truncate">{summary}</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="max-h-[70vh] w-[var(--radix-dropdown-menu-trigger-width)]">
+            <DropdownMenuLabel>Order</DropdownMenuLabel>
+            {WORKOUT_FILTERS.map((item) => (
+              <DropdownMenuCheckboxItem
+                key={item.value}
+                checked={sort === item.value}
+                onSelect={(event) => event.preventDefault()}
+                onCheckedChange={() => onSort(item.value)}
+              >
+                {item.label}
+              </DropdownMenuCheckboxItem>
+            ))}
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>Category</DropdownMenuLabel>
+            {[{ value: "all", label: "Any category" }, ...categories.map((item) => ({ value: item, label: item }))].map((item) => (
+              <DropdownMenuCheckboxItem
+                key={item.value}
+                checked={category === item.value}
+                onSelect={(event) => event.preventDefault()}
+                onCheckedChange={() => onCategory(item.value)}
+              >
+                {item.label}
+              </DropdownMenuCheckboxItem>
+            ))}
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>Difficulty</DropdownMenuLabel>
+            {DIFFICULTY_FILTERS.map((item) => (
+              <DropdownMenuCheckboxItem
+                key={item.value}
+                checked={difficulty === item.value}
+                onSelect={(event) => event.preventDefault()}
+                onCheckedChange={() => onDifficulty(item.value)}
+              >
+                {item.label}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      }
     >
       {!rows ? (
         <Spinner />
@@ -621,7 +669,12 @@ function TalkPanel({
   onSort: (s: TalkSortKey) => void;
   onOpen: (id: string) => void;
 }) {
+  const [selectedComment, setSelectedComment] = useState<
+    (CommunityComment & { workout_name?: string | null }) | null
+  >(null);
+
   return (
+    <>
     <Panel
       title="Workout comments"
       icon={MessageSquare}
@@ -642,7 +695,7 @@ function TalkPanel({
             <li key={c.id}>
               <button
                 type="button"
-                onClick={() => onOpen(c.workout_id)}
+                onClick={() => setSelectedComment(c)}
                 className="flex w-full gap-3 rounded-2xl border border-blue-200 p-3 text-left transition hover:border-primary dark:border-blue-500/40"
               >
                 <MemberAvatar name={c.author_name} avatar={c.author_avatar} size={8} />
@@ -653,10 +706,6 @@ function TalkPanel({
                     <span className="text-primary">{c.workout_name || "a shared workout"}</span>
                   </p>
                   <p className="mt-1 line-clamp-2 break-words text-sm">{c.body}</p>
-                  <p className="mt-1 text-[11px] font-semibold text-primary">
-                    Tap to read all comments
-                  </p>
-
                 </div>
               </button>
             </li>
@@ -667,5 +716,29 @@ function TalkPanel({
         </ul>
       )}
     </Panel>
+    <Dialog open={selectedComment !== null} onOpenChange={(open) => !open && setSelectedComment(null)}>
+      <DialogContent className="w-[calc(100%-2rem)] max-w-sm rounded-2xl border-blue-300 p-5 dark:border-blue-500/50">
+        <DialogHeader className="pr-6 text-left">
+          <DialogTitle>{selectedComment?.author_name || "Smarty member"}</DialogTitle>
+          <DialogDescription>Comment on a shared workout</DialogDescription>
+        </DialogHeader>
+        <p className="break-words text-sm leading-6">{selectedComment?.body}</p>
+        {selectedComment ? (
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full rounded-xl border-blue-300 font-bold dark:border-blue-500/50"
+            onClick={() => {
+              const workoutId = selectedComment.workout_id;
+              setSelectedComment(null);
+              onOpen(workoutId);
+            }}
+          >
+            {selectedComment.workout_name || "Open shared workout"}
+          </Button>
+        ) : null}
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
