@@ -110,7 +110,7 @@ const WOD_STEPS = [
   {
     n: "01",
     title: "You subscribe",
-    desc: "Training Profile • Premium • One tap",
+    desc: "Training Profile • One tap",
   },
   {
     n: "02",

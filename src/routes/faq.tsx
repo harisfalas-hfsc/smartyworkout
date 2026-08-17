@@ -1,3 +1,4 @@
+import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
 import { createFileRoute } from "@tanstack/react-router";
 import { CircleHelp } from "lucide-react";
 import { SmartyCard } from "@/components/SmartyCard";
@@ -140,6 +141,14 @@ export const Route = createFileRoute("/faq")({
 });
 
 function FAQ() {
+  const { freeAccessMode } = useFreeAccessMode();
+  const items = freeAccessMode
+    ? ITEMS.filter(
+        (it) =>
+          !/cost|subscription|subscribed|Unsubscribe/i.test(it.q) &&
+          !/€|subscription/i.test(it.a),
+      )
+    : ITEMS;
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:py-12 lg:max-w-5xl lg:px-8 lg:py-16">
       <PageHeader
@@ -159,7 +168,7 @@ function FAQ() {
         accent="questions."
       >
         <Accordion type="single" collapsible className="w-full">
-          {ITEMS.map((it, i) => (
+          {items.map((it, i) => (
             <AccordionItem key={it.q} value={`item-${i}`} className="border-blue-200 dark:border-blue-500/40 last:border-b-0">
               <AccordionTrigger className="py-3 text-left text-sm font-semibold leading-5 hover:no-underline sm:text-base">
                 {it.q}
