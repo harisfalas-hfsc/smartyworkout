@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { offlineFirst } from "@/lib/offline/offline-first";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -246,17 +247,23 @@ function ExerciseLibraryPage() {
         if (data.length < size) break;
         page++;
       }
-      if (!active) return;
+      if (!active) return all;
       const uniq = (key: string) =>
         [...new Set(all.map((d) => d[key]).filter(Boolean))].sort() as string[];
-      setOptions({
+      const next = {
         bodyParts: uniq("body_part"),
         equipment: uniq("equipment"),
         targets: uniq("target_muscle"),
         difficulties: uniq("difficulty"),
-      });
+      };
+      setOptions(next);
+      return next;
     };
-    load();
+    void offlineFirst("library:filters", load)
+      .then((next) => {
+        if (active && next && "bodyParts" in next) setOptions(next);
+      })
+      .catch(() => undefined);
     return () => {
       active = false;
     };
@@ -287,8 +294,15 @@ function ExerciseLibraryPage() {
       if (conditions) query = query.or(conditions);
     }
 
-    const { data } = await query.order("name").limit(60);
-    setExercises((data as Exercise[]) ?? []);
+    const rows = await offlineFirst(
+      `library:list:${bodyPart}|${equipment}|${target}|${difficulty}|${nameSearch.trim()}`,
+      async () => {
+        const { data, error } = await query.order("name").limit(60);
+        if (error) throw new Error(error.message);
+        return (data as Exercise[]) ?? [];
+      },
+    ).catch(() => [] as Exercise[]);
+    setExercises(rows);
     setLoading(false);
   }, [bodyPart, equipment, target, difficulty, nameSearch]);
 

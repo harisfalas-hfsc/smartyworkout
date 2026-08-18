@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { offlineFirst } from "@/lib/offline/offline-first";
 import { Button } from "@/components/ui/button";
 import {
   Loader2,
@@ -106,7 +107,7 @@ function Progress() {
 
   useEffect(() => {
     let active = true;
-    void fetchOverview({ data: {} } as never)
+    void offlineFirst("progress:overview", () => fetchOverview({ data: {} } as never))
       .then((r) => {
         if (!active) return;
         setData(r);

@@ -17,6 +17,9 @@ import { Toaster } from "../components/ui/sonner";
 import { SisterAppsPopup } from "../components/growth/SisterAppsPopup";
 import { BottomNav } from "../components/BottomNav";
 import { ThemeProvider, THEME_INIT_SCRIPT } from "../lib/theme";
+import { OfflineBanner } from "../components/offline/OfflineBanner";
+import { OfflineSync } from "../components/offline/OfflineSync";
+import { registerAppServiceWorker } from "../lib/offline/register-sw";
 
 const SITE_URL = "https://smartyworkout.com";
 const OG_IMAGE = "https://smartyworkout.com/og-social.jpg";
@@ -332,10 +335,15 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  useEffect(() => {
+    registerAppServiceWorker();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <div className="flex min-h-screen flex-col bg-background">
+          <OfflineBanner />
           <Navigation />
           <main>
             <Outlet />
@@ -344,8 +352,10 @@ function RootComponent() {
           <Toaster />
           <SisterAppsPopup />
           <BottomNav />
+          <OfflineSync />
         </div>
       </ThemeProvider>
     </QueryClientProvider>
   );
 }
+

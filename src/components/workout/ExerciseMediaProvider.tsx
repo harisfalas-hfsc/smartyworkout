@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { getExerciseDetails } from "@/lib/coach.functions";
+import { readCache, writeCache } from "@/lib/offline/store";
 
 export type ExerciseDetail = {
   id: string;
@@ -51,17 +52,32 @@ export function ExerciseMediaProvider({
     let active = true;
     setLoading(true);
     (async () => {
+      // Show whatever this device already stored so exercises render offline.
+      const stored = await Promise.all(
+        missing.map((id) => readCache<ExerciseDetail>(`exercise:${id}`)),
+      );
+      if (!active) return;
+      const fromDevice = stored.filter(Boolean).map((e) => e!.data);
+      if (fromDevice.length) {
+        setDetails((prev) => {
+          const next = { ...prev };
+          for (const ex of fromDevice) next[ex.id] = ex;
+          return next;
+        });
+      }
       const chunks: string[][] = [];
       for (let i = 0; i < missing.length; i += 40) chunks.push(missing.slice(i, i + 40));
       for (const chunk of chunks) {
         try {
           const res = await fetchDetails({ data: { ids: chunk } });
           if (!active) return;
+          const list = res.exercises as unknown as ExerciseDetail[];
           setDetails((prev) => {
             const next = { ...prev };
-            for (const ex of res.exercises as unknown as ExerciseDetail[]) next[ex.id] = ex;
+            for (const ex of list) next[ex.id] = ex;
             return next;
           });
+          for (const ex of list) void writeCache(`exercise:${ex.id}`, ex);
         } catch {
           /* keep placeholders */
         }

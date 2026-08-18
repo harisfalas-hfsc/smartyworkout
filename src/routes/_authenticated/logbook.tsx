@@ -1,5 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useOfflineData } from "@/lib/offline/useOfflineData";
+import { CachedNotice } from "@/components/offline/CachedNotice";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useServerFn } from "@tanstack/react-start";
@@ -329,6 +332,21 @@ function Logbook() {
   const navigate = useNavigate({ from: "/logbook" });
   const [rows, setRows] = useState<Row[] | null>(null);
   const saveMeta = useServerFn(setWorkoutMeta);
+  const { user } = useAuth();
+
+  const loadRows = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("workouts")
+      .select(
+        "id,name,category,duration_min,difficulty_stars,difficulty_label,mood,status,is_favorite,scheduled_at,completed_at,created_at,workout_feedback(difficulty_rating,feeling)",
+      )
+      .order("created_at", { ascending: false })
+      .limit(300);
+    if (error) throw new Error(error.message);
+    return (data as unknown as Row[]) ?? [];
+  }, []);
+
+  const cached = useOfflineData<Row[]>("logbook:list", loadRows, { userId: user?.id ?? null });
 
   const active = useMemo(
     () => filter.split(",").filter((f: string) => FILTER_IDS.includes(f)) as Filter[],
@@ -336,17 +354,9 @@ function Logbook() {
   );
 
   useEffect(() => {
-    (async () => {
-      const { data } = await supabase
-        .from("workouts")
-        .select(
-          "id,name,category,duration_min,difficulty_stars,difficulty_label,mood,status,is_favorite,scheduled_at,completed_at,created_at,workout_feedback(difficulty_rating,feeling)",
-        )
-        .order("created_at", { ascending: false })
-        .limit(300);
-      setRows((data as unknown as Row[]) ?? []);
-    })();
-  }, []);
+    if (cached.data) setRows(cached.data);
+    else if (!cached.loading) setRows([]);
+  }, [cached.data, cached.loading]);
 
   async function toggleFavorite(id: string, next: boolean) {
     setRows((prev) => prev?.map((r) => (r.id === id ? { ...r, is_favorite: next } : r)) ?? prev);
@@ -382,6 +392,7 @@ function Logbook() {
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">
+      <CachedNotice savedAt={cached.savedAt} show={cached.fromCache} />
       <PageHeader
         className="mb-2"
         eyebrow="Your history"

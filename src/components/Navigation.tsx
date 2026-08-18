@@ -1,4 +1,5 @@
 import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
+import { clearCacheForUser } from "@/lib/offline/store";
 import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import {
   LogOut,
@@ -68,6 +69,7 @@ export function Navigation() {
   const canGoBack = navCount > 0 && pathname !== "/";
 
   async function handleSignOut() {
+    await clearCacheForUser(user?.id);
     await supabase.auth.signOut();
     navigate({ to: "/", replace: true });
   }
