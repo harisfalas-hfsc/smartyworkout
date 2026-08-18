@@ -7,6 +7,7 @@ import { reactToWorkout, rateWorkout } from "@/lib/community.functions";
 import { deleteNotifications, setNotificationsRead } from "@/lib/daily.functions";
 import { deleteMyThreads, setThreadsRead } from "@/lib/support.functions";
 import { flushQueue, type QueuedAction } from "@/lib/offline/queue";
+import { onSyncRequested } from "@/lib/offline/sync-bus";
 import { useOnlineStatus } from "@/lib/offline/useOnlineStatus";
 import { announceInboxChanged } from "@/lib/inbox-sync";
 
@@ -23,8 +24,7 @@ export function OfflineSync() {
   const busy = useRef(false);
 
   useEffect(() => {
-    if (!online || busy.current) return;
-    busy.current = true;
+    if (!online) return;
 
     const run = async (action: QueuedAction) => {
       const p = action.payload as never;
@@ -66,7 +66,9 @@ export function OfflineSync() {
       }
     };
 
-    (async () => {
+    const flush = async () => {
+      if (busy.current) return;
+      busy.current = true;
       try {
         const { data } = await supabase.auth.getUser();
         if (!data.user) return;
@@ -79,7 +81,10 @@ export function OfflineSync() {
       } finally {
         busy.current = false;
       }
-    })();
+    };
+
+    void flush();
+    return onSyncRequested(() => void flush());
   }, [online, saveStatus, react, rate, setNotificationRead, removeNotifications, setThreadRead, removeThreads]);
 
   return null;

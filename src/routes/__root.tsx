@@ -17,7 +17,7 @@ import { Toaster } from "../components/ui/sonner";
 import { SisterAppsPopup } from "../components/growth/SisterAppsPopup";
 import { BottomNav } from "../components/BottomNav";
 import { ThemeProvider, THEME_INIT_SCRIPT } from "../lib/theme";
-import { OfflineBanner } from "../components/offline/OfflineBanner";
+import { OfflineStatus } from "../components/offline/OfflineStatus";
 import { OfflineSync } from "../components/offline/OfflineSync";
 import { OfflineBootstrap } from "../components/offline/OfflineBootstrap";
 import { registerAppServiceWorker } from "../lib/offline/register-sw";
@@ -349,7 +349,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <div className="flex min-h-screen flex-col bg-background">
-          <OfflineBanner />
+          <OfflineStatus />
           <Navigation />
           <main>
             <Outlet />

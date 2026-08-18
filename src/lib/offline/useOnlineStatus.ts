@@ -1,9 +1,15 @@
 import { useEffect, useState } from "react";
-import { isOnline, subscribeConnectivity } from "./connectivity";
+import {
+  connectivityState,
+  isOnline,
+  subscribeConnectivity,
+  subscribeConnectivityState,
+  type ConnectivityState,
+} from "./connectivity";
 
 /**
  * Live online/offline flag, backed by the shared connectivity source
- * (native Capacitor Network plugin when available, browser events otherwise).
+ * (native Capacitor Network plugin + browser events + backend reachability).
  */
 export function useOnlineStatus(): boolean {
   const [online, setOnline] = useState(true);
@@ -14,4 +20,16 @@ export function useOnlineStatus(): boolean {
   }, []);
 
   return online;
+}
+
+/** The richer state, so messages can tell "no internet" from "backend down". */
+export function useConnectivityState(): ConnectivityState {
+  const [state, setState] = useState<ConnectivityState>("online");
+
+  useEffect(() => {
+    setState(connectivityState());
+    return subscribeConnectivityState(setState);
+  }, []);
+
+  return state;
 }

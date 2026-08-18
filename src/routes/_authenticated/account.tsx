@@ -4,6 +4,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { signOutAndClearDevice } from "@/lib/offline/sign-out";
 import { useAuth } from "@/hooks/useAuth";
 import { Crown, LogOut, Mail, User, ClipboardList, Trash2, Zap } from "lucide-react";
 import { DailyCoachingSettings } from "@/components/DailyCoachingSettings";
@@ -137,7 +138,7 @@ function Account() {
     try {
       const result = await deleteMyAccount({ data: { confirm: confirmText.trim() } });
       if ("error" in result) throw new Error(result.error);
-      await supabase.auth.signOut();
+      await signOutAndClearDevice(user?.id);
       window.location.href = "/";
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not delete your account");
@@ -301,7 +302,7 @@ function Account() {
         variant="ghost"
         className="mt-6 h-12 w-full rounded-2xl text-destructive"
         onClick={async () => {
-          await supabase.auth.signOut();
+          await signOutAndClearDevice(user?.id);
           window.location.href = "/";
         }}
       >

@@ -47,6 +47,7 @@ import { Route as ToolsWorkoutTimerRouteImport } from './routes/tools.workout-ti
 import { Route as WWorkoutIdRouteImport } from './routes/w.$workoutId'
 import { Route as AuthenticatedCheckoutReturnRouteImport } from './routes/_authenticated/checkout.return'
 import { Route as AuthenticatedWorkoutWorkoutIdRouteImport } from './routes/_authenticated/workout.$workoutId'
+import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as CommunityWorkoutWorkoutIdRouteImport } from './routes/community.workout.$workoutId'
 import { Route as ApiPublicHooksDailyRunRouteImport } from './routes/api/public/hooks/daily-run'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
@@ -244,6 +245,11 @@ const AuthenticatedWorkoutWorkoutIdRoute =
     path: '/workout/$workoutId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
+  id: '/api/public/health',
+  path: '/api/public/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CommunityWorkoutWorkoutIdRoute =
   CommunityWorkoutWorkoutIdRouteImport.update({
     id: '/community/workout/$workoutId',
@@ -306,6 +312,7 @@ export interface FileRoutesByFullPath {
   '/tools/': typeof ToolsIndexRoute
   '/checkout/return': typeof AuthenticatedCheckoutReturnRoute
   '/workout/$workoutId': typeof AuthenticatedWorkoutWorkoutIdRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/community/workout/$workoutId': typeof CommunityWorkoutWorkoutIdRoute
   '/api/public/hooks/daily-run': typeof ApiPublicHooksDailyRunRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -349,6 +356,7 @@ export interface FileRoutesByTo {
   '/tools': typeof ToolsIndexRoute
   '/checkout/return': typeof AuthenticatedCheckoutReturnRoute
   '/workout/$workoutId': typeof AuthenticatedWorkoutWorkoutIdRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/community/workout/$workoutId': typeof CommunityWorkoutWorkoutIdRoute
   '/api/public/hooks/daily-run': typeof ApiPublicHooksDailyRunRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -394,6 +402,7 @@ export interface FileRoutesById {
   '/tools/': typeof ToolsIndexRoute
   '/_authenticated/checkout/return': typeof AuthenticatedCheckoutReturnRoute
   '/_authenticated/workout/$workoutId': typeof AuthenticatedWorkoutWorkoutIdRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/community/workout/$workoutId': typeof CommunityWorkoutWorkoutIdRoute
   '/api/public/hooks/daily-run': typeof ApiPublicHooksDailyRunRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -439,6 +448,7 @@ export interface FileRouteTypes {
     | '/tools/'
     | '/checkout/return'
     | '/workout/$workoutId'
+    | '/api/public/health'
     | '/community/workout/$workoutId'
     | '/api/public/hooks/daily-run'
     | '/api/public/payments/webhook'
@@ -482,6 +492,7 @@ export interface FileRouteTypes {
     | '/tools'
     | '/checkout/return'
     | '/workout/$workoutId'
+    | '/api/public/health'
     | '/community/workout/$workoutId'
     | '/api/public/hooks/daily-run'
     | '/api/public/payments/webhook'
@@ -526,6 +537,7 @@ export interface FileRouteTypes {
     | '/tools/'
     | '/_authenticated/checkout/return'
     | '/_authenticated/workout/$workoutId'
+    | '/api/public/health'
     | '/community/workout/$workoutId'
     | '/api/public/hooks/daily-run'
     | '/api/public/payments/webhook'
@@ -560,6 +572,7 @@ export interface RootRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
   CommunityIndexRoute: typeof CommunityIndexRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
+  ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   CommunityWorkoutWorkoutIdRoute: typeof CommunityWorkoutWorkoutIdRoute
   ApiPublicHooksDailyRunRoute: typeof ApiPublicHooksDailyRunRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
@@ -834,6 +847,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWorkoutWorkoutIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/health': {
+      id: '/api/public/health'
+      path: '/api/public/health'
+      fullPath: '/api/public/health'
+      preLoaderRoute: typeof ApiPublicHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/community/workout/$workoutId': {
       id: '/community/workout/$workoutId'
       path: '/community/workout/$workoutId'
@@ -935,6 +955,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
   CommunityIndexRoute: CommunityIndexRoute,
   ToolsIndexRoute: ToolsIndexRoute,
+  ApiPublicHealthRoute: ApiPublicHealthRoute,
   CommunityWorkoutWorkoutIdRoute: CommunityWorkoutWorkoutIdRoute,
   ApiPublicHooksDailyRunRoute: ApiPublicHooksDailyRunRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
