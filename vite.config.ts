@@ -24,8 +24,9 @@ export default defineConfig({
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff,woff2}"],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
-        navigateFallback: "/",
-        navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//, /^\/lovable\//],
+        // The app is server-rendered: there is no index.html to fall back to.
+        // Navigations are handled by public/sw-extra.js instead.
+        importScripts: ["/sw-extra.js"],
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,
@@ -38,26 +39,14 @@ export default defineConfig({
               if (entry.url.startsWith("client/")) {
                 entry.url = entry.url.slice("client/".length);
               }
+              if (!entry.url.startsWith("/")) entry.url = `/${entry.url}`;
             }
             return { manifest, warnings: [] };
           },
         ],
         runtimeCaching: [
           {
-            // HTML navigations: always prefer the network, fall back to the saved shell.
-            urlPattern: ({ request }) => request.mode === "navigate",
-            handler: "NetworkFirst",
-            options: {
-              cacheName: "smarty-pages",
-              networkTimeoutSeconds: 4,
-              expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 30 },
-            },
-          },
-          {
-            // JS/CSS chunks: cache first so the app shell works offline.
-            urlPattern: ({ url }) => /\.(?:js|css)$/.test(url.pathname),
-            handler: "CacheFirst",
-            options: {
+
               cacheName: "smarty-assets",
               expiration: { maxEntries: 300, maxAgeSeconds: 60 * 60 * 24 * 365 },
               cacheableResponse: { statuses: [0, 200] },
