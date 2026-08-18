@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Loader2, Save, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
+import { formatDate } from "@/lib/date-format";
   adminListBadgeDefs,
   adminSaveBadgeDef,
   adminGetUserProgress,
@@ -212,7 +213,7 @@ export function AdminAwardsTab() {
               <ul className="mt-1 space-y-1">
                 {progress.badges.map((b) => (
                   <li key={b.badge_id}>
-                    {b.badge_name} — {new Date(b.earned_at).toLocaleDateString()}
+                    {b.badge_name} — {formatDate(b.earned_at)}
                   </li>
                 ))}
                 {!progress.badges.length && <li className="text-muted-foreground">No awards yet</li>}

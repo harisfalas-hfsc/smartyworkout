@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Loader2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { adminGetRevenue, type AdminRevenue } from "@/lib/admin.functions";
+import { formatDate } from "@/lib/date-format";
 
 export function AdminRevenueTab() {
   const getRevenue = useServerFn(adminGetRevenue);
@@ -91,7 +92,7 @@ export function AdminRevenueTab() {
                 {data.payments.map((p) => (
                   <li key={p.id} className="flex items-center justify-between gap-2 py-2 text-sm">
                     <span className="min-w-0 truncate text-muted-foreground">
-                      {p.email ?? "unknown"} · {new Date(p.created).toLocaleDateString()}
+                      {p.email ?? "unknown"} · {formatDate(p.created)}
                     </span>
                     <span className="font-semibold">
                       {p.amount.toFixed(2)} {p.currency}

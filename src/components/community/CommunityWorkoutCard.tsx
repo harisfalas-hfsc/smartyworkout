@@ -2,6 +2,7 @@ import { Star, ThumbsUp, ThumbsDown, MessageCircle, CheckCircle2, Flame, Clock }
 import { cn } from "@/lib/utils";
 import { MAX_STARS, normalizeStars } from "@/lib/workout/spec";
 import { creatorOrigin, RATING_STARS, type CommunityBadge, type CommunityWorkoutCard as CardData } from "@/lib/community";
+import { formatDateShort } from "@/lib/date-format";
 
 function Stars({ n }: { n: number }) {
   const filled = normalizeStars(n);
@@ -39,11 +40,7 @@ export function CommunityWorkoutCard({
   onOpen: (id: string) => void;
 }) {
   const shared = workout.shared_at
-    ? new Date(workout.shared_at).toLocaleDateString(undefined, {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      })
+    ? formatDateShort(workout.shared_at)
     : "—";
   const initial = (workout.creator_name || "S").slice(0, 1).toUpperCase();
 

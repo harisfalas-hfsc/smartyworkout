@@ -20,6 +20,7 @@ import {
   type AdminUserRow,
 } from "@/lib/admin.functions";
 import { AdminWorkoutsTab } from "@/components/admin/AdminWorkoutsTab";
+import { formatDate } from "@/lib/date-format";
 
 type Props = { onlySubscribers?: boolean };
 
@@ -135,10 +136,10 @@ export function AdminUsersTab({ onlySubscribers = false }: Props) {
                 <span>
                   Renews:{" "}
                   {u.current_period_end
-                    ? new Date(u.current_period_end).toLocaleDateString()
+                    ? formatDate(u.current_period_end)
                     : "—"}
                 </span>
-                <span>Joined: {new Date(u.created_at).toLocaleDateString()}</span>
+                <span>Joined: {formatDate(u.created_at)}</span>
               </div>
 
               <div className="mt-3 flex flex-wrap gap-2">

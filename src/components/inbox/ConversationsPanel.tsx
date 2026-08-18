@@ -19,15 +19,10 @@ import { enqueueAction } from "@/lib/offline/queue";
 import { announceInboxChanged } from "@/lib/inbox-sync";
 import { useOnlineStatus } from "@/lib/offline/useOnlineStatus";
 import { scopedKey, writeCache } from "@/lib/offline/store";
+import { formatDateTime } from "@/lib/date-format";
 
 function when(iso: string) {
-  const d = new Date(iso);
-  return d.toLocaleString(undefined, {
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatDateTime(iso);
 }
 
 export function ConversationsPanel({

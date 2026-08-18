@@ -24,6 +24,7 @@ import { offlineFirst } from "@/lib/offline/offline-first";
 import { enqueueAction } from "@/lib/offline/queue";
 import { announceInboxChanged } from "@/lib/inbox-sync";
 import { scopedKey, writeCache } from "@/lib/offline/store";
+import { formatDate } from "@/lib/date-format";
 
 type Notification = Awaited<ReturnType<typeof listNotifications>>["notifications"][number];
 
@@ -33,7 +34,7 @@ function when(iso: string) {
   if (diff < 1) return "just now";
   if (diff < 60) return `${Math.round(diff)} min ago`;
   if (diff < 60 * 24) return `${Math.round(diff / 60)} h ago`;
-  return d.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+  return formatDate(d);
 }
 
 export function UpdatesPanel({ onUnread }: { onUnread?: (n: number) => void }) {

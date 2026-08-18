@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
+import { formatDateTime } from "@/lib/date-format";
   adminBroadcast,
   adminListThreads,
   adminReplyToThread,
@@ -14,12 +15,7 @@ import {
 } from "@/lib/support.functions";
 
 function when(iso: string) {
-  return new Date(iso).toLocaleString(undefined, {
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatDateTime(iso);
 }
 
 export function AdminMessagesTab() {
