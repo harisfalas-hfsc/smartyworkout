@@ -10,7 +10,7 @@ import {
   MapPin,
   Minus,
   Plus,
-  Printer,
+  Share2,
   Star,
   X,
 } from "lucide-react";
@@ -91,6 +91,32 @@ export function WorkoutDisplay({
     } catch {
       setFavorite(!next);
       toast.error("Could not save that.");
+    }
+  }
+
+  async function shareWorkoutLink() {
+    const url = `${window.location.origin}/w/${workout.id}`;
+    const bits = [
+      workout.category,
+      workout.difficulty_label ?? difficultyLabel(workout.difficulty_stars),
+      workout.duration_label ?? `${workout.duration_min} min`,
+      workout.location,
+    ].filter(Boolean);
+    const payload = {
+      title: `${workout.name} — Smarty Workout`,
+      text: `${workout.name} · ${bits.join(" · ")}`,
+      url,
+    };
+    try {
+      if (typeof navigator !== "undefined" && navigator.share) {
+        await navigator.share(payload);
+        return;
+      }
+      await navigator.clipboard.writeText(`${payload.text}\n${url}`);
+      toast.success("Link copied — paste it anywhere.");
+    } catch (e) {
+      if ((e as Error)?.name === "AbortError") return;
+      toast.error("Could not open the share menu.");
     }
   }
 
