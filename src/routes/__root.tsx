@@ -17,6 +17,9 @@ import { Toaster } from "../components/ui/sonner";
 import { SisterAppsPopup } from "../components/growth/SisterAppsPopup";
 import { BottomNav } from "../components/BottomNav";
 import { ThemeProvider, THEME_INIT_SCRIPT } from "../lib/theme";
+import { OfflineBanner } from "../components/offline/OfflineBanner";
+import { OfflineSync } from "../components/offline/OfflineSync";
+import { registerAppServiceWorker } from "../lib/offline/register-sw";
 
 const SITE_URL = "https://smartyworkout.com";
 const OG_IMAGE = "https://smartyworkout.com/og-social.jpg";

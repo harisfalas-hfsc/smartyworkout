@@ -20,7 +20,7 @@ export function OfflineSync() {
     busy.current = true;
 
     const run = async (action: QueuedAction) => {
-      const p = action.payload as Record<string, never>;
+      const p = action.payload as never;
       switch (action.kind) {
         case "workout-status":
           await saveStatus({ data: p });
