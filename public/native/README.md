@@ -38,3 +38,37 @@ App icon: `ios/App/App/Assets.xcassets/AppIcon.appiconset/` ← `AppIcon-1024.pn
 
 `background_color` and `theme_color` in `manifest.webmanifest` are `#000000`, so the
 web, PWA and native shells all show the same black startup screen.
+
+## Store submission (iOS + Android) — wrapper setup
+
+The native apps are a thin Capacitor shell around the mobile web view, so every
+Lovable deploy updates both stores' apps instantly.
+
+```bash
+npm i -D @capacitor/cli && npm i @capacitor/core @capacitor/ios @capacitor/android
+npx cap add ios && npx cap add android
+npx cap sync
+```
+
+`capacitor.config.ts` (repo root) already sets the app id, name, black splash and
+`server.url = https://smartyworkout.com`.
+
+### Behaviour already handled in the web app
+
+- **No pull-to-refresh**: `overscroll-behavior-y: contain` on `html, body`, so the
+  page never rubber-band reloads. Android back button and iOS/Android edge-swipe
+  gestures still navigate normally (TanStack Router history).
+- **Refresh = logo**: tapping the SMARTYWORKOUT wordmark navigates home, revalidates
+  data and scrolls to the top.
+- **Offline**: service worker app shell + IndexedDB caches (logbook, library, WOD,
+  opened workouts) + queued actions replayed on reconnect.
+- **Offline sign-in**: after one online sign-in on the device, the account can sign
+  back in with no internet (PBKDF2 verifier + saved session, device-only).
+- **Safe areas**: `viewport-fit=cover` plus `env(safe-area-inset-*)` padding in the
+  header and bottom nav (notch / home indicator safe).
+
+### Android back button
+
+Capacitor maps the hardware/gesture back to browser history by default; no extra
+code needed. To exit on the home route, add the `@capacitor/app` `backButton`
+listener in the native shell only.
