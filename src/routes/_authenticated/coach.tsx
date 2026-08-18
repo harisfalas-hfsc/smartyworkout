@@ -206,6 +206,10 @@ function CoachPage() {
 
   async function generate(surprise = false, levelOverride?: string) {
     if (busy || wodMode) return;
+    if (!navigator.onLine) {
+      toast.error("You must be online to generate a workout.");
+      return;
+    }
     setBusy(true);
     setResuming(false);
     localStorage.setItem("smarty:generating", "1");

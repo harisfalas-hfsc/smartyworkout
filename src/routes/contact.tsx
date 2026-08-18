@@ -77,6 +77,10 @@ function Contact() {
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+    if (!navigator.onLine) {
+      setError("You must be online to send a message.");
+      return;
+    }
     setSending(true);
     const form = e.currentTarget;
     const fd = new FormData(form);
