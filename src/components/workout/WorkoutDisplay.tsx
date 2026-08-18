@@ -123,7 +123,7 @@ export function WorkoutDisplay({
   return (
     <ExerciseMediaProvider ids={ids}>
       <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:py-12 lg:max-w-5xl lg:px-8">
-        <header className="rounded-3xl border border-border bg-card p-5 sm:p-7">
+        <header className="rounded-3xl border-2 border-blue-400 bg-card p-5 sm:p-7">
           <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
             <span>{workout.category}</span>
             {workout.format ? <span>· {workout.format}</span> : null}
@@ -174,32 +174,46 @@ export function WorkoutDisplay({
           </Button>
         </header>
 
-        <div className="sticky top-2 z-20 mt-5 flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-card/95 p-2 backdrop-blur">
-          <Button variant="secondary" size="sm" onClick={() => setReader(true)}>
-            <BookOpen className="mr-2 h-4 w-4" /> Reader
+        <div className="sticky top-2 z-20 mt-5 grid grid-cols-3 gap-2 rounded-2xl border-2 border-blue-400 bg-card/95 p-2 backdrop-blur">
+          <Button
+            variant="secondary"
+            className="h-11 w-full rounded-xl px-2 text-sm font-semibold"
+            onClick={() => setReader(true)}
+          >
+            <BookOpen className="mr-1.5 h-4 w-4 shrink-0" /> Reader
           </Button>
-          <Button variant="secondary" size="sm" onClick={toggleFavorite}>
-            <Heart className={`mr-2 h-4 w-4 ${favorite ? "fill-primary text-primary" : ""}`} />
+          <Button
+            variant="secondary"
+            className="h-11 w-full rounded-xl px-2 text-sm font-semibold"
+            onClick={toggleFavorite}
+          >
+            <Heart
+              className={`mr-1.5 h-4 w-4 shrink-0 ${favorite ? "fill-primary text-primary" : ""}`}
+            />
             {favorite ? "Saved" : "Save"}
           </Button>
-          <Button variant="secondary" size="sm" onClick={() => window.print()}>
-            <Printer className="mr-2 h-4 w-4" /> Print / PDF
+          <Button
+            variant="secondary"
+            className="h-11 w-full rounded-xl px-2 text-sm font-semibold"
+            onClick={shareWorkoutLink}
+          >
+            <Share2 className="mr-1.5 h-4 w-4 shrink-0" /> Share
           </Button>
         </div>
 
-        <article className="workout-html mt-5 rounded-3xl border border-border bg-card p-5 sm:p-7">
+        <article className="workout-html mt-5 rounded-3xl border-2 border-blue-400 bg-card p-5 sm:p-7">
           <ExerciseHTMLContent html={html} onOpenExercise={setOpenExercise} />
         </article>
 
         {workout.instructions_html ? (
-          <section className="workout-html mt-5 rounded-2xl border border-border bg-card p-5">
+          <section className="workout-html mt-5 rounded-2xl border-2 border-blue-400 bg-card p-5">
             <h2 className="mb-2 text-lg font-bold">How to perform this workout</h2>
             <div dangerouslySetInnerHTML={{ __html: workout.instructions_html }} />
           </section>
         ) : null}
 
         {workout.tips_html ? (
-          <section className="workout-html mt-5 rounded-2xl border border-border bg-card p-5">
+          <section className="workout-html mt-5 rounded-2xl border-2 border-blue-400 bg-card p-5">
             <h2 className="mb-2 text-lg font-bold">Coach tips</h2>
             <div dangerouslySetInnerHTML={{ __html: workout.tips_html }} />
           </section>
