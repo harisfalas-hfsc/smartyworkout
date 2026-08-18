@@ -13,6 +13,12 @@ import {
   submitMemberMessage,
   type SupportThread,
 } from "@/lib/support.functions";
+import { useAuth } from "@/hooks/useAuth";
+import { offlineFirst } from "@/lib/offline/offline-first";
+import { enqueueAction } from "@/lib/offline/queue";
+import { announceInboxChanged } from "@/lib/inbox-sync";
+import { useOnlineStatus } from "@/lib/offline/useOnlineStatus";
+import { scopedKey, writeCache } from "@/lib/offline/store";
 
 function when(iso: string) {
   const d = new Date(iso);
@@ -36,6 +42,8 @@ export function ConversationsPanel({
   const start = useServerFn(submitMemberMessage);
   const setRead = useServerFn(setThreadsRead);
   const removeThreads = useServerFn(deleteMyThreads);
+  const { user } = useAuth();
+  const online = useOnlineStatus();
 
   const [threads, setThreads] = useState<SupportThread[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,12 +56,12 @@ export function ConversationsPanel({
 
   const reload = useCallback(async () => {
     try {
-      const res = await load({});
+      const res = await offlineFirst("inbox:threads", () => load({}), user?.id);
       setThreads(res.threads);
     } finally {
       setLoading(false);
     }
-  }, [load]);
+  }, [load, user?.id]);
 
   useEffect(() => {
     void reload();
@@ -63,19 +71,30 @@ export function ConversationsPanel({
 
   useEffect(() => {
     onUnread?.(unread);
-  }, [unread, onUnread]);
+    announceInboxChanged({ messagesUnread: unread });
+    if (user?.id && !loading) {
+      void writeCache(scopedKey(user.id, "inbox:threads"), { threads });
+    }
+  }, [unread, onUnread, user?.id, loading, threads]);
 
   async function openThread(t: SupportThread) {
     setOpenId((cur) => (cur === t.id ? null : t.id));
     setDraft("");
     if (t.user_unread) {
       setThreads((prev) => prev.map((x) => (x.id === t.id ? { ...x, user_unread: false } : x)));
-      await setRead({ data: { ids: [t.id], read: true } }).catch(() => undefined);
+      announceInboxChanged({ readMessageIds: [t.id] });
+      try {
+        await setRead({ data: { ids: [t.id], read: true } });
+        announceInboxChanged();
+      } catch {
+        await enqueueAction("thread-read", { ids: [t.id], read: true }, user?.id);
+      }
     }
   }
 
   async function sendReply(id: string) {
     if (!draft.trim()) return;
+    if (!online) return toast.error("You must be online to send a message.");
     setBusy(true);
     const res = await reply({ data: { threadId: id, body: draft } }).catch(() => ({ ok: false }));
     setBusy(false);
@@ -87,6 +106,7 @@ export function ConversationsPanel({
 
   async function sendNew() {
     if (!newBody.trim()) return;
+    if (!online) return toast.error("You must be online to send a message.");
     setBusy(true);
     const res = await start({ data: { subject: newSubject, message: newBody } }).catch(() => ({
       ok: false as const,
@@ -103,14 +123,26 @@ export function ConversationsPanel({
   async function toggleRead(t: SupportThread) {
     const read = t.user_unread;
     setThreads((prev) => prev.map((x) => (x.id === t.id ? { ...x, user_unread: !read } : x)));
-    await setRead({ data: { ids: [t.id], read } }).catch(() => undefined);
+    announceInboxChanged(read ? { readMessageIds: [t.id] } : { unreadMessageIds: [t.id] });
+    try {
+      await setRead({ data: { ids: [t.id], read } });
+      announceInboxChanged();
+    } catch {
+      await enqueueAction("thread-read", { ids: [t.id], read }, user?.id);
+    }
   }
 
   async function markAllRead() {
     const ids = threads.filter((t) => t.user_unread).map((t) => t.id);
     if (!ids.length) return;
     setThreads((prev) => prev.map((t) => ({ ...t, user_unread: false })));
-    await setRead({ data: { ids, read: true } }).catch(() => undefined);
+    announceInboxChanged({ readMessageIds: ids });
+    try {
+      await setRead({ data: { ids, read: true } });
+      announceInboxChanged();
+    } catch {
+      await enqueueAction("thread-read", { ids, read: true }, user?.id);
+    }
   }
 
   async function deleteAll() {
@@ -118,14 +150,28 @@ export function ConversationsPanel({
     if (!ids.length) return;
     setThreads([]);
     setOpenId(null);
-    await removeThreads({ data: { ids } }).catch(() => undefined);
+    announceInboxChanged({ removedMessageIds: ids, messagesUnread: 0 });
+    try {
+      await removeThreads({ data: { ids } });
+      announceInboxChanged();
+    } catch {
+      await enqueueAction("thread-delete", { ids }, user?.id);
+      toast.info("Deleted on this device — it will sync when you are online.");
+    }
     toast.success("Conversations deleted");
   }
 
   async function deleteOne(id: string) {
     setThreads((prev) => prev.filter((t) => t.id !== id));
     if (openId === id) setOpenId(null);
-    await removeThreads({ data: { ids: [id] } }).catch(() => undefined);
+    announceInboxChanged({ removedMessageIds: [id] });
+    try {
+      await removeThreads({ data: { ids: [id] } });
+      announceInboxChanged();
+    } catch {
+      await enqueueAction("thread-delete", { ids: [id] }, user?.id);
+      toast.info("Deleted on this device — it will sync when you are online.");
+    }
   }
 
   return (

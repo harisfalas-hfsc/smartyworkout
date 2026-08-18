@@ -221,6 +221,10 @@ function WodPage() {
 
   async function toggleSub(subscribe: boolean) {
     if (busy || building) return;
+    if (!navigator.onLine) {
+      toast.error("You must be online to update Workout of the Day.");
+      return;
+    }
     setBusy(true);
 
     try {

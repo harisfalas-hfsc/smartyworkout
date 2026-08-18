@@ -19,6 +19,7 @@ import { BottomNav } from "../components/BottomNav";
 import { ThemeProvider, THEME_INIT_SCRIPT } from "../lib/theme";
 import { OfflineBanner } from "../components/offline/OfflineBanner";
 import { OfflineSync } from "../components/offline/OfflineSync";
+import { OfflineBootstrap } from "../components/offline/OfflineBootstrap";
 import { registerAppServiceWorker } from "../lib/offline/register-sw";
 
 const SITE_URL = "https://smartyworkout.com";
@@ -353,6 +354,7 @@ function RootComponent() {
           <SisterAppsPopup />
           <BottomNav />
           <OfflineSync />
+          <OfflineBootstrap />
         </div>
       </ThemeProvider>
     </QueryClientProvider>

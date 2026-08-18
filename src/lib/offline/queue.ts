@@ -2,7 +2,16 @@ import { createStore, get, set } from "idb-keyval";
 
 export type QueuedAction = {
   id: string;
-  kind: "workout-status" | "workout-feedback" | "community-like" | "community-rating";
+  userId?: string;
+  kind:
+    | "workout-status"
+    | "workout-feedback"
+    | "community-like"
+    | "community-rating"
+    | "notification-read"
+    | "notification-delete"
+    | "thread-read"
+    | "thread-delete";
   payload: Record<string, unknown>;
   queuedAt: number;
 };
@@ -32,10 +41,12 @@ async function writeQueue(items: QueuedAction[]) {
 export async function enqueueAction(
   kind: QueuedAction["kind"],
   payload: Record<string, unknown>,
+  userId?: string | null,
 ): Promise<void> {
   const items = await readQueue();
   items.push({
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    userId: userId ?? undefined,
     kind,
     payload,
     queuedAt: Date.now(),
@@ -53,12 +64,17 @@ export async function pendingActionCount(): Promise<number> {
  */
 export async function flushQueue(
   run: (action: QueuedAction) => Promise<void>,
+  userId?: string | null,
 ): Promise<number> {
   const items = await readQueue();
   if (!items.length) return 0;
   const remaining: QueuedAction[] = [];
   let done = 0;
   for (const action of items) {
+    if (action.userId && action.userId !== userId) {
+      remaining.push(action);
+      continue;
+    }
     try {
       await run(action);
       done += 1;
