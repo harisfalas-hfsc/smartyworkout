@@ -212,6 +212,7 @@ export const markNotificationsRead = createServerFn({ method: "POST" })
       .from("notifications")
       .update({ read_at: new Date().toISOString() } as never)
       .eq("user_id", context.userId)
+      .not("kind", "in", "(admin,support)")
       .is("read_at", null);
     return { ok: true };
   });
