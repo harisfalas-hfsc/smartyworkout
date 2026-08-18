@@ -7,6 +7,15 @@ import { getDailyHub } from "@/lib/daily.functions";
 import { listNotifications } from "@/lib/daily.functions";
 import { listMyThreads } from "@/lib/support.functions";
 import { scopedKey, trimCache, writeCache } from "@/lib/offline/store";
+import {
+  fetchComments,
+  fetchCommunityCreators,
+  fetchCommunityWorkouts,
+  fetchLatestComments,
+  fetchLeaders,
+} from "@/lib/community-queries";
+import { getSharedWorkout } from "@/lib/community.functions";
+import { getProgressOverview } from "@/lib/progress.functions";
 
 const LOGBOOK_COLUMNS =
   "id,name,category,duration_min,difficulty_stars,difficulty_label,mood,status,is_favorite,scheduled_at,completed_at,created_at,is_wod,created_by,workout_feedback(difficulty_rating,feeling)";
@@ -18,6 +27,8 @@ export function OfflineBootstrap() {
   const loadHub = useServerFn(getDailyHub);
   const loadNotifications = useServerFn(listNotifications);
   const loadThreads = useServerFn(listMyThreads);
+  const loadSharedWorkout = useServerFn(getSharedWorkout);
+  const loadProgressOverview = useServerFn(getProgressOverview);
   const running = useRef(false);
 
   useEffect(() => {
@@ -78,6 +89,47 @@ export function OfflineBootstrap() {
             difficulties: unique("difficulty"),
           });
         }
+        // Community: shared workouts, leaderboards, talk and each shared
+        // workout's full detail + comments, so the whole community is readable
+        // offline.
+        try {
+          const [latest, top, rated, completedRank, leadersScore, creators, talk] =
+            await Promise.all([
+              fetchCommunityWorkouts({ sort: "latest", limit: 30 }),
+              fetchCommunityWorkouts({ sort: "liked", limit: 30 }).catch(() => []),
+              fetchCommunityWorkouts({ sort: "rated", limit: 30 }).catch(() => []),
+              fetchCommunityWorkouts({ sort: "completed", limit: 30 }).catch(() => []),
+              fetchLeaders("score", 30).catch(() => []),
+              fetchCommunityCreators("workouts_shared", 30).catch(() => []),
+              fetchLatestComments(30, "newest").catch(() => []),
+            ]);
+          if (!active) return;
+          void save("community:workouts:latest", latest);
+          void save("community:workouts:liked", top);
+          void save("community:workouts:rated", rated);
+          void save("community:ranked:completed", completedRank);
+          void save("community:members:score", leadersScore);
+          void save("community:members:workouts_shared", creators);
+          void save("community:comments:newest", talk);
+
+          const ids = [...new Set(latest.map((w) => w.id))].slice(0, 20);
+          for (const id of ids) {
+            void loadSharedWorkout({ data: { workoutId: id } })
+              .then((detail) => save(`community:workout:${id}`, detail))
+              .catch(() => undefined);
+            void fetchComments(id)
+              .then((rows) => save(`community:workout-comments:${id}`, rows))
+              .catch(() => undefined);
+          }
+        } catch {
+          /* community copy is best-effort */
+        }
+
+        // Progress + badges
+        void loadProgressOverview({ data: {} } as never)
+          .then((overview) => save("progress:overview", overview))
+          .catch(() => undefined);
+
         void trimCache(800);
       } finally {
         running.current = false;

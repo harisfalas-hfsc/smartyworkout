@@ -53,6 +53,8 @@ const PROTECTED = [
   "account:access",
   "library:list",
   "library:filters",
+  "community:",
+  "progress:overview",
 ];
 
 function isProtected(key: string) {
