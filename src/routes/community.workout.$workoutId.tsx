@@ -27,6 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { WorkoutStatusPanel } from "@/components/workout/WorkoutStatusPanel";
 import { COMMENT_MAX, RATING_STARS, creatorOrigin } from "@/lib/community";
+import { formatDate } from "@/lib/date-format";
 
 
 export const Route = createFileRoute("/community/workout/$workoutId")({
@@ -351,7 +352,7 @@ function SharedWorkoutPage() {
                 <p className="text-sm font-bold">
                   {c.author_name || "Smarty member"}{" "}
                   <span className="text-xs font-normal text-muted-foreground">
-                    {new Date(c.created_at).toLocaleDateString()}
+                    {formatDate(c.created_at)}
                   </span>
                 </p>
                 <p className="mt-1 whitespace-pre-wrap break-words text-sm">{c.body}</p>

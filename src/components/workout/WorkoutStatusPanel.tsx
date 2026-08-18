@@ -5,6 +5,7 @@ import { CalendarClock, CheckCircle2, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { setWorkoutStatus } from "@/lib/coach.functions";
 import { cn } from "@/lib/utils";
+import { formatDateTime, scheduleTone, SCHEDULE_TONE_TEXT } from "@/lib/date-format";
 
 export type WorkoutStatusState = { status: string; scheduledAt: string };
 
@@ -38,6 +39,7 @@ export function WorkoutStatusPanel({
   const done = status === "completed";
   const scheduled = !done && Boolean(scheduledAt);
   const notCompleted = !done && !scheduled;
+  const tone = scheduleTone(scheduledAt, done);
 
   async function target(): Promise<string> {
     if (resolveWorkoutId) return resolveWorkoutId();
@@ -67,13 +69,23 @@ export function WorkoutStatusPanel({
   return (
     <section className={cn("mt-6 rounded-2xl border-2 border-blue-400 bg-card p-5", className)}>
       <h3 className="text-lg font-bold">Workout status</h3>
-      <p className="mt-1 text-sm text-muted-foreground">
+      <p
+        className={cn(
+          "mt-1 text-sm",
+          tone ? `font-semibold ${SCHEDULE_TONE_TEXT[tone]}` : "text-muted-foreground",
+        )}
+      >
         {done
           ? "Completed — nice work."
-          : scheduled
-            ? `Scheduled for ${new Date(scheduledAt).toLocaleString()} — you will get a reminder.`
+          : scheduled && tone
+            ? tone === "missed"
+              ? `Missed — was scheduled for ${formatDateTime(scheduledAt)}.`
+              : tone === "today"
+                ? `Today at ${formatDateTime(scheduledAt)} — you will get a reminder.`
+                : `Scheduled for ${formatDateTime(scheduledAt)} — you will get a reminder.`
             : "Not completed yet."}
       </p>
+
       <div className="mt-4 grid gap-2 sm:grid-cols-3">
         <Button
           size="lg"

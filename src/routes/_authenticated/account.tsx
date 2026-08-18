@@ -30,6 +30,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
+import { formatDateLong } from "@/lib/date-format";
 
 export const Route = createFileRoute("/_authenticated/account")({
   head: () => ({
@@ -49,7 +50,7 @@ function formatDate(value: string | null) {
   if (!value) return null;
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
+  return formatDateLong(d);
 }
 
 function Account() {

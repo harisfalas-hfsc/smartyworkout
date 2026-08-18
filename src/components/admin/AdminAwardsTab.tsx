@@ -9,6 +9,7 @@ import {
   type BadgeDef,
   type AdminUserProgress,
 } from "@/lib/progress.functions";
+import { formatDate } from "@/lib/date-format";
 
 const CATEGORIES = ["completed", "generated", "streak", "subscription"];
 
@@ -212,7 +213,7 @@ export function AdminAwardsTab() {
               <ul className="mt-1 space-y-1">
                 {progress.badges.map((b) => (
                   <li key={b.badge_id}>
-                    {b.badge_name} — {new Date(b.earned_at).toLocaleDateString()}
+                    {b.badge_name} — {formatDate(b.earned_at)}
                   </li>
                 ))}
                 {!progress.badges.length && <li className="text-muted-foreground">No awards yet</li>}

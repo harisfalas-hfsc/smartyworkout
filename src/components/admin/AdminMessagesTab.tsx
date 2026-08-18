@@ -12,14 +12,10 @@ import {
   adminSetThreads,
   type SupportThread,
 } from "@/lib/support.functions";
+import { formatDateTime } from "@/lib/date-format";
 
 function when(iso: string) {
-  return new Date(iso).toLocaleString(undefined, {
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatDateTime(iso);
 }
 
 export function AdminMessagesTab() {

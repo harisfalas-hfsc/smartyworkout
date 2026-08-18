@@ -1,3 +1,4 @@
+import { formatDateShort } from "@/lib/date-format";
 /** Shared client-safe types and constants for Smarty Community. */
 
 export type CommunityWorkoutCard = {
@@ -101,11 +102,7 @@ export function creatorOrigin(w: {
 }) {
   if (w.is_wod) {
     const day = w.wod_date
-      ? new Date(w.wod_date).toLocaleDateString(undefined, {
-          day: "numeric",
-          month: "short",
-          year: "numeric",
-        })
+      ? formatDateShort(w.wod_date)
       : null;
     return day ? `Workout of the Day · ${day}` : "Workout of the Day";
   }

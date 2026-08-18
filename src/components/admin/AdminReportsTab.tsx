@@ -8,6 +8,7 @@ import {
   adminResolveReport,
   type AdminReportRow,
 } from "@/lib/community.functions";
+import { formatDateTime } from "@/lib/date-format";
 
 export function AdminReportsTab() {
   const list = useServerFn(adminListReports);
@@ -67,7 +68,7 @@ export function AdminReportsTab() {
                 <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary">
                   <Flag className="h-3.5 w-3.5" /> {r.target_type}
                   <span className="font-normal normal-case text-muted-foreground">
-                    · {new Date(r.created_at).toLocaleString()}
+                    · {formatDateTime(r.created_at)}
                   </span>
                 </p>
                 <p className="mt-2 break-words text-sm font-semibold">

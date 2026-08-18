@@ -18,6 +18,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { getProgressOverview, type ProgressOverview } from "@/lib/progress.functions";
 import { CATEGORY_LABEL, CATEGORY_UNIT } from "@/lib/progress-config";
 import { cn } from "@/lib/utils";
+import { formatDate } from "@/lib/date-format";
 
 export const Route = createFileRoute("/_authenticated/progress")({
   head: () => ({
@@ -255,7 +256,7 @@ function Progress() {
                       key={d.id}
                       title={
                         has && when
-                          ? `${d.description} — earned ${new Date(when).toLocaleDateString()}`
+                          ? `${d.description} — earned ${formatDate(when)}`
                           : d.description
                       }
                       className={cn(
@@ -275,7 +276,7 @@ function Progress() {
                       </span>
                       {has && when && (
                         <span className="text-[10px]">
-                          {new Date(when).toLocaleDateString()}
+                          {formatDate(when)}
                         </span>
                       )}
                     </div>

@@ -22,6 +22,7 @@ import {
   type AdminWorkoutFacets,
   type AdminWorkoutDetail,
 } from "@/lib/admin.functions";
+import { formatDateTime } from "@/lib/date-format";
 
 type Props = {
   /** When set, the archive is scoped to one member (their full logbook). */
@@ -296,7 +297,7 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
                 <div className="min-w-0">
                   <p className="truncate font-semibold">{w.name}</p>
                   <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                    {new Date(w.created_at).toLocaleString()} ·{" "}
+                    {formatDateTime(w.created_at)} ·{" "}
                     {w.user_name || w.user_email || "Unknown member"}
                   </p>
                 </div>
@@ -382,7 +383,7 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
                   </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {new Date(detail.created_at).toLocaleString()} ·{" "}
+                  {formatDateTime(detail.created_at)} ·{" "}
                   {detail.user_name || detail.user_email || "Unknown member"}
                 </p>
                 {detail.description_html && (
