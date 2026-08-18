@@ -7,6 +7,7 @@ import { reactToWorkout, rateWorkout } from "@/lib/community.functions";
 import { deleteNotifications, setNotificationsRead } from "@/lib/daily.functions";
 import { deleteMyThreads, setThreadsRead } from "@/lib/support.functions";
 import { flushQueue, type QueuedAction } from "@/lib/offline/queue";
+import { onSyncRequested } from "@/lib/offline/sync-bus";
 import { useOnlineStatus } from "@/lib/offline/useOnlineStatus";
 import { announceInboxChanged } from "@/lib/inbox-sync";
 
