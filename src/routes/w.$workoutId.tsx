@@ -39,7 +39,7 @@ export const Route = createFileRoute("/w/$workoutId")({
 
 function SharePreviewPage() {
   const w = Route.useLoaderData();
-  const { workoutId } = Route.useParams();
+  
 
   if (!w)
     return (
