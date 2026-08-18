@@ -46,12 +46,16 @@ export default defineConfig({
         ],
         runtimeCaching: [
           {
-
+            // JS/CSS chunks: cache first so the app shell works offline.
+            urlPattern: ({ url }) => /\.(?:js|css)$/.test(url.pathname),
+            handler: "CacheFirst",
+            options: {
               cacheName: "smarty-assets",
               expiration: { maxEntries: 300, maxAgeSeconds: 60 * 60 * 24 * 365 },
               cacheableResponse: { statuses: [0, 200] },
             },
           },
+
           {
             // Exercise demo images / GIFs (signed storage URLs).
             urlPattern: ({ request, url }) =>
