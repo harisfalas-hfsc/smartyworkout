@@ -12,7 +12,7 @@
  *
  * Run: bun run build && bun run build:native && npx cap sync
  */
-import { cp, mkdir, readFile, writeFile, access } from "node:fs/promises";
+import { cp, mkdir, readFile, readdir, writeFile, access } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const root = process.cwd();
@@ -33,16 +33,37 @@ async function readManifest() {
     const full = resolve(clientDir, p);
     if (await exists(full)) return JSON.parse(await readFile(full, "utf8"));
   }
-  throw new Error("Vite client manifest not found — run `bun run build` first.");
+  return null;
+}
+
+/** Without a manifest, the entry is the bundle that hydrates the app. */
+async function findEntryByScan() {
+  const assetsDir = resolve(clientDir, "assets");
+  const files = await readdir(assetsDir);
+  const css = files.filter((f) => f.endsWith(".css")).map((f) => `assets/${f}`);
+  for (const file of files.filter((f) => f.endsWith(".js"))) {
+    const code = await readFile(resolve(assetsDir, file), "utf8");
+    if (code.includes("hydrateRoot") || code.includes("createRoot")) {
+      return { file: `assets/${file}`, css };
+    }
+  }
+  throw new Error("Client entry bundle not found — run `bun run build` first.");
 }
 
 const manifest = await readManifest();
-const entry = Object.values(manifest).find((e) => e.isEntry) ?? Object.values(manifest)[0];
-if (!entry) throw new Error("No client entry found in the Vite manifest.");
-
-const css = new Set(entry.css ?? []);
-for (const key of entry.imports ?? []) {
-  for (const file of manifest[key]?.css ?? []) css.add(file);
+let entry;
+let css;
+if (manifest) {
+  entry = Object.values(manifest).find((e) => e.isEntry) ?? Object.values(manifest)[0];
+  if (!entry) throw new Error("No client entry found in the Vite manifest.");
+  css = new Set(entry.css ?? []);
+  for (const key of entry.imports ?? []) {
+    for (const file of manifest[key]?.css ?? []) css.add(file);
+  }
+} else {
+  const scanned = await findEntryByScan();
+  entry = scanned;
+  css = new Set(scanned.css);
 }
 
 await mkdir(outDir, { recursive: true });
