@@ -141,14 +141,14 @@ export function Navigation() {
                     <span className="block truncate text-xs font-normal text-muted-foreground">{user.email}</span>
                   )}
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator className="bg-primary" />
                 <DropdownMenuItem asChild>
                   <Link to="/account">My account</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link to="/profile">Training profile</Link>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator className="bg-primary" />
                 <DropdownMenuItem asChild>
                   <Link to="/coach">Smarty Coach</Link>
                 </DropdownMenuItem>
@@ -161,7 +161,7 @@ export function Navigation() {
                 <DropdownMenuItem asChild>
                   <Link to="/progress">Progress</Link>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator className="bg-primary" />
                 <DropdownMenuItem asChild>
                   <Link to="/community">Smarty Community</Link>
                 </DropdownMenuItem>
@@ -171,7 +171,7 @@ export function Navigation() {
 
                 {isAdmin && (
                   <>
-                    <DropdownMenuSeparator />
+                    <DropdownMenuSeparator className="bg-primary" />
                     <DropdownMenuItem asChild>
                       <Link to="/admin">
                         <Shield className="h-4 w-4 mr-2" /> Admin
@@ -180,7 +180,7 @@ export function Navigation() {
                   </>
                 )}
 
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator className="bg-primary" />
                 <DropdownMenuItem onSelect={() => toggleTheme()}>
                   {theme === "dark" ? (
                     <><Sun className="h-4 w-4 mr-2" /> Light mode</>
@@ -188,7 +188,7 @@ export function Navigation() {
                     <><Moon className="h-4 w-4 mr-2" /> Dark mode</>
                   )}
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator className="bg-primary" />
                 <DropdownMenuItem onClick={handleSignOut}>
                   <LogOut className="h-4 w-4 mr-2" /> Sign out
                 </DropdownMenuItem>
@@ -207,7 +207,7 @@ export function Navigation() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52">
                 <DropdownMenuLabel>Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator className="bg-primary" />
                 <DropdownMenuItem asChild>
                   <Link to="/auth">Sign in</Link>
                 </DropdownMenuItem>
@@ -216,7 +216,7 @@ export function Navigation() {
                     Create account
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator className="bg-primary" />
                 <DropdownMenuItem onSelect={() => toggleTheme()}>
                   {theme === "dark" ? (
                     <><Sun className="h-4 w-4 mr-2" /> Light mode</>
