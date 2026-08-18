@@ -22,8 +22,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/PageHeader";
 import { isAdminEmail } from "@/lib/admin";
-import { adminGetStats, type AdminStats } from "@/lib/admin.functions";
-import { adminUnreadMessageCount } from "@/lib/support.functions";
+import {
+  adminGetStats,
+  adminGetSectionBadges,
+  type AdminStats,
+  type AdminBadgeCounts,
+} from "@/lib/admin.functions";
 import { AdminUsersTab } from "@/components/admin/AdminUsersTab";
 import { AdminRevenueTab } from "@/components/admin/AdminRevenueTab";
 import { AdminRulesTab } from "@/components/admin/AdminRulesTab";
@@ -226,9 +230,11 @@ function useAdminBadges(enabled: boolean, section: SectionKey | null) {
 function AdminHub({
   onOpen,
   unreadMessages,
+  badges,
 }: {
   onOpen: (key: SectionKey) => void;
   unreadMessages: number;
+  badges: AdminBadgeCounts;
 }) {
   const getStats = useServerFn(adminGetStats);
   const [stats, setStats] = useState<AdminStats | null>(null);
@@ -286,9 +292,9 @@ function AdminHub({
             onClick={() => onOpen(key)}
             className="relative flex min-h-[112px] flex-col items-start gap-2 rounded-2xl border border-blue-400 bg-card p-4 text-left transition hover:bg-accent"
           >
-            {key === "messages" && unreadMessages > 0 && (
-              <span className="absolute right-3 top-3 grid h-6 min-w-6 place-items-center rounded-full bg-primary px-2 text-xs font-bold text-primary-foreground">
-                {unreadMessages}
+            {(badges[key] ?? 0) > 0 && (
+              <span className="absolute right-3 top-3 grid h-6 min-w-6 place-items-center rounded-full bg-destructive px-2 text-xs font-bold text-destructive-foreground">
+                {(badges[key] ?? 0) > 99 ? "99+" : badges[key]}
               </span>
             )}
             <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
