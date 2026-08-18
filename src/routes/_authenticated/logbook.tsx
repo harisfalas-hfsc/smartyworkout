@@ -830,7 +830,7 @@ function Logbook() {
             <ul className="mt-4 grid gap-3 sm:grid-cols-2">
               {filtered.map((r) => (
                 <li key={r.id}>
-                  <WorkoutCard r={r} onToggleFavorite={onToggleFavorite ?? toggleFavorite} />
+                  <WorkoutCard r={r} onToggleFavorite={toggleFavorite} />
                 </li>
               ))}
             </ul>
