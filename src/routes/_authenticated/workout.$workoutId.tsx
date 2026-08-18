@@ -44,16 +44,16 @@ function Choice({
   return (
     <div className="space-y-2">
       <p className="text-sm font-semibold">{label}</p>
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {options.map((o) => (
           <button
             key={o}
             type="button"
             onClick={() => onChange(o)}
-            className={`rounded-full border px-3 py-1.5 text-sm transition ${
+            className={`h-11 w-full rounded-xl border-2 px-2 text-sm font-semibold transition ${
               value === o
                 ? "border-primary bg-primary text-primary-foreground"
-                : "border-border hover:border-primary/50"
+                : "border-blue-400/50 hover:border-primary"
             }`}
           >
             {o}
@@ -259,17 +259,23 @@ function WorkoutPage() {
           I finished this workout
         </Button>
       ) : saved ? (
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-          <Button asChild size="lg" className="flex-1">
+        <div className="mt-6 grid gap-2 sm:grid-cols-2">
+          <Button asChild size="lg" className="h-12 w-full rounded-2xl font-bold">
             <Link to="/coach">Next workout</Link>
           </Button>
-          <Button asChild size="lg" variant="secondary" className="flex-1">
+          <Button asChild size="lg" variant="secondary" className="h-12 w-full rounded-2xl font-bold">
             <Link to="/logbook" search={{ filter: "all" as const, view: "list" as const }}>Open logbook</Link>
           </Button>
         </div>
       ) : (
-        <div className="mt-6 space-y-5 rounded-2xl border border-border bg-card p-5">
-          <h3 className="text-lg font-bold">How was the workout?</h3>
+        <div className="mt-6 space-y-5 rounded-2xl border-2 border-blue-400 bg-card p-5">
+          <div>
+            <h3 className="text-lg font-bold">How was the workout?</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Private — only you and Smarty Coach see this. It tunes your next workouts and never
+              appears in the community.
+            </p>
+          </div>
           <Choice label="Difficulty" options={DIFF} value={difficulty} onChange={setDifficulty} />
           <Choice label="How did you feel?" options={FEEL} value={feeling} onChange={setFeeling} />
           <Choice label="Did you enjoy it?" options={YESNO} value={enjoyed} onChange={setEnjoyed} />
@@ -280,7 +286,7 @@ function WorkoutPage() {
             value={comment}
             onChange={(e) => setComment(e.target.value)}
           />
-          <Button size="lg" className="w-full" onClick={saveFeedback}>
+          <Button size="lg" className="h-12 w-full rounded-2xl font-bold" onClick={saveFeedback}>
             Save feedback
           </Button>
         </div>
