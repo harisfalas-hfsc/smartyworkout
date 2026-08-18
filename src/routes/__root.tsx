@@ -21,6 +21,8 @@ import { OfflineBanner } from "../components/offline/OfflineBanner";
 import { OfflineSync } from "../components/offline/OfflineSync";
 import { OfflineBootstrap } from "../components/offline/OfflineBootstrap";
 import { registerAppServiceWorker } from "../lib/offline/register-sw";
+import { bootNativeShell } from "../lib/offline/native-boot";
+
 
 const SITE_URL = "https://smartyworkout.com";
 const OG_IMAGE = "https://smartyworkout.com/og-social.jpg";
@@ -338,8 +340,10 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   useEffect(() => {
+    bootNativeShell();
     registerAppServiceWorker();
   }, []);
+
 
   return (
     <QueryClientProvider client={queryClient}>
