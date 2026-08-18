@@ -24,8 +24,7 @@ export function OfflineSync() {
   const busy = useRef(false);
 
   useEffect(() => {
-    if (!online || busy.current) return;
-    busy.current = true;
+    if (!online) return;
 
     const run = async (action: QueuedAction) => {
       const p = action.payload as never;
