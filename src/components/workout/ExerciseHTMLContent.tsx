@@ -27,12 +27,11 @@ export function ExerciseHTMLContent({
       (_m, id: string, name: string) =>
         `<span class="exercise-ref"><strong>${name}</strong><button type="button" class="exercise-eye" data-exercise-id="${escapeAttr(
           id,
-        )}" aria-label="View ${escapeAttr(
-          name,
-        )} details"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="11" x2="12" y2="17"></line><line x1="12" y1="7.2" x2="12" y2="7.3"></line></svg></button></span>`,
+        )}" aria-label="View ${escapeAttr(name)} details">i</button></span>`,
     );
     if (typeof window === "undefined") return withButtons;
     return DOMPurify.sanitize(withButtons, { ADD_ATTR: ["data-exercise-id", "target"] });
+
 
   }, [html]);
 
