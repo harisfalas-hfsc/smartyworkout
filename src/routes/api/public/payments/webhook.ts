@@ -58,7 +58,32 @@ async function upsertSubscription(subscription: any, env: StripeEnv) {
       },
       { onConflict: "provider_subscription_id" },
     );
+
+  await adminAlert({
+    kind: "Membership",
+    title: `Membership ${subscription.status}`,
+    details: `Subscription ${subscription.id} for user ${userId} is now "${subscription.status}"${
+      subscription.cancel_at_period_end ? " (set to cancel at period end)" : ""
+    }.`,
+    dedupeKey: `sub-${subscription.id}-${subscription.status}-${subscription.cancel_at_period_end ? 1 : 0}`,
+  });
 }
+
+/** Admin-side alert: emails the support mailbox. Never breaks the webhook. */
+async function adminAlert(input: {
+  kind: string;
+  title: string;
+  details: string;
+  dedupeKey: string;
+}) {
+  try {
+    const { notifyAdmins } = await import("@/lib/admin-alert.server");
+    await notifyAdmins({ ...input, link: "https://smartyworkout.com/admin" });
+  } catch (e) {
+    console.error("[payments-webhook] admin alert failed:", e);
+  }
+}
+
 
 async function markCanceled(subscription: any, env: StripeEnv) {
   await getSupabase()
