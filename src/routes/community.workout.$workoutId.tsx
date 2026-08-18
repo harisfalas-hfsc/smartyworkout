@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { offlineFirst } from "@/lib/offline/offline-first";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -97,7 +98,9 @@ function SharedWorkoutPage() {
       const { data: auth } = await supabase.auth.getUser();
       if (active) setMe(auth.user?.id ?? null);
       try {
-        const res = await load({ data: { workoutId } });
+        const res = await offlineFirst(`community:workout:${workoutId}`, () =>
+          load({ data: { workoutId } }),
+        );
         if (!active) return;
         setWorkout(res.workout);
         setMyReaction(res.myReaction);

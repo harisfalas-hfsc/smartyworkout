@@ -1,4 +1,5 @@
 import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
+import { offlineFirst } from "@/lib/offline/offline-first";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -65,7 +66,7 @@ function Account() {
 
   const refresh = useCallback(async () => {
     try {
-      const access = await getMyAccessState();
+      const access = await offlineFirst("account:access", () => getMyAccessState());
       setPremium(access.premium);
       setQuota({ used: access.generationsUsedToday, limit: access.generationsLimit });
     } catch {
@@ -84,10 +85,14 @@ function Account() {
 
   useEffect(() => {
     (async () => {
-      const { count: c } = await supabase
-        .from("workouts")
-        .select("id", { count: "exact", head: true });
-      setCount(c ?? 0);
+      const c = await offlineFirst("account:workout-count", async () => {
+        const { count, error } = await supabase
+          .from("workouts")
+          .select("id", { count: "exact", head: true });
+        if (error) throw new Error(error.message);
+        return count ?? 0;
+      }).catch(() => 0);
+      setCount(c);
     })();
   }, []);
 
