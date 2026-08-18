@@ -189,3 +189,16 @@
   .sticky, nav, footer { display: none !important; }
   .workout-html .exercise-eye { display: none !important; }
 }
+
+
+/* Native-app behaviour: no browser pull-to-refresh / rubber-band reload.
+ * Back/forward and system gestures keep working normally. */
+html,
+body {
+  overscroll-behavior-y: contain;
+  overscroll-behavior-x: none;
+}
+
+body {
+  -webkit-tap-highlight-color: transparent;
+}
