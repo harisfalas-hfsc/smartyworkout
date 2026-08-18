@@ -470,16 +470,22 @@ function CalendarView({
           <ul className="grid gap-3 sm:grid-cols-2">
             {selectedRows.map((r) => (
               <li key={r.id}>
-                <WorkoutCard r={r} onToggleFavorite={onToggleFavorite} />
-                <DayActions
+                <WorkoutCard
                   r={r}
-                  busy={busy}
-                  onComplete={actions.complete}
-                  onReschedule={actions.reschedule}
-                  onClear={actions.clear}
+                  onToggleFavorite={onToggleFavorite}
+                  actions={
+                    <DayActions
+                      r={r}
+                      busy={busy}
+                      onComplete={actions.complete}
+                      onReschedule={actions.reschedule}
+                      onClear={actions.clear}
+                    />
+                  }
                 />
               </li>
             ))}
+
           </ul>
         )}
       </div>
