@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useOfflineData } from "@/lib/offline/useOfflineData";
+import { useOnlineStatus } from "@/lib/offline/useOnlineStatus";
 import { CachedNotice } from "@/components/offline/CachedNotice";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -628,7 +629,12 @@ function Logbook() {
     return (data as unknown as Row[]) ?? [];
   }, []);
 
-  const cached = useOfflineData<Row[]>("logbook:list", loadRows, { userId: user?.id ?? null });
+  const cached = useOfflineData<Row[]>("logbook:list", loadRows, {
+    userId: user?.id ?? null,
+    enabled: !!user?.id,
+  });
+  const online = useOnlineStatus();
+  const noSavedCopy = !online && cached.error !== null;
 
   const active = useMemo(
     () => filter.split(",").filter((f: string) => FILTER_IDS.includes(f)) as Filter[],
@@ -819,13 +825,17 @@ function Logbook() {
           {filtered.length === 0 ? (
             <div className="mt-6 rounded-2xl border-2 border-blue-400 bg-card p-8 text-center">
               <p className="text-muted-foreground">
-                {active.length
-                  ? "No workouts match this filter yet."
-                  : "You haven't created a workout yet."}
+                {noSavedCopy
+                  ? "You're offline and this device has no saved copy of your logbook yet. Connect to the internet once and it will be stored here."
+                  : active.length
+                    ? "No workouts match this filter yet."
+                    : "You haven't created a workout yet."}
               </p>
-              <Button asChild className="mt-4 h-11 rounded-2xl">
-                <Link to="/coach">Create your workout</Link>
-              </Button>
+              {!noSavedCopy && (
+                <Button asChild className="mt-4 h-11 rounded-2xl">
+                  <Link to="/coach">Create your workout</Link>
+                </Button>
+              )}
             </div>
           ) : (
             <ul className="mt-4 grid gap-3 sm:grid-cols-2">
