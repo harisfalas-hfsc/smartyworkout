@@ -4,6 +4,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { signOutAndClearDevice } from "@/lib/offline/sign-out";
 import { useAuth } from "@/hooks/useAuth";
 import { Crown, LogOut, Mail, User, ClipboardList, Trash2, Zap } from "lucide-react";
 import { DailyCoachingSettings } from "@/components/DailyCoachingSettings";
