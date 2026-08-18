@@ -169,16 +169,19 @@
   border: 1.5px solid var(--color-primary);
   color: var(--color-primary);
   background-color: color-mix(in oklab, var(--color-primary) 14%, transparent);
-  font-size: 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  font-style: italic;
+  font-family: Georgia, "Times New Roman", serif;
   line-height: 1;
   cursor: pointer;
   transition: background-color 0.2s ease, transform 0.2s ease;
 }
-.workout-html .exercise-eye svg { width: 0.8rem; height: 0.8rem; }
 .workout-html .exercise-eye:hover {
   background-color: color-mix(in oklab, var(--color-primary) 30%, transparent);
   transform: translateY(-1px);
 }
+
 .workout-html.reader { color: var(--color-foreground); }
 
 
