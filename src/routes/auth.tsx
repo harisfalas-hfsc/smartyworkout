@@ -119,6 +119,7 @@ function Auth() {
       if (error) throw error;
       if (data.session) {
         await ensureProfile(data.user, cleanName);
+        await rememberDevice(normalizedEmail, password);
         goNext();
       } else {
         setPassword("");
@@ -146,20 +147,45 @@ function Auth() {
     setAuthError("");
     setAuthNotice("");
     setSubmitting(true);
+    const normalizedEmail = email.trim().toLowerCase();
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
+        email: normalizedEmail,
         password,
       });
       if (error) throw error;
       await ensureProfile(data.user);
+      await rememberDevice(normalizedEmail, password);
       goNext();
     } catch (error) {
+      // No internet: unlock this device with the saved session for this account.
+      const message = error instanceof Error ? error.message : "";
+      const networkIssue =
+        (typeof navigator !== "undefined" && navigator.onLine === false) ||
+        /failed to fetch|network|load failed/i.test(message);
+      if (networkIssue) {
+        const result = await offlineSignIn(normalizedEmail, password);
+        if (result === "ok") {
+          window.location.assign(next ?? "/");
+          return;
+        }
+        if (result === "bad-password") {
+          setAuthError("Wrong password for the saved offline account on this device.");
+          setSubmitting(false);
+          return;
+        }
+        setAuthError(
+          "You're offline and this account has never signed in on this device. Connect to the internet once, then it works offline.",
+        );
+        setSubmitting(false);
+        return;
+      }
       setAuthError(authMessage(error, "Sign in failed. Check your email and password."));
     } finally {
       setSubmitting(false);
     }
   }
+
 
   async function submitForgot(e: FormEvent) {
     e.preventDefault();
