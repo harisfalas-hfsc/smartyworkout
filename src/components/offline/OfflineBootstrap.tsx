@@ -7,6 +7,15 @@ import { getDailyHub } from "@/lib/daily.functions";
 import { listNotifications } from "@/lib/daily.functions";
 import { listMyThreads } from "@/lib/support.functions";
 import { scopedKey, trimCache, writeCache } from "@/lib/offline/store";
+import {
+  fetchComments,
+  fetchCommunityCreators,
+  fetchCommunityWorkouts,
+  fetchLatestComments,
+  fetchLeaders,
+} from "@/lib/community-queries";
+import { getSharedWorkout } from "@/lib/community.functions";
+import { getProgressOverview } from "@/lib/progress.functions";
 
 const LOGBOOK_COLUMNS =
   "id,name,category,duration_min,difficulty_stars,difficulty_label,mood,status,is_favorite,scheduled_at,completed_at,created_at,is_wod,created_by,workout_feedback(difficulty_rating,feeling)";
