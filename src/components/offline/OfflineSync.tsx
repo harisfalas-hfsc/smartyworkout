@@ -66,7 +66,9 @@ export function OfflineSync() {
       }
     };
 
-    (async () => {
+    const flush = async () => {
+      if (busy.current) return;
+      busy.current = true;
       try {
         const { data } = await supabase.auth.getUser();
         if (!data.user) return;
@@ -79,7 +81,10 @@ export function OfflineSync() {
       } finally {
         busy.current = false;
       }
-    })();
+    };
+
+    void flush();
+    return onSyncRequested(() => void flush());
   }, [online, saveStatus, react, rate, setNotificationRead, removeNotifications, setThreadRead, removeThreads]);
 
   return null;
