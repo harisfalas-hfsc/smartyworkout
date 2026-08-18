@@ -23,7 +23,7 @@ export function MembershipRequiredDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="mx-auto max-h-[80vh] w-[calc(100%-2.5rem)] max-w-md overflow-y-auto rounded-3xl border-2 border-primary p-5 sm:p-6">
+      <DialogContent className="mx-auto max-h-[80vh] w-[calc(100%-2.5rem)] max-w-md overflow-y-auto rounded-3xl p-5 sm:p-6">
         <DialogTitle className="flex items-center gap-2 text-base font-extrabold uppercase tracking-[0.14em] text-primary">
           <Sparkles className="h-5 w-5" /> Members only
         </DialogTitle>
@@ -31,12 +31,12 @@ export function MembershipRequiredDialog({
         <p className="text-sm font-bold text-foreground">{title}</p>
         <p className="text-sm text-muted-foreground">{description}</p>
 
-        <div className="rounded-2xl border-2 border-blue-400 bg-primary/5 p-4 text-center">
+        <div className="rounded-2xl border-2 border-primary bg-primary/5 p-4 text-center">
           <p className="text-sm font-extrabold text-foreground">€9.99 / month</p>
           <p className="text-xs text-muted-foreground">Cancel anytime.</p>
         </div>
 
-        <div className="mt-4 grid gap-3">
+        <div className="grid gap-3 pt-1">
           <Button asChild className="h-14 rounded-2xl text-base font-extrabold">
             <Link to="/checkout" onClick={() => onOpenChange(false)}>
               Subscribe now

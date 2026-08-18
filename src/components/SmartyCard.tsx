@@ -14,7 +14,7 @@ export type SmartyTone =
 
 // Single brand tone: every card across the site uses the same blue border.
 const BLUE = {
-  border: "border-blue-400",
+  border: "border-primary",
   text: "text-blue-500 dark:text-blue-300",
   softBg: "bg-blue-50 dark:bg-blue-500/15",
   softBorder: "border-blue-200 dark:border-blue-500/40",
