@@ -151,16 +151,18 @@ function StatusLine({ r }: { r: Row }) {
 function WorkoutCard({
   r,
   onToggleFavorite,
+  actions,
 }: {
   r: Row;
   onToggleFavorite?: (id: string, next: boolean) => void;
+  actions?: React.ReactNode;
 }) {
   return (
-    <div className="relative">
+    <div className="relative flex h-full flex-col overflow-hidden rounded-2xl border-2 border-blue-400 bg-card">
       <Link
         to="/workout/$workoutId"
         params={{ workoutId: r.id }}
-        className="block rounded-2xl border-2 border-blue-400 bg-card p-4 transition hover:bg-blue-50 dark:hover:bg-blue-500/10"
+        className="block flex-1 p-4 transition hover:bg-blue-50 dark:hover:bg-blue-500/10"
       >
         <div className="flex items-center justify-between gap-2 pr-10">
           <p className="truncate text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
@@ -210,6 +212,8 @@ function WorkoutCard({
         ) : null}
       </Link>
 
+      {actions ? <div className="border-t-2 border-blue-400/60 p-3">{actions}</div> : null}
+
       <button
         type="button"
         aria-label={r.is_favorite ? "Remove from favourites" : "Mark as favourite"}
@@ -223,7 +227,10 @@ function WorkoutCard({
   );
 }
 
-/** Mark done / reschedule / remove schedule, straight from any calendar day. */
+/**
+ * Mark done / reschedule / remove — always three equal buttons on one row,
+ * inside the workout card, identical on mobile and desktop.
+ */
 function DayActions({
   r,
   onComplete,
@@ -242,62 +249,64 @@ function DayActions({
     r.scheduled_at ? new Date(r.scheduled_at).toISOString().slice(0, 16) : "",
   );
 
+  const base =
+    "flex h-14 w-full min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[11px] font-semibold leading-tight";
+
   return (
-    <div className="mt-3 space-y-2">
-      <div className="grid gap-2 sm:grid-cols-3">
+    <div className="space-y-2">
+      <div className="grid grid-cols-3 gap-2">
         <Button
-          size="sm"
           variant={r.status === "completed" ? "default" : "outline"}
-          className="h-10 rounded-xl"
+          className={base}
           disabled={busy}
           onClick={() => onComplete(r.id)}
         >
-          <CheckCircle2 className="mr-1.5 h-4 w-4" /> Mark done
+          <CheckCircle2 className="h-4 w-4 shrink-0" />
+          <span className="truncate">Mark done</span>
         </Button>
         <Button
-          size="sm"
-          variant="outline"
-          className="h-10 rounded-xl"
+          variant={open ? "default" : "outline"}
+          className={base}
           disabled={busy}
           onClick={() => setOpen((v) => !v)}
         >
-          <CalendarClock className="mr-1.5 h-4 w-4" />
-          {r.scheduled_at ? "Reschedule" : "Schedule"}
+          <CalendarClock className="h-4 w-4 shrink-0" />
+          <span className="truncate">{r.scheduled_at ? "Reschedule" : "Schedule"}</span>
         </Button>
         <Button
-          size="sm"
-          variant="ghost"
-          className="h-10 rounded-xl"
+          variant="outline"
+          className={base}
           disabled={busy || !r.scheduled_at}
           onClick={() => onClear(r.id)}
         >
-          <X className="mr-1.5 h-4 w-4" /> Remove
+          <X className="h-4 w-4 shrink-0" />
+          <span className="truncate">Remove</span>
         </Button>
       </div>
       {open ? (
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
           <input
             type="datetime-local"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            className="h-10 min-w-0 flex-1 rounded-xl border border-input bg-background px-3 text-sm"
+            className="h-11 w-full min-w-0 rounded-xl border border-input bg-background px-3 text-sm"
           />
           <Button
-            size="sm"
-            className="h-10 rounded-xl"
+            className="h-11 w-full rounded-xl sm:w-auto sm:px-6"
             disabled={busy || !draft}
             onClick={() => {
               onReschedule(r.id, new Date(draft).toISOString());
               setOpen(false);
             }}
           >
-            Save
+            Save date
           </Button>
         </div>
       ) : null}
     </div>
   );
 }
+
 
 function MonthGrid({
   cursor,
@@ -461,16 +470,22 @@ function CalendarView({
           <ul className="grid gap-3 sm:grid-cols-2">
             {selectedRows.map((r) => (
               <li key={r.id}>
-                <WorkoutCard r={r} onToggleFavorite={onToggleFavorite} />
-                <DayActions
+                <WorkoutCard
                   r={r}
-                  busy={busy}
-                  onComplete={actions.complete}
-                  onReschedule={actions.reschedule}
-                  onClear={actions.clear}
+                  onToggleFavorite={onToggleFavorite}
+                  actions={
+                    <DayActions
+                      r={r}
+                      busy={busy}
+                      onComplete={actions.complete}
+                      onReschedule={actions.reschedule}
+                      onClear={actions.clear}
+                    />
+                  }
                 />
               </li>
             ))}
+
           </ul>
         )}
       </div>
@@ -593,16 +608,22 @@ function ScheduledView({
       <ul className="grid gap-3 sm:grid-cols-2">
         {monthRows.map((r) => (
           <li key={r.id}>
-            <WorkoutCard r={r} onToggleFavorite={onToggleFavorite} />
-            <DayActions
+            <WorkoutCard
               r={r}
-              busy={busy}
-              onComplete={actions.complete}
-              onReschedule={actions.reschedule}
-              onClear={actions.clear}
+              onToggleFavorite={onToggleFavorite}
+              actions={
+                <DayActions
+                  r={r}
+                  busy={busy}
+                  onComplete={actions.complete}
+                  onReschedule={actions.reschedule}
+                  onClear={actions.clear}
+                />
+              }
             />
           </li>
         ))}
+
       </ul>
     </div>
   );
