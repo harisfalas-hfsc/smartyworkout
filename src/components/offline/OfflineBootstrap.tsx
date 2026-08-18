@@ -9,7 +9,7 @@ import { listMyThreads } from "@/lib/support.functions";
 import { scopedKey, trimCache, writeCache } from "@/lib/offline/store";
 
 const LOGBOOK_COLUMNS =
-  "id,name,category,duration_min,difficulty_stars,difficulty_label,mood,status,is_favorite,scheduled_at,completed_at,created_at,workout_feedback(difficulty_rating,feeling)";
+  "id,name,category,duration_min,difficulty_stars,difficulty_label,mood,status,is_favorite,scheduled_at,completed_at,created_at,is_wod,created_by,workout_feedback(difficulty_rating,feeling)";
 
 /** Builds the signed-in member's offline copy as soon as the app starts online. */
 export function OfflineBootstrap() {

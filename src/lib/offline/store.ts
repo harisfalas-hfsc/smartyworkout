@@ -44,18 +44,43 @@ export async function clearCacheForUser(userId: string | null | undefined): Prom
   }
 }
 
-/** Keeps the local copy from growing without bound. */
-export async function trimCache(max = 400): Promise<void> {
+/** Keys that must never be evicted — they are the offline app itself. */
+const PROTECTED = [
+  "logbook:list",
+  "wod:hub",
+  "inbox:notifications",
+  "inbox:threads",
+  "account:access",
+  "library:list",
+  "library:filters",
+];
+
+function isProtected(key: string) {
+  const bare = key.includes("::") ? key.slice(key.indexOf("::") + 2) : key;
+  return PROTECTED.some((p) => bare.startsWith(p)) || bare.startsWith("workout:");
+}
+
+/**
+ * Keeps the local copy from growing without bound.
+ * Only expendable entries (exercise media details) are ever evicted, so the
+ * member's saved workouts, logbook and inbox survive no matter how much of the
+ * exercise library was cached.
+ */
+export async function trimCache(max = 800): Promise<void> {
   if (!store) return;
   try {
-    const all = await keys(store);
-    if (all.length <= max) return;
+    const all = (await keys(store)).filter((k) => typeof k === "string") as string[];
+    const expendable = all.filter((k) => !isProtected(k));
+    if (expendable.length <= max) return;
     const entries = await Promise.all(
-      all.map(async (k) => ({ k, savedAt: (await get<Envelope<unknown>>(k as string, store))?.savedAt ?? 0 })),
+      expendable.map(async (k) => ({
+        k,
+        savedAt: (await get<Envelope<unknown>>(k, store))?.savedAt ?? 0,
+      })),
     );
     entries.sort((a, b) => a.savedAt - b.savedAt);
     await Promise.allSettled(
-      entries.slice(0, entries.length - max).map((e) => del(e.k as string, store)),
+      entries.slice(0, entries.length - max).map((e) => del(e.k, store)),
     );
   } catch {
     /* ignore */
