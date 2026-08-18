@@ -259,11 +259,11 @@ function WorkoutPage() {
           I finished this workout
         </Button>
       ) : saved ? (
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-          <Button asChild size="lg" className="flex-1">
+        <div className="mt-6 grid gap-2 sm:grid-cols-2">
+          <Button asChild size="lg" className="h-12 w-full rounded-2xl font-bold">
             <Link to="/coach">Next workout</Link>
           </Button>
-          <Button asChild size="lg" variant="secondary" className="flex-1">
+          <Button asChild size="lg" variant="secondary" className="h-12 w-full rounded-2xl font-bold">
             <Link to="/logbook" search={{ filter: "all" as const, view: "list" as const }}>Open logbook</Link>
           </Button>
         </div>
