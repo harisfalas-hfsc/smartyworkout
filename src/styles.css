@@ -161,18 +161,26 @@
   align-items: center;
   justify-content: center;
   vertical-align: middle;
-  min-width: 1.6rem;
-  height: 1.6rem;
+  margin-left: 0.3rem;
+  min-width: 1.35rem;
+  width: 1.35rem;
+  height: 1.35rem;
   border-radius: 9999px;
-  background-color: color-mix(in oklab, var(--color-primary) 15%, transparent);
-  font-size: 0.8rem;
+  border: 1.5px solid var(--color-primary);
+  color: var(--color-primary);
+  background-color: color-mix(in oklab, var(--color-primary) 14%, transparent);
+  font-size: 0.75rem;
   line-height: 1;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.2s ease;
 }
-.workout-html .exercise-eye:hover { background-color: color-mix(in oklab, var(--color-primary) 30%, transparent); }
+.workout-html .exercise-eye svg { width: 0.8rem; height: 0.8rem; }
+.workout-html .exercise-eye:hover {
+  background-color: color-mix(in oklab, var(--color-primary) 30%, transparent);
+  transform: translateY(-1px);
+}
 .workout-html.reader { color: var(--color-foreground); }
-.workout-html.reader .exercise-eye { background-color: color-mix(in oklab, var(--color-primary) 18%, transparent); }
+
 
 @media print {
   .sticky, nav, footer { display: none !important; }
