@@ -79,3 +79,19 @@ device. Creating, generating, paying and AI actions stay disabled with one hones
 
 > Store note: already-submitted binaries keep their old startup behaviour — a new build must be
 > uploaded, because the remote-shell behaviour cannot be changed remotely.
+
+## Offline core modules (shared across every Smarty project)
+
+- `src/lib/offline/connectivity.ts` — one connectivity source: browser events + native
+  Capacitor Network plugin + real backend reachability probe (`/api/public/health`).
+  States: `online`, `backend-unreachable`, `offline`, with automatic recovery polling.
+- `src/lib/offline/db.ts` — local database metadata: schema version, versioned migrations
+  (never destroys the pending queue), sync checkpoints for resumable prefetch, diagnostics.
+- `src/lib/offline/store.ts` — IndexedDB envelopes, per-user key scoping, protected keys, trim.
+- `src/lib/offline/queue.ts` — pending operations with priority, retry count, backoff, dedupe,
+  bounded retries (parked as `dead` instead of deleted).
+- `src/lib/offline/sync-bus.ts` — shared sync state + "Sync now" trigger.
+- `src/lib/offline/sign-out.ts` — multi-user isolation: wipes the leaving member's local copy.
+- `src/components/offline/OfflineBootstrap.tsx` — priority phases (identity → personal →
+  library → community) with checkpoints so an interrupted sync resumes.
+- `src/components/offline/OfflineStatus.tsx` — small non-blocking pill; never a modal.
