@@ -187,6 +187,9 @@ export const listNotifications = createServerFn({ method: "GET" })
       .from("notifications")
       .select("id,kind,title,body,workout_id,read_at,created_at")
       .eq("user_id", context.userId)
+      // Admin-only alerts (reports, inbound support) belong in the Admin panel,
+      // never in the member's personal inbox — even when the member is an admin.
+      .not("kind", "in", "(admin,support)")
       .order("created_at", { ascending: false })
       .limit(100);
     const rows =
