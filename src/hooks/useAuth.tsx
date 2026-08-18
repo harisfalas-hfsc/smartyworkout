@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { refreshRememberedSession } from "@/lib/offline/device-auth";
 import type { Session, User } from "@supabase/supabase-js";
 
 type ProfileSummary = {
@@ -67,6 +68,7 @@ export function useAuth() {
       setSession(data.session);
       setUser(data.session?.user ?? null);
       setLoading(false);
+      refreshRememberedSession(data.session?.user?.email);
       void loadProfile(data.session?.user ?? null);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_evt, s) => {
@@ -74,6 +76,7 @@ export function useAuth() {
       setSession(s);
       setUser(s?.user ?? null);
       setLoading(false);
+      refreshRememberedSession(s?.user?.email);
       void loadProfile(s?.user ?? null);
     });
     return () => {
