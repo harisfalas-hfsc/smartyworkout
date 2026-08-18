@@ -9,7 +9,9 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "build:native": "vite build && node scripts/build-native.mjs",
+    "cap:sync": "npx cap sync"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^3.0.25",

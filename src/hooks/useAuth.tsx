@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { refreshRememberedSession } from "@/lib/offline/device-auth";
 import type { Session, User } from "@supabase/supabase-js";
+import { isOnline } from "@/lib/offline/connectivity";
 
 type ProfileSummary = {
   display_name: string | null;
@@ -43,7 +44,7 @@ export function useAuth() {
       } catch {
         /* ignore */
       }
-      if (typeof navigator !== "undefined" && navigator.onLine === false) return;
+      if (!isOnline()) return;
       try {
         const { data } = await supabase
           .from("profiles")
