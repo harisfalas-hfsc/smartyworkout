@@ -82,8 +82,10 @@ export function ConversationsPanel({
     setDraft("");
     if (t.user_unread) {
       setThreads((prev) => prev.map((x) => (x.id === t.id ? { ...x, user_unread: false } : x)));
+      announceInboxChanged({ readMessageIds: [t.id] });
       try {
         await setRead({ data: { ids: [t.id], read: true } });
+        announceInboxChanged();
       } catch {
         await enqueueAction("thread-read", { ids: [t.id], read: true }, user?.id);
       }
@@ -121,8 +123,10 @@ export function ConversationsPanel({
   async function toggleRead(t: SupportThread) {
     const read = t.user_unread;
     setThreads((prev) => prev.map((x) => (x.id === t.id ? { ...x, user_unread: !read } : x)));
+    announceInboxChanged(read ? { readMessageIds: [t.id] } : { unreadMessageIds: [t.id] });
     try {
       await setRead({ data: { ids: [t.id], read } });
+      announceInboxChanged();
     } catch {
       await enqueueAction("thread-read", { ids: [t.id], read }, user?.id);
     }
@@ -132,8 +136,10 @@ export function ConversationsPanel({
     const ids = threads.filter((t) => t.user_unread).map((t) => t.id);
     if (!ids.length) return;
     setThreads((prev) => prev.map((t) => ({ ...t, user_unread: false })));
+    announceInboxChanged({ readMessageIds: ids });
     try {
       await setRead({ data: { ids, read: true } });
+      announceInboxChanged();
     } catch {
       await enqueueAction("thread-read", { ids, read: true }, user?.id);
     }
@@ -144,8 +150,10 @@ export function ConversationsPanel({
     if (!ids.length) return;
     setThreads([]);
     setOpenId(null);
+    announceInboxChanged({ removedMessageIds: ids, messagesUnread: 0 });
     try {
       await removeThreads({ data: { ids } });
+      announceInboxChanged();
     } catch {
       await enqueueAction("thread-delete", { ids }, user?.id);
       toast.info("Deleted on this device — it will sync when you are online.");
@@ -156,8 +164,10 @@ export function ConversationsPanel({
   async function deleteOne(id: string) {
     setThreads((prev) => prev.filter((t) => t.id !== id));
     if (openId === id) setOpenId(null);
+    announceInboxChanged({ removedMessageIds: [id] });
     try {
       await removeThreads({ data: { ids: [id] } });
+      announceInboxChanged();
     } catch {
       await enqueueAction("thread-delete", { ids: [id] }, user?.id);
       toast.info("Deleted on this device — it will sync when you are online.");

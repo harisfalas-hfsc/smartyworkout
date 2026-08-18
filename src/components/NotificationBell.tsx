@@ -73,7 +73,19 @@ export function NotificationBell() {
       const detail = (event as CustomEvent<Partial<InboxSnapshot>>).detail;
       if (typeof detail?.updatesUnread === "number") setUpdatesUnread(detail.updatesUnread);
       if (typeof detail?.messagesUnread === "number") setMessagesUnread(detail.messagesUnread);
-      if (navigator.onLine) fetchAll();
+      if (detail?.removedUpdateIds?.length)
+        setItems((prev) => prev.filter((item) => item.kind !== "update" || !detail.removedUpdateIds?.includes(item.id)));
+      if (detail?.removedMessageIds?.length)
+        setItems((prev) => prev.filter((item) => item.kind !== "message" || !detail.removedMessageIds?.includes(item.id)));
+      if (detail?.readUpdateIds?.length)
+        setItems((prev) => prev.map((item) => item.kind === "update" && detail.readUpdateIds?.includes(item.id) ? { ...item, unread: false } : item));
+      if (detail?.unreadUpdateIds?.length)
+        setItems((prev) => prev.map((item) => item.kind === "update" && detail.unreadUpdateIds?.includes(item.id) ? { ...item, unread: true } : item));
+      if (detail?.readMessageIds?.length)
+        setItems((prev) => prev.map((item) => item.kind === "message" && detail.readMessageIds?.includes(item.id) ? { ...item, unread: false } : item));
+      if (detail?.unreadMessageIds?.length)
+        setItems((prev) => prev.map((item) => item.kind === "message" && detail.unreadMessageIds?.includes(item.id) ? { ...item, unread: true } : item));
+      if (navigator.onLine && (!detail || Object.keys(detail).length === 0)) fetchAll();
     };
     fetchAll();
     window.addEventListener(INBOX_CHANGED_EVENT, onChanged);

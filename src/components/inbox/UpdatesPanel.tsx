@@ -100,8 +100,10 @@ export function UpdatesPanel({ onUnread }: { onUnread?: (n: number) => void }) {
       ),
     );
     setSelected(new Set());
+    announceInboxChanged(read ? { readUpdateIds: ids } : { unreadUpdateIds: ids });
     try {
       await setRead({ data: { ids, read } });
+      announceInboxChanged();
     } catch {
       await enqueueAction("notification-read", { ids, read }, user?.id);
       toast.info("Saved on this device — it will sync when you are online.");
@@ -116,8 +118,10 @@ export function UpdatesPanel({ onUnread }: { onUnread?: (n: number) => void }) {
     setItems((prev) => prev.filter((n) => !ids.includes(n.id)));
     setSelected(new Set());
     if (openId && ids.includes(openId)) setOpenId(null);
+    announceInboxChanged({ removedUpdateIds: ids });
     try {
       await removeMany({ data: { ids } });
+      announceInboxChanged();
     } catch {
       await enqueueAction("notification-delete", { ids }, user?.id);
       toast.info("Deleted on this device — it will sync when you are online.");
