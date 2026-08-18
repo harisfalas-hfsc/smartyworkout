@@ -1,18 +1,16 @@
 import { useEffect, useState } from "react";
+import { isOnline, subscribeConnectivity } from "./connectivity";
 
-/** Live online/offline flag. Assumes online until the browser says otherwise. */
+/**
+ * Live online/offline flag, backed by the shared connectivity source
+ * (native Capacitor Network plugin when available, browser events otherwise).
+ */
 export function useOnlineStatus(): boolean {
   const [online, setOnline] = useState(true);
 
   useEffect(() => {
-    const update = () => setOnline(navigator.onLine);
-    update();
-    window.addEventListener("online", update);
-    window.addEventListener("offline", update);
-    return () => {
-      window.removeEventListener("online", update);
-      window.removeEventListener("offline", update);
-    };
+    setOnline(isOnline());
+    return subscribeConnectivity(setOnline);
   }, []);
 
   return online;
