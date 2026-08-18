@@ -310,7 +310,7 @@ function Calendar({
           })}
         </p>
         {selectedRows.length === 0 ? (
-          <div className="rounded-2xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+          <div className="rounded-2xl border-2 border-blue-400 bg-card p-6 text-center text-sm text-muted-foreground">
             Nothing on this day.
           </div>
         ) : (
@@ -467,7 +467,7 @@ function Logbook() {
           </div>
 
           {filtered.length === 0 ? (
-            <div className="mt-6 rounded-2xl border border-border bg-card p-8 text-center">
+            <div className="mt-6 rounded-2xl border-2 border-blue-400 bg-card p-8 text-center">
               <p className="text-muted-foreground">
                 {active.length
                   ? "No workouts match this filter yet."

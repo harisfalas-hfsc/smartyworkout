@@ -106,7 +106,7 @@ function QuestionCard({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-6">
+    <section className="rounded-3xl border-2 border-blue-400 bg-card p-5 shadow-sm sm:p-6">
       <div className="mb-4 flex items-start gap-3">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
           <Icon className="h-5 w-5" />
@@ -297,7 +297,7 @@ function CoachPage() {
       />
 
       {resuming && !busy ? (
-        <div className="mb-4 rounded-2xl border border-primary/40 bg-primary/5 p-4 text-sm">
+        <div className="mb-4 rounded-2xl border-2 border-blue-400 bg-primary/5 p-4 text-sm">
           <p className="font-semibold">A workout was being built when you left.</p>
           <p className="mt-1 text-muted-foreground">
             Smarty Coach finishes on the server, so it keeps going even if you close the page. Check
@@ -335,7 +335,7 @@ function CoachPage() {
 
 
       {wodMode ? (
-        <div className="mb-6 rounded-3xl border-2 border-primary/40 bg-primary/5 p-5 text-center">
+        <div className="mb-6 rounded-3xl border-2 border-blue-400 bg-primary/5 p-5 text-center">
           <p className="text-sm font-bold uppercase tracking-[0.2em] text-primary">WOD mode is on</p>
           <p className="mt-2 text-sm text-muted-foreground">
             You're following the periodization programme, so Smarty Coach builds two workouts for
@@ -353,7 +353,7 @@ function CoachPage() {
         </div>
       ) : null}
 
-      <div className={`mb-6 rounded-3xl border-2 border-primary/40 bg-primary/5 p-5 text-center${wodMode ? " pointer-events-none opacity-40" : ""}`}>
+      <div className={`mb-6 rounded-3xl border-2 border-blue-400 bg-primary/5 p-5 text-center${wodMode ? " pointer-events-none opacity-40" : ""}`}>
         <p className="text-sm font-semibold">Don't feel like choosing?</p>
         <Button
           size="lg"

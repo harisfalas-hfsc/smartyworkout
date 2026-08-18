@@ -325,7 +325,7 @@ function SharedWorkoutPage() {
         </div>
       </section>
 
-      <section id="comments" className="mt-6 rounded-3xl border border-border bg-card p-5">
+      <section id="comments" className="mt-6 rounded-3xl border-2 border-blue-400 bg-card p-5">
         <h3 className="text-lg font-bold">Comments ({comments.length})</h3>
         <div className="mt-3 flex gap-2">
           <Textarea
