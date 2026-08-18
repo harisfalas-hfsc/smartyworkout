@@ -66,6 +66,13 @@ async function markCanceled(subscription: any, env: StripeEnv) {
     .update({ status: "canceled", updated_at: new Date().toISOString() })
     .eq("provider_subscription_id", subscription.id)
     .eq("environment", env);
+
+  await adminAlert({
+    kind: "Membership",
+    title: "Membership canceled",
+    details: `Subscription ${subscription.id} was canceled.`,
+    dedupeKey: `sub-canceled-${subscription.id}`,
+  });
 }
 
 function euro(amount: number | null | undefined, currency: string | null | undefined): string {
@@ -111,6 +118,13 @@ async function handleInvoicePaid(invoice: any, env: StripeEnv) {
     } Thank you for training with us — your receipt is on its way by email.`,
     dedupeKey: `invoice-paid:${invoice.id}`,
   });
+
+  await adminAlert({
+    kind: "Payment",
+    title: `Payment received — ${amount}`,
+    details: `Invoice ${invoice.id} paid by user ${userId}.${nextDate ? ` Next period ends ${nextDate}.` : ""}`,
+    dedupeKey: `admin-invoice-paid-${invoice.id}`,
+  });
 }
 
 async function handleInvoiceFailed(invoice: any, env: StripeEnv) {
@@ -134,6 +148,13 @@ async function handleInvoiceFailed(invoice: any, env: StripeEnv) {
     title: nextAttempt ? "Payment didn't go through" : "Payment failed — action needed",
     body,
     dedupeKey: `invoice-failed:${invoice.id}:${attempt}`,
+  });
+
+  await adminAlert({
+    kind: "Payment",
+    title: `Payment failed — ${amount}`,
+    details: `Invoice ${invoice.id} failed for user ${userId} (attempt ${attempt}).`,
+    dedupeKey: `admin-invoice-failed-${invoice.id}-${attempt}`,
   });
 }
 
