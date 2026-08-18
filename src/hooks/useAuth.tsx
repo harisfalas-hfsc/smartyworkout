@@ -28,18 +28,39 @@ export function useAuth() {
   useEffect(() => {
     let active = true;
 
+    const cacheKey = (id: string) => `smarty:profile:${id}`;
+
     async function loadProfile(authUser: User | null) {
       if (!authUser) {
         if (active) setProfile(null);
         return;
       }
-      const { data } = await supabase
-        .from("profiles")
-        .select("display_name, avatar_url")
-        .eq("id", authUser.id)
-        .maybeSingle();
-      if (active) setProfile(data ?? null);
+      // Show the saved copy instantly (also the only source when offline).
+      try {
+        const saved = localStorage.getItem(cacheKey(authUser.id));
+        if (saved && active) setProfile(JSON.parse(saved) as ProfileSummary);
+      } catch {
+        /* ignore */
+      }
+      if (typeof navigator !== "undefined" && navigator.onLine === false) return;
+      try {
+        const { data } = await supabase
+          .from("profiles")
+          .select("display_name, avatar_url")
+          .eq("id", authUser.id)
+          .maybeSingle();
+        if (!active || !data) return;
+        setProfile(data);
+        try {
+          localStorage.setItem(cacheKey(authUser.id), JSON.stringify(data));
+        } catch {
+          /* ignore */
+        }
+      } catch {
+        /* offline — keep the saved copy */
+      }
     }
+
 
     supabase.auth.getSession().then(({ data }) => {
       if (!active) return;
