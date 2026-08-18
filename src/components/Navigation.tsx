@@ -103,14 +103,21 @@ export function Navigation() {
               <ChevronLeft className="h-4 w-4" />
             </button>
           )}
-          <Link
-            to="/"
-            aria-label="SmartyWorkout home"
-            className="text-lg font-extrabold tracking-tight leading-none no-underline hover:no-underline"
+          <button
+            type="button"
+            onClick={async () => {
+              // Acts as the app's refresh button: go home, reload data, scroll to top.
+              await router.navigate({ to: "/" });
+              void router.invalidate();
+              window.scrollTo({ top: 0, behavior: "auto" });
+            }}
+            aria-label="SmartyWorkout home and refresh"
+            className="bg-transparent p-0 text-lg font-extrabold leading-none tracking-tight no-underline hover:no-underline"
             style={{ textDecoration: "none" }}
           >
             <span className="text-primary">SMARTY</span><span className="text-green-500">WORKOUT</span>
-          </Link>
+          </button>
+
 
         </div>
 
