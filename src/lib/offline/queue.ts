@@ -47,10 +47,10 @@ async function readQueue(): Promise<QueuedAction[]> {
     const rows = (await get<QueuedAction[]>(QUEUE_KEY, store)) ?? [];
     // Tolerate rows written by the previous queue shape.
     return rows.map((r) => ({
-      priority: 1,
-      retries: 0,
-      status: "pending" as QueueStatus,
       ...r,
+      priority: r.priority ?? 1,
+      retries: r.retries ?? 0,
+      status: r.status ?? ("pending" as QueueStatus),
     }));
   } catch {
     return [];
