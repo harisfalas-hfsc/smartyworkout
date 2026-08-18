@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { offlineFirst } from "@/lib/offline/offline-first";
 import { useEffect, useState } from "react";
 import { Loader2, Trophy, Users, Star, MessageSquare, Dumbbell, Flame } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
@@ -126,7 +127,9 @@ function CommunityPage() {
   useEffect(() => {
     let active = true;
     setWorkouts(null);
-    void fetchCommunityWorkouts({ sort: workoutSort, limit: SLOTS }).then((r) => {
+    void offlineFirst(`community:workouts:${workoutSort}`, () =>
+      fetchCommunityWorkouts({ sort: workoutSort, limit: SLOTS }),
+    ).then((r) => {
       if (active) setWorkouts(r);
     });
     return () => {
@@ -141,7 +144,7 @@ function CommunityPage() {
       memberSort === "workouts_shared"
         ? fetchCommunityCreators("workouts_shared", SLOTS)
         : fetchLeaders(memberSort, SLOTS);
-    void load.then((r) => {
+    void offlineFirst(`community:members:${memberSort}`, () => load).then((r) => {
       if (active) setMembers(r);
     });
     return () => {
@@ -152,7 +155,9 @@ function CommunityPage() {
   useEffect(() => {
     let active = true;
     setRanked(null);
-    void fetchCommunityWorkouts({ sort: rankSort, limit: SLOTS }).then((r) => {
+    void offlineFirst(`community:ranked:${rankSort}`, () =>
+      fetchCommunityWorkouts({ sort: rankSort, limit: SLOTS }),
+    ).then((r) => {
       if (active) setRanked(r);
     });
     return () => {
@@ -163,7 +168,9 @@ function CommunityPage() {
   useEffect(() => {
     let active = true;
     setComments(null);
-    void fetchLatestComments(30, talkSort === "oldest" ? "oldest" : "newest").then((rows) => {
+    void offlineFirst(`community:comments:${talkSort}`, () =>
+      fetchLatestComments(30, talkSort === "oldest" ? "oldest" : "newest"),
+    ).then((rows) => {
       if (!active) return;
       if (talkSort !== "discussed") return setComments(rows.slice(0, SLOTS));
       const counts = new Map<string, number>();
