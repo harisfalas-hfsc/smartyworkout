@@ -16,6 +16,16 @@ import {
 } from "@/lib/community-queries";
 import { getSharedWorkout } from "@/lib/community.functions";
 import { getProgressOverview } from "@/lib/progress.functions";
+import { isOnline, subscribeConnectivity } from "@/lib/offline/connectivity";
+import { onSyncRequested, setSyncState } from "@/lib/offline/sync-bus";
+import {
+  bindUser,
+  isPhaseDone,
+  markPhaseDone,
+  markSyncFinished,
+  markSyncStarted,
+  migrateLocalDatabase,
+} from "@/lib/offline/db";
 
 const LOGBOOK_COLUMNS =
   "id,name,category,duration_min,difficulty_stars,difficulty_label,mood,status,is_favorite,scheduled_at,completed_at,created_at,is_wod,created_by,workout_feedback(difficulty_rating,feeling)";
