@@ -16,13 +16,13 @@ import { ExerciseHTMLContent } from "@/components/workout/ExerciseHTMLContent";
 import { ExerciseMediaProvider } from "@/components/workout/ExerciseMediaProvider";
 import { uniqueTokenIds } from "@/lib/workout/tokens";
 import {
-import { formatDateTime } from "@/lib/date-format";
   adminListWorkouts,
   adminGetWorkout,
   type AdminWorkoutRow,
   type AdminWorkoutFacets,
   type AdminWorkoutDetail,
 } from "@/lib/admin.functions";
+import { formatDateTime } from "@/lib/date-format";
 
 type Props = {
   /** When set, the archive is scoped to one member (their full logbook). */
