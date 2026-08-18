@@ -175,10 +175,10 @@ function Auth() {
     <div className="mx-auto flex min-h-[70vh] w-full max-w-[420px] flex-col px-5 pb-6 pt-5">
       {mode === "signup" ? (
         <form onSubmit={submitSignup} className="mt-2 flex flex-col gap-3">
-          <h1 style={{ fontWeight: 800, fontSize: 24, color: "#14213A", letterSpacing: "-0.01em" }}>
+          <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
             Create your account
           </h1>
-          <p className="-mt-1 text-sm" style={{ color: "#6B7A90" }}>Next, complete your mandatory Training Profile.</p>
+          <p className="-mt-1 text-sm text-muted-foreground">Next, complete your mandatory Training Profile.</p>
           <div className="space-y-1.5">
             <Label htmlFor="n">Name</Label>
             <Input id="n" value={name} onChange={(e) => setName(e.target.value)} required className="h-11 rounded-xl" autoComplete="name" />
@@ -200,26 +200,26 @@ function Auth() {
           <Button
             type="submit"
             disabled={submitting}
-            style={{ background: "#FF6B4A", boxShadow: "0 14px 24px -10px rgba(255,107,74,0.55)", color: "#fff" }}
+            style={{ boxShadow: "0 14px 24px -10px hsl(0 0% 0% / 0.35)" }}
             className="mt-2 h-12 w-full rounded-2xl text-base font-semibold hover:opacity-95"
           >
             {submitting ? "Saving..." : "Continue"}
           </Button>
-          {authNotice && <p className="text-center text-sm font-semibold" style={{ color: "#0E7C86" }}>{authNotice}</p>}
+          {authNotice && <p className="text-center text-sm font-semibold text-primary">{authNotice}</p>}
           {authError && <p className="text-center text-sm font-semibold text-destructive">{authError}</p>}
-          <p className="mt-1 text-center text-sm" style={{ color: "#6B7A90" }}>
+          <p className="mt-1 text-center text-sm text-muted-foreground">
             Have an account?{" "}
-            <button type="button" onClick={() => { setAuthError(""); setAuthNotice(""); setMode("signin"); }} style={{ color: "#0E7C86", fontWeight: 700, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+            <button type="button" onClick={() => { setAuthError(""); setAuthNotice(""); setMode("signin"); }} className="bg-transparent p-0 font-bold text-primary">
               Sign in
             </button>
           </p>
         </form>
       ) : mode === "signin" ? (
         <form onSubmit={submitSignin} className="mt-2 flex flex-col gap-3">
-          <h1 style={{ fontWeight: 800, fontSize: 24, color: "#14213A", letterSpacing: "-0.01em" }}>
+          <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
             Welcome back
           </h1>
-          <p className="-mt-1 text-sm" style={{ color: "#6B7A90" }}>Sign in to continue your training journey.</p>
+          <p className="-mt-1 text-sm text-muted-foreground">Sign in to continue your training journey.</p>
           <div className="space-y-1.5">
             <Label htmlFor="se">Email</Label>
             <Input id="se" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="h-11 rounded-xl" autoComplete="email" />
@@ -230,7 +230,7 @@ function Auth() {
               <button
                 type="button"
                 onClick={() => { setAuthError(""); setAuthNotice(""); setResetSent(false); setMode("forgot"); }}
-                style={{ color: "#0E7C86", fontWeight: 700, fontSize: 13, background: "none", border: "none", cursor: "pointer", padding: 0 }}
+                className="bg-transparent p-0 text-[13px] font-bold text-primary"
               >
                 Forgot password?
               </button>
@@ -240,25 +240,25 @@ function Auth() {
           <Button
             type="submit"
             disabled={submitting}
-            style={{ background: "#FF6B4A", boxShadow: "0 14px 24px -10px rgba(255,107,74,0.55)", color: "#fff" }}
+            style={{ boxShadow: "0 14px 24px -10px hsl(0 0% 0% / 0.35)" }}
             className="mt-2 h-12 w-full rounded-2xl text-base font-semibold hover:opacity-95"
           >
             {submitting ? "Signing in..." : "Sign in"}
           </Button>
           {authError && <p className="text-center text-sm font-semibold text-destructive">{authError}</p>}
-          <p className="mt-1 text-center text-sm" style={{ color: "#6B7A90" }}>
+          <p className="mt-1 text-center text-sm text-muted-foreground">
             New here?{" "}
-            <button type="button" onClick={() => { setAuthError(""); setAuthNotice(""); setMode("signup"); }} style={{ color: "#0E7C86", fontWeight: 700, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+            <button type="button" onClick={() => { setAuthError(""); setAuthNotice(""); setMode("signup"); }} className="bg-transparent p-0 font-bold text-primary">
               Create an account
             </button>
           </p>
         </form>
       ) : (
         <form onSubmit={submitForgot} className="mt-2 flex flex-col gap-3">
-          <h1 style={{ fontWeight: 800, fontSize: 24, color: "#14213A", letterSpacing: "-0.01em" }}>
+          <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
             Reset your password
           </h1>
-          <p className="-mt-1 text-sm" style={{ color: "#6B7A90" }}>
+          <p className="-mt-1 text-sm text-muted-foreground">
             Enter your account email. We'll send you a link to set a new password.
           </p>
           <div className="space-y-1.5">
@@ -268,20 +268,20 @@ function Auth() {
           <Button
             type="submit"
             disabled={submitting || resetSent}
-            style={{ background: "#FF6B4A", boxShadow: "0 14px 24px -10px rgba(255,107,74,0.55)", color: "#fff" }}
+            style={{ boxShadow: "0 14px 24px -10px hsl(0 0% 0% / 0.35)" }}
             className="mt-2 h-12 w-full rounded-2xl text-base font-semibold hover:opacity-95"
           >
             {resetSent ? "Email sent ✓" : submitting ? "Sending..." : "Send reset link"}
           </Button>
           {resetSent && (
-            <p className="text-center text-sm" style={{ color: "#0E7C86" }}>
+            <p className="text-center text-sm text-primary">
               Check your inbox (and spam folder) for the reset link.
             </p>
           )}
           {authError && <p className="text-center text-sm font-semibold text-destructive">{authError}</p>}
-          <p className="mt-1 text-center text-sm" style={{ color: "#6B7A90" }}>
+          <p className="mt-1 text-center text-sm text-muted-foreground">
             Remembered it?{" "}
-            <button type="button" onClick={() => { setAuthError(""); setResetSent(false); setMode("signin"); }} style={{ color: "#0E7C86", fontWeight: 700, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+            <button type="button" onClick={() => { setAuthError(""); setResetSent(false); setMode("signin"); }} className="bg-transparent p-0 font-bold text-primary">
               Back to sign in
             </button>
           </p>
