@@ -5,7 +5,7 @@ import { CalendarClock, CheckCircle2, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { setWorkoutStatus } from "@/lib/coach.functions";
 import { cn } from "@/lib/utils";
-import { formatDateTime } from "@/lib/date-format";
+import { formatDateTime, scheduleTone, SCHEDULE_TONE_TEXT } from "@/lib/date-format";
 
 export type WorkoutStatusState = { status: string; scheduledAt: string };
 
@@ -39,6 +39,7 @@ export function WorkoutStatusPanel({
   const done = status === "completed";
   const scheduled = !done && Boolean(scheduledAt);
   const notCompleted = !done && !scheduled;
+  const tone = scheduleTone(scheduledAt, done);
 
   async function target(): Promise<string> {
     if (resolveWorkoutId) return resolveWorkoutId();
