@@ -22,8 +22,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/PageHeader";
 import { isAdminEmail } from "@/lib/admin";
-import { adminGetStats, type AdminStats } from "@/lib/admin.functions";
-import { adminUnreadMessageCount } from "@/lib/support.functions";
+import {
+  adminGetStats,
+  adminGetSectionBadges,
+  type AdminStats,
+  type AdminBadgeCounts,
+} from "@/lib/admin.functions";
 import { AdminUsersTab } from "@/components/admin/AdminUsersTab";
 import { AdminRevenueTab } from "@/components/admin/AdminRevenueTab";
 import { AdminRulesTab } from "@/components/admin/AdminRulesTab";
@@ -109,17 +113,31 @@ const SECTIONS: { key: SectionKey; label: string; description: string; Icon: Luc
   },
 ];
 
+const SEEN_PREFIX = "smarty-admin-seen-";
+
+function readSeen(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  const out: Record<string, string> = {};
+  for (const { key } of SECTIONS) {
+    const v = window.localStorage.getItem(SEEN_PREFIX + key);
+    if (v) out[key] = v;
+  }
+  return out;
+}
+
 function AdminPage() {
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [section, setSection] = useState<SectionKey | null>(null);
-  const unreadMessages = useAdminUnreadMessages(authed === true, section);
+  const { badges, markSeen } = useAdminBadges(authed === true, section);
+  const unreadMessages = badges.messages ?? 0;
 
-  useEffect(() => {
-    supabase.auth
-      .getUser()
-      .then(({ data }) => setAuthed(isAdminEmail(data.user?.email)))
-      .catch(() => setAuthed(false));
-  }, []);
+  function openSection(key: SectionKey) {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(SEEN_PREFIX + key, new Date().toISOString());
+    }
+    markSeen(key);
+    setSection(key);
+  }
 
   if (authed === null) {
     return (
@@ -174,22 +192,23 @@ function AdminPage() {
           {section === "reports" && <AdminReportsTab />}
         </div>
       ) : (
-        <AdminHub onOpen={setSection} unreadMessages={unreadMessages} />
+        <AdminHub onOpen={openSection} unreadMessages={unreadMessages} badges={badges} />
       )}
     </Shell>
   );
 }
 
-function useAdminUnreadMessages(enabled: boolean, section: SectionKey | null) {
-  const getCount = useServerFn(adminUnreadMessageCount);
-  const [count, setCount] = useState(0);
+function useAdminBadges(enabled: boolean, section: SectionKey | null) {
+  const getBadges = useServerFn(adminGetSectionBadges);
+  const [badges, setBadges] = useState<AdminBadgeCounts>({});
+
   useEffect(() => {
     if (!enabled) return;
     let active = true;
     const tick = () => {
-      void getCount({ data: {} } as never)
+      void getBadges({ data: { seen: readSeen() } })
         .then((r) => {
-          if (active) setCount(r.count);
+          if (active) setBadges(r.badges);
         })
         .catch(() => undefined);
     };
@@ -199,16 +218,23 @@ function useAdminUnreadMessages(enabled: boolean, section: SectionKey | null) {
       active = false;
       clearInterval(t);
     };
-  }, [enabled, section, getCount]);
-  return count;
+  }, [enabled, section, getBadges]);
+
+  const markSeen = (key: SectionKey) =>
+    setBadges((prev) => ({ ...prev, [key]: key === "messages" ? prev[key] ?? 0 : 0 }));
+
+  return { badges, markSeen };
 }
+
 
 function AdminHub({
   onOpen,
   unreadMessages,
+  badges,
 }: {
   onOpen: (key: SectionKey) => void;
   unreadMessages: number;
+  badges: AdminBadgeCounts;
 }) {
   const getStats = useServerFn(adminGetStats);
   const [stats, setStats] = useState<AdminStats | null>(null);
@@ -266,9 +292,9 @@ function AdminHub({
             onClick={() => onOpen(key)}
             className="relative flex min-h-[112px] flex-col items-start gap-2 rounded-2xl border border-blue-400 bg-card p-4 text-left transition hover:bg-accent"
           >
-            {key === "messages" && unreadMessages > 0 && (
-              <span className="absolute right-3 top-3 grid h-6 min-w-6 place-items-center rounded-full bg-primary px-2 text-xs font-bold text-primary-foreground">
-                {unreadMessages}
+            {(badges[key] ?? 0) > 0 && (
+              <span className="absolute right-3 top-3 grid h-6 min-w-6 place-items-center rounded-full bg-destructive px-2 text-xs font-bold text-destructive-foreground">
+                {(badges[key] ?? 0) > 99 ? "99+" : badges[key]}
               </span>
             )}
             <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
