@@ -286,7 +286,7 @@ function WodPage() {
         subtitle="Your daily programme, chosen for you by Smarty Coach."
       />
 
-      <section className="space-y-3 rounded-2xl border-2 border-blue-400 bg-card px-5 py-5 shadow-sm sm:px-8">
+      <section className="space-y-3 rounded-2xl border-2 border-primary bg-card px-5 py-5 shadow-sm sm:px-8">
         <p className="text-center text-[14px] leading-6 text-muted-foreground">
           <strong className="text-primary">Workout of the Day is two ready workouts every
           day</strong> — one with equipment and one bodyweight only — built automatically around
@@ -359,7 +359,7 @@ function WodPage() {
       />
 
 
-      <section className="lg:flex lg:flex-col lg:items-center">
+      <section className="flex flex-col items-center gap-5">
         {workouts.length ? (
           <div className="grid w-full gap-3 sm:grid-cols-2 lg:gap-5">
 
@@ -371,7 +371,7 @@ function WodPage() {
 
         <Button
           variant={subscribed ? "secondary" : "default"}
-          className={`${workouts.length ? "mt-3 " : ""}h-12 w-full rounded-lg text-[15px] font-extrabold lg:w-80`}
+          className="h-12 w-full rounded-lg text-[15px] font-extrabold lg:w-80"
           disabled={busy || building}
           onClick={() => void handleSubscribeClick()}
         >
@@ -389,7 +389,7 @@ function WodPage() {
 
         {!user ? null : !access?.profileComplete || !access.healthAcknowledged ? (
 
-          <div className="w-full max-w-xl rounded-2xl border-2 border-blue-400 bg-card p-5 text-center">
+          <div className="w-full max-w-xl rounded-2xl border-2 border-primary bg-card p-5 text-center">
             <UserRound className="mx-auto h-6 w-6 text-primary" />
             <p className="mt-2 font-extrabold">Complete your Training Profile first</p>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
@@ -400,7 +400,7 @@ function WodPage() {
             </Button>
           </div>
         ) : (
-          <div className="w-full max-w-xl rounded-2xl border-2 border-blue-400 bg-card p-5 text-center">
+          <div className="w-full max-w-xl rounded-2xl border-2 border-primary bg-card p-5 text-center">
             <Crown className="mx-auto h-6 w-6 text-primary" />
             <p className="mt-2 font-extrabold">Premium membership required</p>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
@@ -411,7 +411,7 @@ function WodPage() {
             </Button>
           </div>
         )}
-        <p className="mt-2 text-center text-[11px] leading-4 text-muted-foreground">
+        <p className="text-center text-[11px] leading-4 text-muted-foreground">
           {!user
             ? "Explore the programme above, then sign in to receive your two personalized workouts every day."
             : !access?.profileComplete || !access.healthAcknowledged
