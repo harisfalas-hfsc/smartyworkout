@@ -27,7 +27,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ListFilter,
-  X,
 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import {
