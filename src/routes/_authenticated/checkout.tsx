@@ -33,7 +33,7 @@ function CheckoutPage() {
         title="Checkout"
         subtitle="Smarty Workout · €9.99 per month · cancel anytime."
       />
-      <div className="mt-6 rounded-2xl border border-blue-400 bg-card p-4">
+      <div className="mt-6 rounded-2xl border-2 border-blue-400 bg-card p-4">
         <StripeEmbeddedCheckout
           priceId={MEMBERSHIP_PRICE_ID}
           returnUrl={

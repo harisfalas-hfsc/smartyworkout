@@ -165,7 +165,7 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
     <div className="space-y-4">
       {title && <h2 className="text-lg font-extrabold">{title}</h2>}
 
-      <div className="rounded-2xl border border-blue-400 bg-card p-3 sm:p-4">
+      <div className="rounded-2xl border-2 border-blue-400 bg-card p-3 sm:p-4">
         <div className="flex flex-col gap-2 sm:flex-row">
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -290,7 +290,7 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
               key={w.id}
               type="button"
               onClick={() => setOpenId(w.id)}
-              className="w-full rounded-2xl border border-blue-400 bg-card p-4 text-left transition hover:bg-accent"
+              className="w-full rounded-2xl border-2 border-blue-400 bg-card p-4 text-left transition hover:bg-accent"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -404,7 +404,7 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
 
 function Section({ title, html }: { title: string; html: string }) {
   return (
-    <div className="rounded-2xl border border-blue-400 bg-card p-3">
+    <div className="rounded-2xl border-2 border-blue-400 bg-card p-3">
       <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         {title}
       </p>

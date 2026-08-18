@@ -125,7 +125,7 @@ export function WorkoutStatusPanel({
             type="datetime-local"
             value={draftDate}
             onChange={(e) => setDraftDate(e.target.value)}
-            className="h-12 flex-1 rounded-2xl border border-border bg-background px-3 text-sm"
+            className="h-12 flex-1 rounded-2xl border-2 border-blue-400 bg-background px-3 text-sm"
           />
           <Button
             className="h-12 rounded-2xl"

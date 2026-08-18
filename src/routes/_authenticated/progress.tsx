@@ -64,12 +64,12 @@ function Stat({
       <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
     </>
   );
-  if (!to) return <div className="rounded-2xl border border-blue-400 bg-card p-4">{body}</div>;
+  if (!to) return <div className="rounded-2xl border-2 border-blue-400 bg-card p-4">{body}</div>;
   return (
     <Link
       to="/logbook"
       search={{ filter: to.filter, view: "list" as const }}
-      className="block rounded-2xl border border-blue-400 bg-card p-4 transition hover:border-primary/60"
+      className="block rounded-2xl border-2 border-blue-400 bg-card p-4 transition hover:border-primary/60"
     >
       {body}
       <span className="mt-2 block text-[11px] font-semibold text-primary">View in logbook →</span>
@@ -218,7 +218,7 @@ function Progress() {
           const unit = CATEGORY_UNIT[category] ?? "";
           const pct = next ? Math.min(100, Math.round((value / next.threshold) * 100)) : 100;
           return (
-            <div key={category} className="rounded-2xl border border-blue-400 bg-card p-4">
+            <div key={category} className="rounded-2xl border-2 border-blue-400 bg-card p-4">
               <div className="flex items-baseline justify-between gap-3">
                 <p className="font-bold">{CATEGORY_LABEL[category]}</p>
                 <p className="text-xs text-muted-foreground">

@@ -272,7 +272,7 @@ function CoachPage() {
           title="Complete your training profile first"
           subtitle="Smarty Coach builds around you — it needs your profile before the first workout."
         />
-        <div className="rounded-2xl border border-blue-400 bg-card p-5 text-center">
+        <div className="rounded-2xl border-2 border-blue-400 bg-card p-5 text-center">
           <p className="text-sm text-muted-foreground">
             Your age, level, goal, equipment, environment, session length and health
             acknowledgement are required once. After that, every workout combines your profile with

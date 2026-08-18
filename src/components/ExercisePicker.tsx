@@ -168,7 +168,7 @@ export function ExercisePicker({
               />
             </div>
 
-            <div className="max-h-[45vh] overflow-y-auto rounded-2xl border border-border">
+            <div className="max-h-[45vh] overflow-y-auto rounded-2xl border-2 border-blue-400">
               {loading ? (
                 <div className="flex items-center justify-center p-6 text-muted-foreground">
                   <Loader2 className="h-5 w-5 animate-spin" />

@@ -55,7 +55,7 @@ function CheckoutReturn() {
             : "No checkout session found."
         }
       />
-      <div className="mt-6 rounded-2xl border border-blue-400 bg-card p-5">
+      <div className="mt-6 rounded-2xl border-2 border-blue-400 bg-card p-5">
         {sessionId ? (
           <p className="flex items-start gap-2 text-sm text-muted-foreground">
             {needsProfile ? (

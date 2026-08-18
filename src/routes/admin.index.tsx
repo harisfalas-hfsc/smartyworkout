@@ -168,7 +168,7 @@ function AdminPage() {
   if (!authed) {
     return (
       <Shell>
-        <div className="mx-auto mt-10 max-w-sm rounded-3xl border border-blue-400 bg-card p-6 text-center shadow-sm">
+        <div className="mx-auto mt-10 max-w-sm rounded-3xl border-2 border-blue-400 bg-card p-6 text-center shadow-sm">
           <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-primary/10 text-primary">
             <ShieldAlert className="h-6 w-6" />
           </div>
@@ -282,7 +282,7 @@ function AdminHub({
         <button
           type="button"
           onClick={() => onOpen("messages")}
-          className="flex w-full items-center gap-3 rounded-2xl border border-blue-400 bg-primary/10 p-4 text-left"
+          className="flex w-full items-center gap-3 rounded-2xl border-2 border-blue-400 bg-primary/10 p-4 text-left"
         >
           <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary text-primary-foreground">
             <MessagesSquare className="h-5 w-5" />
@@ -306,7 +306,7 @@ function AdminHub({
             key={key}
             type="button"
             onClick={() => onOpen(key)}
-            className="relative flex min-h-[112px] flex-col items-start gap-2 rounded-2xl border border-blue-400 bg-card p-4 text-left transition hover:bg-accent"
+            className="relative flex min-h-[112px] flex-col items-start gap-2 rounded-2xl border-2 border-blue-400 bg-card p-4 text-left transition hover:bg-accent"
           >
             {(badges[key] ?? 0) > 0 && (
               <span className="absolute right-3 top-3 grid h-6 min-w-6 place-items-center rounded-full bg-destructive px-2 text-xs font-bold text-destructive-foreground">
@@ -322,7 +322,7 @@ function AdminHub({
         ))}
         <Link
           to="/admin/exercise-library"
-          className="flex min-h-[112px] flex-col items-start gap-2 rounded-2xl border border-blue-400 bg-card p-4 text-left transition hover:bg-accent"
+          className="flex min-h-[112px] flex-col items-start gap-2 rounded-2xl border-2 border-blue-400 bg-card p-4 text-left transition hover:bg-accent"
         >
           <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
             <Dumbbell className="h-5 w-5" />
@@ -337,7 +337,7 @@ function AdminHub({
 
 function Stat({ label, value }: { label: string; value?: number }) {
   return (
-    <div className="rounded-2xl border border-blue-400 bg-card p-4">
+    <div className="rounded-2xl border-2 border-blue-400 bg-card p-4">
       <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
       <p className="mt-1 text-2xl font-extrabold">
         {value === undefined ? "—" : value.toLocaleString()}

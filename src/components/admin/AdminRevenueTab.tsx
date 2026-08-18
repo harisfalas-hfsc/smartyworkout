@@ -54,7 +54,7 @@ export function AdminRevenueTab() {
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
       ) : error ? (
-        <p className="rounded-2xl border border-blue-400 bg-card p-4 text-sm text-muted-foreground">
+        <p className="rounded-2xl border-2 border-blue-400 bg-card p-4 text-sm text-muted-foreground">
           {error}
         </p>
       ) : data ? (
@@ -64,7 +64,7 @@ export function AdminRevenueTab() {
             <Stat label="Last 30 days" value={data.last30.toFixed(2)} />
           </div>
 
-          <div className="rounded-2xl border border-blue-400 bg-card p-4">
+          <div className="rounded-2xl border-2 border-blue-400 bg-card p-4">
             <p className="mb-3 text-sm font-semibold">By month</p>
             {data.byMonth.length === 0 ? (
               <p className="text-sm text-muted-foreground">No payments yet.</p>
@@ -82,7 +82,7 @@ export function AdminRevenueTab() {
             )}
           </div>
 
-          <div className="rounded-2xl border border-blue-400 bg-card p-4">
+          <div className="rounded-2xl border-2 border-blue-400 bg-card p-4">
             <p className="mb-3 text-sm font-semibold">Latest payments</p>
             {data.payments.length === 0 ? (
               <p className="text-sm text-muted-foreground">No payments yet.</p>
@@ -110,7 +110,7 @@ export function AdminRevenueTab() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-blue-400 bg-card p-4">
+    <div className="rounded-2xl border-2 border-blue-400 bg-card p-4">
       <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
       <p className="mt-1 text-2xl font-extrabold">{value}</p>
     </div>

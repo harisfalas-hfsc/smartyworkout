@@ -113,7 +113,7 @@ export function AdminCycleTab() {
 
       <div className="grid gap-3 lg:grid-cols-2">
         {days.map((d) => (
-          <div key={d.day} className="rounded-2xl border border-blue-400 bg-card p-3">
+          <div key={d.day} className="rounded-2xl border-2 border-blue-400 bg-card p-3">
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold">Day {d.day}</p>
               <div className="flex items-center gap-2">

@@ -318,7 +318,7 @@ function SharedWorkoutPage() {
           <button
             type="button"
             onClick={() => reportTarget("workout", workoutId)}
-            className="inline-flex h-10 items-center gap-2 rounded-2xl border border-border px-4 text-sm font-semibold text-muted-foreground"
+            className="inline-flex h-10 items-center gap-2 rounded-2xl border-2 border-blue-400 px-4 text-sm font-semibold text-muted-foreground"
           >
             <Flag className="h-4 w-4" /> Report
           </button>
@@ -345,7 +345,7 @@ function SharedWorkoutPage() {
 
         <ul className="mt-5 space-y-3">
           {comments.map((c) => (
-            <li key={c.id} className="flex gap-3 rounded-2xl border border-border p-3">
+            <li key={c.id} className="flex gap-3 rounded-2xl border-2 border-blue-400 p-3">
               <MemberAvatar name={c.author_name} avatar={c.author_avatar} size={8} />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-bold">

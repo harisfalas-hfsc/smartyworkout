@@ -51,7 +51,7 @@ export function AdminRulesTab() {
 
   return (
     <div className="space-y-4">
-      <div className="space-y-4 rounded-2xl border border-blue-400 bg-card p-4">
+      <div className="space-y-4 rounded-2xl border-2 border-blue-400 bg-card p-4">
         <div>
           <Label htmlFor="limit">Coach generations per day</Label>
           <Input
@@ -109,7 +109,7 @@ export function AdminRulesTab() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-blue-400 bg-card p-4">
+      <div className="rounded-2xl border-2 border-blue-400 bg-card p-4">
         <Label htmlFor="extra">Extra coaching rules</Label>
         <p className="mb-2 text-xs text-muted-foreground">
           Added to every generation with the highest priority. Example: never program box jumps.
