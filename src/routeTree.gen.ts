@@ -44,6 +44,7 @@ import { Route as ToolsIndexRouteImport } from './routes/tools.index'
 import { Route as Tools1rmCalculatorRouteImport } from './routes/tools.1rm-calculator'
 import { Route as ToolsRoundsTrackerRouteImport } from './routes/tools.rounds-tracker'
 import { Route as ToolsWorkoutTimerRouteImport } from './routes/tools.workout-timer'
+import { Route as WWorkoutIdRouteImport } from './routes/w.$workoutId'
 import { Route as AuthenticatedCheckoutReturnRouteImport } from './routes/_authenticated/checkout.return'
 import { Route as AuthenticatedWorkoutWorkoutIdRouteImport } from './routes/_authenticated/workout.$workoutId'
 import { Route as CommunityWorkoutWorkoutIdRouteImport } from './routes/community.workout.$workoutId'
@@ -226,6 +227,11 @@ const ToolsWorkoutTimerRoute = ToolsWorkoutTimerRouteImport.update({
   path: '/tools/workout-timer',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WWorkoutIdRoute = WWorkoutIdRouteImport.update({
+  id: '/w/$workoutId',
+  path: '/w/$workoutId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedCheckoutReturnRoute =
   AuthenticatedCheckoutReturnRouteImport.update({
     id: '/return',
@@ -294,6 +300,7 @@ export interface FileRoutesByFullPath {
   '/tools/1rm-calculator': typeof Tools1rmCalculatorRoute
   '/tools/rounds-tracker': typeof ToolsRoundsTrackerRoute
   '/tools/workout-timer': typeof ToolsWorkoutTimerRoute
+  '/w/$workoutId': typeof WWorkoutIdRoute
   '/admin/': typeof AdminIndexRoute
   '/community/': typeof CommunityIndexRoute
   '/tools/': typeof ToolsIndexRoute
@@ -336,6 +343,7 @@ export interface FileRoutesByTo {
   '/tools/1rm-calculator': typeof Tools1rmCalculatorRoute
   '/tools/rounds-tracker': typeof ToolsRoundsTrackerRoute
   '/tools/workout-timer': typeof ToolsWorkoutTimerRoute
+  '/w/$workoutId': typeof WWorkoutIdRoute
   '/admin': typeof AdminIndexRoute
   '/community': typeof CommunityIndexRoute
   '/tools': typeof ToolsIndexRoute
@@ -380,6 +388,7 @@ export interface FileRoutesById {
   '/tools/1rm-calculator': typeof Tools1rmCalculatorRoute
   '/tools/rounds-tracker': typeof ToolsRoundsTrackerRoute
   '/tools/workout-timer': typeof ToolsWorkoutTimerRoute
+  '/w/$workoutId': typeof WWorkoutIdRoute
   '/admin/': typeof AdminIndexRoute
   '/community/': typeof CommunityIndexRoute
   '/tools/': typeof ToolsIndexRoute
@@ -424,6 +433,7 @@ export interface FileRouteTypes {
     | '/tools/1rm-calculator'
     | '/tools/rounds-tracker'
     | '/tools/workout-timer'
+    | '/w/$workoutId'
     | '/admin/'
     | '/community/'
     | '/tools/'
@@ -466,6 +476,7 @@ export interface FileRouteTypes {
     | '/tools/1rm-calculator'
     | '/tools/rounds-tracker'
     | '/tools/workout-timer'
+    | '/w/$workoutId'
     | '/admin'
     | '/community'
     | '/tools'
@@ -509,6 +520,7 @@ export interface FileRouteTypes {
     | '/tools/1rm-calculator'
     | '/tools/rounds-tracker'
     | '/tools/workout-timer'
+    | '/w/$workoutId'
     | '/admin/'
     | '/community/'
     | '/tools/'
@@ -544,6 +556,7 @@ export interface RootRouteChildren {
   Tools1rmCalculatorRoute: typeof Tools1rmCalculatorRoute
   ToolsRoundsTrackerRoute: typeof ToolsRoundsTrackerRoute
   ToolsWorkoutTimerRoute: typeof ToolsWorkoutTimerRoute
+  WWorkoutIdRoute: typeof WWorkoutIdRoute
   AdminIndexRoute: typeof AdminIndexRoute
   CommunityIndexRoute: typeof CommunityIndexRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
@@ -800,6 +813,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsWorkoutTimerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/w/$workoutId': {
+      id: '/w/$workoutId'
+      path: '/w/$workoutId'
+      fullPath: '/w/$workoutId'
+      preLoaderRoute: typeof WWorkoutIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/checkout/return': {
       id: '/_authenticated/checkout/return'
       path: '/return'
@@ -911,6 +931,7 @@ const rootRouteChildren: RootRouteChildren = {
   Tools1rmCalculatorRoute: Tools1rmCalculatorRoute,
   ToolsRoundsTrackerRoute: ToolsRoundsTrackerRoute,
   ToolsWorkoutTimerRoute: ToolsWorkoutTimerRoute,
+  WWorkoutIdRoute: WWorkoutIdRoute,
   AdminIndexRoute: AdminIndexRoute,
   CommunityIndexRoute: CommunityIndexRoute,
   ToolsIndexRoute: ToolsIndexRoute,

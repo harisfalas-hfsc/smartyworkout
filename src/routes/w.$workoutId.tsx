@@ -96,9 +96,7 @@ function SharePreviewPage() {
           </p>
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
             <Button asChild className="h-12 rounded-2xl font-bold">
-              <Link to="/auth" search={{ redirect: `/workout/${workoutId}` }}>
-                Sign in to open it
-              </Link>
+              <Link to="/auth">Sign in to open it</Link>
             </Button>
             <Button asChild variant="secondary" className="h-12 rounded-2xl">
               <Link to="/how-it-works">How Smarty Workout works</Link>
