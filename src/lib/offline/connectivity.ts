@@ -64,6 +64,7 @@ function emit(next: boolean) {
 
 /** Last known connectivity. Safe to call during render. */
 export function isOnline(): boolean {
+  if (!started && typeof window !== "undefined") initConnectivity();
   return current;
 }
 
