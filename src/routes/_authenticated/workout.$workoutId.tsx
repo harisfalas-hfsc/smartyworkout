@@ -1,5 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useOfflineData } from "@/lib/offline/useOfflineData";
+import { CachedNotice } from "@/components/offline/CachedNotice";
+import { useOnlineStatus } from "@/lib/offline/useOnlineStatus";
+import { enqueueAction } from "@/lib/offline/queue";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -84,38 +89,63 @@ function WorkoutPage() {
   const [shared, setShared] = useState(false);
   const [sharing, setSharing] = useState(false);
   const saveStatus = useServerFn(setWorkoutStatus);
+  const { user } = useAuth();
+  const online = useOnlineStatus();
   const saveShare = useServerFn(shareWorkout);
 
-  useEffect(() => {
-    (async () => {
-      const { data } = await supabase.from("workouts").select("*").eq("id", workoutId).maybeSingle();
-      const row = (data as unknown as WorkoutRow) ?? null;
-      setW(row);
-      const access = await getMyAccessState({}).catch(() => null);
-      if ((row as { is_wod?: boolean } | null)?.is_wod) {
-        setLocked(!access?.premium);
-      }
-      if (row && access?.readinessFlagged && access.readinessFlags.length > 0) {
-        setParqFlags(access.readinessFlags);
-        setParqBlocked(true);
-        setParqOpen(true);
-      }
-      setShared(Boolean((data as { is_shared?: boolean } | null)?.is_shared));
-      if (row?.status === "completed") setDone(true);
-      const sched = (data as { scheduled_at?: string | null } | null)?.scheduled_at;
-      if (sched) setScheduledAt(new Date(sched).toISOString().slice(0, 16));
-      setLoading(false);
-    })();
+  const load = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("workouts")
+      .select("*")
+      .eq("id", workoutId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    const access = await getMyAccessState({}).catch(() => null);
+    return { row: (data as unknown as WorkoutRow) ?? null, access };
   }, [workoutId]);
+
+  const cached = useOfflineData<{
+    row: WorkoutRow | null;
+    access: Awaited<ReturnType<typeof getMyAccessState>> | null;
+  }>(`workout:${workoutId}`, load, { userId: user?.id ?? null });
+
+  useEffect(() => {
+    if (!cached.data) {
+      if (!cached.loading) setLoading(false);
+      return;
+    }
+    const { row, access } = cached.data;
+    setW(row);
+    if ((row as { is_wod?: boolean } | null)?.is_wod) setLocked(!access?.premium);
+    if (row && access?.readinessFlagged && access.readinessFlags.length > 0) {
+      setParqFlags(access.readinessFlags);
+      setParqBlocked(true);
+      setParqOpen(true);
+    }
+    setShared(Boolean((row as { is_shared?: boolean } | null)?.is_shared));
+    if (row?.status === "completed") setDone(true);
+    const sched = (row as { scheduled_at?: string | null } | null)?.scheduled_at;
+    if (sched) setScheduledAt(new Date(sched).toISOString().slice(0, 16));
+    setLoading(false);
+  }, [cached.data, cached.loading]);
 
 
   async function complete() {
-    await saveStatus({ data: { workoutId, status: "completed" } });
     setDone(true);
-    toast.success("Marked as completed.");
+    try {
+      await saveStatus({ data: { workoutId, status: "completed" } });
+      toast.success("Marked as completed.");
+    } catch {
+      await enqueueAction("workout-status", { workoutId, status: "completed" });
+      toast.success("Saved on your device — it will sync when you are back online.");
+    }
   }
 
   async function toggleShare() {
+    if (!online) {
+      toast.error("Sharing needs an internet connection.");
+      return;
+    }
     const next = !shared;
     setSharing(true);
     try {
@@ -135,8 +165,20 @@ function WorkoutPage() {
 
 
   async function saveFeedback() {
-    const { data: auth } = await supabase.auth.getUser();
-    if (!auth.user) return;
+    const { data: auth } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
+    if (!auth.user) {
+      await enqueueAction("workout-feedback", {
+        workout_id: workoutId,
+        difficulty_rating: difficulty,
+        feeling,
+        enjoyed,
+        would_repeat: repeat,
+        comment: comment.trim() || null,
+      });
+      setSaved(true);
+      toast.success("Saved on your device — it will sync when you are back online.");
+      return;
+    }
     const { error } = await supabase.from("workout_feedback").insert({
       user_id: auth.user.id,
       workout_id: workoutId,
@@ -147,7 +189,16 @@ function WorkoutPage() {
       comment: comment.trim() || null,
     } as never);
     if (error) {
-      toast.error(error.message);
+      await enqueueAction("workout-feedback", {
+        workout_id: workoutId,
+        difficulty_rating: difficulty,
+        feeling,
+        enjoyed,
+        would_repeat: repeat,
+        comment: comment.trim() || null,
+      });
+      setSaved(true);
+      toast.success("Saved on your device — it will sync when you are back online.");
       return;
     }
     setSaved(true);
@@ -218,6 +269,7 @@ function WorkoutPage() {
 
   return (
     <WorkoutDisplay workout={w} onComplete={complete}>
+      <CachedNotice savedAt={cached.savedAt} show={cached.fromCache} />
       <WorkoutStatusPanel
         workoutId={workoutId}
         status={done ? "completed" : scheduledAt ? "scheduled" : "created"}
