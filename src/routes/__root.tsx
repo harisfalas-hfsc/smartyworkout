@@ -17,7 +17,7 @@ import { Toaster } from "../components/ui/sonner";
 import { SisterAppsPopup } from "../components/growth/SisterAppsPopup";
 import { BottomNav } from "../components/BottomNav";
 import { ThemeProvider, THEME_INIT_SCRIPT } from "../lib/theme";
-import { OfflineBanner } from "../components/offline/OfflineBanner";
+import { OfflineStatus } from "../components/offline/OfflineStatus";
 import { OfflineSync } from "../components/offline/OfflineSync";
 import { OfflineBootstrap } from "../components/offline/OfflineBootstrap";
 import { registerAppServiceWorker } from "../lib/offline/register-sw";
