@@ -36,7 +36,7 @@ export const Route = createFileRoute("/admin/exercise-library")({
 function Page() {
   return (
     <div className="flex min-h-[100dvh] w-full flex-col bg-background text-foreground">
-      <main className="mx-auto w-full max-w-[1100px] px-4 pb-16 pt-4 lg:px-8">
+      <main className="mx-auto w-full max-w-[1100px] px-4 pb-16 pt-4 lg:max-w-6xl lg:px-8">
         <Uploader />
       </main>
     </div>

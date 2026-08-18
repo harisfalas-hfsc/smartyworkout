@@ -4,10 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
   BookOpen,
+  Check,
   Clock,
+  Copy,
   Dumbbell,
+  Facebook,
   Heart,
+  Instagram,
+  Mail,
   MapPin,
+  MessageCircle,
   Minus,
   Plus,
   Share2,
@@ -79,6 +85,7 @@ export function WorkoutDisplay({
 
   const [openExercise, setOpenExercise] = useState<string | null>(null);
   const [reader, setReader] = useState(false);
+  const [shareOptions, setShareOptions] = useState(false);
   const [fontSize, setFontSize] = useState(16);
   const [player, setPlayer] = useState(false);
   const [favorite, setFavorite] = useState(Boolean(workout.is_favorite));
@@ -110,55 +117,58 @@ export function WorkoutDisplay({
     }
   }
 
+  const shareUrl = typeof window === "undefined" ? "" : `${window.location.origin}/w/${workout.id}`;
+  const shareBits = [
+    workout.category,
+    workout.difficulty_label ?? difficultyLabel(workout.difficulty_stars),
+    workout.duration_label ?? `${workout.duration_min} min`,
+    workout.location,
+  ].filter(Boolean);
+  const shareTitle = `${workout.name} — Smarty Workout`;
+  const shareText = `${workout.name} · ${shareBits.join(" · ")}`;
+
+  async function copyShareLink() {
+    const text = `${shareText}\n${shareUrl}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Workout link copied.");
+      return true;
+    } catch {
+      if (copyFallback(text)) {
+        toast.success("Workout link copied.");
+        return true;
+      }
+    }
+    toast.error("Could not copy the workout link.");
+    return false;
+  }
+
   async function shareWorkoutLink() {
     const url = `${window.location.origin}/w/${workout.id}`;
-    const bits = [
-      workout.category,
-      workout.difficulty_label ?? difficultyLabel(workout.difficulty_stars),
-      workout.duration_label ?? `${workout.duration_min} min`,
-      workout.location,
-    ].filter(Boolean);
     const payload = {
-      title: `${workout.name} — Smarty Workout`,
-      text: `${workout.name} · ${bits.join(" · ")}`,
+      title: shareTitle,
+      text: shareText,
       url,
     };
 
-    // 1) Native share sheet (mobile). Skip silently if unavailable/blocked.
+    // The operating system's share sheet is the only browser API that can list
+    // every installed app. Embedded previews may block it, so keep a full menu.
     try {
-      const canShare =
-        typeof navigator !== "undefined" &&
-        typeof navigator.share === "function" &&
-        (typeof navigator.canShare !== "function" || navigator.canShare(payload));
-      if (canShare) {
+      if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
         await navigator.share(payload);
         return;
       }
     } catch (e) {
       if ((e as Error)?.name === "AbortError") return;
-      // fall through to copy
+      // Fall through to the visible share menu.
     }
-
-    // 2) Clipboard fallback (desktop / embedded browsers).
-    const text = `${payload.text}\n${url}`;
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success("Link copied — paste it anywhere.");
-      return;
-    } catch {
-      /* fall through */
-    }
-    if (copyFallback(text)) {
-      toast.success("Link copied — paste it anywhere.");
-      return;
-    }
-    toast.message("Share this link", { description: url, duration: 10000 });
+    setShareOptions(true);
   }
 
 
   return (
     <ExerciseMediaProvider ids={ids}>
-      <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:py-12 lg:max-w-5xl lg:px-8">
+      <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">
         <header className="rounded-3xl border-2 border-blue-400 bg-card p-5 sm:p-7">
           <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
             <span>{workout.category}</span>
@@ -259,6 +269,65 @@ export function WorkoutDisplay({
       </div>
 
       <ExerciseDetailDialog exerciseId={openExercise} onClose={() => setOpenExercise(null)} />
+
+      <Dialog open={shareOptions} onOpenChange={setShareOptions}>
+        <DialogContent className="w-[calc(100%-2rem)] max-w-md rounded-2xl border-2 border-primary p-5 sm:p-6">
+          <DialogTitle>Share workout</DialogTitle>
+          <p className="text-sm text-muted-foreground">Choose where to share {workout.name}.</p>
+          <div className="grid grid-cols-2 gap-2">
+            <Button asChild variant="outline" className="h-12 justify-start rounded-xl">
+              <a href={`https://wa.me/?text=${encodeURIComponent(`${shareText}\n${shareUrl}`)}`} target="_blank" rel="noreferrer">
+                <MessageCircle className="mr-2 h-5 w-5 text-primary" /> WhatsApp
+              </a>
+            </Button>
+            <Button asChild variant="outline" className="h-12 justify-start rounded-xl">
+              <a href={`viber://forward?text=${encodeURIComponent(`${shareText}\n${shareUrl}`)}`}>
+                <MessageCircle className="mr-2 h-5 w-5 text-primary" /> Viber
+              </a>
+            </Button>
+            <Button asChild variant="outline" className="h-12 justify-start rounded-xl">
+              <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noreferrer">
+                <Facebook className="mr-2 h-5 w-5 text-primary" /> Facebook
+              </a>
+            </Button>
+            <Button
+              variant="outline"
+              className="h-12 justify-start rounded-xl"
+              onClick={async () => {
+                if (await copyShareLink()) window.location.href = "instagram://app";
+              }}
+            >
+              <Instagram className="mr-2 h-5 w-5 text-primary" /> Instagram
+            </Button>
+            <Button asChild variant="outline" className="h-12 justify-start rounded-xl">
+              <a href={`mailto:?subject=${encodeURIComponent(shareTitle)}&body=${encodeURIComponent(`${shareText}\n\n${shareUrl}`)}`}>
+                <Mail className="mr-2 h-5 w-5 text-primary" /> Email
+              </a>
+            </Button>
+            <Button variant="outline" className="h-12 justify-start rounded-xl" onClick={copyShareLink}>
+              <Copy className="mr-2 h-5 w-5 text-primary" /> Copy link
+            </Button>
+          </div>
+          {typeof navigator !== "undefined" && typeof navigator.share === "function" ? (
+            <Button
+              className="h-12 w-full rounded-xl"
+              onClick={async () => {
+                try {
+                  await navigator.share({ title: shareTitle, text: shareText, url: shareUrl });
+                  setShareOptions(false);
+                } catch (error) {
+                  if ((error as Error)?.name !== "AbortError") toast.error("Your browser blocked the device share menu.");
+                }
+              }}
+            >
+              <Share2 className="mr-2 h-5 w-5" /> More apps
+            </Button>
+          ) : null}
+          <p className="flex items-start gap-2 text-xs text-muted-foreground">
+            <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" /> The shared link shows workout details; full access still requires sign-in.
+          </p>
+        </DialogContent>
+      </Dialog>
 
       <WorkoutPlayerDialog
         open={player}
