@@ -109,99 +109,31 @@ const SECTIONS: { key: SectionKey; label: string; description: string; Icon: Luc
   },
 ];
 
+const SEEN_PREFIX = "smarty-admin-seen-";
+
+function readSeen(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  const out: Record<string, string> = {};
+  for (const { key } of SECTIONS) {
+    const v = window.localStorage.getItem(SEEN_PREFIX + key);
+    if (v) out[key] = v;
+  }
+  return out;
+}
+
 function AdminPage() {
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [section, setSection] = useState<SectionKey | null>(null);
-  const unreadMessages = useAdminUnreadMessages(authed === true, section);
+  const { badges, markSeen } = useAdminBadges(authed === true, section);
+  const unreadMessages = badges.messages ?? 0;
 
-  useEffect(() => {
-    supabase.auth
-      .getUser()
-      .then(({ data }) => setAuthed(isAdminEmail(data.user?.email)))
-      .catch(() => setAuthed(false));
-  }, []);
-
-  if (authed === null) {
-    return (
-      <Shell>
-        <div className="mt-10 flex justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        </div>
-      </Shell>
-    );
+  function openSection(key: SectionKey) {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(SEEN_PREFIX + key, new Date().toISOString());
+    }
+    markSeen(key);
+    setSection(key);
   }
-
-  if (!authed) {
-    return (
-      <Shell>
-        <div className="mx-auto mt-10 max-w-sm rounded-3xl border border-blue-400 bg-card p-6 text-center shadow-sm">
-          <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-primary/10 text-primary">
-            <ShieldAlert className="h-6 w-6" />
-          </div>
-          <h1 className="mt-4 text-xl font-extrabold">Admin access only</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            This area is restricted to Smarty Workout administrators.
-          </p>
-        </div>
-      </Shell>
-    );
-  }
-
-  const active = SECTIONS.find((s) => s.key === section);
-
-  return (
-    <Shell>
-      <PageHeader
-        eyebrow="Administration"
-        title={active ? active.label : "Admin panel"}
-        subtitle={active ? active.description : "Everything that runs Smarty Workout"}
-      />
-
-      {section ? (
-        <div className="space-y-4">
-          <Button variant="ghost" size="sm" onClick={() => setSection(null)}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> All sections
-          </Button>
-          {section === "payments" && <AdminPaymentsTab />}
-          {section === "revenue" && <AdminRevenueTab />}
-          {section === "customers" && <AdminUsersTab />}
-          {section === "subscribers" && <AdminUsersTab onlySubscribers />}
-          {section === "rules" && <AdminRulesTab />}
-          {section === "cycle" && <AdminCycleTab />}
-          {section === "workouts" && <AdminWorkoutsTab />}
-          {section === "messages" && <AdminMessagesTab />}
-          {section === "awards" && <AdminAwardsTab />}
-          {section === "reports" && <AdminReportsTab />}
-        </div>
-      ) : (
-        <AdminHub onOpen={setSection} unreadMessages={unreadMessages} />
-      )}
-    </Shell>
-  );
-}
-
-function useAdminUnreadMessages(enabled: boolean, section: SectionKey | null) {
-  const getCount = useServerFn(adminUnreadMessageCount);
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    if (!enabled) return;
-    let active = true;
-    const tick = () => {
-      void getCount({ data: {} } as never)
-        .then((r) => {
-          if (active) setCount(r.count);
-        })
-        .catch(() => undefined);
-    };
-    tick();
-    const t = setInterval(tick, 60_000);
-    return () => {
-      active = false;
-      clearInterval(t);
-    };
-  }, [enabled, section, getCount]);
-  return count;
-}
 
 function AdminHub({
   onOpen,
