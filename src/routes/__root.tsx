@@ -349,7 +349,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <div className="flex min-h-screen flex-col bg-background">
-          <OfflineBanner />
+          <OfflineStatus />
           <Navigation />
           <main>
             <Outlet />
