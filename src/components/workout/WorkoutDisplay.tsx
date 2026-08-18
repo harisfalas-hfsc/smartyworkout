@@ -94,6 +94,22 @@ export function WorkoutDisplay({
     }
   }
 
+  function copyFallback(text: string) {
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      return ok;
+    } catch {
+      return false;
+    }
+  }
+
   async function shareWorkoutLink() {
     const url = `${window.location.origin}/w/${workout.id}`;
     const bits = [
@@ -107,18 +123,38 @@ export function WorkoutDisplay({
       text: `${workout.name} · ${bits.join(" · ")}`,
       url,
     };
+
+    // 1) Native share sheet (mobile). Skip silently if unavailable/blocked.
     try {
-      if (typeof navigator !== "undefined" && navigator.share) {
+      const canShare =
+        typeof navigator !== "undefined" &&
+        typeof navigator.share === "function" &&
+        (typeof navigator.canShare !== "function" || navigator.canShare(payload));
+      if (canShare) {
         await navigator.share(payload);
         return;
       }
-      await navigator.clipboard.writeText(`${payload.text}\n${url}`);
-      toast.success("Link copied — paste it anywhere.");
     } catch (e) {
       if ((e as Error)?.name === "AbortError") return;
-      toast.error("Could not open the share menu.");
+      // fall through to copy
     }
+
+    // 2) Clipboard fallback (desktop / embedded browsers).
+    const text = `${payload.text}\n${url}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Link copied — paste it anywhere.");
+      return;
+    } catch {
+      /* fall through */
+    }
+    if (copyFallback(text)) {
+      toast.success("Link copied — paste it anywhere.");
+      return;
+    }
+    toast.message("Share this link", { description: url, duration: 10000 });
   }
+
 
   return (
     <ExerciseMediaProvider ids={ids}>
