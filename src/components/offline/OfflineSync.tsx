@@ -36,7 +36,7 @@ export function OfflineSync() {
           if (!auth.user) throw new Error("no session");
           const { error } = await supabase
             .from("workout_feedback")
-            .insert({ ...p, user_id: auth.user.id } as never);
+            .insert({ ...action.payload, user_id: auth.user.id } as never);
           if (error) throw new Error(error.message);
           return;
         }
