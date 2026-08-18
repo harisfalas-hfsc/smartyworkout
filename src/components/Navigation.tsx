@@ -136,34 +136,43 @@ export function Navigation() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
+                  <Link to="/account">My account</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/profile">Training profile</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
                   <Link to="/coach">Smarty Coach</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/wod">Workout of the Day</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link to="/logbook" search={{ filter: "all" as const, view: "list" as const }}>Logbook</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/community">Smarty Community</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
                   <Link to="/progress">Progress</Link>
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link to="/profile">Training profile</Link>
+                  <Link to="/community">Smarty Community</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link to="/inbox" search={{ tab: "messages" as const, compose: false }}>Inbox &amp; messages</Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/account">My account</Link>
-                </DropdownMenuItem>
 
                 {isAdmin && (
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin">
-                      <Shield className="h-4 w-4 mr-2" /> Admin
-                    </Link>
-                  </DropdownMenuItem>
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin">
+                        <Shield className="h-4 w-4 mr-2" /> Admin
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
                 )}
+
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={() => toggleTheme()}>
                   {theme === "dark" ? (
