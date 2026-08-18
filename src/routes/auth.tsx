@@ -131,6 +131,15 @@ function Auth() {
     }
   }
 
+  function authMessage(error: unknown, fallback: string) {
+    const offline = typeof navigator !== "undefined" && navigator.onLine === false;
+    const message = error instanceof Error ? error.message : "";
+    if (offline || /failed to fetch|network/i.test(message)) {
+      return "You're offline. Signing in for the first time on this device needs internet — once signed in, your saved data stays available offline.";
+    }
+    return message || fallback;
+  }
+
   async function submitSignin(e: FormEvent) {
     e.preventDefault();
     if (!email || !password) return;
@@ -146,7 +155,7 @@ function Auth() {
       await ensureProfile(data.user);
       goNext();
     } catch (error) {
-      setAuthError(error instanceof Error ? error.message : "Sign in failed. Check your email and password.");
+      setAuthError(authMessage(error, "Sign in failed. Check your email and password."));
     } finally {
       setSubmitting(false);
     }
@@ -165,7 +174,7 @@ function Auth() {
       if (error) throw error;
       setResetSent(true);
     } catch (error) {
-      setAuthError(error instanceof Error ? error.message : "Couldn't send reset email.");
+      setAuthError(authMessage(error, "Couldn't send reset email."));
     } finally {
       setSubmitting(false);
     }
