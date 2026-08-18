@@ -774,3 +774,83 @@ export const adminSetFreeAccessMode = createServerFn({ method: "POST" })
       return { error: e instanceof Error ? e.message : "Failed" };
     }
   });
+
+export type AdminBadgeCounts = Record<string, number>;
+
+/**
+ * Per-section "needs your attention" counters for the Admin hub.
+ * Reports/messages use their own open/unread state; the rest count rows
+ * created since the last time this admin opened that section (client-tracked).
+ */
+export const adminGetSectionBadges = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { seen?: Record<string, string> }) => data ?? {})
+  .handler(async ({ context, data }): Promise<{ badges: AdminBadgeCounts }> => {
+    try {
+      await assertAdmin(context as any);
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const seen = data?.seen ?? {};
+      const since = (key: string) =>
+        seen[key] ?? new Date(Date.now() - 7 * 86_400_000).toISOString();
+      const count = (q: any) => q.then((r: any) => r.count ?? 0);
+
+      const [reports, messages, payments, revenue, customers, subscribers, workouts, awards] =
+        await Promise.all([
+          count(
+            supabaseAdmin
+              .from("community_reports")
+              .select("id", { count: "exact", head: true })
+              .eq("status", "open"),
+          ),
+          count(
+            supabaseAdmin
+              .from("support_threads")
+              .select("id", { count: "exact", head: true })
+              .eq("admin_unread", true),
+          ),
+          count(
+            supabaseAdmin
+              .from("subscriptions")
+              .select("id", { count: "exact", head: true })
+              .gt("created_at", since("payments")),
+          ),
+          count(
+            supabaseAdmin
+              .from("subscriptions")
+              .select("id", { count: "exact", head: true })
+              .gt("updated_at", since("revenue")),
+          ),
+          count(
+            supabaseAdmin
+              .from("profiles")
+              .select("id", { count: "exact", head: true })
+              .gt("created_at", since("customers")),
+          ),
+          count(
+            supabaseAdmin
+              .from("subscriptions")
+              .select("id", { count: "exact", head: true })
+              .eq("status", "active")
+              .gt("created_at", since("subscribers")),
+          ),
+          count(
+            supabaseAdmin
+              .from("workouts")
+              .select("id", { count: "exact", head: true })
+              .gt("created_at", since("workouts")),
+          ),
+          count(
+            supabaseAdmin
+              .from("user_badges")
+              .select("id", { count: "exact", head: true })
+              .gt("earned_at", since("awards")),
+          ),
+        ]);
+
+      return {
+        badges: { reports, messages, payments, revenue, customers, subscribers, workouts, awards },
+      };
+    } catch {
+      return { badges: {} };
+    }
+  });
