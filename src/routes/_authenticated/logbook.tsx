@@ -6,7 +6,7 @@ import { CachedNotice } from "@/components/offline/CachedNotice";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useServerFn } from "@tanstack/react-start";
-import { setWorkoutMeta } from "@/lib/coach.functions";
+import { setWorkoutMeta, setWorkoutStatus } from "@/lib/coach.functions";
 import { toast } from "sonner";
 import { MAX_STARS, normalizeStars } from "@/lib/workout/spec";
 import {
@@ -27,8 +27,18 @@ import {
   ChevronLeft,
   ChevronRight,
   ListFilter,
+  X,
 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
+import {
+  formatDate,
+  formatMonthYear,
+  formatWeekdayLong,
+  scheduleTone,
+  SCHEDULE_TONE_DOT,
+  SCHEDULE_TONE_LABEL,
+  SCHEDULE_TONE_TEXT,
+} from "@/lib/date-format";
 
 type Filter = "completed" | "planned" | "favorites" | "scheduled";
 
@@ -41,12 +51,18 @@ const FILTERS: Array<{ id: Filter; label: string }> = [
 
 const FILTER_IDS = FILTERS.map((f) => f.id) as string[];
 
-type LogSearch = { filter: string; view: "list" | "calendar" };
+type View = "list" | "calendar" | "scheduled";
+type LogSearch = { filter: string; view: View };
 
 export const Route = createFileRoute("/_authenticated/logbook")({
   validateSearch: (search: Record<string, unknown>): LogSearch => ({
     filter: String(search["filter"] ?? "all"),
-    view: search["view"] === "calendar" ? ("calendar" as const) : ("list" as const),
+    view:
+      search["view"] === "calendar"
+        ? ("calendar" as const)
+        : search["view"] === "scheduled"
+          ? ("scheduled" as const)
+          : ("list" as const),
   }),
   head: () => ({
     meta: [
@@ -75,6 +91,8 @@ type Row = {
   scheduled_at: string | null;
   completed_at: string | null;
   created_at: string;
+  is_wod: boolean | null;
+  created_by: string | null;
   workout_feedback: Array<{ difficulty_rating: string | null; feeling: string | null }>;
 };
 
@@ -89,11 +107,45 @@ function anchorDate(r: Row) {
   return new Date(r.scheduled_at ?? r.completed_at ?? r.created_at);
 }
 
+function sourceLabel(r: Row) {
+  if (r.is_wod) return "Workout of the Day";
+  if (r.created_by === "member" || r.created_by === "community") return "Community copy";
+  return "Smarty Coach";
+}
+
 function matches(r: Row, f: Filter) {
   if (f === "completed") return r.status === "completed";
   if (f === "planned") return r.status !== "completed";
   if (f === "favorites") return Boolean(r.is_favorite);
   return Boolean(r.scheduled_at);
+}
+
+/** Colour of the dot a workout gets in the calendar. */
+function dotClass(r: Row) {
+  if (r.status === "completed") return "bg-primary";
+  const tone = scheduleTone(r.scheduled_at, false);
+  if (tone) return SCHEDULE_TONE_DOT[tone];
+  return "bg-muted-foreground/50";
+}
+
+function StatusLine({ r }: { r: Row }) {
+  if (r.status === "completed") {
+    return (
+      <span className="inline-flex items-center gap-1 text-primary">
+        <CheckCircle2 className="h-3.5 w-3.5 shrink-0" /> Completed {formatDate(r.completed_at)}
+      </span>
+    );
+  }
+  const tone = scheduleTone(r.scheduled_at, false);
+  if (tone) {
+    return (
+      <span className={`inline-flex items-center gap-1 font-semibold ${SCHEDULE_TONE_TEXT[tone]}`}>
+        <CalendarClock className="h-3.5 w-3.5 shrink-0" />
+        {SCHEDULE_TONE_LABEL[tone]} {formatDate(r.scheduled_at)}
+      </span>
+    );
+  }
+  return <span className="text-muted-foreground">Not done</span>;
 }
 
 function WorkoutCard({
@@ -103,7 +155,6 @@ function WorkoutCard({
   r: Row;
   onToggleFavorite?: (id: string, next: boolean) => void;
 }) {
-  const scheduled = r.scheduled_at ? new Date(r.scheduled_at) : null;
   return (
     <div className="relative">
       <Link
@@ -116,14 +167,15 @@ function WorkoutCard({
             {r.category}
           </p>
           <span className="shrink-0 text-[11px] text-muted-foreground">
-            {new Date(r.created_at).toLocaleDateString()}
+            Created {formatDate(r.created_at)}
           </span>
         </div>
 
         <p className="mt-1 pr-10 font-bold leading-tight">{r.name}</p>
+        <p className="mt-0.5 text-[11px] text-muted-foreground">{sourceLabel(r)}</p>
 
-        <div className="mt-2 grid grid-cols-3 gap-2 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-1">
+        <div className="mt-2 grid grid-cols-3 items-center gap-2 text-xs">
+          <span className="inline-flex items-center gap-1 text-muted-foreground">
             <Clock className="h-3.5 w-3.5 shrink-0" />
             {r.duration_min} min
           </span>
@@ -139,18 +191,8 @@ function WorkoutCard({
               />
             ))}
           </span>
-          <span className="inline-flex items-center justify-end gap-1">
-            {r.status === "completed" ? (
-              <>
-                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-primary" /> Completed
-              </>
-            ) : scheduled ? (
-              <>
-                <CalendarClock className="h-3.5 w-3.5 shrink-0" /> {scheduled.toLocaleDateString()}
-              </>
-            ) : (
-              "Not done"
-            )}
+          <span className="justify-self-end text-right">
+            <StatusLine r={r} />
           </span>
         </div>
 
@@ -181,12 +223,187 @@ function WorkoutCard({
   );
 }
 
-function Calendar({
+/** Mark done / reschedule / remove schedule, straight from any calendar day. */
+function DayActions({
+  r,
+  onComplete,
+  onReschedule,
+  onClear,
+  busy,
+}: {
+  r: Row;
+  onComplete: (id: string) => void;
+  onReschedule: (id: string, iso: string) => void;
+  onClear: (id: string) => void;
+  busy: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState(() =>
+    r.scheduled_at ? new Date(r.scheduled_at).toISOString().slice(0, 16) : "",
+  );
+
+  return (
+    <div className="mt-3 space-y-2">
+      <div className="grid gap-2 sm:grid-cols-3">
+        <Button
+          size="sm"
+          variant={r.status === "completed" ? "default" : "outline"}
+          className="h-10 rounded-xl"
+          disabled={busy}
+          onClick={() => onComplete(r.id)}
+        >
+          <CheckCircle2 className="mr-1.5 h-4 w-4" /> Mark done
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-10 rounded-xl"
+          disabled={busy}
+          onClick={() => setOpen((v) => !v)}
+        >
+          <CalendarClock className="mr-1.5 h-4 w-4" />
+          {r.scheduled_at ? "Reschedule" : "Schedule"}
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-10 rounded-xl"
+          disabled={busy || !r.scheduled_at}
+          onClick={() => onClear(r.id)}
+        >
+          <X className="mr-1.5 h-4 w-4" /> Remove
+        </Button>
+      </div>
+      {open ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            type="datetime-local"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            className="h-10 min-w-0 flex-1 rounded-xl border border-input bg-background px-3 text-sm"
+          />
+          <Button
+            size="sm"
+            className="h-10 rounded-xl"
+            disabled={busy || !draft}
+            onClick={() => {
+              onReschedule(r.id, new Date(draft).toISOString());
+              setOpen(false);
+            }}
+          >
+            Save
+          </Button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function MonthGrid({
+  cursor,
+  byDay,
+  selected,
+  onSelect,
+  onlyScheduled,
+}: {
+  cursor: Date;
+  byDay: Map<string, Row[]>;
+  selected: string;
+  onSelect: (key: string) => void;
+  onlyScheduled?: boolean;
+}) {
+  const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
+  const offset = (first.getDay() + 6) % 7; // Monday-first
+  const days = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate();
+  const cells: Array<Date | null> = [
+    ...Array.from({ length: offset }, () => null),
+    ...Array.from(
+      { length: days },
+      (_, i) => new Date(cursor.getFullYear(), cursor.getMonth(), i + 1),
+    ),
+  ];
+  const today = dayKey(new Date());
+
+  return (
+    <>
+      <div className="mt-3 grid grid-cols-7 gap-1 text-center text-[10px] uppercase tracking-wide text-muted-foreground">
+        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
+          <span key={d}>{d}</span>
+        ))}
+      </div>
+      <div className="mt-1 grid grid-cols-7 gap-1">
+        {cells.map((d, i) => {
+          if (!d) return <span key={`e${i}`} />;
+          const key = dayKey(d);
+          const items = byDay.get(key) ?? [];
+          const isSelected = key === selected;
+          const dim = onlyScheduled && items.length === 0;
+          return (
+            <button
+              type="button"
+              key={key}
+              onClick={() => onSelect(key)}
+              className={`min-h-14 rounded-xl border p-1 text-left text-[10px] transition ${
+                isSelected
+                  ? "border-primary bg-primary/10"
+                  : key === today
+                    ? "border-primary/60"
+                    : "border-border hover:border-primary/40"
+              } ${dim ? "opacity-40" : ""}`}
+            >
+              <span className="font-bold">{d.getDate()}</span>
+              <span className="mt-1 flex flex-wrap gap-0.5">
+                {items.slice(0, 4).map((r) => (
+                  <span key={r.id} className={`h-1.5 w-1.5 rounded-full ${dotClass(r)}`} />
+                ))}
+                {items.length > 4 ? (
+                  <span className="text-muted-foreground">+{items.length - 4}</span>
+                ) : null}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+function Legend() {
+  return (
+    <div className="mt-3 flex flex-wrap gap-3 text-[11px] text-muted-foreground">
+      <span className="inline-flex items-center gap-1">
+        <span className="h-2 w-2 rounded-full bg-primary" /> Completed
+      </span>
+      <span className="inline-flex items-center gap-1">
+        <span className="h-2 w-2 rounded-full bg-blue-500" /> Scheduled today
+      </span>
+      <span className="inline-flex items-center gap-1">
+        <span className="h-2 w-2 rounded-full bg-emerald-500" /> Scheduled ahead
+      </span>
+      <span className="inline-flex items-center gap-1">
+        <span className="h-2 w-2 rounded-full bg-red-500" /> Missed
+      </span>
+      <span className="inline-flex items-center gap-1">
+        <span className="h-2 w-2 rounded-full bg-muted-foreground/50" /> Created, not done
+      </span>
+    </div>
+  );
+}
+
+function CalendarView({
   rows,
   onToggleFavorite,
+  actions,
+  busy,
 }: {
   rows: Row[];
   onToggleFavorite: (id: string, next: boolean) => void;
+  actions: {
+    complete: (id: string) => void;
+    reschedule: (id: string, iso: string) => void;
+    clear: (id: string) => void;
+  };
+  busy: boolean;
 }) {
   const [cursor, setCursor] = useState(() => {
     const d = new Date();
@@ -203,22 +420,11 @@ function Calendar({
     return map;
   }, [rows]);
 
-  const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
-  const offset = (first.getDay() + 6) % 7; // Monday-first
-  const days = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate();
-  const cells: Array<Date | null> = [
-    ...Array.from({ length: offset }, () => null),
-    ...Array.from(
-      { length: days },
-      (_, i) => new Date(cursor.getFullYear(), cursor.getMonth(), i + 1),
-    ),
-  ];
-  const today = dayKey(new Date());
   const selectedRows = byDay.get(selected) ?? [];
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-primary/40 bg-card p-4">
+      <div className="rounded-2xl border-2 border-blue-400 bg-card p-4">
         <div className="flex items-center justify-between">
           <Button
             variant="ghost"
@@ -228,9 +434,7 @@ function Calendar({
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <p className="font-bold">
-            {cursor.toLocaleDateString(undefined, { month: "long", year: "numeric" })}
-          </p>
+          <p className="font-bold">{formatMonthYear(cursor)}</p>
           <Button
             variant="ghost"
             size="icon"
@@ -241,73 +445,13 @@ function Calendar({
           </Button>
         </div>
 
-        <div className="mt-3 grid grid-cols-7 gap-1 text-center text-[10px] uppercase tracking-wide text-muted-foreground">
-          {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
-            <span key={d}>{d}</span>
-          ))}
-        </div>
-        <div className="mt-1 grid grid-cols-7 gap-1">
-          {cells.map((d, i) => {
-            if (!d) return <span key={`e${i}`} />;
-            const key = dayKey(d);
-            const items = byDay.get(key) ?? [];
-            const isSelected = key === selected;
-            return (
-              <button
-                type="button"
-                key={key}
-                onClick={() => setSelected(key)}
-                className={`min-h-14 rounded-xl border p-1 text-left text-[10px] transition ${
-                  isSelected
-                    ? "border-primary bg-primary/10"
-                    : key === today
-                      ? "border-primary/60"
-                      : "border-border hover:border-primary/40"
-                }`}
-              >
-                <span className="font-bold">{d.getDate()}</span>
-                <span className="mt-1 flex flex-wrap gap-0.5">
-                  {items.slice(0, 4).map((r) => (
-                    <span
-                      key={r.id}
-                      className={`h-1.5 w-1.5 rounded-full ${
-                        r.status === "completed"
-                          ? "bg-primary"
-                          : r.scheduled_at
-                            ? "bg-sky-500"
-                            : "bg-muted-foreground/50"
-                      }`}
-                    />
-                  ))}
-                  {items.length > 4 ? (
-                    <span className="text-muted-foreground">+{items.length - 4}</span>
-                  ) : null}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="mt-3 flex flex-wrap gap-3 text-[11px] text-muted-foreground">
-          <span className="inline-flex items-center gap-1">
-            <span className="h-2 w-2 rounded-full bg-primary" /> Completed
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <span className="h-2 w-2 rounded-full bg-sky-500" /> Scheduled
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <span className="h-2 w-2 rounded-full bg-muted-foreground/50" /> Created, not done
-          </span>
-        </div>
+        <MonthGrid cursor={cursor} byDay={byDay} selected={selected} onSelect={setSelected} />
+        <Legend />
       </div>
 
       <div>
         <p className="mb-2 text-sm font-bold">
-          {new Date(`${selected}T00:00:00`).toLocaleDateString(undefined, {
-            weekday: "long",
-            day: "numeric",
-            month: "long",
-          })}
+          {formatWeekdayLong(new Date(`${selected}T00:00:00`))}
         </p>
         {selectedRows.length === 0 ? (
           <div className="rounded-2xl border-2 border-blue-400 bg-card p-6 text-center text-sm text-muted-foreground">
@@ -318,6 +462,13 @@ function Calendar({
             {selectedRows.map((r) => (
               <li key={r.id}>
                 <WorkoutCard r={r} onToggleFavorite={onToggleFavorite} />
+                <DayActions
+                  r={r}
+                  busy={busy}
+                  onComplete={actions.complete}
+                  onReschedule={actions.reschedule}
+                  onClear={actions.clear}
+                />
               </li>
             ))}
           </ul>
@@ -327,18 +478,150 @@ function Calendar({
   );
 }
 
+/** Scheduled-only calendar: hops month by month through everything you planned. */
+function ScheduledView({
+  rows,
+  onToggleFavorite,
+  actions,
+  busy,
+}: {
+  rows: Row[];
+  onToggleFavorite: (id: string, next: boolean) => void;
+  actions: {
+    complete: (id: string) => void;
+    reschedule: (id: string, iso: string) => void;
+    clear: (id: string) => void;
+  };
+  busy: boolean;
+}) {
+  const scheduled = useMemo(
+    () =>
+      rows
+        .filter((r) => Boolean(r.scheduled_at))
+        .sort(
+          (a, b) => new Date(a.scheduled_at!).getTime() - new Date(b.scheduled_at!).getTime(),
+        ),
+    [rows],
+  );
+
+  const months = useMemo(() => {
+    const keys = new Set<string>();
+    for (const r of scheduled) {
+      const d = new Date(r.scheduled_at!);
+      keys.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+    }
+    return [...keys].sort();
+  }, [scheduled]);
+
+  const nowKey = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
+  const [index, setIndex] = useState(() => {
+    const i = months.findIndex((m) => m >= nowKey);
+    return i === -1 ? Math.max(months.length - 1, 0) : i;
+  });
+
+  const byDay = useMemo(() => {
+    const map = new Map<string, Row[]>();
+    for (const r of scheduled) {
+      const key = dayKey(new Date(r.scheduled_at!));
+      map.set(key, [...(map.get(key) ?? []), r]);
+    }
+    return map;
+  }, [scheduled]);
+
+  if (!months.length) {
+    return (
+      <div className="rounded-2xl border-2 border-blue-400 bg-card p-8 text-center">
+        <p className="text-muted-foreground">
+          Nothing scheduled yet — open a workout and pick a date to plan it.
+        </p>
+        <Button asChild className="mt-4 h-11 rounded-2xl">
+          <Link to="/coach">Create your workout</Link>
+        </Button>
+      </div>
+    );
+  }
+
+  const safeIndex = Math.min(index, months.length - 1);
+  const monthKey = months[safeIndex]!;
+  const [y, m] = monthKey.split("-").map(Number);
+  const cursor = new Date(y!, m! - 1, 1);
+  const monthRows = scheduled.filter((r) => {
+    const d = new Date(r.scheduled_at!);
+    return d.getFullYear() === y && d.getMonth() === m! - 1;
+  });
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-2xl border-2 border-blue-400 bg-card p-4">
+        <div className="flex items-center justify-between">
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Previous scheduled month"
+            disabled={safeIndex === 0}
+            onClick={() => setIndex(safeIndex - 1)}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div className="text-center">
+            <p className="font-bold">{formatMonthYear(cursor)}</p>
+            <p className="text-[11px] text-muted-foreground">
+              {monthRows.length} scheduled · month {safeIndex + 1} of {months.length}
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Next scheduled month"
+            disabled={safeIndex >= months.length - 1}
+            onClick={() => setIndex(safeIndex + 1)}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <MonthGrid
+          cursor={cursor}
+          byDay={byDay}
+          selected=""
+          onSelect={() => {}}
+          onlyScheduled
+        />
+        <Legend />
+      </div>
+
+      <ul className="grid gap-3 sm:grid-cols-2">
+        {monthRows.map((r) => (
+          <li key={r.id}>
+            <WorkoutCard r={r} onToggleFavorite={onToggleFavorite} />
+            <DayActions
+              r={r}
+              busy={busy}
+              onComplete={actions.complete}
+              onReschedule={actions.reschedule}
+              onClear={actions.clear}
+            />
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function Logbook() {
   const { filter, view } = Route.useSearch();
   const navigate = useNavigate({ from: "/logbook" });
   const [rows, setRows] = useState<Row[] | null>(null);
+  const [busy, setBusy] = useState(false);
   const saveMeta = useServerFn(setWorkoutMeta);
+  const saveStatus = useServerFn(setWorkoutStatus);
   const { user } = useAuth();
 
   const loadRows = useCallback(async () => {
     const { data, error } = await supabase
       .from("workouts")
       .select(
-        "id,name,category,duration_min,difficulty_stars,difficulty_label,mood,status,is_favorite,scheduled_at,completed_at,created_at,workout_feedback(difficulty_rating,feeling)",
+        "id,name,category,duration_min,difficulty_stars,difficulty_label,mood,status,is_favorite,scheduled_at,completed_at,created_at,is_wod,created_by,workout_feedback(difficulty_rating,feeling)",
       )
       .order("created_at", { ascending: false })
       .limit(300);
@@ -367,6 +650,51 @@ function Logbook() {
       toast.error("Could not save that.");
     }
   }
+
+  async function patchStatus(
+    id: string,
+    patch: { status?: string; scheduled_at?: string | null },
+    optimistic: Partial<Row>,
+    message: string,
+  ) {
+    if (busy) return;
+    setBusy(true);
+    const before = rows;
+    setRows((prev) => prev?.map((r) => (r.id === id ? { ...r, ...optimistic } : r)) ?? prev);
+    try {
+      await saveStatus({ data: { workoutId: id, ...patch } });
+      toast.success(message);
+    } catch (e) {
+      setRows(before ?? null);
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const actions = {
+    complete: (id: string) =>
+      void patchStatus(
+        id,
+        { status: "completed", scheduled_at: null },
+        { status: "completed", scheduled_at: null, completed_at: new Date().toISOString() },
+        "Marked as completed.",
+      ),
+    reschedule: (id: string, iso: string) =>
+      void patchStatus(
+        id,
+        { status: "scheduled", scheduled_at: iso },
+        { status: "scheduled", scheduled_at: iso },
+        "Rescheduled.",
+      ),
+    clear: (id: string) =>
+      void patchStatus(
+        id,
+        { status: "created", scheduled_at: null },
+        { status: "created", scheduled_at: null },
+        "Removed from the schedule.",
+      ),
+  };
 
   function setActive(next: Filter[]) {
     const value = next.length ? next.join(",") : "all";
@@ -400,28 +728,53 @@ function Logbook() {
         subtitle="Every workout you created — completed, still to do, or scheduled."
       />
 
-      <div className="mt-5 grid grid-cols-2 gap-2">
+      <div className="mt-5 space-y-2">
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            variant={view === "list" ? "default" : "secondary"}
+            className="h-11 w-full rounded-2xl"
+            onClick={() => navigate({ search: (p: LogSearch) => ({ ...p, view: "list" as const }) })}
+          >
+            List
+          </Button>
+          <Button
+            variant={view === "calendar" ? "default" : "secondary"}
+            className="h-11 w-full rounded-2xl"
+            onClick={() =>
+              navigate({ search: (p: LogSearch) => ({ ...p, view: "calendar" as const }) })
+            }
+          >
+            Calendar
+          </Button>
+        </div>
         <Button
-          variant={view === "list" ? "default" : "secondary"}
-          className="h-11 w-full rounded-2xl"
-          onClick={() => navigate({ search: (p: LogSearch) => ({ ...p, view: "list" as const }) })}
-        >
-          List
-        </Button>
-        <Button
-          variant={view === "calendar" ? "default" : "secondary"}
+          variant={view === "scheduled" ? "default" : "secondary"}
           className="h-11 w-full rounded-2xl"
           onClick={() =>
-            navigate({ search: (p: LogSearch) => ({ ...p, view: "calendar" as const }) })
+            navigate({ search: (p: LogSearch) => ({ ...p, view: "scheduled" as const }) })
           }
         >
-          Calendar
+          Scheduled
         </Button>
       </div>
 
       {view === "calendar" ? (
         <div className="mt-4">
-          <Calendar rows={rows} onToggleFavorite={toggleFavorite} />
+          <CalendarView
+            rows={rows}
+            onToggleFavorite={toggleFavorite}
+            actions={actions}
+            busy={busy}
+          />
+        </div>
+      ) : view === "scheduled" ? (
+        <div className="mt-4">
+          <ScheduledView
+            rows={rows}
+            onToggleFavorite={toggleFavorite}
+            actions={actions}
+            busy={busy}
+          />
         </div>
       ) : (
         <>
@@ -440,7 +793,6 @@ function Logbook() {
                 <DropdownMenuLabel>Show</DropdownMenuLabel>
                 <DropdownMenuCheckboxItem
                   checked={active.length === 0}
-                  onSelect={(e) => e.preventDefault()}
                   onCheckedChange={() => setActive([])}
                   className="h-11"
                 >
@@ -451,11 +803,8 @@ function Logbook() {
                   <DropdownMenuCheckboxItem
                     key={f.id}
                     checked={active.includes(f.id)}
-                    onSelect={(e) => e.preventDefault()}
                     onCheckedChange={(checked) =>
-                      setActive(
-                        checked ? [...active, f.id] : active.filter((a) => a !== f.id),
-                      )
+                      setActive(checked ? [...active, f.id] : active.filter((a) => a !== f.id))
                     }
                     className="h-11"
                   >
@@ -481,7 +830,7 @@ function Logbook() {
             <ul className="mt-4 grid gap-3 sm:grid-cols-2">
               {filtered.map((r) => (
                 <li key={r.id}>
-                  <WorkoutCard r={r} onToggleFavorite={toggleFavorite} />
+                  <WorkoutCard r={r} onToggleFavorite={onToggleFavorite ?? toggleFavorite} />
                 </li>
               ))}
             </ul>
