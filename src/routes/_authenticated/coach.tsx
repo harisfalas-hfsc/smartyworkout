@@ -25,6 +25,7 @@ import {
 } from "@/lib/preferences.functions";
 import { Link } from "@tanstack/react-router";
 import { ParqWaiverDialog } from "@/components/ParqWaiverDialog";
+import { MembershipRequiredDialog } from "@/components/MembershipRequiredDialog";
 
 import {
   EQUIPMENT,
@@ -151,6 +152,8 @@ function CoachPage() {
   const [profileReady, setProfileReady] = useState<boolean | null>(null);
   const [parqFlags, setParqFlags] = useState<string[]>([]);
   const [parqOpen, setParqOpen] = useState(false);
+  const [premium, setPremium] = useState<boolean | null>(null);
+  const [membershipOpen, setMembershipOpen] = useState(false);
   const [pendingSurprise, setPendingSurprise] = useState<boolean | null>(null);
 
 
@@ -161,6 +164,7 @@ function CoachPage() {
           access.profileComplete && access.healthAcknowledged && access.readinessComplete,
         );
         setParqFlags(access.readinessFlagged ? access.readinessFlags : []);
+        setPremium(access.premium);
       })
       .catch(() => setProfileReady(null));
     void getExercisePreferences()
@@ -241,6 +245,10 @@ function CoachPage() {
   }
 
   function requestGenerate(surprise: boolean) {
+    if (premium === false) {
+      setMembershipOpen(true);
+      return;
+    }
     if (parqFlags.length > 0) {
       setPendingSurprise(surprise);
       setParqOpen(true);
@@ -305,6 +313,8 @@ function CoachPage() {
           </p>
         </div>
       ) : null}
+
+      <MembershipRequiredDialog open={membershipOpen} onOpenChange={setMembershipOpen} />
 
       <ParqWaiverDialog
         open={parqOpen}
