@@ -78,6 +78,47 @@ export function OfflineBootstrap() {
             difficulties: unique("difficulty"),
           });
         }
+        // Community: shared workouts, leaderboards, talk and each shared
+        // workout's full detail + comments, so the whole community is readable
+        // offline.
+        try {
+          const [latest, top, rated, completedRank, leadersScore, creators, talk] =
+            await Promise.all([
+              fetchCommunityWorkouts({ sort: "latest", limit: 30 }),
+              fetchCommunityWorkouts({ sort: "top", limit: 30 }).catch(() => []),
+              fetchCommunityWorkouts({ sort: "rated", limit: 30 }).catch(() => []),
+              fetchCommunityWorkouts({ sort: "completed", limit: 30 }).catch(() => []),
+              fetchLeaders("score", 30).catch(() => []),
+              fetchCommunityCreators("workouts_shared", 30).catch(() => []),
+              fetchLatestComments(30, "newest").catch(() => []),
+            ]);
+          if (!active) return;
+          void save("community:workouts:latest", latest);
+          void save("community:workouts:top", top);
+          void save("community:workouts:rated", rated);
+          void save("community:ranked:completed", completedRank);
+          void save("community:members:score", leadersScore);
+          void save("community:members:workouts_shared", creators);
+          void save("community:comments:newest", talk);
+
+          const ids = [...new Set(latest.map((w) => w.id))].slice(0, 20);
+          for (const id of ids) {
+            void loadShared({ data: { workoutId: id } })
+              .then((detail) => save(`community:workout:${id}`, detail))
+              .catch(() => undefined);
+            void fetchComments(id)
+              .then((rows) => save(`community:workout-comments:${id}`, rows))
+              .catch(() => undefined);
+          }
+        } catch {
+          /* community copy is best-effort */
+        }
+
+        // Progress + badges
+        void loadProgress({ data: {} } as never)
+          .then((overview) => save("progress:overview", overview))
+          .catch(() => undefined);
+
         void trimCache(800);
       } finally {
         running.current = false;
