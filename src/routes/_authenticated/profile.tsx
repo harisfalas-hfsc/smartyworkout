@@ -279,6 +279,7 @@ function ProfilePage() {
     }
     toast.success("Training profile saved.");
     setSaved(true);
+    if (!wasOnboarded) void announceNewMemberFn({ data: undefined as never }).catch(() => undefined);
   }
 
 
