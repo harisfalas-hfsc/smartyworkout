@@ -222,7 +222,7 @@ export function ConversationsPanel({
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
       ) : threads.length === 0 ? (
-        <p className="rounded-2xl border border-border p-6 text-center text-sm text-muted-foreground">
+        <p className="rounded-2xl border-2 border-blue-400 p-6 text-center text-sm text-muted-foreground">
           No conversations yet. Start one above — we reply within 24 to 48 hours.
         </p>
       ) : (
@@ -231,7 +231,7 @@ export function ConversationsPanel({
             const open = openId === t.id;
             const last = t.messages?.[t.messages.length - 1];
             return (
-              <li key={t.id} className="rounded-2xl border border-blue-400 bg-card">
+              <li key={t.id} className="rounded-2xl border-2 border-blue-400 bg-card">
                 <button
                   type="button"
                   onClick={() => openThread(t)}

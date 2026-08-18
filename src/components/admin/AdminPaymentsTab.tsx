@@ -69,7 +69,7 @@ export function AdminPaymentsTab() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-4 rounded-xl border border-border p-3">
+        <div className="flex items-center justify-between gap-4 rounded-xl border-2 border-blue-400 p-3">
           <div>
             <p className="text-sm font-semibold">Make the entire app free</p>
             <p className="text-xs text-muted-foreground">

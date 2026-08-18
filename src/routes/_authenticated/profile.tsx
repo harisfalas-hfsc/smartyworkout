@@ -117,7 +117,7 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-6">
+    <section className="rounded-3xl border-2 border-blue-400 bg-card p-5 shadow-sm sm:p-6">
       <div className="mb-4 flex items-start gap-3">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
           <Icon className="h-5 w-5" />
@@ -484,7 +484,7 @@ function ProfilePage() {
               ["jointProblem", "Do you have a bone, joint or soft-tissue problem that exercise could worsen?"],
               ["otherReason", "Is there any other reason you should not exercise today?"],
             ].map(([key, question]) => (
-              <div key={key} className="rounded-2xl border border-border bg-background p-4">
+              <div key={key} className="rounded-2xl border-2 border-blue-400 bg-background p-4">
                 <p className="text-sm font-semibold leading-5">{question}</p>
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   {[false, true].map((value) => (
@@ -531,7 +531,7 @@ function ProfilePage() {
             </div>
           ) : (
             Object.keys(p.readiness_answers ?? {}).length === 5 && (
-              <p className="mt-4 rounded-2xl border border-border bg-background p-4 text-sm leading-5 text-muted-foreground">
+              <p className="mt-4 rounded-2xl border-2 border-blue-400 bg-background p-4 text-sm leading-5 text-muted-foreground">
                 All answers are no — you are clear to train. Keep it sensible and stop if anything
                 feels wrong.
               </p>
@@ -545,7 +545,7 @@ function ProfilePage() {
           title="Health & safety acknowledgement"
           hint="Required before Smarty Coach can create any workout"
         >
-          <label className="flex min-h-14 cursor-pointer items-start gap-3 rounded-2xl border border-border bg-background p-4 text-sm leading-5">
+          <label className="flex min-h-14 cursor-pointer items-start gap-3 rounded-2xl border-2 border-blue-400 bg-background p-4 text-sm leading-5">
             <input
               type="checkbox"
               className="mt-0.5 h-5 w-5 shrink-0 accent-primary"

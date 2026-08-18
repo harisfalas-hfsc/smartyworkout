@@ -89,14 +89,14 @@ export function DailyCoachingSettings({ premium = false }: { premium?: boolean }
 
   if (!settings) {
     return (
-      <section className="mt-4 grid h-32 place-items-center rounded-2xl border border-border bg-card">
+      <section className="mt-4 grid h-32 place-items-center rounded-2xl border-2 border-blue-400 bg-card">
         <Loader2 className="h-5 w-5 animate-spin text-primary" />
       </section>
     );
   }
 
   return (
-    <section className="mt-4 rounded-2xl border border-border bg-card p-5">
+    <section className="mt-4 rounded-2xl border-2 border-blue-400 bg-card p-5">
       <div className="flex items-center gap-3">
         <span className="grid h-11 w-11 place-items-center rounded-2xl bg-primary/10 text-primary">
           <BellRing className="h-5 w-5" />

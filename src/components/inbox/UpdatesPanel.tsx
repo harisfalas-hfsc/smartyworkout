@@ -158,7 +158,7 @@ export function UpdatesPanel({ onUnread }: { onUnread?: (n: number) => void }) {
         </button>
       </div>
 
-      <div className="mb-3 flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-background p-2">
+      <div className="mb-3 flex flex-wrap items-center gap-2 rounded-2xl border-2 border-blue-400 bg-background p-2">
         <div
           className={`flex h-9 shrink-0 items-center gap-2 rounded-xl px-2 text-xs font-bold ${
             visibleIds.length ? "" : "pointer-events-none opacity-40"
@@ -221,7 +221,7 @@ export function UpdatesPanel({ onUnread }: { onUnread?: (n: number) => void }) {
           <Loader2 className="h-5 w-5 animate-spin" />
         </div>
       ) : visible.length === 0 ? (
-        <p className="rounded-2xl border border-border p-8 text-center text-sm text-muted-foreground">
+        <p className="rounded-2xl border-2 border-blue-400 p-8 text-center text-sm text-muted-foreground">
           Nothing here yet. Your morning message and workout alerts land here.
         </p>
       ) : (

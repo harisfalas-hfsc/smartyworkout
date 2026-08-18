@@ -90,7 +90,7 @@ export function AdminAwardsTab() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-blue-400 bg-card p-4">
+      <section className="rounded-2xl border-2 border-blue-400 bg-card p-4">
         <div className="flex items-center justify-between">
           <h3 className="font-bold">Badge definitions</h3>
           <Button size="sm" variant="outline" onClick={addBadge}>
@@ -104,7 +104,7 @@ export function AdminAwardsTab() {
         ) : (
           <div className="mt-4 space-y-3">
             {defs.map((d) => (
-              <div key={d.id} className="rounded-xl border border-border p-3">
+              <div key={d.id} className="rounded-xl border-2 border-blue-400 p-3">
                 <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
                   <Field label="Name" value={d.name} onChange={(v) => patch(d.id, "name", v)} />
                   <label className="block text-xs font-semibold text-muted-foreground">
@@ -173,7 +173,7 @@ export function AdminAwardsTab() {
         )}
       </section>
 
-      <section className="rounded-2xl border border-blue-400 bg-card p-4">
+      <section className="rounded-2xl border-2 border-blue-400 bg-card p-4">
         <h3 className="font-bold">Member progress</h3>
         <div className="mt-3 flex gap-2">
           <input
@@ -201,7 +201,7 @@ export function AdminAwardsTab() {
                 ["Membership", `${progress.stats.subscription_months} mo`],
                 ["Awards", progress.badges.length],
               ].map(([label, value]) => (
-                <div key={String(label)} className="rounded-xl border border-border p-3">
+                <div key={String(label)} className="rounded-xl border-2 border-blue-400 p-3">
                   <p className="text-xs uppercase text-muted-foreground">{label}</p>
                   <p className="text-lg font-extrabold">{String(value)}</p>
                 </div>

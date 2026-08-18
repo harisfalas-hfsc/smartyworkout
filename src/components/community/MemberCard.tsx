@@ -58,7 +58,7 @@ export function MemberCard({
 
       <dl className="mt-4 grid grid-cols-2 gap-2">
         {stats.map((s) => (
-          <div key={s.label} className="rounded-2xl border border-border p-2.5">
+          <div key={s.label} className="rounded-2xl border-2 border-blue-400 p-2.5">
             <dt className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               {s.label}
             </dt>

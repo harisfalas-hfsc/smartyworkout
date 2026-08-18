@@ -87,7 +87,7 @@ function List({
       {items.map((it, i) => (
         <li
           key={i}
-          className="flex items-start gap-4 rounded-lg border border-border bg-card/50 p-3 text-sm leading-7 text-muted-foreground shadow-sm sm:text-base"
+          className="flex items-start gap-4 rounded-lg border-2 border-blue-400 bg-card/50 p-3 text-sm leading-7 text-muted-foreground shadow-sm sm:text-base"
         >
           <span className="mt-0.5 shrink-0 rounded-md bg-primary/10 p-1.5 text-primary">
             {it.icon}
@@ -342,7 +342,7 @@ function FounderNotePage() {
         not a chatbot.
       </P>
 
-      <div className="mt-8 rounded-2xl border border-primary/30 bg-primary/5 p-6 sm:p-8">
+      <div className="mt-8 rounded-2xl border-2 border-blue-400 bg-primary/5 p-6 sm:p-8">
         <P className="mt-0">
           From my perspective as the person who built it, this is the core
           pitch: €9.99 per month for a daily personal workout that is built from

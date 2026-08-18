@@ -105,7 +105,7 @@ export function AdminUsersTab({ onlySubscribers = false }: Props) {
       ) : (
         <div className="space-y-3">
           {rows.map((u) => (
-            <div key={u.id} className="rounded-2xl border border-blue-400 bg-card p-4">
+            <div key={u.id} className="rounded-2xl border-2 border-blue-400 bg-card p-4">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="truncate font-semibold">{u.name || "No name"}</p>
