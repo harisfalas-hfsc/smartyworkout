@@ -1,12 +1,13 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { isOnline } from "@/lib/offline/connectivity";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async () => {
     // Offline / network failure: trust the session saved on the device so the
     // member keeps access to their saved logbook, workouts and player.
-    const offline = typeof navigator !== "undefined" && navigator.onLine === false;
+    const offline = !isOnline();
     if (offline) {
       const { data: local } = await supabase.auth.getSession();
       if (local.session?.user) return { user: local.session.user };

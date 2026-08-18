@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { rememberDevice, offlineSignIn } from "@/lib/offline/device-auth";
+import { isOnline } from "@/lib/offline/connectivity";
 
 
 export const Route = createFileRoute("/auth")({
@@ -134,7 +135,7 @@ function Auth() {
   }
 
   function authMessage(error: unknown, fallback: string) {
-    const offline = typeof navigator !== "undefined" && navigator.onLine === false;
+    const offline = !isOnline();
     const message = error instanceof Error ? error.message : "";
     if (offline || /failed to fetch|network/i.test(message)) {
       return "You're offline. Signing in for the first time on this device needs internet — once signed in, your saved data stays available offline.";
@@ -162,7 +163,7 @@ function Auth() {
       // No internet: unlock this device with the saved session for this account.
       const message = error instanceof Error ? error.message : "";
       const networkIssue =
-        (typeof navigator !== "undefined" && navigator.onLine === false) ||
+        !isOnline() ||
         /failed to fetch|network|load failed/i.test(message);
       if (networkIssue) {
         const result = await offlineSignIn(normalizedEmail, password);
