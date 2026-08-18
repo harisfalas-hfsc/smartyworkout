@@ -138,7 +138,7 @@ function WorkoutCard({ workout }: { workout: WodWorkout }) {
       <Button
         asChild
         variant="outline"
-        className="mt-3 h-11 w-full rounded-xl border-2 border-primary/40 bg-transparent text-[14px] font-extrabold text-primary hover:border-primary hover:bg-transparent hover:text-primary"
+        className="mt-5 h-11 w-full rounded-xl border-2 border-primary/40 bg-transparent text-[14px] font-extrabold text-primary hover:border-primary hover:bg-transparent hover:text-primary"
       >
         <Link to="/workout/$workoutId" params={{ workoutId: workout.id }}>
           <Play className="mr-2 h-4 w-4 shrink-0" />
@@ -389,24 +389,24 @@ function WodPage() {
 
         {!user ? null : !access?.profileComplete || !access.healthAcknowledged ? (
 
-          <div className="w-full max-w-xl rounded-xl border-2 border-blue-400 bg-card p-4 text-center">
+          <div className="w-full max-w-xl rounded-2xl border-2 border-blue-400 bg-card p-5 text-center">
             <UserRound className="mx-auto h-6 w-6 text-primary" />
             <p className="mt-2 font-extrabold">Complete your Training Profile first</p>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
               Smarty Coach needs your age, level, goal, equipment, environment, duration and safety acknowledgement before it can personalize a workout.
             </p>
-            <Button asChild className="mt-3 h-12 w-full rounded-lg font-extrabold">
+            <Button asChild className="mt-5 h-12 w-full rounded-xl font-extrabold">
               <Link to="/profile">Complete Training Profile</Link>
             </Button>
           </div>
         ) : (
-          <div className="w-full max-w-xl rounded-xl border-2 border-blue-400 bg-card p-4 text-center">
+          <div className="w-full max-w-xl rounded-2xl border-2 border-blue-400 bg-card p-5 text-center">
             <Crown className="mx-auto h-6 w-6 text-primary" />
             <p className="mt-2 font-extrabold">Premium membership required</p>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
               Your profile is ready. Activate your €9.99 monthly membership before joining Workout of the Day.
             </p>
-            <Button asChild className="mt-3 h-12 w-full rounded-lg font-extrabold">
+            <Button asChild className="mt-5 h-12 w-full rounded-xl font-extrabold">
               <Link to="/checkout">Become Premium · €9.99 / month</Link>
             </Button>
           </div>

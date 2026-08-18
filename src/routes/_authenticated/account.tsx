@@ -262,7 +262,7 @@ function Account() {
         </p>
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="ghost" className="mt-3 h-12 w-full rounded-2xl text-destructive">
+            <Button variant="ghost" className="mt-5 h-12 w-full rounded-2xl text-destructive">
               <Trash2 className="mr-2 h-4 w-4" /> Delete my account
             </Button>
           </AlertDialogTrigger>
