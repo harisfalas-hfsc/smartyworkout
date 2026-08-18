@@ -27,6 +27,8 @@ export function OfflineBootstrap() {
   const loadHub = useServerFn(getDailyHub);
   const loadNotifications = useServerFn(listNotifications);
   const loadThreads = useServerFn(listMyThreads);
+  const loadSharedWorkout = useServerFn(getSharedWorkout);
+  const loadProgressOverview = useServerFn(getProgressOverview);
   const running = useRef(false);
 
   useEffect(() => {
@@ -94,7 +96,7 @@ export function OfflineBootstrap() {
           const [latest, top, rated, completedRank, leadersScore, creators, talk] =
             await Promise.all([
               fetchCommunityWorkouts({ sort: "latest", limit: 30 }),
-              fetchCommunityWorkouts({ sort: "top", limit: 30 }).catch(() => []),
+              fetchCommunityWorkouts({ sort: "liked", limit: 30 }).catch(() => []),
               fetchCommunityWorkouts({ sort: "rated", limit: 30 }).catch(() => []),
               fetchCommunityWorkouts({ sort: "completed", limit: 30 }).catch(() => []),
               fetchLeaders("score", 30).catch(() => []),
@@ -103,7 +105,7 @@ export function OfflineBootstrap() {
             ]);
           if (!active) return;
           void save("community:workouts:latest", latest);
-          void save("community:workouts:top", top);
+          void save("community:workouts:liked", top);
           void save("community:workouts:rated", rated);
           void save("community:ranked:completed", completedRank);
           void save("community:members:score", leadersScore);
@@ -112,7 +114,7 @@ export function OfflineBootstrap() {
 
           const ids = [...new Set(latest.map((w) => w.id))].slice(0, 20);
           for (const id of ids) {
-            void loadShared({ data: { workoutId: id } })
+            void loadSharedWorkout({ data: { workoutId: id } })
               .then((detail) => save(`community:workout:${id}`, detail))
               .catch(() => undefined);
             void fetchComments(id)
@@ -124,7 +126,7 @@ export function OfflineBootstrap() {
         }
 
         // Progress + badges
-        void loadProgress({ data: {} } as never)
+        void loadProgressOverview({ data: {} } as never)
           .then((overview) => save("progress:overview", overview))
           .catch(() => undefined);
 
