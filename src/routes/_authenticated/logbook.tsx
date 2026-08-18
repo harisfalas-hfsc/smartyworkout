@@ -296,7 +296,6 @@ function DayActions({
   );
 }
 
-
 function MonthGrid({
   cursor,
   byDay,
@@ -474,7 +473,6 @@ function CalendarView({
                 />
               </li>
             ))}
-
           </ul>
         )}
       </div>
@@ -502,9 +500,7 @@ function ScheduledView({
     () =>
       rows
         .filter((r) => Boolean(r.scheduled_at))
-        .sort(
-          (a, b) => new Date(a.scheduled_at!).getTime() - new Date(b.scheduled_at!).getTime(),
-        ),
+        .sort((a, b) => new Date(a.scheduled_at!).getTime() - new Date(b.scheduled_at!).getTime()),
     [rows],
   );
 
@@ -584,13 +580,7 @@ function ScheduledView({
           </Button>
         </div>
 
-        <MonthGrid
-          cursor={cursor}
-          byDay={byDay}
-          selected=""
-          onSelect={() => {}}
-          onlyScheduled
-        />
+        <MonthGrid cursor={cursor} byDay={byDay} selected="" onSelect={() => {}} onlyScheduled />
         <Legend />
       </div>
 
@@ -612,7 +602,6 @@ function ScheduledView({
             />
           </li>
         ))}
-
       </ul>
     </div>
   );
@@ -743,7 +732,9 @@ function Logbook() {
           <Button
             variant={view === "list" ? "default" : "secondary"}
             className="h-11 w-full rounded-2xl"
-            onClick={() => navigate({ search: (p: LogSearch) => ({ ...p, view: "list" as const }) })}
+            onClick={() =>
+              navigate({ search: (p: LogSearch) => ({ ...p, view: "list" as const }) })
+            }
           >
             List
           </Button>
