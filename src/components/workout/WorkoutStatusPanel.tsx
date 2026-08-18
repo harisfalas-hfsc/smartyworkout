@@ -5,6 +5,7 @@ import { CalendarClock, CheckCircle2, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { setWorkoutStatus } from "@/lib/coach.functions";
 import { cn } from "@/lib/utils";
+import { formatDateTime } from "@/lib/date-format";
 
 export type WorkoutStatusState = { status: string; scheduledAt: string };
 
@@ -71,7 +72,7 @@ export function WorkoutStatusPanel({
         {done
           ? "Completed — nice work."
           : scheduled
-            ? `Scheduled for ${new Date(scheduledAt).toLocaleString()} — you will get a reminder.`
+            ? `Scheduled for ${formatDateTime(scheduledAt)} — you will get a reminder.`
             : "Not completed yet."}
       </p>
       <div className="mt-4 grid gap-2 sm:grid-cols-3">
