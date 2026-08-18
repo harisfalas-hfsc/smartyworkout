@@ -23,6 +23,7 @@ import {
 } from "@/lib/daily.functions";
 
 import { ParqWaiverDialog } from "@/components/ParqWaiverDialog";
+import { MembershipRequiredDialog } from "@/components/MembershipRequiredDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { PageHeader } from "@/components/PageHeader";
 
@@ -162,6 +163,7 @@ function WodPage() {
   const [busy, setBusy] = useState(false);
   const [building, setBuilding] = useState(false);
   const [parqOpen, setParqOpen] = useState(false);
+  const [membershipOpen, setMembershipOpen] = useState(false);
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(1);
 
@@ -200,6 +202,7 @@ function WodPage() {
   }
 
   async function handleSubscribeClick() {
+
     if (!user) {
       void navigate({ to: "/auth", search: { next: "/wod", mode: "signup" } });
       return;
@@ -209,7 +212,7 @@ function WodPage() {
       return;
     }
     if (!access.premium) {
-      void navigate({ to: "/checkout" });
+      setMembershipOpen(true);
       return;
     }
     if (!subscribed && access.readinessFlagged && access.readinessFlags.length > 0) {
@@ -336,6 +339,13 @@ function WodPage() {
           ))}
         </div>
       </section>
+
+      <MembershipRequiredDialog
+        open={membershipOpen}
+        onOpenChange={setMembershipOpen}
+        title="Unlock your Workout of the Day"
+        description="Every night at midnight Smarty Coach builds two Workouts of the Day for your profile — one bodyweight, one with equipment. Membership keeps them coming, plus unlimited coaching and the full community."
+      />
 
       <ParqWaiverDialog
         open={parqOpen}
