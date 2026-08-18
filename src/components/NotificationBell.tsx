@@ -12,6 +12,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { listNotifications, markNotificationsRead } from "@/lib/daily.functions";
 import { listMyThreads } from "@/lib/support.functions";
+import { useAuth } from "@/hooks/useAuth";
+import { offlineFirst } from "@/lib/offline/offline-first";
+import { INBOX_CHANGED_EVENT, type InboxSnapshot } from "@/lib/inbox-sync";
 
 type Notification = Awaited<ReturnType<typeof listNotifications>>["notifications"][number];
 type Thread = Awaited<ReturnType<typeof listMyThreads>>["threads"][number];
@@ -29,6 +32,7 @@ export function NotificationBell() {
   const load = useServerFn(listNotifications);
   const loadThreads = useServerFn(listMyThreads);
   const markRead = useServerFn(markNotificationsRead);
+  const { user } = useAuth();
   const [items, setItems] = useState<Item[]>([]);
   const [updatesUnread, setUpdatesUnread] = useState(0);
   const [messagesUnread, setMessagesUnread] = useState(0);
@@ -38,8 +42,8 @@ export function NotificationBell() {
     let active = true;
     const fetchAll = () => {
       void Promise.all([
-        load({}).catch(() => ({ notifications: [] as Notification[], unread: 0 })),
-        loadThreads({}).catch(() => ({ threads: [] as Thread[] })),
+        offlineFirst("inbox:notifications", () => load({}), user?.id),
+        offlineFirst("inbox:threads", () => loadThreads({}), user?.id),
       ]).then(([notif, support]) => {
         if (!active) return;
         setUpdatesUnread(notif.unread);
@@ -63,15 +67,27 @@ export function NotificationBell() {
           })),
         ].sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
         setItems(merged);
-      });
+      }).catch(() => undefined);
+    };
+    const onChanged = (event: Event) => {
+      const detail = (event as CustomEvent<Partial<InboxSnapshot>>).detail;
+      if (typeof detail?.updatesUnread === "number") setUpdatesUnread(detail.updatesUnread);
+      if (typeof detail?.messagesUnread === "number") setMessagesUnread(detail.messagesUnread);
+      fetchAll();
     };
     fetchAll();
-    const t = setInterval(fetchAll, 120_000);
+    window.addEventListener(INBOX_CHANGED_EVENT, onChanged);
+    window.addEventListener("online", fetchAll);
+    window.addEventListener("focus", fetchAll);
+    const t = setInterval(fetchAll, 30_000);
     return () => {
       active = false;
+      window.removeEventListener(INBOX_CHANGED_EVENT, onChanged);
+      window.removeEventListener("online", fetchAll);
+      window.removeEventListener("focus", fetchAll);
       clearInterval(t);
     };
-  }, [load, loadThreads]);
+  }, [load, loadThreads, user?.id]);
 
   function markAllRead() {
     setUpdatesUnread(0);
@@ -80,7 +96,7 @@ export function NotificationBell() {
   }
 
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={(open) => open && window.dispatchEvent(new Event(INBOX_CHANGED_EVENT))}>
       <DropdownMenuTrigger asChild>
         <button
           type="button"

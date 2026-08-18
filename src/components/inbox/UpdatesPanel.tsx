@@ -19,6 +19,10 @@ import {
   listNotifications,
   setNotificationsRead,
 } from "@/lib/daily.functions";
+import { useAuth } from "@/hooks/useAuth";
+import { offlineFirst } from "@/lib/offline/offline-first";
+import { enqueueAction } from "@/lib/offline/queue";
+import { announceInboxChanged } from "@/lib/inbox-sync";
 
 type Notification = Awaited<ReturnType<typeof listNotifications>>["notifications"][number];
 
@@ -35,6 +39,7 @@ export function UpdatesPanel({ onUnread }: { onUnread?: (n: number) => void }) {
   const load = useServerFn(listNotifications);
   const setRead = useServerFn(setNotificationsRead);
   const removeMany = useServerFn(deleteNotifications);
+  const { user } = useAuth();
 
   const [items, setItems] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,12 +50,12 @@ export function UpdatesPanel({ onUnread }: { onUnread?: (n: number) => void }) {
 
   const reload = useCallback(async () => {
     try {
-      const res = await load({});
+      const res = await offlineFirst("inbox:notifications", () => load({}), user?.id);
       setItems(res.notifications);
     } finally {
       setLoading(false);
     }
-  }, [load]);
+  }, [load, user?.id]);
 
   useEffect(() => {
     void reload();
@@ -67,6 +72,7 @@ export function UpdatesPanel({ onUnread }: { onUnread?: (n: number) => void }) {
 
   useEffect(() => {
     onUnread?.(unread);
+    announceInboxChanged({ updatesUnread: unread });
   }, [unread, onUnread]);
 
   const toggleOne = (id: string) =>
@@ -87,7 +93,12 @@ export function UpdatesPanel({ onUnread }: { onUnread?: (n: number) => void }) {
       ),
     );
     setSelected(new Set());
-    await setRead({ data: { ids, read } }).catch(() => undefined);
+    try {
+      await setRead({ data: { ids, read } });
+    } catch {
+      await enqueueAction("notification-read", { ids, read }, user?.id);
+      toast.info("Saved on this device — it will sync when you are online.");
+    }
     toast.success(`${ids.length} marked as ${read ? "read" : "unread"}`);
   }
 
@@ -98,7 +109,12 @@ export function UpdatesPanel({ onUnread }: { onUnread?: (n: number) => void }) {
     setItems((prev) => prev.filter((n) => !ids.includes(n.id)));
     setSelected(new Set());
     if (openId && ids.includes(openId)) setOpenId(null);
-    await removeMany({ data: { ids } }).catch(() => undefined);
+    try {
+      await removeMany({ data: { ids } });
+    } catch {
+      await enqueueAction("notification-delete", { ids }, user?.id);
+      toast.info("Deleted on this device — it will sync when you are online.");
+    }
     toast.success(`${ids.length} message${ids.length === 1 ? "" : "s"} deleted`);
   }
 
