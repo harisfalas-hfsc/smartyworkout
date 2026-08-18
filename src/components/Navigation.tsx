@@ -19,11 +19,15 @@ import {
   BookOpen,
   ChevronLeft,
   User,
+  UserCircle,
   Dumbbell,
   CalendarCheck,
   Users,
   Sun,
   Moon,
+  TrendingUp,
+  LogIn,
+  UserPlus,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -143,30 +147,30 @@ export function Navigation() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-primary" />
                 <DropdownMenuItem asChild>
-                  <Link to="/account">My account</Link>
+                  <Link to="/account"><User className="h-4 w-4 mr-2" /> My account</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/profile">Training profile</Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-primary" />
-                <DropdownMenuItem asChild>
-                  <Link to="/coach">Smarty Coach</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/wod">Workout of the Day</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/logbook" search={{ filter: "all" as const, view: "list" as const }}>Logbook</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/progress">Progress</Link>
+                  <Link to="/profile"><UserCircle className="h-4 w-4 mr-2" /> Training profile</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-primary" />
                 <DropdownMenuItem asChild>
-                  <Link to="/community">Smarty Community</Link>
+                  <Link to="/coach"><Sparkles className="h-4 w-4 mr-2" /> Smarty Coach</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/inbox" search={{ tab: "messages" as const, compose: false }}>Inbox &amp; messages</Link>
+                  <Link to="/wod"><CalendarCheck className="h-4 w-4 mr-2" /> Workout of the Day</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/logbook" search={{ filter: "all" as const, view: "list" as const }}><BookOpen className="h-4 w-4 mr-2" /> Logbook</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/progress"><TrendingUp className="h-4 w-4 mr-2" /> Progress</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-primary" />
+                <DropdownMenuItem asChild>
+                  <Link to="/community"><Users className="h-4 w-4 mr-2" /> Smarty Community</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/inbox" search={{ tab: "messages" as const, compose: false }}><Mail className="h-4 w-4 mr-2" /> Inbox &amp; messages</Link>
                 </DropdownMenuItem>
 
                 {isAdmin && (
@@ -209,11 +213,11 @@ export function Navigation() {
                 <DropdownMenuLabel>Account</DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-primary" />
                 <DropdownMenuItem asChild>
-                  <Link to="/auth">Sign in</Link>
+                  <Link to="/auth"><LogIn className="h-4 w-4 mr-2" /> Sign in</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link to="/auth" search={{ mode: "signup" } as never}>
-                    Create account
+                    <UserPlus className="h-4 w-4 mr-2" /> Create account
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-primary" />
