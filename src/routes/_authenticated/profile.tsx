@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { announceNewMember } from "@/lib/account.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -176,6 +178,7 @@ function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [wasOnboarded, setWasOnboarded] = useState(false);
+  const announceNewMemberFn = useServerFn(announceNewMember);
 
 
   useEffect(() => {
@@ -279,6 +282,7 @@ function ProfilePage() {
     }
     toast.success("Training profile saved.");
     setSaved(true);
+    if (!wasOnboarded) void announceNewMemberFn({} as never).catch(() => undefined);
   }
 
 

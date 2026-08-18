@@ -58,7 +58,32 @@ async function upsertSubscription(subscription: any, env: StripeEnv) {
       },
       { onConflict: "provider_subscription_id" },
     );
+
+  await adminAlert({
+    kind: "Membership",
+    title: `Membership ${subscription.status}`,
+    details: `Subscription ${subscription.id} for user ${userId} is now "${subscription.status}"${
+      subscription.cancel_at_period_end ? " (set to cancel at period end)" : ""
+    }.`,
+    dedupeKey: `sub-${subscription.id}-${subscription.status}-${subscription.cancel_at_period_end ? 1 : 0}`,
+  });
 }
+
+/** Admin-side alert: emails the support mailbox. Never breaks the webhook. */
+async function adminAlert(input: {
+  kind: string;
+  title: string;
+  details: string;
+  dedupeKey: string;
+}) {
+  try {
+    const { notifyAdmins } = await import("@/lib/admin-alert.server");
+    await notifyAdmins({ ...input, link: "https://smartyworkout.com/admin" });
+  } catch (e) {
+    console.error("[payments-webhook] admin alert failed:", e);
+  }
+}
+
 
 async function markCanceled(subscription: any, env: StripeEnv) {
   await getSupabase()
@@ -66,6 +91,13 @@ async function markCanceled(subscription: any, env: StripeEnv) {
     .update({ status: "canceled", updated_at: new Date().toISOString() })
     .eq("provider_subscription_id", subscription.id)
     .eq("environment", env);
+
+  await adminAlert({
+    kind: "Membership",
+    title: "Membership canceled",
+    details: `Subscription ${subscription.id} was canceled.`,
+    dedupeKey: `sub-canceled-${subscription.id}`,
+  });
 }
 
 function euro(amount: number | null | undefined, currency: string | null | undefined): string {
@@ -111,6 +143,13 @@ async function handleInvoicePaid(invoice: any, env: StripeEnv) {
     } Thank you for training with us — your receipt is on its way by email.`,
     dedupeKey: `invoice-paid:${invoice.id}`,
   });
+
+  await adminAlert({
+    kind: "Payment",
+    title: `Payment received — ${amount}`,
+    details: `Invoice ${invoice.id} paid by user ${userId}.${nextDate ? ` Next period ends ${nextDate}.` : ""}`,
+    dedupeKey: `admin-invoice-paid-${invoice.id}`,
+  });
 }
 
 async function handleInvoiceFailed(invoice: any, env: StripeEnv) {
@@ -134,6 +173,13 @@ async function handleInvoiceFailed(invoice: any, env: StripeEnv) {
     title: nextAttempt ? "Payment didn't go through" : "Payment failed — action needed",
     body,
     dedupeKey: `invoice-failed:${invoice.id}:${attempt}`,
+  });
+
+  await adminAlert({
+    kind: "Payment",
+    title: `Payment failed — ${amount}`,
+    details: `Invoice ${invoice.id} failed for user ${userId} (attempt ${attempt}).`,
+    dedupeKey: `admin-invoice-failed-${invoice.id}-${attempt}`,
   });
 }
 
