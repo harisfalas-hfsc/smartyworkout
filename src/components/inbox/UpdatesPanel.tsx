@@ -23,6 +23,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { offlineFirst } from "@/lib/offline/offline-first";
 import { enqueueAction } from "@/lib/offline/queue";
 import { announceInboxChanged } from "@/lib/inbox-sync";
+import { scopedKey, writeCache } from "@/lib/offline/store";
 
 type Notification = Awaited<ReturnType<typeof listNotifications>>["notifications"][number];
 
@@ -73,7 +74,13 @@ export function UpdatesPanel({ onUnread }: { onUnread?: (n: number) => void }) {
   useEffect(() => {
     onUnread?.(unread);
     announceInboxChanged({ updatesUnread: unread });
-  }, [unread, onUnread]);
+    if (user?.id && !loading) {
+      void writeCache(scopedKey(user.id, "inbox:notifications"), {
+        notifications: items,
+        unread,
+      });
+    }
+  }, [unread, onUnread, user?.id, loading, items]);
 
   const toggleOne = (id: string) =>
     setSelected((prev) => {

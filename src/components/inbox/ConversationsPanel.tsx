@@ -18,6 +18,7 @@ import { offlineFirst } from "@/lib/offline/offline-first";
 import { enqueueAction } from "@/lib/offline/queue";
 import { announceInboxChanged } from "@/lib/inbox-sync";
 import { useOnlineStatus } from "@/lib/offline/useOnlineStatus";
+import { scopedKey, writeCache } from "@/lib/offline/store";
 
 function when(iso: string) {
   const d = new Date(iso);
@@ -71,7 +72,10 @@ export function ConversationsPanel({
   useEffect(() => {
     onUnread?.(unread);
     announceInboxChanged({ messagesUnread: unread });
-  }, [unread, onUnread]);
+    if (user?.id && !loading) {
+      void writeCache(scopedKey(user.id, "inbox:threads"), { threads });
+    }
+  }, [unread, onUnread, user?.id, loading, threads]);
 
   async function openThread(t: SupportThread) {
     setOpenId((cur) => (cur === t.id ? null : t.id));

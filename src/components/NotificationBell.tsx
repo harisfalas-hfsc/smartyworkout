@@ -73,7 +73,7 @@ export function NotificationBell() {
       const detail = (event as CustomEvent<Partial<InboxSnapshot>>).detail;
       if (typeof detail?.updatesUnread === "number") setUpdatesUnread(detail.updatesUnread);
       if (typeof detail?.messagesUnread === "number") setMessagesUnread(detail.messagesUnread);
-      fetchAll();
+      if (navigator.onLine) fetchAll();
     };
     fetchAll();
     window.addEventListener(INBOX_CHANGED_EVENT, onChanged);
