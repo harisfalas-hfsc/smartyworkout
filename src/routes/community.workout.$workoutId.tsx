@@ -112,7 +112,12 @@ function SharedWorkoutPage() {
       } catch (e) {
         if (active) setError((e as Error).message);
       }
-      const [list] = await Promise.all([fetchComments(workoutId), refreshCounts()]);
+      const [list] = await Promise.all([
+        offlineFirst(`community:workout-comments:${workoutId}`, () => fetchComments(workoutId)).catch(
+          () => [] as CommunityComment[],
+        ),
+        refreshCounts(),
+      ]);
       if (active) setComments(list);
     })();
     return () => {
