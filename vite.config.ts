@@ -29,6 +29,19 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,
+        // The client build is output to dist/client, but the public site serves
+        // those files from root (/assets/...). Strip the private "client/" prefix
+        // so the precache URLs match the URLs the browser actually requests.
+        manifestTransforms: [
+          async (manifest) => {
+            for (const entry of manifest) {
+              if (entry.url.startsWith("client/")) {
+                entry.url = entry.url.slice("client/".length);
+              }
+            }
+            return { manifest, warnings: [] };
+          },
+        ],
         runtimeCaching: [
           {
             // HTML navigations: always prefer the network, fall back to the saved shell.
@@ -38,6 +51,16 @@ export default defineConfig({
               cacheName: "smarty-pages",
               networkTimeoutSeconds: 4,
               expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 30 },
+            },
+          },
+          {
+            // JS/CSS chunks: cache first so the app shell works offline.
+            urlPattern: ({ url }) => /\.(?:js|css)$/.test(url.pathname),
+            handler: "CacheFirst",
+            options: {
+              cacheName: "smarty-assets",
+              expiration: { maxEntries: 300, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
             },
           },
           {
