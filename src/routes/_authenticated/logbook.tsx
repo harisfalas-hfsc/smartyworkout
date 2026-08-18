@@ -27,7 +27,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ListFilter,
-  X,
 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import {
@@ -212,7 +211,7 @@ function WorkoutCard({
         ) : null}
       </Link>
 
-      {actions ? <div className="border-t-2 border-blue-400/60 p-3">{actions}</div> : null}
+      {actions ? <div className="px-4 pb-4">{actions}</div> : null}
 
       <button
         type="button"
@@ -227,10 +226,6 @@ function WorkoutCard({
   );
 }
 
-/**
- * Mark done / reschedule / remove — always three equal buttons on one row,
- * inside the workout card, identical on mobile and desktop.
- */
 function DayActions({
   r,
   onComplete,
@@ -249,38 +244,32 @@ function DayActions({
     r.scheduled_at ? new Date(r.scheduled_at).toISOString().slice(0, 16) : "",
   );
 
-  const base =
-    "flex h-14 w-full min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[11px] font-semibold leading-tight";
-
   return (
     <div className="space-y-2">
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 items-center">
         <Button
-          variant={r.status === "completed" ? "default" : "outline"}
-          className={base}
+          variant="ghost"
+          className="h-auto min-w-0 rounded-none px-1 py-1 text-xs font-semibold text-primary hover:bg-transparent hover:text-primary/80"
           disabled={busy}
           onClick={() => onComplete(r.id)}
         >
-          <CheckCircle2 className="h-4 w-4 shrink-0" />
-          <span className="truncate">Mark done</span>
+          Mark done
         </Button>
         <Button
-          variant={open ? "default" : "outline"}
-          className={base}
+          variant="ghost"
+          className="h-auto min-w-0 rounded-none px-1 py-1 text-xs font-semibold text-primary hover:bg-transparent hover:text-primary/80"
           disabled={busy}
           onClick={() => setOpen((v) => !v)}
         >
-          <CalendarClock className="h-4 w-4 shrink-0" />
-          <span className="truncate">{r.scheduled_at ? "Reschedule" : "Schedule"}</span>
+          Reschedule
         </Button>
         <Button
-          variant="outline"
-          className={base}
+          variant="ghost"
+          className="h-auto min-w-0 rounded-none px-1 py-1 text-xs font-semibold text-destructive hover:bg-transparent hover:text-destructive/80"
           disabled={busy || !r.scheduled_at}
           onClick={() => onClear(r.id)}
         >
-          <X className="h-4 w-4 shrink-0" />
-          <span className="truncate">Remove</span>
+          Remove
         </Button>
       </div>
       {open ? (
@@ -306,7 +295,6 @@ function DayActions({
     </div>
   );
 }
-
 
 function MonthGrid({
   cursor,
@@ -485,7 +473,6 @@ function CalendarView({
                 />
               </li>
             ))}
-
           </ul>
         )}
       </div>
@@ -513,9 +500,7 @@ function ScheduledView({
     () =>
       rows
         .filter((r) => Boolean(r.scheduled_at))
-        .sort(
-          (a, b) => new Date(a.scheduled_at!).getTime() - new Date(b.scheduled_at!).getTime(),
-        ),
+        .sort((a, b) => new Date(a.scheduled_at!).getTime() - new Date(b.scheduled_at!).getTime()),
     [rows],
   );
 
@@ -595,13 +580,7 @@ function ScheduledView({
           </Button>
         </div>
 
-        <MonthGrid
-          cursor={cursor}
-          byDay={byDay}
-          selected=""
-          onSelect={() => {}}
-          onlyScheduled
-        />
+        <MonthGrid cursor={cursor} byDay={byDay} selected="" onSelect={() => {}} onlyScheduled />
         <Legend />
       </div>
 
@@ -623,7 +602,6 @@ function ScheduledView({
             />
           </li>
         ))}
-
       </ul>
     </div>
   );
@@ -754,7 +732,9 @@ function Logbook() {
           <Button
             variant={view === "list" ? "default" : "secondary"}
             className="h-11 w-full rounded-2xl"
-            onClick={() => navigate({ search: (p: LogSearch) => ({ ...p, view: "list" as const }) })}
+            onClick={() =>
+              navigate({ search: (p: LogSearch) => ({ ...p, view: "list" as const }) })
+            }
           >
             List
           </Button>
