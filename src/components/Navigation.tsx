@@ -19,11 +19,15 @@ import {
   BookOpen,
   ChevronLeft,
   User,
+  UserCircle,
   Dumbbell,
   CalendarCheck,
   Users,
   Sun,
   Moon,
+  TrendingUp,
+  LogIn,
+  UserPlus,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
