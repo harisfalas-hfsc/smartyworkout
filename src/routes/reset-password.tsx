@@ -71,7 +71,7 @@ function ResetPassword() {
       <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
         Set a new password
       </h1>
-      <p className="-mt-1 mb-4 text-sm" className="text-muted-foreground">
+      <p className="-mt-1 mb-4 text-sm text-muted-foreground">
         {ready ? "Choose a new password for your account." : "Verifying your reset link..."}
       </p>
       <form onSubmit={submit} className="flex flex-col gap-3">

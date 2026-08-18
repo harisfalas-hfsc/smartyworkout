@@ -178,7 +178,7 @@ function Auth() {
           <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
             Create your account
           </h1>
-          <p className="-mt-1 text-sm" className="text-muted-foreground">Next, complete your mandatory Training Profile.</p>
+          <p className="-mt-1 text-sm text-muted-foreground">Next, complete your mandatory Training Profile.</p>
           <div className="space-y-1.5">
             <Label htmlFor="n">Name</Label>
             <Input id="n" value={name} onChange={(e) => setName(e.target.value)} required className="h-11 rounded-xl" autoComplete="name" />
@@ -205,9 +205,9 @@ function Auth() {
           >
             {submitting ? "Saving..." : "Continue"}
           </Button>
-          {authNotice && <p className="text-center text-sm font-semibold" className="text-primary">{authNotice}</p>}
+          {authNotice && <p className="text-center text-sm font-semibold text-primary">{authNotice}</p>}
           {authError && <p className="text-center text-sm font-semibold text-destructive">{authError}</p>}
-          <p className="mt-1 text-center text-sm" className="text-muted-foreground">
+          <p className="mt-1 text-center text-sm text-muted-foreground">
             Have an account?{" "}
             <button type="button" onClick={() => { setAuthError(""); setAuthNotice(""); setMode("signin"); }} className="bg-transparent p-0 font-bold text-primary">
               Sign in
@@ -219,7 +219,7 @@ function Auth() {
           <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
             Welcome back
           </h1>
-          <p className="-mt-1 text-sm" className="text-muted-foreground">Sign in to continue your training journey.</p>
+          <p className="-mt-1 text-sm text-muted-foreground">Sign in to continue your training journey.</p>
           <div className="space-y-1.5">
             <Label htmlFor="se">Email</Label>
             <Input id="se" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="h-11 rounded-xl" autoComplete="email" />
@@ -246,7 +246,7 @@ function Auth() {
             {submitting ? "Signing in..." : "Sign in"}
           </Button>
           {authError && <p className="text-center text-sm font-semibold text-destructive">{authError}</p>}
-          <p className="mt-1 text-center text-sm" className="text-muted-foreground">
+          <p className="mt-1 text-center text-sm text-muted-foreground">
             New here?{" "}
             <button type="button" onClick={() => { setAuthError(""); setAuthNotice(""); setMode("signup"); }} className="bg-transparent p-0 font-bold text-primary">
               Create an account
@@ -258,7 +258,7 @@ function Auth() {
           <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
             Reset your password
           </h1>
-          <p className="-mt-1 text-sm" className="text-muted-foreground">
+          <p className="-mt-1 text-sm text-muted-foreground">
             Enter your account email. We'll send you a link to set a new password.
           </p>
           <div className="space-y-1.5">
@@ -274,12 +274,12 @@ function Auth() {
             {resetSent ? "Email sent ✓" : submitting ? "Sending..." : "Send reset link"}
           </Button>
           {resetSent && (
-            <p className="text-center text-sm" className="text-primary">
+            <p className="text-center text-sm text-primary">
               Check your inbox (and spam folder) for the reset link.
             </p>
           )}
           {authError && <p className="text-center text-sm font-semibold text-destructive">{authError}</p>}
-          <p className="mt-1 text-center text-sm" className="text-muted-foreground">
+          <p className="mt-1 text-center text-sm text-muted-foreground">
             Remembered it?{" "}
             <button type="button" onClick={() => { setAuthError(""); setResetSent(false); setMode("signin"); }} className="bg-transparent p-0 font-bold text-primary">
               Back to sign in
