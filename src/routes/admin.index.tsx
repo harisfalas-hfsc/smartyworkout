@@ -131,6 +131,22 @@ function AdminPage() {
   const { badges, markSeen } = useAdminBadges(authed === true, section);
   const unreadMessages = badges.messages ?? 0;
 
+  useEffect(() => {
+    let active = true;
+    void supabase.auth
+      .getUser()
+      .then(({ data }) => {
+        if (active) setAuthed(isAdminEmail(data.user?.email ?? null));
+      })
+      .catch(() => {
+        if (active) setAuthed(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+
   function openSection(key: SectionKey) {
     if (typeof window !== "undefined") {
       window.localStorage.setItem(SEEN_PREFIX + key, new Date().toISOString());
