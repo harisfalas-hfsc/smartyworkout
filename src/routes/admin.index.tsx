@@ -135,6 +135,94 @@ function AdminPage() {
     setSection(key);
   }
 
+  if (authed === null) {
+    return (
+      <Shell>
+        <div className="mt-10 flex justify-center">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        </div>
+      </Shell>
+    );
+  }
+
+  if (!authed) {
+    return (
+      <Shell>
+        <div className="mx-auto mt-10 max-w-sm rounded-3xl border border-blue-400 bg-card p-6 text-center shadow-sm">
+          <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-primary/10 text-primary">
+            <ShieldAlert className="h-6 w-6" />
+          </div>
+          <h1 className="mt-4 text-xl font-extrabold">Admin access only</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            This area is restricted to Smarty Workout administrators.
+          </p>
+        </div>
+      </Shell>
+    );
+  }
+
+  const active = SECTIONS.find((s) => s.key === section);
+
+  return (
+    <Shell>
+      <PageHeader
+        eyebrow="Administration"
+        title={active ? active.label : "Admin panel"}
+        subtitle={active ? active.description : "Everything that runs Smarty Workout"}
+      />
+
+      {section ? (
+        <div className="space-y-4">
+          <Button variant="ghost" size="sm" onClick={() => setSection(null)}>
+            <ArrowLeft className="mr-2 h-4 w-4" /> All sections
+          </Button>
+          {section === "payments" && <AdminPaymentsTab />}
+          {section === "revenue" && <AdminRevenueTab />}
+          {section === "customers" && <AdminUsersTab />}
+          {section === "subscribers" && <AdminUsersTab onlySubscribers />}
+          {section === "rules" && <AdminRulesTab />}
+          {section === "cycle" && <AdminCycleTab />}
+          {section === "workouts" && <AdminWorkoutsTab />}
+          {section === "messages" && <AdminMessagesTab />}
+          {section === "awards" && <AdminAwardsTab />}
+          {section === "reports" && <AdminReportsTab />}
+        </div>
+      ) : (
+        <AdminHub onOpen={openSection} unreadMessages={unreadMessages} badges={badges} />
+      )}
+    </Shell>
+  );
+}
+
+function useAdminBadges(enabled: boolean, section: SectionKey | null) {
+  const getBadges = useServerFn(adminGetSectionBadges);
+  const [badges, setBadges] = useState<AdminBadgeCounts>({});
+
+  useEffect(() => {
+    if (!enabled) return;
+    let active = true;
+    const tick = () => {
+      void getBadges({ data: { seen: readSeen() } })
+        .then((r) => {
+          if (active) setBadges(r.badges);
+        })
+        .catch(() => undefined);
+    };
+    tick();
+    const t = setInterval(tick, 60_000);
+    return () => {
+      active = false;
+      clearInterval(t);
+    };
+  }, [enabled, section, getBadges]);
+
+  const markSeen = (key: SectionKey) =>
+    setBadges((prev) => ({ ...prev, [key]: key === "messages" ? prev[key] ?? 0 : 0 }));
+
+  return { badges, markSeen };
+}
+
+
 function AdminHub({
   onOpen,
   unreadMessages,
