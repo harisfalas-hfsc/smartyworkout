@@ -222,7 +222,11 @@ export function ProgressSection() {
       <section>
         <h2 className="text-lg font-extrabold">Training load</h2>
         <TrainingLoadPanel />
+        <div className="mt-3">
+          <RecentLoadTrend />
+        </div>
       </section>
+
 
       <section>
         <h2 className="text-lg font-extrabold">Awards</h2>
