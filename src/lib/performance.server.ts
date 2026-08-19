@@ -210,13 +210,31 @@ export async function loadPerformanceOverview(supabase: Client, userId: string) 
   const histories = buildExerciseHistories(sets);
   const shortfalls = countShortfalls(sets);
 
+  // Why a figure says "Limited Data", plus the one action that unlocks it.
+  const baselineSessions = new Set([
+    ...baselineSets.map((s) => s.workout_id),
+    ...baselineResults.map((r) => r.workout_id),
+  ]).size;
+  const sessionsWithRpe = new Set(
+    [...sets, ...results].filter((r) => r.rpe !== null).map((r) => r.workout_id),
+  ).size;
+  const coverage = loadCoverage({
+    completedSessions: Math.max(loggedWorkoutIds.size, sessionsLast7),
+    loggedSessions: loggedWorkoutIds.size,
+    sessionsWithRpe,
+    baselineWeeks,
+    baselineSessions,
+  });
+
   return {
     confidence,
+    coverage,
     readiness: readinessResult,
     load: { strength: strengthState, conditioning: conditioningState, overall },
     sessionsLast7,
     consecutiveDays: consecutiveDays(days),
     loggedSessions: loggedWorkoutIds.size,
+    sessionsWithRpe,
     strength: histories.filter((h) => h.sessions.length > 0).slice(0, 8),
     conditioning: results
       .map((r) => ({ ...r, text: describeResult(r) }))
@@ -226,6 +244,7 @@ export async function loadPerformanceOverview(supabase: Client, userId: string) 
     recentShortfalls: shortfalls,
   };
 }
+
 
 function sum(a: number | null, b: number | null) {
   if (a === null && b === null) return null;
