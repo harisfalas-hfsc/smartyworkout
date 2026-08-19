@@ -47,30 +47,6 @@ self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "WARM_PAGES") event.waitUntil(warmPages());
 });
 
-// Network-first page loads with a saved-copy fallback.
-self.addEventListener("fetch", (event) => {
-  const req = event.request;
-  if (req.method !== "GET" || req.mode !== "navigate") return;
-  const url = new URL(req.url);
-  if (url.origin !== self.location.origin) return;
-  if (url.pathname.startsWith("/~oauth") || url.pathname.startsWith("/api/")) return;
-
-  event.respondWith(
-    (async () => {
-      const cache = await caches.open(PAGE_CACHE);
-      try {
-        const fresh = await fetch(req);
-        if (fresh && fresh.ok) cache.put(url.pathname + url.search, fresh.clone()).catch(() => {});
-        return fresh;
-      } catch {
-        return (
-          (await cache.match(url.pathname + url.search)) ||
-          (await cache.match(url.pathname)) ||
-          (await cache.match("/")) ||
-          (await caches.match("/offline.html")) ||
-          new Response("Offline", { status: 503, headers: { "Content-Type": "text/plain" } })
-        );
-      }
-    })(),
-  );
-});
+// Navigation requests are owned by Workbox's NetworkFirst route. Keeping a
+// single responder avoids competing fetch handlers while this file focuses on
+// warming the same page cache in advance.

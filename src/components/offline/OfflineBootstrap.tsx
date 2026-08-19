@@ -16,6 +16,7 @@ import {
 } from "@/lib/community-queries";
 import { getSharedWorkout } from "@/lib/community.functions";
 import { getProgressOverview } from "@/lib/progress.functions";
+import { getExerciseDetails } from "@/lib/coach.functions";
 import { isOnline, subscribeConnectivity } from "@/lib/offline/connectivity";
 import { onSyncRequested, setSyncState } from "@/lib/offline/sync-bus";
 import {
@@ -26,6 +27,8 @@ import {
   markSyncStarted,
   migrateLocalDatabase,
 } from "@/lib/offline/db";
+import { mergeServerPerformance } from "@/lib/offline/performance-store";
+import { markOfflineReady, readOfflineReadiness } from "@/lib/offline/readiness";
 
 const LOGBOOK_COLUMNS =
   "id,name,category,duration_min,difficulty_stars,difficulty_label,mood,status,is_favorite,scheduled_at,completed_at,created_at,is_wod,created_by,workout_feedback(difficulty_rating,feeling)";
@@ -39,6 +42,7 @@ export function OfflineBootstrap() {
   const loadThreads = useServerFn(listMyThreads);
   const loadSharedWorkout = useServerFn(getSharedWorkout);
   const loadProgressOverview = useServerFn(getProgressOverview);
+  const loadExerciseDetails = useServerFn(getExerciseDetails);
   const running = useRef(false);
 
   useEffect(() => {
@@ -67,8 +71,12 @@ export function OfflineBootstrap() {
     };
 
     /** Priority 2 — the member's own data. */
+    let preparedWorkouts = 0;
+    let preparedExercises = 0;
+    let preparedPerformance = 0;
+
     const phasePersonal = async (access: unknown) => {
-      const [notificationResult, threadResult, logbookResult, workoutResult] =
+      const [notificationResult, threadResult, logbookResult, workoutResult, profileResult, setsResult, resultsResult, feedbackResult] =
         await Promise.allSettled([
           loadNotifications({}),
           loadThreads({}),
@@ -82,6 +90,10 @@ export function OfflineBootstrap() {
             .select("*")
             .order("created_at", { ascending: false })
             .limit(300),
+          supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
+          supabase.from("set_logs").select("*").order("completed_at", { ascending: false }).limit(3000),
+          supabase.from("workout_results").select("*").order("performed_at", { ascending: false }).limit(1000),
+          supabase.from("workout_feedback").select("*").order("created_at", { ascending: false }).limit(1000),
         ]);
       if (!active) return;
       if (notificationResult.status === "fulfilled")
@@ -90,9 +102,35 @@ export function OfflineBootstrap() {
       if (logbookResult.status === "fulfilled" && !logbookResult.value.error)
         void save("logbook:list", logbookResult.value.data ?? []);
       if (workoutResult.status === "fulfilled" && !workoutResult.value.error) {
+        preparedWorkouts = workoutResult.value.data?.length ?? 0;
         for (const workout of workoutResult.value.data ?? []) {
           void save(`workout:${workout.id}`, { row: workout, access });
         }
+      }
+      if (profileResult.status === "fulfilled" && !profileResult.value.error && profileResult.value.data)
+        void save("profile:full", profileResult.value.data);
+      if (
+        setsResult.status === "fulfilled" && !setsResult.value.error &&
+        resultsResult.status === "fulfilled" && !resultsResult.value.error &&
+        feedbackResult.status === "fulfilled" && !feedbackResult.value.error
+      ) {
+        const feedback = (feedbackResult.value.data ?? []).map((row) => ({
+          id: row.id,
+          workout_id: row.workout_id,
+          attempt: row.attempt,
+          rpe: row.rpe,
+          feeling: row.feeling,
+          enjoyed: row.enjoyed,
+          wouldRepeat: row.would_repeat,
+          note: row.comment,
+          answeredAt: row.created_at,
+        }));
+        await mergeServerPerformance(user.id, {
+          sets: (setsResult.value.data ?? []) as never,
+          results: (resultsResult.value.data ?? []) as never,
+          feedback,
+        });
+        preparedPerformance = (setsResult.value.data?.length ?? 0) + (resultsResult.value.data?.length ?? 0) + feedback.length;
       }
       void loadProgressOverview({ data: {} } as never)
         .then((overview) => save("progress:overview", overview))
@@ -116,6 +154,7 @@ export function OfflineBootstrap() {
         if (data.length < 1000) break;
       }
       if (!active || !exercises.length) return;
+      preparedExercises = exercises.length;
       void writeCache(scopedKey(null, "library:list:All|All|All|All|"), exercises);
       const unique = (key: string) =>
         [...new Set(exercises.map((row) => row[key]).filter(Boolean))].sort();
@@ -125,6 +164,23 @@ export function OfflineBootstrap() {
         targets: unique("target_muscle"),
         difficulties: unique("difficulty"),
       });
+      for (const exercise of exercises) {
+        if (typeof exercise["id"] === "string") void writeCache(`exercise:${exercise["id"]}`, exercise);
+      }
+
+      const ids = exercises.map((row) => String(row["id"] ?? "")).filter(Boolean);
+      for (let i = 0; i < ids.length; i += 40) {
+        const chunk = ids.slice(i, i + 40);
+        try {
+          const result = await loadExerciseDetails({ data: { ids: chunk } });
+          for (const exercise of result.exercises as unknown as Array<{ id: string; gif_url?: string | null }>) {
+            await writeCache(`exercise:${exercise.id}`, exercise);
+            if (exercise.gif_url) void fetch(exercise.gif_url).catch(() => undefined);
+          }
+        } catch {
+          /* metadata remains available even when media cannot be cached */
+        }
+      }
     };
 
     /** Priority 4 — community reading copy. */
@@ -181,6 +237,14 @@ export function OfflineBootstrap() {
         await step("library", 24 * 60 * 60_000, phaseLibrary);
         await step("community", 15 * 60_000, () => phaseCommunity().catch(() => undefined));
 
+        const previous = await readOfflineReadiness();
+        await markOfflineReady({
+          userId: user.id,
+          workouts: preparedWorkouts || (previous.userId === user.id ? previous.workouts : 0),
+          exercises: preparedExercises || previous.exercises,
+          performanceRows: preparedPerformance || (previous.userId === user.id ? previous.performanceRows : 0),
+        });
+
         void trimCache(800);
         await markSyncFinished();
         setSyncState("idle");
@@ -213,6 +277,7 @@ export function OfflineBootstrap() {
     loadThreads,
     loadSharedWorkout,
     loadProgressOverview,
+    loadExerciseDetails,
   ]);
 
 

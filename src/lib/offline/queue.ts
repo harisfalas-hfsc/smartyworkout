@@ -24,6 +24,9 @@ export type { QueueStatus } from "./queue-rules";
 
 export type QueuedAction = QueueRuleItem & {
   kind:
+    | "set-log"
+    | "workout-result"
+    | "attempt-complete"
     | "workout-status"
     | "workout-feedback"
     | "session-debrief"
@@ -38,9 +41,9 @@ export type QueuedAction = QueueRuleItem & {
 const QUEUE_KEY = "pending-actions";
 
 const store =
-  typeof indexedDB !== "undefined" ? createStore("smarty-offline", "queue") : undefined;
+  typeof indexedDB !== "undefined" ? createStore("smarty-offline-queue", "queue") : undefined;
 
-async function readQueue(): Promise<QueuedAction[]> {
+export async function readQueue(): Promise<QueuedAction[]> {
   if (!store) return [];
   try {
     const rows = (await get<QueuedAction[]>(QUEUE_KEY, store)) ?? [];
