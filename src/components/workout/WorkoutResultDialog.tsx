@@ -10,7 +10,6 @@ export type WorkoutResultInput = {
   extraReps: number | null;
   intervalsDone: number | null;
   finished: boolean | null;
-  rpe: number | null;
 };
 
 function num(value: string): number | null {
@@ -43,7 +42,6 @@ export function WorkoutResultDialog({
   const [seconds, setSeconds] = useState("");
   const [intervals, setIntervals] = useState("");
   const [finished, setFinished] = useState<boolean | null>(null);
-  const [rpe, setRpe] = useState<number | null>(null);
 
   function submit() {
     const m = num(minutes);
@@ -56,7 +54,6 @@ export function WorkoutResultDialog({
       extraReps: num(extraReps),
       intervalsDone: num(intervals),
       finished,
-      rpe,
     });
   }
 
@@ -186,7 +183,6 @@ export function WorkoutResultDialog({
                 extraReps: null,
                 intervalsDone: null,
                 finished: null,
-                rpe: null,
               })
             }
           >

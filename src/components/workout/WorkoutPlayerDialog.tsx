@@ -23,6 +23,9 @@ import { saveWorkoutResult, startWorkoutAttempt } from "@/lib/performance.functi
 import { prescriptionHash } from "@/lib/workout/prescription-fingerprint";
 import { PerformanceEditorDialog } from "./PerformanceEditorDialog";
 import { WorkoutResultDialog, type WorkoutResultInput } from "./WorkoutResultDialog";
+import { SessionDebriefDialog } from "./SessionDebriefDialog";
+import { getSessionFeedback } from "@/lib/feedback.functions";
+import { setWorkoutStatus } from "@/lib/coach.functions";
 import { useExerciseMedia } from "./ExerciseMediaProvider";
 
 
@@ -62,6 +65,9 @@ export function WorkoutPlayerDialog({
   );
   const storeResult = useServerFn(saveWorkoutResult);
   const beginAttempt = useServerFn(startWorkoutAttempt);
+  const readFeedback = useServerFn(getSessionFeedback);
+  const markStatus = useServerFn(setWorkoutStatus);
+  const loggedAnythingRef = useRef(false);
   const planHash = useMemo(
     () => prescriptionHash({ format, category, steps }),
     [format, category, steps],
@@ -82,6 +88,8 @@ export function WorkoutPlayerDialog({
   const [savingSet, setSavingSet] = useState(false);
   const [resultOpen, setResultOpen] = useState(false);
   const [recapOpen, setRecapOpen] = useState(false);
+  const [debriefOpen, setDebriefOpen] = useState(false);
+  const [existingFeedback, setExistingFeedback] = useState<Awaited<ReturnType<typeof getSessionFeedback>>["feedback"]>(null);
   const [attempt, setAttempt] = useState(1);
   const [lastSet, setLastSet] = useState<Record<number, { reps: string; weight: string; seconds: string; distance: string }>>({});
   const beepRef = useRef<number>(0);
@@ -268,7 +276,26 @@ export function WorkoutPlayerDialog({
       setResultOpen(true);
       return;
     }
-    onFinish();
+    void openDebrief();
+  }
+
+  /**
+   * One debrief per attempt. If the questions were already answered for this
+   * attempt (for example on the workout page), they are never asked again.
+   */
+  async function openDebrief() {
+    try {
+      const res = await readFeedback({ data: { workoutId, attempt } });
+      const fb = (res as { feedback: typeof existingFeedback }).feedback;
+      if (fb && (fb.rpe !== null || fb.feeling || fb.enjoyed || fb.wouldRepeat)) {
+        onFinish();
+        return;
+      }
+      setExistingFeedback(fb);
+    } catch {
+      setExistingFeedback(null);
+    }
+    setDebriefOpen(true);
   }
 
   async function submitResult(result: WorkoutResultInput) {
@@ -303,7 +330,7 @@ export function WorkoutPlayerDialog({
         toast.error("Your result could not be saved, but the workout still counts.");
       }
     }
-    onFinish();
+    void openDebrief();
   }
 
 
@@ -538,6 +565,17 @@ export function WorkoutPlayerDialog({
             </Button>
           ) : null}
         </div>
+
+        <SessionDebriefDialog
+          open={debriefOpen}
+          onOpenChange={(o) => {
+            setDebriefOpen(o);
+            if (!o) onFinish();
+          }}
+          workoutId={workoutId}
+          attempt={attempt}
+          initial={existingFeedback}
+        />
 
         <PerformanceEditorDialog
           open={recapOpen}
