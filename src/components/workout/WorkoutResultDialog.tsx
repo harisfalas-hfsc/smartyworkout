@@ -10,7 +10,6 @@ export type WorkoutResultInput = {
   extraReps: number | null;
   intervalsDone: number | null;
   finished: boolean | null;
-  rpe: number | null;
 };
 
 function num(value: string): number | null {
@@ -43,7 +42,6 @@ export function WorkoutResultDialog({
   const [seconds, setSeconds] = useState("");
   const [intervals, setIntervals] = useState("");
   const [finished, setFinished] = useState<boolean | null>(null);
-  const [rpe, setRpe] = useState<number | null>(null);
 
   function submit() {
     const m = num(minutes);
@@ -56,7 +54,6 @@ export function WorkoutResultDialog({
       extraReps: num(extraReps),
       intervalsDone: num(intervals),
       finished,
-      rpe,
     });
   }
 
@@ -156,24 +153,6 @@ export function WorkoutResultDialog({
           </div>
         ) : null}
 
-        <div>
-          <p className="mb-1 text-xs uppercase tracking-[0.2em] text-neutral-500">
-            Effort (optional)
-          </p>
-          <div className="flex flex-wrap gap-1">
-            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-              <Button
-                key={n}
-                size="sm"
-                variant={rpe === n ? "default" : "secondary"}
-                className="h-8 w-8 p-0 text-xs"
-                onClick={() => setRpe(rpe === n ? null : n)}
-              >
-                {n}
-              </Button>
-            ))}
-          </div>
-        </div>
 
         <div className="flex gap-2">
           <Button
@@ -186,7 +165,6 @@ export function WorkoutResultDialog({
                 extraReps: null,
                 intervalsDone: null,
                 finished: null,
-                rpe: null,
               })
             }
           >

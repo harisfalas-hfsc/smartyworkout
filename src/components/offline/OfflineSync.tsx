@@ -6,6 +6,7 @@ import { setWorkoutStatus } from "@/lib/coach.functions";
 import { reactToWorkout, rateWorkout } from "@/lib/community.functions";
 import { deleteNotifications, setNotificationsRead } from "@/lib/daily.functions";
 import { deleteMyThreads, setThreadsRead } from "@/lib/support.functions";
+import { saveSessionFeedback } from "@/lib/feedback.functions";
 import { flushQueue, type QueuedAction } from "@/lib/offline/queue";
 import { onSyncRequested } from "@/lib/offline/sync-bus";
 import { useOnlineStatus } from "@/lib/offline/useOnlineStatus";
@@ -21,6 +22,7 @@ export function OfflineSync() {
   const removeNotifications = useServerFn(deleteNotifications);
   const setThreadRead = useServerFn(setThreadsRead);
   const removeThreads = useServerFn(deleteMyThreads);
+  const saveDebrief = useServerFn(saveSessionFeedback);
   const busy = useRef(false);
 
   useEffect(() => {
@@ -54,12 +56,17 @@ export function OfflineSync() {
           await removeThreads({ data: p });
           announceInboxChanged();
           return;
+        case "session-debrief":
+          await saveDebrief({ data: p });
+          return;
         case "workout-feedback": {
           const { data: auth } = await supabase.auth.getUser();
           if (!auth.user) throw new Error("no session");
           const { error } = await supabase
             .from("workout_feedback")
-            .insert({ ...action.payload, user_id: auth.user.id } as never);
+            .upsert({ ...action.payload, user_id: auth.user.id } as never, {
+              onConflict: "workout_id,user_id,attempt",
+            });
           if (error) throw new Error(error.message);
           return;
         }
@@ -85,7 +92,7 @@ export function OfflineSync() {
 
     void flush();
     return onSyncRequested(() => void flush());
-  }, [online, saveStatus, react, rate, setNotificationRead, removeNotifications, setThreadRead, removeThreads]);
+  }, [online, saveStatus, react, rate, setNotificationRead, removeNotifications, setThreadRead, removeThreads, saveDebrief]);
 
   return null;
 }

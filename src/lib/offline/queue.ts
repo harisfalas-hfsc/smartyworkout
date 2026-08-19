@@ -16,6 +16,7 @@ export type QueuedAction = {
   kind:
     | "workout-status"
     | "workout-feedback"
+    | "session-debrief"
     | "community-like"
     | "community-rating"
     | "notification-read"

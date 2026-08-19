@@ -114,7 +114,7 @@ export async function createWorkoutForUser(
         .limit(120),
       db
         .from("workout_feedback")
-        .select("difficulty_rating,feeling,enjoyed,would_repeat,comment,created_at,workouts(name,category)")
+        .select("rpe,difficulty_rating,feeling,enjoyed,would_repeat,comment,created_at,workouts(name,category)")
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(8),
@@ -132,6 +132,7 @@ export async function createWorkoutForUser(
   const feedbackLines = (
     (feedback as
       | Array<{
+          rpe: number | null;
           difficulty_rating: string | null;
           feeling: string | null;
           enjoyed: string | null;
@@ -143,10 +144,14 @@ export async function createWorkoutForUser(
   ).map((f) => {
     const w = f.workouts;
     const bits = [
-      f.difficulty_rating ? `felt ${f.difficulty_rating}` : null,
-      f.feeling ? `energy after: ${f.feeling}` : null,
-      f.enjoyed ? `enjoyed: ${f.enjoyed}` : null,
-      f.would_repeat ? `would repeat: ${f.would_repeat}` : null,
+      f.rpe !== null && f.rpe !== undefined
+        ? `effort RPE ${f.rpe}/10`
+        : f.difficulty_rating
+          ? `felt ${f.difficulty_rating}`
+          : null,
+      f.feeling ? `state after: ${f.feeling}` : null,
+      f.enjoyed ? `enjoyed: ${f.enjoyed} (preference only — never a load modifier)` : null,
+      f.would_repeat ? `would repeat: ${f.would_repeat} (preference only)` : null,
       f.comment ? `comment: "${f.comment}"` : null,
     ].filter(Boolean);
     return `${w?.category ?? "workout"} — ${w?.name ?? "session"}: ${bits.join(", ")}`;

@@ -23,6 +23,9 @@ import { saveWorkoutResult, startWorkoutAttempt } from "@/lib/performance.functi
 import { prescriptionHash } from "@/lib/workout/prescription-fingerprint";
 import { PerformanceEditorDialog } from "./PerformanceEditorDialog";
 import { WorkoutResultDialog, type WorkoutResultInput } from "./WorkoutResultDialog";
+import { SessionDebriefDialog } from "./SessionDebriefDialog";
+import { getSessionFeedback } from "@/lib/feedback.functions";
+import { setWorkoutStatus } from "@/lib/coach.functions";
 import { useExerciseMedia } from "./ExerciseMediaProvider";
 
 
@@ -62,6 +65,9 @@ export function WorkoutPlayerDialog({
   );
   const storeResult = useServerFn(saveWorkoutResult);
   const beginAttempt = useServerFn(startWorkoutAttempt);
+  const readFeedback = useServerFn(getSessionFeedback);
+  const markStatus = useServerFn(setWorkoutStatus);
+  const loggedAnythingRef = useRef(false);
   const planHash = useMemo(
     () => prescriptionHash({ format, category, steps }),
     [format, category, steps],
@@ -82,6 +88,8 @@ export function WorkoutPlayerDialog({
   const [savingSet, setSavingSet] = useState(false);
   const [resultOpen, setResultOpen] = useState(false);
   const [recapOpen, setRecapOpen] = useState(false);
+  const [debriefOpen, setDebriefOpen] = useState(false);
+  const [existingFeedback, setExistingFeedback] = useState<Awaited<ReturnType<typeof getSessionFeedback>>["feedback"]>(null);
   const [attempt, setAttempt] = useState(1);
   const [lastSet, setLastSet] = useState<Record<number, { reps: string; weight: string; seconds: string; distance: string }>>({});
   const beepRef = useRef<number>(0);
@@ -255,7 +263,24 @@ export function WorkoutPlayerDialog({
     setWeight("");
     setHeldSeconds("");
     setDistance("");
+    loggedAnythingRef.current = true;
     toast.success(`Set ${setNumber} logged.`);
+  }
+
+  /**
+   * Leaving early never loses work: if anything was logged, the attempt is
+   * still marked completed. Performance data is optional either way.
+   */
+  async function closePlayer() {
+    onOpenChange(false);
+    if (!loggedAnythingRef.current) return;
+    loggedAnythingRef.current = false;
+    try {
+      await markStatus({ data: { workoutId, status: "completed" } });
+      onFinish();
+    } catch {
+      /* offline — the workout page keeps its own status handling */
+    }
   }
 
   function finishWorkout() {
@@ -268,7 +293,26 @@ export function WorkoutPlayerDialog({
       setResultOpen(true);
       return;
     }
-    onFinish();
+    void openDebrief();
+  }
+
+  /**
+   * One debrief per attempt. If the questions were already answered for this
+   * attempt (for example on the workout page), they are never asked again.
+   */
+  async function openDebrief() {
+    try {
+      const res = await readFeedback({ data: { workoutId, attempt } });
+      const fb = (res as { feedback: typeof existingFeedback }).feedback;
+      if (fb && (fb.rpe !== null || fb.feeling || fb.enjoyed || fb.wouldRepeat)) {
+        onFinish();
+        return;
+      }
+      setExistingFeedback(fb);
+    } catch {
+      setExistingFeedback(null);
+    }
+    setDebriefOpen(true);
   }
 
   async function submitResult(result: WorkoutResultInput) {
@@ -277,8 +321,7 @@ export function WorkoutPlayerDialog({
       result.durationSeconds !== null ||
       result.rounds !== null ||
       result.intervalsDone !== null ||
-      result.finished !== null ||
-      result.rpe !== null;
+      result.finished !== null;
     if (hasAnything) {
       try {
         await storeResult({
@@ -296,14 +339,13 @@ export function WorkoutPlayerDialog({
             intervalsDone: result.intervalsDone,
             intervalsTotal: resultModel.intervalsTotal,
             finished: result.finished,
-            rpe: result.rpe,
           },
         });
       } catch {
         toast.error("Your result could not be saved, but the workout still counts.");
       }
     }
-    onFinish();
+    void openDebrief();
   }
 
 
@@ -359,7 +401,7 @@ export function WorkoutPlayerDialog({
             variant="ghost"
             size="icon"
             className="text-neutral-300 hover:text-neutral-50"
-            onClick={() => onOpenChange(false)}
+            onClick={() => void closePlayer()}
           >
             <X className="h-5 w-5" />
           </Button>
@@ -538,6 +580,17 @@ export function WorkoutPlayerDialog({
             </Button>
           ) : null}
         </div>
+
+        <SessionDebriefDialog
+          open={debriefOpen}
+          onOpenChange={(o) => {
+            setDebriefOpen(o);
+            if (!o) onFinish();
+          }}
+          workoutId={workoutId}
+          attempt={attempt}
+          initial={existingFeedback}
+        />
 
         <PerformanceEditorDialog
           open={recapOpen}

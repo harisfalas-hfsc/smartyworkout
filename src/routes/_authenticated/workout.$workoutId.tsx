@@ -7,7 +7,6 @@ import { useOnlineStatus } from "@/lib/offline/useOnlineStatus";
 import { enqueueAction } from "@/lib/offline/queue";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Loader2 } from "lucide-react";
 import { WorkoutStatusPanel } from "@/components/workout/WorkoutStatusPanel";
 
@@ -19,6 +18,8 @@ import { getMyAccessState } from "@/lib/access.functions";
 import { toast } from "sonner";
 import { WorkoutDisplay, type WorkoutRow } from "@/components/workout/WorkoutDisplay";
 import { PerformancePanel } from "@/components/workout/PerformancePanel";
+import { SessionDebriefDialog } from "@/components/workout/SessionDebriefDialog";
+import { getSessionFeedback, type SessionFeedback } from "@/lib/feedback.functions";
 
 import { ParqWaiverDialog } from "@/components/ParqWaiverDialog";
 
@@ -32,57 +33,14 @@ export const Route = createFileRoute("/_authenticated/workout/$workoutId")({
   component: WorkoutPage,
 });
 
-const DIFF = ["Too Easy", "Just Right", "Hard", "Very Hard"];
-const FEEL = ["Excellent", "Good", "Normal", "Tired", "Exhausted"];
-const YESNO = ["Yes", "Neutral", "No"];
-const REPEAT = ["Yes", "Maybe", "No"];
-
-function Choice({
-  label,
-  options,
-  value,
-  onChange,
-}: {
-  label: string;
-  options: string[];
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <div className="space-y-2">
-      <p className="text-sm font-semibold">{label}</p>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        {options.map((o) => (
-          <button
-            key={o}
-            type="button"
-            onClick={() => onChange(o)}
-            className={`h-11 w-full rounded-xl border-2 px-2 text-sm font-semibold transition ${
-              value === o
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-blue-400/50 hover:border-primary"
-            }`}
-          >
-            {o}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function WorkoutPage() {
   const { workoutId } = Route.useParams();
   const [w, setW] = useState<WorkoutRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [locked, setLocked] = useState(false);
   const [done, setDone] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [difficulty, setDifficulty] = useState("Just Right");
-  const [feeling, setFeeling] = useState("Good");
-  const [enjoyed, setEnjoyed] = useState("Yes");
-  const [repeat, setRepeat] = useState("Yes");
-  const [comment, setComment] = useState("");
+  const [feedback, setFeedback] = useState<SessionFeedback | null>(null);
+  const [debriefOpen, setDebriefOpen] = useState(false);
   const [scheduledAt, setScheduledAt] = useState<string>("");
   
   const [parqFlags, setParqFlags] = useState<string[]>([]);
@@ -94,6 +52,7 @@ function WorkoutPage() {
   const { user } = useAuth();
   const online = useOnlineStatus();
   const saveShare = useServerFn(shareWorkout);
+  const readFeedback = useServerFn(getSessionFeedback);
 
   const load = useCallback(async () => {
     const { data, error } = await supabase
@@ -132,6 +91,20 @@ function WorkoutPage() {
   }, [cached.data, cached.loading]);
 
 
+  useEffect(() => {
+    let active = true;
+    readFeedback({ data: { workoutId } })
+      .then((res) => {
+        if (active) setFeedback((res as { feedback: SessionFeedback | null }).feedback);
+      })
+      .catch(() => {
+        /* offline — the debrief can still be answered and queued */
+      });
+    return () => {
+      active = false;
+    };
+  }, [workoutId, readFeedback]);
+
   async function complete() {
     setDone(true);
     try {
@@ -165,47 +138,6 @@ function WorkoutPage() {
     }
   }
 
-
-  async function saveFeedback() {
-    const { data: auth } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
-    if (!auth.user) {
-      await enqueueAction("workout-feedback", {
-        workout_id: workoutId,
-        difficulty_rating: difficulty,
-        feeling,
-        enjoyed,
-        would_repeat: repeat,
-        comment: comment.trim() || null,
-      });
-      setSaved(true);
-      toast.success("Saved on your device — it will sync when you are back online.");
-      return;
-    }
-    const { error } = await supabase.from("workout_feedback").insert({
-      user_id: auth.user.id,
-      workout_id: workoutId,
-      difficulty_rating: difficulty,
-      feeling,
-      enjoyed,
-      would_repeat: repeat,
-      comment: comment.trim() || null,
-    } as never);
-    if (error) {
-      await enqueueAction("workout-feedback", {
-        workout_id: workoutId,
-        difficulty_rating: difficulty,
-        feeling,
-        enjoyed,
-        would_repeat: repeat,
-        comment: comment.trim() || null,
-      });
-      setSaved(true);
-      toast.success("Saved on your device — it will sync when you are back online.");
-      return;
-    }
-    setSaved(true);
-    toast.success("Saved to your logbook — Smarty Coach just got smarter.");
-  }
 
   if (loading)
     return (
@@ -269,6 +201,10 @@ function WorkoutPage() {
 
 
 
+  const hasAnswers = Boolean(
+    feedback && (feedback.rpe !== null || feedback.feeling || feedback.enjoyed || feedback.wouldRepeat),
+  );
+
   return (
     <WorkoutDisplay workout={w} onComplete={complete}>
       <CachedNotice savedAt={cached.savedAt} show={cached.fromCache} />
@@ -278,7 +214,6 @@ function WorkoutPage() {
         scheduledAt={scheduledAt}
         onChange={(next) => {
           setDone(next.status === "completed");
-          if (next.status !== "completed") setSaved(false);
           setScheduledAt(next.scheduledAt);
         }}
       />
@@ -321,39 +256,63 @@ function WorkoutPage() {
         <Button size="lg" className="mt-6 h-14 w-full rounded-2xl text-base font-bold" onClick={complete}>
           I finished this workout
         </Button>
-      ) : saved ? (
-        <div className="mt-6 grid gap-2 sm:grid-cols-2">
-          <Button asChild size="lg" className="h-12 w-full rounded-2xl font-bold">
-            <Link to="/coach">Next workout</Link>
-          </Button>
-          <Button asChild size="lg" variant="secondary" className="h-12 w-full rounded-2xl font-bold">
-            <Link to="/logbook" search={{ filter: "all" as const, view: "list" as const }}>Open logbook</Link>
-          </Button>
-        </div>
       ) : (
-        <div className="mt-6 space-y-5 rounded-2xl border-2 border-blue-400 bg-card p-5">
+        <section className="mt-6 space-y-4 rounded-2xl border-2 border-blue-400 bg-card p-5">
           <div>
             <h3 className="text-lg font-bold">How was the workout?</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              Private — only you and Smarty Coach see this. It tunes your next workouts and never
-              appears in the community.
+              Private — only you and Smarty Coach see this. Four quick questions, and they are the
+              same ones the player asks, so you never answer twice.
             </p>
           </div>
-          <Choice label="Difficulty" options={DIFF} value={difficulty} onChange={setDifficulty} />
-          <Choice label="How did you feel?" options={FEEL} value={feeling} onChange={setFeeling} />
-          <Choice label="Did you enjoy it?" options={YESNO} value={enjoyed} onChange={setEnjoyed} />
-          <Choice label="Would you do it again?" options={REPEAT} value={repeat} onChange={setRepeat} />
-          <Textarea
-            rows={2}
-            placeholder="Anything you want Smarty Coach to remember? (optional)"
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-          />
-          <Button size="lg" className="h-12 w-full rounded-2xl font-bold" onClick={saveFeedback}>
-            Save feedback
+
+          {hasAnswers ? (
+            <div className="grid gap-2 text-sm">
+              <SummaryRow label="Effort (RPE)" value={feedback?.rpe ? `${feedback.rpe} / 10` : "—"} />
+              <SummaryRow label="How you felt" value={feedback?.feeling ?? "—"} />
+              <SummaryRow label="Enjoyed it" value={feedback?.enjoyed ?? "—"} />
+              <SummaryRow label="Would do again" value={feedback?.wouldRepeat ?? "—"} />
+              {feedback?.note ? <SummaryRow label="Your note" value={feedback.note} /> : null}
+            </div>
+          ) : null}
+
+          <Button
+            size="lg"
+            variant={hasAnswers ? "secondary" : "default"}
+            className="h-12 w-full rounded-2xl font-bold"
+            onClick={() => setDebriefOpen(true)}
+          >
+            {hasAnswers ? "Edit my answers" : "Answer 4 quick questions"}
           </Button>
-        </div>
+
+          <SessionDebriefDialog
+            open={debriefOpen}
+            onOpenChange={setDebriefOpen}
+            workoutId={workoutId}
+            attempt={feedback?.attempt ?? 1}
+            initial={feedback}
+            onSaved={(fb) => setFeedback(fb)}
+          />
+
+          <div className="grid gap-2 sm:grid-cols-2">
+            <Button asChild size="lg" className="h-12 w-full rounded-2xl font-bold">
+              <Link to="/coach">Next workout</Link>
+            </Button>
+            <Button asChild size="lg" variant="secondary" className="h-12 w-full rounded-2xl font-bold">
+              <Link to="/logbook" search={{ filter: "all" as const, view: "list" as const }}>Open logbook</Link>
+            </Button>
+          </div>
+        </section>
       )}
     </WorkoutDisplay>
+  );
+}
+
+function SummaryRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-start justify-between gap-3 rounded-xl border-2 border-blue-400/40 px-3 py-2">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="text-right font-semibold">{value}</span>
+    </div>
   );
 }

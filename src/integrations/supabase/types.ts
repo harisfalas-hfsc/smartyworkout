@@ -985,34 +985,43 @@ export type Database = {
       }
       workout_feedback: {
         Row: {
+          attempt: number
           comment: string | null
           created_at: string
           difficulty_rating: string | null
           enjoyed: string | null
           feeling: string | null
           id: string
+          rpe: number | null
+          updated_at: string
           user_id: string
           workout_id: string
           would_repeat: string | null
         }
         Insert: {
+          attempt?: number
           comment?: string | null
           created_at?: string
           difficulty_rating?: string | null
           enjoyed?: string | null
           feeling?: string | null
           id?: string
+          rpe?: number | null
+          updated_at?: string
           user_id: string
           workout_id: string
           would_repeat?: string | null
         }
         Update: {
+          attempt?: number
           comment?: string | null
           created_at?: string
           difficulty_rating?: string | null
           enjoyed?: string | null
           feeling?: string | null
           id?: string
+          rpe?: number | null
+          updated_at?: string
           user_id?: string
           workout_id?: string
           would_repeat?: string | null
