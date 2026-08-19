@@ -345,33 +345,70 @@ export function WorkoutPlayerDialog({
             </p>
           )}
 
-          {slide?.kind === "exercise" ? (
-            <div className="flex items-center gap-2">
-              <Input
-                inputMode="numeric"
-                placeholder="Reps"
-                value={reps}
-                onChange={(e) => setReps(e.target.value)}
-                className="h-11 flex-1 border-neutral-700 bg-neutral-900 text-neutral-50 placeholder:text-neutral-500"
-              />
-              <Input
-                inputMode="decimal"
-                placeholder="kg"
-                value={weight}
-                onChange={(e) => setWeight(e.target.value)}
-                className="h-11 flex-1 border-neutral-700 bg-neutral-900 text-neutral-50 placeholder:text-neutral-500"
-              />
-              <Button
-                variant="secondary"
-                className="h-11 shrink-0"
-                disabled={savingSet}
-                onClick={logSet}
-              >
-                <Check className="mr-1.5 h-4 w-4" />
-                Log set {(logged[index] ?? 0) + 1}
-              </Button>
+          {slide?.kind === "exercise" && tracking && tracking.primary !== "completion" ? (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                {tracking.primary === "reps" ? (
+                  <Input
+                    inputMode="numeric"
+                    placeholder="Reps"
+                    value={reps}
+                    onChange={(e) => setReps(e.target.value)}
+                    className="h-11 flex-1 border-neutral-700 bg-neutral-900 text-neutral-50 placeholder:text-neutral-500"
+                  />
+                ) : (
+                  <Input
+                    inputMode="numeric"
+                    placeholder="Seconds"
+                    value={heldSeconds}
+                    onChange={(e) => setHeldSeconds(e.target.value)}
+                    className="h-11 flex-1 border-neutral-700 bg-neutral-900 text-neutral-50 placeholder:text-neutral-500"
+                  />
+                )}
+                {tracking.load ? (
+                  <Input
+                    inputMode="decimal"
+                    placeholder="kg"
+                    value={weight}
+                    onChange={(e) => setWeight(e.target.value)}
+                    className="h-11 flex-1 border-neutral-700 bg-neutral-900 text-neutral-50 placeholder:text-neutral-500"
+                  />
+                ) : null}
+                {tracking.distance ? (
+                  <Input
+                    inputMode="numeric"
+                    placeholder="metres"
+                    value={distance}
+                    onChange={(e) => setDistance(e.target.value)}
+                    className="h-11 flex-1 border-neutral-700 bg-neutral-900 text-neutral-50 placeholder:text-neutral-500"
+                  />
+                ) : null}
+                <Button
+                  variant="secondary"
+                  className="h-11 shrink-0"
+                  disabled={savingSet}
+                  onClick={logSet}
+                >
+                  <Check className="mr-1.5 h-4 w-4" />
+                  Log set {(logged[index] ?? 0) + 1}
+                </Button>
+              </div>
+              {planned && (planned.sets || planned.reps || planned.weightKg) ? (
+                <p className="text-center text-[11px] text-neutral-500">
+                  Prescribed{" "}
+                  {planned.sets && planned.reps
+                    ? `${planned.sets} × ${planned.reps}`
+                    : planned.reps
+                      ? `${planned.reps} reps`
+                      : `${planned.sets} sets`}
+                  {planned.weightKg ? ` @ ${planned.weightKg} kg` : ""} · logged{" "}
+                  {logged[index] ?? 0}
+                  {planned.sets ? ` of ${planned.sets}` : ""} · logging is optional
+                </p>
+              ) : null}
             </div>
           ) : null}
+
 
 
 
