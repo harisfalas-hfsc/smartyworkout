@@ -15,6 +15,8 @@ import {
   Lock,
 } from "lucide-react";
 import { TrainingLoadPanel } from "@/components/performance/TrainingLoadPanel";
+import { RecentLoadTrend } from "@/components/performance/RecentLoadTrend";
+
 import { getProgressOverview, type ProgressOverview } from "@/lib/progress.functions";
 import { CATEGORY_LABEL, CATEGORY_UNIT } from "@/lib/progress-config";
 import { cn } from "@/lib/utils";
