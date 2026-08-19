@@ -8,7 +8,7 @@ import {
   CarouselItem,
   type CarouselApi,
 } from "@/components/ui/carousel";
-import { Check, ChevronLeft, ChevronRight, Cylinder, Dumbbell, Pause, Play, RotateCcw, X } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Cylinder, Dumbbell, Minus, Pause, Play, Plus, RotateCcw, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -160,6 +160,11 @@ export function WorkoutPlayerDialog({
     () => (slide?.kind === "exercise" ? parsePlanned(slide.step.prescription) : null),
     [slide],
   );
+
+  // The countdown must not jump away from a step that still wants numbers.
+  useEffect(() => {
+    loggableRef.current = Boolean(tracking && tracking.primary !== "completion");
+  }, [tracking]);
 
   // Preload media for the current window of slides.
   useEffect(() => {
@@ -534,6 +539,21 @@ export function WorkoutPlayerDialog({
           ) : null}
         </div>
 
+        <PerformanceEditorDialog
+          open={recapOpen}
+          onOpenChange={(o) => {
+            if (!o) afterRecap();
+            else setRecapOpen(true);
+          }}
+          workoutId={workoutId}
+          attempt={attempt}
+          steps={steps}
+          category={category}
+          format={format}
+          title="Session recap"
+          onSaved={afterRecap}
+        />
+
         <WorkoutResultDialog
           open={resultOpen}
           onOpenChange={setResultOpen}
@@ -597,6 +617,57 @@ function PlayerSlideView({ step, gifUrl }: { step: WorkoutStep; gifUrl: string |
       {step.prescription ? (
         <p className="text-lg text-neutral-300">{step.prescription}</p>
       ) : null}
+    </div>
+  );
+}
+
+function StepperField({
+  label,
+  value,
+  onChange,
+  step,
+}: {
+  label: string;
+  value: string;
+  onChange: (next: string) => void;
+  step: number;
+}) {
+  const bump = (delta: number) => {
+    const current = value.trim() === "" ? 0 : Number(value);
+    const next = Math.max(0, Math.round((current + delta) * 100) / 100);
+    onChange(String(next));
+  };
+  return (
+    <div className="min-w-0 flex-1 space-y-1">
+      <p className="truncate text-[10px] uppercase tracking-[0.15em] text-neutral-400">{label}</p>
+      <div className="flex items-center gap-1">
+        <Button
+          type="button"
+          variant="secondary"
+          size="icon"
+          className="h-11 w-9 shrink-0"
+          onClick={() => bump(-step)}
+          aria-label={`Decrease ${label}`}
+        >
+          <Minus className="h-4 w-4" />
+        </Button>
+        <Input
+          inputMode="decimal"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="h-11 min-w-0 flex-1 border-neutral-700 bg-neutral-900 text-center text-neutral-50"
+        />
+        <Button
+          type="button"
+          variant="secondary"
+          size="icon"
+          className="h-11 w-9 shrink-0"
+          onClick={() => bump(step)}
+          aria-label={`Increase ${label}`}
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 }
