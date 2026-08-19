@@ -152,6 +152,31 @@ const COMMUNITY_STEPS = [
   },
 ];
 
+const TRACKING_STEPS = [
+  {
+    n: "01",
+    title: "The player logs it",
+    desc: "Reps, weight, time, rounds • Set by set",
+  },
+  {
+    n: "02",
+    title: "You debrief once",
+    desc: "RPE • How you felt • Enjoyment • Notes",
+  },
+  {
+    n: "03",
+    title: "It lands in your logbook",
+    desc: "Calendar • Completed, scheduled, favourite • Equipment badges",
+  },
+  {
+    n: "04",
+    title: "Progress is measured",
+    desc: "Same workout compared attempt by attempt • Training load",
+  },
+];
+
+
+
 
 function HowItWorks() {
   return (
