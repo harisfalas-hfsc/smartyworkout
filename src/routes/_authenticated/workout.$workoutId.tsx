@@ -281,6 +281,10 @@ function WorkoutPage() {
         }}
       />
 
+      <PerformancePanel workoutId={workoutId} />
+
+
+
 
       <section className="mt-6 rounded-2xl border-2 border-blue-400 bg-card p-5">
         <h3 className="flex items-center gap-2 text-lg font-bold">
