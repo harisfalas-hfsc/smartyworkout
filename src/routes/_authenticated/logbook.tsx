@@ -39,17 +39,19 @@ import {
   SCHEDULE_TONE_LABEL,
   SCHEDULE_TONE_TEXT,
 } from "@/lib/date-format";
-
-type Filter = "completed" | "planned" | "favorites" | "scheduled";
-
-const FILTERS: Array<{ id: Filter; label: string }> = [
-  { id: "completed", label: "Completed" },
-  { id: "planned", label: "Not done" },
-  { id: "scheduled", label: "Scheduled" },
-  { id: "favorites", label: "Favourites" },
-];
-
-const FILTER_IDS = FILTERS.map((f) => f.id) as string[];
+import {
+  LOGBOOK_FILTERS as FILTERS,
+  anchorDate,
+  dayKey,
+  equipmentOptions as equipmentOptionsOf,
+  filterMenuLabel,
+  filterRows,
+  matchesFilter as matches,
+  parseFilters,
+  sourceLabel,
+  type LogbookFilter as Filter,
+} from "@/lib/logbook/rows";
+import { equipmentBadges } from "@/lib/format/labels";
 
 type View = "list" | "calendar" | "scheduled";
 type LogSearch = { filter: string; view: View; equip?: string };
@@ -97,30 +99,6 @@ type Row = {
   equipment: string[] | null;
   workout_feedback: Array<{ difficulty_rating: string | null; feeling: string | null }>;
 };
-
-function dayKey(d: Date) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
-    d.getDate(),
-  ).padStart(2, "0")}`;
-}
-
-/** Which calendar day a workout belongs to: when you plan to do it, else when it happened. */
-function anchorDate(r: Row) {
-  return new Date(r.scheduled_at ?? r.completed_at ?? r.created_at);
-}
-
-function sourceLabel(r: Row) {
-  if (r.is_wod) return "Workout of the Day";
-  if (r.created_by === "member" || r.created_by === "community") return "Community copy";
-  return "Smarty Coach";
-}
-
-function matches(r: Row, f: Filter) {
-  if (f === "completed") return r.status === "completed";
-  if (f === "planned") return r.status !== "completed";
-  if (f === "favorites") return Boolean(r.is_favorite);
-  return Boolean(r.scheduled_at);
-}
 
 /** Colour of the dot a workout gets in the calendar. */
 function dotClass(r: Row) {
@@ -202,7 +180,7 @@ function WorkoutCard({
 
         {r.equipment?.length ? (
           <div className="mt-2 flex flex-wrap gap-1">
-            {r.equipment.slice(0, 4).map((e) => (
+            {equipmentBadges(r.equipment).shown.map((e) => (
               <span
                 key={e}
                 className="rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold capitalize text-primary"
@@ -210,9 +188,9 @@ function WorkoutCard({
                 {e}
               </span>
             ))}
-            {r.equipment.length > 4 ? (
+            {equipmentBadges(r.equipment).overflow ? (
               <span className="rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground">
-                +{r.equipment.length - 4}
+                +{equipmentBadges(r.equipment).overflow}
               </span>
             ) : null}
           </div>
@@ -657,10 +635,7 @@ function Logbook() {
   const online = useOnlineStatus();
   const noSavedCopy = !online && cached.error !== null;
 
-  const active = useMemo(
-    () => filter.split(",").filter((f: string) => FILTER_IDS.includes(f)) as Filter[],
-    [filter],
-  );
+  const active = useMemo(() => parseFilters(filter), [filter]);
 
   useEffect(() => {
     if (cached.data) setRows(cached.data);
@@ -739,20 +714,9 @@ function Logbook() {
     );
 
   // Multiple filters combine as "any of" — pick favourites + scheduled to see both.
-  const byStatus = active.length ? rows.filter((r) => active.some((f) => matches(r, f))) : rows;
-  const filtered =
-    equip === "all" ? byStatus : byStatus.filter((r) => (r.equipment ?? []).includes(equip));
-  const equipmentOptions = Array.from(
-    new Set(rows.flatMap((r) => r.equipment ?? []).filter(Boolean)),
-  ).sort((a, b) => a.localeCompare(b));
-
-  const label =
-    active.length === 0
-      ? "All workouts"
-      : active.length === 1
-        ? FILTERS.find((f) => f.id === active[0])!.label
-        : `${active.length} filters`;
-  const menuLabel = equip === "all" ? label : `${label} · ${equip}`;
+  const filtered = filterRows(rows, { filters: active, equipment: equip });
+  const equipmentOptions = equipmentOptionsOf(rows);
+  const menuLabel = filterMenuLabel(active, equip);
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">

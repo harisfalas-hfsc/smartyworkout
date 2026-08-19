@@ -761,6 +761,7 @@ export type Database = {
           current_period_start: string | null
           environment: string
           id: string
+          last_event_at: number | null
           price_id: string | null
           product_id: string | null
           provider: string
@@ -777,6 +778,7 @@ export type Database = {
           current_period_start?: string | null
           environment?: string
           id?: string
+          last_event_at?: number | null
           price_id?: string | null
           product_id?: string | null
           provider: string
@@ -793,6 +795,7 @@ export type Database = {
           current_period_start?: string | null
           environment?: string
           id?: string
+          last_event_at?: number | null
           price_id?: string | null
           product_id?: string | null
           provider?: string
@@ -1181,6 +1184,7 @@ export type Database = {
         Row: {
           activation: string | null
           category: string
+          coach_rationale: string[]
           community_hidden: boolean
           community_source_id: string | null
           completed_at: string | null
@@ -1231,6 +1235,7 @@ export type Database = {
         Insert: {
           activation?: string | null
           category: string
+          coach_rationale?: string[]
           community_hidden?: boolean
           community_source_id?: string | null
           completed_at?: string | null
@@ -1281,6 +1286,7 @@ export type Database = {
         Update: {
           activation?: string | null
           category?: string
+          coach_rationale?: string[]
           community_hidden?: boolean
           community_source_id?: string | null
           completed_at?: string | null

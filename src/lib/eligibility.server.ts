@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { capabilitiesFrom, type Capabilities } from "@/lib/access-capabilities";
 
 export type AccessState = {
   profileComplete: boolean;
@@ -15,6 +16,8 @@ export type AccessState = {
   /** Manual generations included per day with an active membership. */
   generationsLimit: number;
   generationsLeftToday: number;
+  /** Single source of truth for what this member is allowed to do. */
+  capabilities: Capabilities;
 };
 
 /** PAR-Q questions, keyed exactly as they are stored on the profile. */
@@ -139,7 +142,7 @@ export async function getAccessStateForUser(
     generationsUsedToday = 0;
   }
 
-  return {
+  const base = {
     profileComplete,
     healthAcknowledged,
     readinessComplete,
@@ -155,6 +158,8 @@ export async function getAccessStateForUser(
     generationsLimit: dailyLimit,
     generationsLeftToday: Math.max(0, dailyLimit - generationsUsedToday),
   };
+
+  return { ...base, capabilities: capabilitiesFrom(base) };
 }
 
 export async function requireWorkoutAccess(
@@ -163,22 +168,11 @@ export async function requireWorkoutAccess(
   options: { countsAgainstDailyQuota?: boolean } = {},
 ) {
   const access = await getAccessStateForUser(db, userId);
-  if (!access.healthAcknowledged) {
-    throw new Error("Accept the health and safety acknowledgement in your Training Profile first.");
-  }
-  if (!access.readinessComplete) {
-    throw new Error("Complete the readiness questionnaire in your Training Profile first.");
-  }
-  if (!access.profileComplete) {
-    throw new Error("Complete your Training Profile before creating a workout.");
-  }
-  if (!access.premium) {
-    throw new Error("An active Smarty Workout membership is required.");
-  }
-  if (options.countsAgainstDailyQuota && access.generationsLeftToday <= 0) {
-    throw new Error(
-      `Your membership includes ${access.generationsLimit} workout generations per day. You've used both today — your Workout of the Day is still available, and your allowance resets tomorrow.`,
-    );
+  const capability = options.countsAgainstDailyQuota
+    ? access.capabilities.generateWorkout
+    : access.capabilities.workoutOfTheDay;
+  if (!capability.allowed) {
+    throw new Error(capability.reason ?? "You cannot create a workout right now.");
   }
   return access;
 }

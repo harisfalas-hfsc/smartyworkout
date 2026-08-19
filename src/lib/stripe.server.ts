@@ -79,7 +79,9 @@ export function getStripeErrorMessage(error: unknown): string {
 export async function verifyWebhook(
   req: Request,
   env: StripeEnv,
-): Promise<{ type: string; data: { object: any } }> {
+  // `created` is the provider event timestamp (unix seconds). It is what lets
+  // the handler reject an out-of-order redelivery.
+): Promise<{ type: string; created?: number; data: { object: any } }> {
   const signature = req.headers.get("stripe-signature");
   const body = await req.text();
   const secret =

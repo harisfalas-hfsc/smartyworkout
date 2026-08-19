@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Activity, Gauge, Loader2 } from "lucide-react";
+import { Activity, Gauge, Info, Loader2 } from "lucide-react";
 import { getPerformanceOverview } from "@/lib/performance.functions";
 import { CONFIDENCE_NOTE } from "@/lib/performance/confidence";
+import { countLabel } from "@/lib/format/labels";
 
 type Overview = Awaited<ReturnType<typeof getPerformanceOverview>>;
 
@@ -68,6 +69,18 @@ export function TrainingLoadPanel() {
         <LoadRow label="Overall load" state={data.load.overall} />
       </div>
 
+      {data.coverage.level !== "complete" ? (
+        <div className="rounded-2xl border-2 border-blue-400 bg-card p-4">
+          <p className="flex items-center gap-2 font-bold">
+            <Info className="h-4 w-4 text-primary" /> Why this says limited
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">{data.coverage.message}</p>
+          {data.coverage.nextStep ? (
+            <p className="mt-2 text-sm font-semibold">{data.coverage.nextStep}</p>
+          ) : null}
+        </div>
+      ) : null}
+
       {data.strength.length ? (
         <div className="rounded-2xl border-2 border-blue-400 bg-card p-4">
           <p className="flex items-center gap-2 font-bold">
@@ -78,8 +91,7 @@ export function TrainingLoadPanel() {
               <li key={h.exerciseName} className="flex justify-between gap-3">
                 <span className="capitalize">{h.exerciseName}</span>
                 <span className="text-muted-foreground">
-                  {h.sessions.length} logged session{h.sessions.length === 1 ? "" : "s"} · trend{" "}
-                  {h.trend}
+                  {countLabel(h.sessions.length, "logged session")} · trend {h.trend}
                 </span>
               </li>
             ))}
@@ -91,6 +103,7 @@ export function TrainingLoadPanel() {
           estimated on your behalf.
         </p>
       )}
+
     </div>
   );
 }

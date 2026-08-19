@@ -8,6 +8,8 @@ import {
   type StrengthFocus,
 } from "@/lib/workout/spec";
 import { microMinutes, resolveDifficulty } from "@/lib/workout/programming";
+import { whyThisSession } from "@/lib/coach-rules/why";
+import { loadPerformanceOverview } from "@/lib/performance.server";
 
 export type CoachRequest = {
   goal?: string;
@@ -129,7 +131,7 @@ export async function createWorkoutForUser(
 
   const prof = (profile ?? null) as Record<string, unknown> | null;
   const history = (recent as { name: string; category: string }[] | null) ?? [];
-  const feedbackLines = (
+  const feedbackRows =
     (feedback as
       | Array<{
           rpe: number | null;
@@ -140,8 +142,8 @@ export async function createWorkoutForUser(
           comment: string | null;
           workouts?: { name?: string | null; category?: string | null } | null;
         }>
-      | null) ?? []
-  ).map((f) => {
+      | null) ?? [];
+  const feedbackLines = feedbackRows.map((f) => {
     const w = f.workouts;
     const bits = [
       f.rpe !== null && f.rpe !== undefined
@@ -371,6 +373,30 @@ export async function createWorkoutForUser(
       usedNames,
     ));
 
+  /**
+   * "Why this session": the visible half of the adaptation. Built from the same
+   * logged evidence the engine used, so the member can see what changed and why.
+   */
+  let coachRationale: string[] = [];
+  try {
+    const overview = await loadPerformanceOverview(db as never, userId);
+    coachRationale = whyThisSession({
+      readiness: overview.readiness.state,
+      overallLoad: overview.load.overall,
+      averageRpe: averageRpe(feedbackRows),
+      recentFeelings: feedbackRows.map((f) => f.feeling).filter(Boolean) as string[],
+      deprioritizedFormats: feedbackRows
+        .filter((f) => f.would_repeat === "No")
+        .map((f) => f.workouts?.category ?? "")
+        .filter(Boolean),
+      avoidedExercises: dislikedLibrary,
+      favoredExercises: favoriteLibrary,
+      loggedSessions: overview.loggedSessions,
+    });
+  } catch {
+    // Explanation is additive: never block a generation on it.
+  }
+
   const anyBuilt = built as Record<string, unknown>;
   const durationLabel = (anyBuilt["duration"] ?? anyBuilt["duration_label"] ?? null) as
     | string
@@ -398,6 +424,7 @@ export async function createWorkoutForUser(
       main_workout: built.main_workout,
       needs_review: Boolean(anyBuilt["needs_review"]),
       review_warnings: warnings,
+      coach_rationale: coachRationale,
 
       status: "created",
       is_wod: Boolean(data.wod),
@@ -410,4 +437,11 @@ export async function createWorkoutForUser(
   if (error) throw new Error(error.message);
   const row = inserted as { id: string; name: string };
   return { id: row.id, name: row.name, category };
+}
+
+/** Mean of the effort answers we actually have. Never guessed from nothing. */
+function averageRpe(rows: Array<{ rpe: number | null }>): number | null {
+  const values = rows.map((r) => r.rpe).filter((v): v is number => typeof v === "number");
+  if (!values.length) return null;
+  return values.reduce((a, b) => a + b, 0) / values.length;
 }

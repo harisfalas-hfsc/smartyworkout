@@ -1,0 +1,2 @@
+ALTER TABLE public.workouts ADD COLUMN IF NOT EXISTS coach_rationale TEXT[] NOT NULL DEFAULT '{}';
+COMMENT ON COLUMN public.workouts.coach_rationale IS 'Short, evidence-based "why this session" lines shown to the member, derived from their logged history at generation time.';
