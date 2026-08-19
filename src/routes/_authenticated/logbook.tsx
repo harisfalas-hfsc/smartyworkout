@@ -305,13 +305,17 @@ function MonthGrid({
   selected,
   onSelect,
   onlyScheduled,
+  inRange,
 }: {
   cursor: Date;
   byDay: Map<string, Row[]>;
   selected: string;
   onSelect: (key: string) => void;
   onlyScheduled?: boolean;
+  /** When given, highlights every day of the selected period. */
+  inRange?: (key: string) => boolean;
 }) {
+
   const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
   const offset = (first.getDay() + 6) % 7; // Monday-first
   const days = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate();
