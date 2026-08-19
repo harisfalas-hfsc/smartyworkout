@@ -2,6 +2,9 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { isOnline } from "@/lib/offline/connectivity";
+import { readCache, scopedKey, writeCache } from "@/lib/offline/store";
+import { enqueueAction } from "@/lib/offline/queue";
 import { announceNewMember } from "@/lib/account.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -185,11 +188,19 @@ function ProfilePage() {
     (async () => {
       const { data: auth } = await supabase.auth.getUser();
       if (!auth.user) return;
-      const { data } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", auth.user.id)
-        .maybeSingle();
+      const cacheKey = scopedKey(auth.user.id, "profile:full");
+      let data: unknown = (await readCache<Record<string, unknown>>(cacheKey))?.data ?? null;
+      if (isOnline()) {
+        const fresh = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", auth.user.id)
+          .maybeSingle();
+        if (!fresh.error && fresh.data) {
+          data = fresh.data;
+          void writeCache(cacheKey, fresh.data);
+        }
+      }
       const incoming = (data as unknown as Partial<Profile>) ?? {};
       // Drop nulls so dropdown defaults in EMPTY stay in sync with what is displayed.
       const clean = Object.fromEntries(
@@ -271,13 +282,32 @@ function ProfilePage() {
       setSaving(false);
       return;
     }
-    const { error } = await supabase
-      .from("profiles")
-      .update({ ...p, onboarded: true } as never)
-      .eq("id", auth.user.id);
+    const next = { ...p, onboarded: true };
+    // Local first: the member's answers are stored on the device immediately,
+    // then sent to the account (now, or automatically when the connection is back).
+    await writeCache(scopedKey(auth.user.id, "profile:full"), next);
+    try {
+      localStorage.setItem(
+        `smarty:profile:${auth.user.id}`,
+        JSON.stringify({ display_name: next.display_name ?? null, avatar_url: (next as { avatar_url?: string | null }).avatar_url ?? null }),
+      );
+    } catch {
+      /* best effort */
+    }
+
+    const error = isOnline()
+      ? (
+          await supabase
+            .from("profiles")
+            .update(next as never)
+            .eq("id", auth.user.id)
+        ).error
+      : null;
     setSaving(false);
-    if (error) {
-      toast.error(error.message);
+    if (error || !isOnline()) {
+      await enqueueAction("profile-save", { ...next, userId: auth.user.id }, auth.user.id, 0);
+      toast.success("Training profile saved on this device. It will sync when you're back online.");
+      setSaved(true);
       return;
     }
     toast.success("Training profile saved.");

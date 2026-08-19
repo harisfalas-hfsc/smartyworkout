@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { isOnline } from "@/lib/offline/connectivity";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
 import { Bell, MailOpen, MessageSquare, Send } from "lucide-react";
@@ -85,7 +86,7 @@ export function NotificationBell() {
         setItems((prev) => prev.map((item) => item.kind === "message" && detail.readMessageIds?.includes(item.id) ? { ...item, unread: false } : item));
       if (detail?.unreadMessageIds?.length)
         setItems((prev) => prev.map((item) => item.kind === "message" && detail.unreadMessageIds?.includes(item.id) ? { ...item, unread: true } : item));
-      if (navigator.onLine && (!detail || Object.keys(detail).length === 0)) fetchAll();
+      if (isOnline() && (!detail || Object.keys(detail).length === 0)) fetchAll();
     };
     fetchAll();
     window.addEventListener(INBOX_CHANGED_EVENT, onChanged);
