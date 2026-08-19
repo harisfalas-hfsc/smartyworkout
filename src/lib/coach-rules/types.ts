@@ -6,8 +6,12 @@ import type {
 
 /** Everything the rules engine is allowed to look at. No network, no AI. */
 export type CoachContext = {
-  /** The difficulty the USER selected (1-3 stars). Never treated as evidence. */
-  selectedStars: number;
+  /**
+   * The difficulty the USER selected (1-3 stars). Never treated as evidence.
+   * null on context-only paths such as the Workout of the Day, where no
+   * difficulty is being chosen and no star recommendation may be produced.
+   */
+  selectedStars: number | null;
   category: string | null;
   format: string | null;
   confidence: ConfidenceState;
