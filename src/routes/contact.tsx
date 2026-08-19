@@ -64,6 +64,7 @@ function Contact() {
   const submitMember = useServerFn(submitMemberMessage);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [answered, setAnswered] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -95,6 +96,7 @@ function Contact() {
         ? await submitMember({ data: payload })
         : await submitPublic({ data: payload });
       if (!res.ok) throw new Error("error" in res ? String(res.error) : "send_failed");
+      setAnswered(Boolean((res as { answered?: boolean }).answered));
       setSent(true);
       form.reset();
     } catch {
@@ -131,10 +133,14 @@ function Contact() {
         <Card className="border-2 border-primary">
           <CardContent className="p-6 text-center space-y-3">
             <CheckCircle2 className="w-12 h-12 text-primary mx-auto" />
-            <h2 className="text-xl font-bold text-foreground">Message sent</h2>
+            <h2 className="text-xl font-bold text-foreground">
+              {answered ? "Answered already" : "Message sent"}
+            </h2>
             <p className="text-sm text-muted-foreground">
-              Thanks — we've received your message and will reply within 24–48 hours.
-              {signedIn ? " Our reply lands in your in-app inbox." : ""}
+              {answered
+                ? "We already sent you a full answer by email — check your inbox now."
+                : "Thanks — this one needs a human, and Haris will reply within 24–48 hours."}
+              {signedIn ? " It's also waiting in your in-app inbox." : ""}
             </p>
             {signedIn && (
               <Button asChild variant="secondary" className="w-full">

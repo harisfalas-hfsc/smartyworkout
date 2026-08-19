@@ -73,7 +73,15 @@ export const submitContactMessage = createServerFn({ method: "POST" })
       subject,
       message,
     });
-    return { ok: true as const };
+    const { autoRespondToSupportMessage } = await import("@/lib/support-autoreply.server");
+    const auto = await autoRespondToSupportMessage({
+      threadId: (thread as any).id as string,
+      name,
+      email,
+      subject,
+      message,
+    });
+    return { ok: true as const, answered: auto.answered };
   });
 
 
@@ -109,7 +117,16 @@ export const submitMemberMessage = createServerFn({ method: "POST" })
         message,
       });
     }
-    return { ok: true as const, threadId: (thread as any).id as string };
+    const { autoRespondToSupportMessage } = await import("@/lib/support-autoreply.server");
+    const auto = await autoRespondToSupportMessage({
+      threadId: (thread as any).id as string,
+      userId: context.userId,
+      name,
+      email,
+      subject,
+      message,
+    });
+    return { ok: true as const, threadId: (thread as any).id as string, answered: auto.answered };
 
   });
 
@@ -176,6 +193,15 @@ export const replyToThread = createServerFn({ method: "POST" })
       subject: clean((thread as any).subject, 200) || "Support request",
       message: body,
       isReply: true,
+    });
+    const { autoRespondToSupportMessage } = await import("@/lib/support-autoreply.server");
+    await autoRespondToSupportMessage({
+      threadId: data.threadId,
+      userId: context.userId,
+      name: clean((thread as any).name, 120),
+      email: clean((thread as any).email, 200),
+      subject: clean((thread as any).subject, 200) || "Support request",
+      message: body,
     });
     return { ok: true as const };
   });

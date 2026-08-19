@@ -23,15 +23,12 @@ export async function sendContactEmails(input: {
   message: string;
 }) {
   const { threadId, name, email, subject, message } = input;
-  await safeSend(
-    "contact-confirmation",
-    email,
-    { name, subject, message },
-    `contact-confirmation-${threadId}`,
-  );
+  // No "we received your message" email — the member gets a real answer from
+  // the automatic support responder instead (see support-autoreply.server.ts).
   const { notifyAdminsOfInboundMessage } = await import("@/lib/support-notify.server");
   await notifyAdminsOfInboundMessage({ threadId, name, email, subject, message });
 }
+
 
 export async function sendSupportReplyEmail(input: {
   messageId: string;
