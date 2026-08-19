@@ -59,9 +59,7 @@ export async function autoRespondToSupportMessage(input: {
       await supabaseAdmin.from("notifications").insert({
         user_id: userId,
         kind: "support",
-        title: escalated
-          ? "Your message is with Haris"
-          : "Smarty Workout answered your message",
+        title: escalated ? "Your message is with Haris" : "Smarty Workout answered your message",
         body: body.slice(0, 240),
         dedupe_key: `support-auto-${(inserted as any)?.id ?? threadId}`,
       } as never);

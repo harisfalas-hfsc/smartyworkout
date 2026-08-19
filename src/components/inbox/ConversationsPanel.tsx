@@ -88,7 +88,8 @@ export function ConversationsPanel({
       return true;
     });
     return [...filtered].sort((a, b) => {
-      const difference = new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime();
+      const difference =
+        new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime();
       return sortOrder === "latest" ? difference : -difference;
     });
   }, [readFilter, sortOrder, threads]);
@@ -200,7 +201,6 @@ export function ConversationsPanel({
 
   return (
     <div>
-
       <div className="mb-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
         <Button
           variant={composing ? "default" : "secondary"}
@@ -210,7 +210,12 @@ export function ConversationsPanel({
         >
           <MessageSquare className="mr-2 h-4 w-4" /> {composing ? "Close form" : "New message"}
         </Button>
-        <Button variant="secondary" className="rounded-2xl" onClick={markAllRead} disabled={!unread}>
+        <Button
+          variant="secondary"
+          className="rounded-2xl"
+          onClick={markAllRead}
+          disabled={!unread}
+        >
           <MailOpen className="mr-2 h-4 w-4" /> Mark all read
         </Button>
         <Button
@@ -224,7 +229,10 @@ export function ConversationsPanel({
       </div>
 
       <div className="mb-4 grid grid-cols-2 gap-2" aria-label="Message filters">
-        <Select value={readFilter} onValueChange={(value) => setReadFilter(value as typeof readFilter)}>
+        <Select
+          value={readFilter}
+          onValueChange={(value) => setReadFilter(value as typeof readFilter)}
+        >
           <SelectTrigger className="h-10 rounded-2xl border-2 border-primary bg-card">
             <SelectValue />
           </SelectTrigger>
@@ -234,7 +242,10 @@ export function ConversationsPanel({
             <SelectItem value="read">Read</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={sortOrder} onValueChange={(value) => setSortOrder(value as typeof sortOrder)}>
+        <Select
+          value={sortOrder}
+          onValueChange={(value) => setSortOrder(value as typeof sortOrder)}
+        >
           <SelectTrigger className="h-10 rounded-2xl border-2 border-primary bg-card">
             <SelectValue />
           </SelectTrigger>
@@ -261,8 +272,16 @@ export function ConversationsPanel({
             maxLength={5000}
             className="resize-none"
           />
-          <Button onClick={sendNew} disabled={busy || !newBody.trim()} className="w-full rounded-2xl">
-            {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+          <Button
+            onClick={sendNew}
+            disabled={busy || !newBody.trim()}
+            className="w-full rounded-2xl"
+          >
+            {busy ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="mr-2 h-4 w-4" />
+            )}
             Send message
           </Button>
         </div>
@@ -274,17 +293,26 @@ export function ConversationsPanel({
         </div>
       ) : visibleThreads.length === 0 ? (
         <p className="rounded-2xl border-2 border-blue-400 p-6 text-center text-sm text-muted-foreground">
-          {threads.length ? "No messages match this filter." : "No conversations yet. Start one above."}
+          {threads.length
+            ? "No messages match this filter."
+            : "No conversations yet. Start one above."}
         </p>
       ) : (
         <ul className="space-y-3">
           {visibleThreads.map((t) => {
             const open = openId === t.id;
             const messages = t.messages ?? [];
-            const latestQuestion = [...messages].reverse().find((message) => message.sender === "user");
-            const latestReply = [...messages].reverse().find((message) => message.sender === "admin");
+            const latestQuestion = [...messages]
+              .reverse()
+              .find((message) => message.sender === "user");
+            const latestReply = [...messages]
+              .reverse()
+              .find((message) => message.sender === "admin");
             return (
-              <li key={t.id} className="overflow-hidden rounded-2xl border-2 border-primary bg-card">
+              <li
+                key={t.id}
+                className="overflow-hidden rounded-2xl border-2 border-primary bg-card"
+              >
                 <button
                   type="button"
                   onClick={() => openThread(t)}
@@ -292,7 +320,11 @@ export function ConversationsPanel({
                   aria-expanded={open}
                 >
                   <span className="mt-0.5 text-primary">
-                    {t.user_unread ? <Mail className="h-4 w-4" /> : <MailOpen className="h-4 w-4" />}
+                    {t.user_unread ? (
+                      <Mail className="h-4 w-4" />
+                    ) : (
+                      <MailOpen className="h-4 w-4" />
+                    )}
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-bold">
@@ -310,7 +342,8 @@ export function ConversationsPanel({
                       </span>
                     )}
                     <span className="mt-1 block text-[11px] text-muted-foreground">
-                      {when(t.last_message_at)} · {messages.length} {messages.length === 1 ? "message" : "messages"}
+                      {when(t.last_message_at)} · {messages.length}{" "}
+                      {messages.length === 1 ? "message" : "messages"}
                     </span>
                   </span>
                   {open ? (
@@ -332,7 +365,9 @@ export function ConversationsPanel({
                               : "border-border bg-secondary text-secondary-foreground"
                           }`}
                         >
-                          <p className={`mb-1 text-xs font-bold ${m.sender === "admin" ? "text-primary" : "text-foreground"}`}>
+                          <p
+                            className={`mb-1 text-xs font-bold ${m.sender === "admin" ? "text-primary" : "text-foreground"}`}
+                          >
                             {m.sender === "admin" ? "Smarty Workout reply" : "Your message"}
                           </p>
                           <p className="whitespace-pre-wrap">{m.body}</p>
@@ -363,7 +398,11 @@ export function ConversationsPanel({
                         )}
                         Send reply
                       </Button>
-                      <Button variant="secondary" className="rounded-2xl" onClick={() => toggleRead(t)}>
+                      <Button
+                        variant="secondary"
+                        className="rounded-2xl"
+                        onClick={() => toggleRead(t)}
+                      >
                         Mark as {t.user_unread ? "read" : "unread"}
                       </Button>
                       <Button

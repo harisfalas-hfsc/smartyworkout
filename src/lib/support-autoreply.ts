@@ -44,7 +44,14 @@ const RULES: Rule[] = [
   {
     topic: "cancellation",
     label: "Cancellation / refund",
-    strong: ["cancel", "cancellation", "unsubscribe", "refund", "stop my subscription", "stop payment"],
+    strong: [
+      "cancel",
+      "cancellation",
+      "unsubscribe",
+      "refund",
+      "stop my subscription",
+      "stop payment",
+    ],
     keywords: ["end my plan", "quit", "terminate", "money back", "charged again"],
     body:
       "How to cancel your Smarty Workout membership:\n\n" +
@@ -58,7 +65,16 @@ const RULES: Rule[] = [
   {
     topic: "payments",
     label: "Payment / billing",
-    strong: ["payment", "billing", "invoice", "receipt", "card declined", "charged", "credit card", "stripe"],
+    strong: [
+      "payment",
+      "billing",
+      "invoice",
+      "receipt",
+      "card declined",
+      "charged",
+      "credit card",
+      "stripe",
+    ],
     keywords: ["pay", "paid", "price", "cost", "euro", "9.99", "vat", "double charge", "checkout"],
     body:
       "About payments and billing:\n\n" +
@@ -84,8 +100,25 @@ const RULES: Rule[] = [
   {
     topic: "account",
     label: "Account / sign-in",
-    strong: ["password", "sign in", "log in", "login", "cannot log", "can't log", "reset password", "email change"],
-    keywords: ["account", "sign up", "register", "verification", "confirm email", "delete my account", "locked out"],
+    strong: [
+      "password",
+      "sign in",
+      "log in",
+      "login",
+      "cannot log",
+      "can't log",
+      "reset password",
+      "email change",
+    ],
+    keywords: [
+      "account",
+      "sign up",
+      "register",
+      "verification",
+      "confirm email",
+      "delete my account",
+      "locked out",
+    ],
     body:
       "About your account:\n\n" +
       "• Forgot your password: on the Sign in page choose Forgot password, and we send a reset link to your email. Check the spam folder if it does not arrive within a couple of minutes.\n" +
@@ -96,8 +129,22 @@ const RULES: Rule[] = [
   {
     topic: "coach",
     label: "Smarty Coach",
-    strong: ["smarty coach", "generate a workout", "generation", "questionnaire", "create my workout"],
-    keywords: ["coach", "personalised", "personalized", "adapt", "recommendation", "difficulty", "stars"],
+    strong: [
+      "smarty coach",
+      "generate a workout",
+      "generation",
+      "questionnaire",
+      "create my workout",
+    ],
+    keywords: [
+      "coach",
+      "personalised",
+      "personalized",
+      "adapt",
+      "recommendation",
+      "difficulty",
+      "stars",
+    ],
     body:
       "How Smarty Coach builds your training:\n\n" +
       "1. Complete your Training Profile once (age, level, goal, equipment, limitations). This is mandatory — Coach will not guess your body.\n" +
@@ -122,8 +169,26 @@ const RULES: Rule[] = [
   {
     topic: "workout",
     label: "Workouts / player / logbook",
-    strong: ["player", "logbook", "log a workout", "schedule", "reps", "sets", "timer during workout"],
-    keywords: ["workout", "exercise", "training", "history", "favourite", "favorite", "calendar", "rest", "share"],
+    strong: [
+      "player",
+      "logbook",
+      "log a workout",
+      "schedule",
+      "reps",
+      "sets",
+      "timer during workout",
+    ],
+    keywords: [
+      "workout",
+      "exercise",
+      "training",
+      "history",
+      "favourite",
+      "favorite",
+      "calendar",
+      "rest",
+      "share",
+    ],
     body:
       "Using your workouts:\n\n" +
       "• Reader mode shows the full session; press Start Workout to open the player, which walks you through every step with automatic rest timers and keeps the screen awake.\n" +
@@ -183,7 +248,17 @@ const RULES: Rule[] = [
   {
     topic: "technical",
     label: "Technical issue",
-    strong: ["bug", "error", "crash", "not working", "doesn't work", "does not work", "blank screen", "stuck", "loading forever"],
+    strong: [
+      "bug",
+      "error",
+      "crash",
+      "not working",
+      "doesn't work",
+      "does not work",
+      "blank screen",
+      "stuck",
+      "loading forever",
+    ],
     keywords: ["slow", "freeze", "broken", "glitch", "white page", "issue", "problem"],
     body:
       "Sorry about that — here is what fixes almost every technical issue:\n\n" +
