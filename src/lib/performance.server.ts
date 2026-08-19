@@ -98,29 +98,22 @@ export async function loadPerformanceOverview(supabase: Client, userId: string) 
   const weekSets = sets.filter((s) => s.completed_at >= week);
   const weekResults = results.filter((r) => r.created_at >= week);
 
-  const sLoad = strengthLoad(weekSets.filter((s) => s.reps !== null));
-  const cLoad = conditioningLoad({
-    sets: weekSets,
-    result: weekResults.length
-      ? weekResults.reduce(
-          (acc, r) => ({
-            duration_seconds: sum(acc.duration_seconds, r.duration_seconds),
-            rounds: sum(acc.rounds, r.rounds),
-            extra_reps: sum(acc.extra_reps, r.extra_reps),
-            intervals_done: sum(acc.intervals_done, r.intervals_done),
-          }),
-          {
-            duration_seconds: null as number | null,
-            rounds: null as number | null,
-            extra_reps: null as number | null,
-            intervals_done: null as number | null,
-          },
-        )
-      : null,
-  });
+  // Baseline = the 21 days BEFORE the current week, i.e. the athlete's own
+  // typical training. Nothing is compared against universal thresholds.
+  const baselineSets = sets.filter((s) => s.completed_at < week);
+  const baselineResults = results.filter((r) => r.created_at < week);
+  const baselineWeeks = 3;
 
-  const strengthState = strengthLoadState(sLoad);
-  const conditioningState = conditioningLoadState(cLoad);
+  const strengthState = strengthLoadState({
+    current: summarizeStrength(weekSets),
+    baseline: summarizeStrength(baselineSets),
+    baselineWeeks,
+  });
+  const conditioningState = conditioningLoadState({
+    current: summarizeConditioning({ sets: weekSets, results: weekResults }),
+    baseline: summarizeConditioning({ sets: baselineSets, results: baselineResults }),
+    baselineWeeks,
+  });
   const overall = overallLoadState({ strength: strengthState, conditioning: conditioningState });
 
   const loggedWorkoutIds = new Set([
