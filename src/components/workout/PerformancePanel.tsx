@@ -1,15 +1,31 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Activity, ArrowDown, ArrowUp, Loader2, Minus, Pencil } from "lucide-react";
+import { Activity, ArrowDown, ArrowUp, LineChart, Loader2, Minus, Pencil } from "lucide-react";
 import { getWorkoutPerformance } from "@/lib/performance.functions";
 import { Button } from "@/components/ui/button";
 import { formatDateTime } from "@/lib/date-format";
 import { parseWorkoutSteps, type WorkoutStep } from "@/lib/workout/parse-steps";
 import { PerformanceEditorDialog } from "./PerformanceEditorDialog";
+import { AttemptTrendChart, type AttemptPoint } from "./AttemptTrendChart";
 
 type Perf = Awaited<ReturnType<typeof getWorkoutPerformance>>;
 type Attempt = Perf["attempts"][number];
 type Delta = NonNullable<Attempt["comparison"]>["metrics"][number];
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-border p-2">
+      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="font-bold">{value}</p>
+    </div>
+  );
+}
+
+function fmtTime(seconds: number | null | undefined) {
+  if (seconds === null || seconds === undefined) return "Not logged";
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+}
+
 
 function DeltaRow({ m }: { m: Delta }) {
   const tone =
