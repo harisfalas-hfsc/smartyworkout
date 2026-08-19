@@ -79,11 +79,11 @@ export const Route = createFileRoute("/_authenticated/logbook")({
   }),
   head: () => ({
     meta: [
-      { title: "Logbook — your training history" },
+      { title: "Logbook | Your training history" },
       {
         name: "description",
         content:
-          "Every workout Smarty Coach built for you, with feedback, mood, schedule and completion status.",
+          "Your complete training record, bringing workouts, performance, progress, records and planning together.",
       },
       { name: "robots", content: "noindex" },
     ],
@@ -730,7 +730,7 @@ function ScheduledView({
     return (
       <div className="rounded-2xl border-2 border-blue-400 bg-card p-8 text-center">
         <p className="text-muted-foreground">
-          Nothing scheduled yet — open a workout and pick a date to plan it.
+          Nothing scheduled yet. Open a workout and pick a date to plan it.
         </p>
         <Button asChild className="mt-4 h-11 rounded-2xl">
           <Link to="/coach">Create your workout</Link>
@@ -764,7 +764,10 @@ function ScheduledView({
           <div className="text-center">
             <p className="font-bold">{formatMonthYear(cursor)}</p>
             <p className="text-[11px] text-muted-foreground">
-              {monthRows.length} scheduled · month {safeIndex + 1} of {months.length}
+              {monthRows.length} workout{monthRows.length === 1 ? "" : "s"} scheduled
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              Month {safeIndex + 1} of {months.length} containing scheduled workouts
             </p>
           </div>
           <Button
@@ -777,6 +780,26 @@ function ScheduledView({
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
+
+        {months.length > 1 ? (
+          <label className="mt-3 block text-xs font-semibold text-muted-foreground">
+            Jump to a scheduled month
+            <select
+              value={safeIndex}
+              onChange={(event) => setIndex(Number(event.target.value))}
+              className="mt-1 h-11 w-full rounded-xl border-2 border-primary bg-background px-3 text-sm font-semibold text-foreground"
+            >
+              {months.map((key, monthIndex) => {
+                const [year, month] = key.split("-").map(Number);
+                return (
+                  <option key={key} value={monthIndex}>
+                    {formatMonthYear(new Date(year!, month! - 1, 1))}
+                  </option>
+                );
+              })}
+            </select>
+          </label>
+        ) : null}
 
         <MonthGrid cursor={cursor} byDay={byDay} selected="" onSelect={() => {}} onlyScheduled />
         <Legend />
@@ -941,7 +964,7 @@ function Logbook() {
         className="mb-2"
         eyebrow="Your history"
         title="Logbook"
-        subtitle="Every workout you created — completed, still to do, or scheduled."
+        subtitle="Your complete training record, with workouts, performance, progress, records and planning in one place."
       />
 
       {/* Three views, one line on every width. */}
