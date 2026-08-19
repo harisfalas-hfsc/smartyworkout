@@ -65,6 +65,31 @@ const ITEMS: { q: string; a: string }[] = [
     a: "Yes — every workout is saved to your logbook and can be repeated or exported as a PDF.",
   },
   {
+    q: "Does the app track what I actually do in a session?",
+    a: "Yes. The player records your reps, weight, time or rounds set by set, in the format each exercise is prescribed in, so nothing depends on memory.",
+  },
+  {
+    q: "What is the session debrief?",
+    a: "One short card-based questionnaire at the end of a workout: RPE, how you felt, whether you enjoyed it and an optional note. It is asked once and you can edit your answers any time — your progress and training load update immediately.",
+  },
+  {
+    q: "How do I see if I am progressing?",
+    a: "Repeat a workout and each attempt is compared with the previous one — but only when the prescription is genuinely the same. You see reps, load and time side by side with the RPE and feeling you logged that day.",
+  },
+  {
+    q: "What is the training load?",
+    a: "Your recent workload in your own logged units compared with your own 21-day baseline, adjusted by your RPE. There are no invented scores — only your own history.",
+  },
+  {
+    q: "Are there achievements?",
+    a: "Yes. Milestones unlock automatically as you complete, schedule, share and repeat workouts.",
+  },
+  {
+    q: "Does the app work offline?",
+    a: "Yes. Your workouts, logbook, exercise library and the player keep working with no signal, and everything you log syncs automatically when you are back online.",
+  },
+
+  {
     q: "What is the Smarty Community?",
     a: "The social area of the app. Members share their workouts exactly as Smarty Coach generated them, and every other member can open, train, like and comment on them.",
   },
