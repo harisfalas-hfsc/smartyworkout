@@ -34,15 +34,17 @@ const METRICS: {
   label: string;
   pick: (s: Session) => number | null;
   unit: string;
+  color: string;
 }[] = [
-  { key: "strength", label: "Strength load", pick: (s) => s.strengthLoad, unit: "" },
-  { key: "conditioning", label: "Conditioning load", pick: (s) => s.conditioningLoad, unit: "" },
-  { key: "rpe", label: "RPE", pick: (s) => s.rpe, unit: "/10" },
+  { key: "strength", label: "Strength load", pick: (s) => s.strengthLoad, unit: "", color: "#38bdf8" },
+  { key: "conditioning", label: "Conditioning load", pick: (s) => s.conditioningLoad, unit: "", color: "#34d399" },
+  { key: "rpe", label: "RPE", pick: (s) => s.rpe, unit: "/10", color: "#f59e0b" },
   {
     key: "minutes",
     label: "Session minutes",
     pick: (s) => (s.durationSeconds === null ? null : Math.round(s.durationSeconds / 60)),
     unit: "min",
+    color: "#a78bfa",
   },
 ];
 
@@ -126,21 +128,41 @@ export function RecentLoadTrend() {
 
           <div className="mt-3 h-48 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -18 }}>
-                <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                <XAxis dataKey="label" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
-                <YAxis tick={{ fontSize: 10 }} />
+              <LineChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: -18 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.6} />
+                <XAxis
+                  dataKey="label"
+                  tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+                  stroke="var(--border)"
+                  interval="preserveStartEnd"
+                  minTickGap={16}
+                />
+                <YAxis
+                  tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+                  stroke="var(--border)"
+                  width={44}
+                />
                 <Tooltip
                   formatter={(v: number | string) => [`${v}${metric.unit}`, metric.label]}
-                  contentStyle={{ fontSize: 12 }}
+                  contentStyle={{
+                    fontSize: 12,
+                    background: "var(--card)",
+                    color: "var(--foreground)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 12,
+                  }}
+                  labelStyle={{ color: "var(--muted-foreground)" }}
+                  cursor={{ stroke: "var(--border)" }}
                 />
                 <Line
                   type="monotone"
                   dataKey="value"
-                  stroke="hsl(var(--primary))"
+                  stroke={metric.color}
                   strokeWidth={2}
                   connectNulls
-                  dot={{ r: 3 }}
+                  isAnimationActive={false}
+                  dot={{ r: 3, fill: metric.color, stroke: metric.color }}
+                  activeDot={{ r: 5 }}
                 />
               </LineChart>
             </ResponsiveContainer>
