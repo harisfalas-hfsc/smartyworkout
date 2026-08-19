@@ -49,6 +49,7 @@ export type WorkoutRow = {
   tips_html: string | null;
   main_workout: string | null;
   created_by: string | null;
+  coach_rationale?: string[] | null;
   is_favorite?: boolean | null;
   rating?: number | null;
   status: string;
@@ -208,6 +209,19 @@ export function WorkoutDisplay({
               alt={`${workout.name} cover`}
               className="mt-5 h-52 w-full rounded-2xl object-cover"
             />
+          ) : null}
+
+          {(workout.coach_rationale ?? []).length ? (
+            <div className="mt-5 rounded-2xl border-2 border-primary/60 bg-primary/5 p-4">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">
+                Why Smarty Coach built this
+              </p>
+              <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
+                {(workout.coach_rationale ?? []).map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+            </div>
           ) : null}
 
           {workout.description_html ? (
