@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -458,50 +459,97 @@ function ExerciseLibraryPage() {
       </div>
 
       <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="capitalize">{selected?.name}</DialogTitle>
-          </DialogHeader>
-          {selected && (
-            <div className="space-y-4">
+        <DialogContent className="max-h-[78vh] w-[calc(100vw-3rem)] max-w-md gap-0 overflow-y-auto overflow-x-hidden rounded-2xl border-2 border-primary p-0 sm:max-h-[86vh] sm:w-full sm:max-w-lg [&>button]:hidden [&>div:first-child]:hidden">
+          {/* Media hero — flush to the top edge of the card */}
+          <div className="relative w-full overflow-hidden rounded-t-[calc(1rem-2px)] border-b-2 border-primary bg-white">
+            <DialogClose className="absolute right-2.5 top-2.5 z-20 grid h-9 w-9 place-items-center rounded-full border-2 border-primary bg-background/90 text-primary shadow-lg backdrop-blur transition-colors hover:bg-primary hover:text-primary-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              <X className="h-4 w-4" strokeWidth={3} />
+              <span className="sr-only">Close</span>
+            </DialogClose>
+
+            {selected?.gif_path ? (
               <ExerciseGif
                 path={selected.gif_path}
-                alt={selected.name}
-                className="h-64 w-full rounded-2xl object-contain"
+                alt={`${selected.name} demonstration`}
+                className="block h-auto max-h-[38vh] w-full rounded-none bg-white object-contain sm:max-h-[34vh]"
               />
-              <PreferenceButtons
-                state={stateFor(selected.id)}
-                busy={savingId === selected.id}
-                onLike={() => mark(selected.id, "like")}
-                onDislike={() => mark(selected.id, "dislike")}
-              />
-              <div className="flex flex-wrap gap-1">
-
-                {[selected.body_part, selected.equipment, selected.target_muscle, selected.difficulty]
-                  .filter(Boolean)
-                  .map((tag) => (
-                    <Badge key={tag as string} variant="secondary" className="capitalize">
-                      {tag}
-                    </Badge>
-                  ))}
+            ) : (
+              <div className="flex h-44 w-full items-center justify-center bg-secondary text-muted-foreground">
+                <Dumbbell className="h-9 w-9" />
               </div>
-              {selected.secondary_muscles?.length > 0 && (
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-semibold text-foreground">Secondary muscles: </span>
-                  {selected.secondary_muscles.join(", ")}
-                </p>
-              )}
-              {selected.instructions?.length > 0 && (
-                <ol className="list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
-                  {selected.instructions.map((step, i) => (
-                    <li key={i}>{step}</li>
-                  ))}
-                </ol>
-              )}
-            </div>
-          )}
+            )}
+          </div>
+
+          <div className="space-y-4 p-4 sm:p-5">
+            <DialogHeader className="space-y-1">
+              <DialogTitle className="text-left text-xl font-bold capitalize leading-tight">
+                {selected?.name ?? "Exercise"}
+              </DialogTitle>
+            </DialogHeader>
+
+            {selected && (
+              <>
+                <PreferenceButtons
+                  state={stateFor(selected.id)}
+                  busy={savingId === selected.id}
+                  onLike={() => mark(selected.id, "like")}
+                  onDislike={() => mark(selected.id, "dislike")}
+                />
+
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  {[
+                    ["Body part", selected.body_part],
+                    ["Target", selected.target_muscle],
+                    ["Equipment", selected.equipment],
+                    ["Level", selected.difficulty],
+                  ].map(([label, value]) =>
+                    value ? (
+                      <div
+                        key={label as string}
+                        className="rounded-xl border-2 border-primary/60 bg-primary/5 p-2.5"
+                      >
+                        <p className="text-[0.65rem] font-semibold uppercase tracking-wide text-primary">
+                          {label}
+                        </p>
+                        <p className="font-medium capitalize">{value as string}</p>
+                      </div>
+                    ) : null,
+                  )}
+                </div>
+
+                {selected.secondary_muscles?.length > 0 && (
+                  <div className="rounded-xl border-2 border-primary/60 bg-primary/5 p-3 text-sm">
+                    <p className="text-[0.65rem] font-semibold uppercase tracking-wide text-primary">
+                      Secondary muscles
+                    </p>
+                    <p className="capitalize">{selected.secondary_muscles.join(", ")}</p>
+                  </div>
+                )}
+
+                {selected.description && (
+                  <div className="rounded-xl border-2 border-primary/60 p-3 text-sm leading-relaxed">
+                    {selected.description}
+                  </div>
+                )}
+
+                {selected.instructions?.length > 0 && (
+                  <div className="rounded-xl border-2 border-primary/60 p-3">
+                    <p className="mb-2 text-[0.65rem] font-semibold uppercase tracking-wide text-primary">
+                      How to perform
+                    </p>
+                    <ol className="list-decimal space-y-1.5 pl-5 text-sm text-muted-foreground">
+                      {selected.instructions.map((step, i) => (
+                        <li key={i}>{step}</li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
+
     </div>
   );
 }
