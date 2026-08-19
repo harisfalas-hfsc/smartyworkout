@@ -263,7 +263,24 @@ export function WorkoutPlayerDialog({
     setWeight("");
     setHeldSeconds("");
     setDistance("");
+    loggedAnythingRef.current = true;
     toast.success(`Set ${setNumber} logged.`);
+  }
+
+  /**
+   * Leaving early never loses work: if anything was logged, the attempt is
+   * still marked completed. Performance data is optional either way.
+   */
+  async function closePlayer() {
+    onOpenChange(false);
+    if (!loggedAnythingRef.current) return;
+    loggedAnythingRef.current = false;
+    try {
+      await markStatus({ data: { workoutId, status: "completed" } });
+      onFinish();
+    } catch {
+      /* offline — the workout page keeps its own status handling */
+    }
   }
 
   function finishWorkout() {
@@ -304,8 +321,7 @@ export function WorkoutPlayerDialog({
       result.durationSeconds !== null ||
       result.rounds !== null ||
       result.intervalsDone !== null ||
-      result.finished !== null ||
-      result.rpe !== null;
+      result.finished !== null;
     if (hasAnything) {
       try {
         await storeResult({
@@ -323,7 +339,6 @@ export function WorkoutPlayerDialog({
             intervalsDone: result.intervalsDone,
             intervalsTotal: resultModel.intervalsTotal,
             finished: result.finished,
-            rpe: result.rpe,
           },
         });
       } catch {
@@ -386,7 +401,7 @@ export function WorkoutPlayerDialog({
             variant="ghost"
             size="icon"
             className="text-neutral-300 hover:text-neutral-50"
-            onClick={() => onOpenChange(false)}
+            onClick={() => void closePlayer()}
           >
             <X className="h-5 w-5" />
           </Button>
