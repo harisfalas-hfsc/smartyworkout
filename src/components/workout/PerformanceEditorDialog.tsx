@@ -188,7 +188,7 @@ export function PerformanceEditorDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90dvh] max-w-lg overflow-hidden">
+      <DialogContent className="mx-auto max-h-[85vh] w-[calc(100%-2.5rem)] max-w-md overflow-y-auto rounded-3xl border-2 border-primary p-5 sm:p-6">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
@@ -265,11 +265,11 @@ export function PerformanceEditorDialog({
           </ScrollArea>
         )}
 
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="gap-2 sm:gap-2">
+          <Button variant="secondary" className="h-11 rounded-2xl" onClick={() => onOpenChange(false)}>
             Not now
           </Button>
-          <Button onClick={save} disabled={saving || loading}>
+          <Button className="h-11 rounded-2xl font-extrabold" onClick={save} disabled={saving || loading}>
             {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Save performance
           </Button>
