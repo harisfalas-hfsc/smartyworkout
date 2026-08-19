@@ -53,8 +53,9 @@ import {
 } from "@/lib/logbook/rows";
 import { equipmentBadges } from "@/lib/format/labels";
 
-type View = "list" | "calendar" | "scheduled";
+type View = "list" | "calendar" | "scheduled" | "progress";
 type LogSearch = { filter: string; view: View; equip?: string };
+
 
 export const Route = createFileRoute("/_authenticated/logbook")({
   validateSearch: (search: Record<string, unknown>): LogSearch => ({
