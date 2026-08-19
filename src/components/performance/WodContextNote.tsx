@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Info } from "lucide-react";
-import { getCoachRecommendation } from "@/lib/performance.functions";
+import { getWodContext } from "@/lib/performance.functions";
 
 /**
  * Read-only context for the Workout of the Day. SmartyCoach never changes,
@@ -9,12 +9,12 @@ import { getCoachRecommendation } from "@/lib/performance.functions";
  * with what you have logged.
  */
 export function WodContextNote() {
-  const fetchRecommendation = useServerFn(getCoachRecommendation);
+  const fetchContext = useServerFn(getWodContext);
   const [note, setNote] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
-    fetchRecommendation({ data: { selectedStars: 2 } })
+    fetchContext({ data: {} })
       .then((res) => {
         if (active) setNote((res as { wodNote: string | null }).wodNote);
       })
@@ -22,7 +22,7 @@ export function WodContextNote() {
     return () => {
       active = false;
     };
-  }, [fetchRecommendation]);
+  }, [fetchContext]);
 
   if (!note) return null;
 
