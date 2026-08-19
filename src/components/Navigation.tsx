@@ -39,7 +39,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -144,7 +143,6 @@ export function Navigation() {
                     <span className="block truncate text-xs font-normal text-muted-foreground">{user.email}</span>
                   )}
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator className="bg-primary" />
                 <DropdownMenuItem asChild>
                   <Link to="/account"><User className="h-4 w-4 mr-2" /> My account</Link>
                 </DropdownMenuItem>
@@ -153,8 +151,7 @@ export function Navigation() {
                 </DropdownMenuItem>
                 {isAdmin && (
                   <>
-                    <DropdownMenuSeparator className="bg-primary" />
-                    <DropdownMenuItem asChild>
+                        <DropdownMenuItem asChild>
                       <Link to="/admin">
                         <Shield className="h-4 w-4 mr-2" /> Admin
                       </Link>
@@ -162,7 +159,6 @@ export function Navigation() {
                   </>
                 )}
 
-                <DropdownMenuSeparator className="bg-primary" />
                 <DropdownMenuItem onSelect={() => toggleTheme()}>
                   {theme === "dark" ? (
                     <><Sun className="h-4 w-4 mr-2" /> Light mode</>
@@ -170,7 +166,6 @@ export function Navigation() {
                     <><Moon className="h-4 w-4 mr-2" /> Dark mode</>
                   )}
                 </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-primary" />
                 <DropdownMenuItem onClick={handleSignOut}>
                   <LogOut className="h-4 w-4 mr-2" /> Sign out
                 </DropdownMenuItem>
@@ -189,11 +184,9 @@ export function Navigation() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52">
                 <DropdownMenuLabel>Account</DropdownMenuLabel>
-                <DropdownMenuSeparator className="bg-primary" />
                 <DropdownMenuItem asChild>
                   <Link to="/auth"><LogIn className="h-4 w-4 mr-2" /> Sign in</Link>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-primary" />
                 <DropdownMenuItem onSelect={() => toggleTheme()}>
                   {theme === "dark" ? (
                     <><Sun className="h-4 w-4 mr-2" /> Light mode</>
