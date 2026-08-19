@@ -18,6 +18,7 @@ function starWord(stars: number) {
 
 function confidenceRule(ctx: CoachContext): CoachRecommendation | null {
   if (ctx.confidence !== "Limited") return null;
+  if (ctx.selectedStars === null) return null;
   return {
     id: "confidence.limited",
     message: `Training at your selected ${starWord(ctx.selectedStars)} is a fine starting point.`,
@@ -51,6 +52,7 @@ function readinessRule(ctx: CoachContext): CoachRecommendation | null {
 }
 
 function loadRule(ctx: CoachContext): CoachRecommendation | null {
+  if (ctx.selectedStars === null) return null;
   if (ctx.overallLoad !== "Very High" && ctx.overallLoad !== "High") return null;
   if (ctx.confidence === "Limited") return null;
   if (ctx.selectedStars < 3) return null;
@@ -64,6 +66,7 @@ function loadRule(ctx: CoachContext): CoachRecommendation | null {
 }
 
 function progressionRule(ctx: CoachContext): CoachRecommendation | null {
+  if (ctx.selectedStars === null) return null;
   if (ctx.confidence !== "Established") return null;
   if (!ctx.progressionReady.length) return null;
   if (ctx.recentShortfalls > 0) return null;
@@ -87,6 +90,7 @@ function progressionRule(ctx: CoachContext): CoachRecommendation | null {
 }
 
 function shortfallRule(ctx: CoachContext): CoachRecommendation | null {
+  if (ctx.selectedStars === null) return null;
   if (ctx.confidence === "Limited") return null;
   if (ctx.recentShortfalls < 2) return null;
   if (ctx.selectedStars <= 1) {
@@ -111,7 +115,10 @@ function shortfallRule(ctx: CoachContext): CoachRecommendation | null {
 function steadyRule(ctx: CoachContext): CoachRecommendation {
   return {
     id: "steady.ok",
-    message: `Your selected ${starWord(ctx.selectedStars)} matches what you have been demonstrating.`,
+    message:
+      ctx.selectedStars === null
+        ? "Your recent training is in line with what you have been demonstrating."
+        : `Your selected ${starWord(ctx.selectedStars)} matches what you have been demonstrating.`,
     reason: `${ctx.sessionsLast7} session${ctx.sessionsLast7 === 1 ? "" : "s"} logged in the last seven days.`,
     suggestedStars: null,
     priority: 5,

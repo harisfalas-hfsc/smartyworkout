@@ -42,6 +42,15 @@ export function readiness(input: {
     };
   }
 
+  // Without enough comparable history the load cannot be classified, so no
+  // readiness claim is made either.
+  if (input.overallLoad === "Limited Data") {
+    return {
+      state: "Limited Data",
+      reason: "Not enough comparable training history yet to judge recent workload.",
+    };
+  }
+
   if (input.overallLoad === "Moderate" || input.sessionsLast7 >= 4) {
     return { state: "Moderate", reason: "Steady recent workload." };
   }

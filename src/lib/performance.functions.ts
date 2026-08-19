@@ -56,6 +56,41 @@ export const getCoachRecommendation = createServerFn({ method: "POST" })
     };
   });
 
+/**
+ * Read-only context for the Workout of the Day. No selected difficulty is
+ * involved, no recommendation is produced, and the WOD itself is never
+ * changed by this call.
+ */
+export const getWodContext = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input?: { category?: string | null; format?: string | null }) => ({
+    category: input?.category ?? null,
+    format: input?.format ?? null,
+  }))
+  .handler(async ({ data, context }) => {
+    const { loadPerformanceOverview } = await import("@/lib/performance.server");
+    const { wodContextNote } = await import("@/lib/coach-rules");
+    const overview = await loadPerformanceOverview(context.supabase as never, context.userId);
+    return {
+      wodNote: wodContextNote({
+        selectedStars: null,
+        category: data.category,
+        format: data.format,
+        confidence: overview.confidence,
+        readiness: overview.readiness.state,
+        readinessReason: overview.readiness.reason,
+        strengthLoad: overview.load.strength,
+        conditioningLoad: overview.load.conditioning,
+        overallLoad: overview.load.overall,
+        sessionsLast7: overview.sessionsLast7,
+        consecutiveDays: overview.consecutiveDays,
+        loggedSessions: overview.loggedSessions,
+        progressionReady: overview.progressionReady,
+        recentShortfalls: overview.recentShortfalls,
+      }),
+    };
+  });
+
 /** Saves the optional workout-level result. Absent fields stay unavailable. */
 export const saveWorkoutResult = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
