@@ -52,7 +52,8 @@ Everything else you asked about does work: what you log does feed Progress — s
   - RPE and training load: **neutral** — shown as context with a plain up/down arrow, never coloured as an improvement or a regression.
   - Anything without a defined direction stays neutral.
 - **Editing an existing session edits that same session.** The recap/editor always writes back to the attempt it opened, then recalculates that attempt's result and loads in place. It never creates a new attempt; a new attempt is only created when the player is started again.
-- Progress gains a **Repeated workouts** section listing the sessions you have done more than once and whether the trend is up, using the same metric-aware direction rules.
+- **Only genuinely comparable sessions are compared.** Comparison is against the same workout *version*, not just the same workout id. Each attempt records a fingerprint of the performance-relevant prescription (format, exercise list and order, reps/time/distance per step, interval count and work/rest windows, rounds, total duration). If the workout is later edited so that fingerprint changes materially, the new session starts a new comparable series: older attempts stay in the history, clearly marked as a **previous version**, and the new session shows "Not directly comparable" instead of a green/red delta until a second session on the same version exists. Cosmetic edits (name, description, tips, image) do not break comparability.
+- Progress gains a **Repeated workouts** section listing the sessions you have done more than once and whether the trend is up, using the same metric-aware direction rules and only within a comparable version series.
 
 
 ## Technical notes
