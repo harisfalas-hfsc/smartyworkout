@@ -1,56 +1,73 @@
-# One session debrief: simplify RPE, feedback and training load
+# One session debrief: simplify the post-workout questions
+
+A UX simplification and integration pass. The performance-tracking and repeat-attempt architecture stays. No changes to the Player's design, the Workout of the Day, the generator, the 3-star system, the training-load methodology, or Progress functionality. No AI calls.
 
 ## What is true today (verified in the code)
 
-- Finishing the player (the "Finish workout" button, through recap and result dialogs) **does** mark the workout completed automatically. Closing the player early does **not** — your logged sets are saved, but the workout stays "planned" and never counts in progress, streaks or badges.
-- The numbers you type in the player (reps, weight, seconds, distance, rounds, time, intervals) are the **only** input to Training Load. Load is history-relative: your last 7 days compared to your own 21-day normal, per unit, banded Low / Moderate / High / Very High.
-- RPE (asked at the end of the player) is stored and averaged, but it does **not** change Training Load. It is a separate line.
-- The questionnaire under the workout ("How was it / How did you feel / Did you enjoy it / Would you do it again / anything to remember") is saved in a different table, is **only** pasted as text into the next AI generation prompt, and touches nothing else — not load, not RPE, not the training profile.
-- So today: two places ask overlapping questions, they never talk to each other, and three of the four answers do almost nothing.
+- Finishing the Player already marks the workout completed, and performance logging is already optional.
+- Closing the Player early does **not** mark it completed, so logged sets can end up in a workout that never counts.
+- Training Load comes only from the logged numbers, compared against the athlete's own 21-day normal. RPE is stored and averaged but currently does not enter the load calculation.
+- The Player asks RPE; the workout page separately asks Too Easy / Just Right / Hard / Very Hard, feeling, enjoyment, repeat and a note — saved to a different table and used only as text in the next generation prompt.
+- Result: the same thing is asked twice with no rule for conflicts, and three answers have no defined job.
 
-## The problem
+## 1. Completion
 
-"Very Hard" in the questionnaire and "RPE 2" in the player can both exist and the system has no rule for which wins. Answers are collected without a defined job.
+- Finishing the Player marks the attempt completed (unchanged).
+- Closing the Player after any set log or result also marks it completed, so work is never lost.
+- No performance data is ever required. Completed with nothing logged shows as **Completed — performance not logged** and still counts in Logbook, history and consistency.
 
-## The fix: one debrief, one rule per answer
+## 2. One attempt record
 
-Replace both the player's RPE step and the page's feedback block with a **single card-by-card debrief** (swipe left/right, one question per card), used identically in both places and always writing to the same record.
+Each session has one attempt holding: completion, objective performance, RPE, feeling, enjoyment, repeat intention, optional note. The Player and the workout-page questionnaire read and write that same record. No second feedback record anywhere.
 
-Cards, in order:
+## 3. The debrief: five simple cards
 
-1. **Effort** — Too Easy / Just Right / Hard / Very Hard. This *is* the RPE. Each choice maps to a fixed RPE value (2 / 5 / 7 / 9). No separate RPE question anywhere. One question, one number.
-2. **How did you feel after** — Excellent / Good / Normal / Tired / Exhausted. Drives recovery: two "Tired/Exhausted" in a row makes the next generated session lighter, and shows a "recovery first" note on the load panel.
-3. **Did you enjoy it** — Yes / Neutral / No. "No" adds the session's main movements to a soft-avoid list for the next generation; "Yes" reinforces them.
-4. **Would you do it again** — Yes / Maybe / No. "No" bans that exact format/category combination from the next generation; "Maybe" deprioritises it.
-5. **Anything Smarty Coach should remember** — free text, passed to the next generation as-is.
+Card-by-card, one question per card, after the workout is completed.
 
-After the last card, the app tells you plainly what it took from your answers, e.g. "Logged as hard effort (RPE 7). You felt tired — your next session will be lighter."
+1. **How hard was this workout?** RPE 1–10. This is the only effort question — the Too Easy / Just Right / Hard / Very Hard scale is removed everywhere.
+2. **How did you feel?** Excellent / Good / Normal / Tired / Exhausted.
+3. **Did you enjoy the workout?** Yes / Neutral / No.
+4. **Would you do it again?** Yes / Maybe / No.
+5. **Anything SmartyCoach should remember?** Optional short text, skippable.
 
-## Parallel, never duplicated
+The whole debrief is skippable and never blocks completion.
 
-- One saved answer set per attempt. Answer in the player → the block on the workout page shows the same answers already filled in, with an "Edit answers" button. Answer on the page first → the player skips the debrief entirely.
-- Editing from either place updates the same record; no second copy, no conflict.
-- The debrief stays optional and skippable; skipping never blocks completion.
+## 4. What each answer is for
 
-## Completion rule
+- **Performance data** — strength and conditioning analysis.
+- **RPE** — the subjective effort input to training load, per the existing methodology.
+- **Feeling** — readiness and long-term fatigue context. Never converted into load points.
+- **Enjoyment** — preference and personalization. Never changes load.
+- **Would do again** — adherence and preference. Never changes load.
+- **Note** — qualitative context for SmartyCoach. Never becomes a number.
+- **Completion** — history, consistency, streaks, badges.
 
-- Finishing the player marks the workout completed (already the case).
-- If you close the player after logging any set or entering any result, the workout is marked completed too, so your work always counts. Nothing is lost because you exited early.
-- The debrief is never required for completion.
+## 5. Training load
 
-## What the athlete finally sees
+Existing deterministic, history-relative methodology stays. Objective data supplies the measurable workload; RPE acts as the effort qualifier inside that existing model, not as a second independent load term added on top. Feeling, enjoyment, repeat intention and free text never touch it. Any internal number stays internal — the customer keeps seeing the state ("Training Load: High").
 
-- **Training Load** — from logged numbers only, relative to your own normal.
-- **Effort** — the single RPE derived from the effort card.
-- **Recovery** — from the "how did you feel" trend.
-- **Coach notes** — enjoyment, repeat and free text, feeding the next generation.
+## 6. Player and questionnaire synchronized
 
-Four clear lines instead of overlapping scores.
+One source of truth. Answer in the Player and the workout page shows the same answers, read-only, with an Edit button. Answer on the page first and the Player skips the debrief. Editing anywhere updates the same record everywhere. The same question is never asked twice for one attempt.
+
+## 7. The flow
+
+Start → train → optionally log performance → Finish → RPE → Feeling → Enjoyment → Would do again → (optional note) → done.
+
+## 8. Progress
+
+Customer-facing: Strength Progress, Conditioning Progress, Training Load, Readiness, RPE, Recent Feeling, Workout History. Preferences stay internal to SmartyCoach — no new dashboard.
+
+## 9. SmartyCoach
+
+At generation time SmartyCoach combines history, performance, RPE, recent load, readiness, feeling, preferences, repeat intention and profile into one advisory recommendation. Rule-based, no AI credits, never overrides the user, never alters the Workout of the Day.
 
 ## Technical notes
 
-- New shared component `SessionDebriefDialog` (card stepper) replacing the RPE field in `WorkoutResultDialog` and the `Choice` block in `workout.$workoutId.tsx`.
-- Store the debrief once per attempt: extend `workout_feedback` with `attempt` and `rpe`, unique on (workout_id, user_id, attempt), upsert on edit. Migration required.
-- Effort→RPE map lives in one module (`src/lib/performance/effort.ts`) and is the only RPE source; `saveWorkoutResult` reads it instead of a separate RPE input.
-- Feeling/enjoy/repeat become structured signals consumed in `create.server.ts` (avoid list, format ban, load damping) rather than free text.
-- Auto-complete on player close when any set log or result exists for the attempt.
+- Reuse `workout_feedback` as the single feedback store; add `attempt` and `rpe` columns and a unique key on (workout_id, user_id, attempt), written with upsert. Migration required. No new table.
+- New shared `SessionDebriefDialog` (card stepper) used by both the Player and `workout.$workoutId.tsx`; it replaces the RPE field in `WorkoutResultDialog` and the four-choice block on the workout page. The Player's own screens are untouched.
+- Remove the `difficulty_rating` question from the UI; keep the column for historical rows and map old values to an approximate RPE only for display of past sessions.
+- RPE is read from the feedback record by the load layer as the effort qualifier in the existing formula — no new load term.
+- Auto-complete on Player close when any set log or result exists for the attempt.
+- Structured feeling / enjoyment / repeat signals replace the free-text paste in `create.server.ts` (avoid-list, deprioritise format, lighter session after repeated Tired/Exhausted).
+- Tests: completion with no/partial/full logging; Player↔questionnaire sync and edit in both directions; RPE affects load only via the existing model; feeling, enjoyment and repeat leave load unchanged; WOD and generator behaviour unchanged.
