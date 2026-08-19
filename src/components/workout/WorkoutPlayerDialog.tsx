@@ -404,41 +404,31 @@ export function WorkoutPlayerDialog({
 
           {slide?.kind === "exercise" && tracking && tracking.primary !== "completion" ? (
             <div className="space-y-2">
-              <div className="flex items-center gap-2">
+              <div className="flex items-end gap-2">
                 {tracking.primary === "reps" ? (
-                  <Input
-                    inputMode="numeric"
-                    placeholder="Reps"
+                  <StepperField
+                    label={
+                      tracking.windowSeconds
+                        ? `Reps in ${tracking.windowSeconds}s`
+                        : "Reps completed"
+                    }
                     value={reps}
-                    onChange={(e) => setReps(e.target.value)}
-                    className="h-11 flex-1 border-neutral-700 bg-neutral-900 text-neutral-50 placeholder:text-neutral-500"
+                    onChange={setReps}
+                    step={1}
                   />
                 ) : (
-                  <Input
-                    inputMode="numeric"
-                    placeholder="Seconds"
+                  <StepperField
+                    label="Seconds held"
                     value={heldSeconds}
-                    onChange={(e) => setHeldSeconds(e.target.value)}
-                    className="h-11 flex-1 border-neutral-700 bg-neutral-900 text-neutral-50 placeholder:text-neutral-500"
+                    onChange={setHeldSeconds}
+                    step={5}
                   />
                 )}
                 {tracking.load ? (
-                  <Input
-                    inputMode="decimal"
-                    placeholder="kg"
-                    value={weight}
-                    onChange={(e) => setWeight(e.target.value)}
-                    className="h-11 flex-1 border-neutral-700 bg-neutral-900 text-neutral-50 placeholder:text-neutral-500"
-                  />
+                  <StepperField label="Weight (kg)" value={weight} onChange={setWeight} step={2.5} />
                 ) : null}
                 {tracking.distance ? (
-                  <Input
-                    inputMode="numeric"
-                    placeholder="metres"
-                    value={distance}
-                    onChange={(e) => setDistance(e.target.value)}
-                    className="h-11 flex-1 border-neutral-700 bg-neutral-900 text-neutral-50 placeholder:text-neutral-500"
-                  />
+                  <StepperField label="Distance (m)" value={distance} onChange={setDistance} step={50} />
                 ) : null}
                 <Button
                   variant="secondary"
@@ -450,6 +440,24 @@ export function WorkoutPlayerDialog({
                   Log set {(logged[index] ?? 0) + 1}
                 </Button>
               </div>
+              {lastSet[index] ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full text-neutral-300"
+                  disabled={savingSet}
+                  onClick={() => {
+                    const prev = lastSet[index]!;
+                    setReps(prev.reps);
+                    setWeight(prev.weight);
+                    setHeldSeconds(prev.seconds);
+                    setDistance(prev.distance);
+                  }}
+                >
+                  <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+                  Repeat last set
+                </Button>
+              ) : null}
               {planned && (planned.sets || planned.reps || planned.weightKg) ? (
                 <p className="text-center text-[11px] text-neutral-500">
                   Prescribed{" "}
@@ -460,11 +468,16 @@ export function WorkoutPlayerDialog({
                       : `${planned.sets} sets`}
                   {planned.weightKg ? ` @ ${planned.weightKg} kg` : ""} · logged{" "}
                   {logged[index] ?? 0}
-                  {planned.sets ? ` of ${planned.sets}` : ""} · logging is optional
+                  {planned.sets ? ` of ${planned.sets}` : ""} · you can also fill this in at the end
                 </p>
-              ) : null}
+              ) : (
+                <p className="text-center text-[11px] text-neutral-500">
+                  Skip it if you are moving — you can fill it in on the recap at the end.
+                </p>
+              )}
             </div>
           ) : null}
+
 
 
 
