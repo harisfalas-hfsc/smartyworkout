@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +14,13 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useKeepScreenAwake } from "@/hooks/useKeepScreenAwake";
 import { buildSlides, parseStepTiming, type WorkoutStep } from "@/lib/workout/parse-steps";
+import {
+  deriveStepTracking,
+  deriveWorkoutResultModel,
+  parsePlanned,
+} from "@/lib/workout/tracking-model";
+import { saveWorkoutResult } from "@/lib/performance.functions";
+import { WorkoutResultDialog, type WorkoutResultInput } from "./WorkoutResultDialog";
 import { useExerciseMedia } from "./ExerciseMediaProvider";
 
 
@@ -29,6 +37,9 @@ export function WorkoutPlayerDialog({
   softTissue = [],
   workoutName,
   workoutId,
+  category = null,
+  format = null,
+  html = null,
   onFinish,
 }: {
   open: boolean;
@@ -37,9 +48,17 @@ export function WorkoutPlayerDialog({
   softTissue?: string[];
   workoutName: string;
   workoutId: string;
+  category?: string | null;
+  format?: string | null;
+  html?: string | null;
   onFinish: () => void;
 }) {
   const slides = useMemo(() => buildSlides(steps, softTissue), [steps, softTissue]);
+  const resultModel = useMemo(
+    () => deriveWorkoutResultModel({ category, format, html, steps }),
+    [category, format, html, steps],
+  );
+  const storeResult = useServerFn(saveWorkoutResult);
 
   const { details, ensure } = useExerciseMedia();
   const [api, setApi] = useState<CarouselApi>();
@@ -51,10 +70,20 @@ export function WorkoutPlayerDialog({
   const [logged, setLogged] = useState<Record<number, number>>({});
   const [reps, setReps] = useState("");
   const [weight, setWeight] = useState("");
+  const [heldSeconds, setHeldSeconds] = useState("");
+  const [distance, setDistance] = useState("");
   const [savingSet, setSavingSet] = useState(false);
+  const [resultOpen, setResultOpen] = useState(false);
   const beepRef = useRef<number>(0);
+  const startedAtRef = useRef<number | null>(null);
 
   useKeepScreenAwake(open);
+
+  useEffect(() => {
+    if (open && startedAtRef.current === null) startedAtRef.current = Date.now();
+    if (!open) startedAtRef.current = null;
+  }, [open]);
+
 
 
   useEffect(() => {
