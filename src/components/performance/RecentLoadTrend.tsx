@@ -89,7 +89,7 @@ export function RecentLoadTrend() {
     <div className="rounded-2xl border-2 border-blue-400 bg-card p-4">
       <p className="font-bold">Last 10 sessions</p>
       <p className="mt-1 text-xs text-muted-foreground">
-        One point per recorded session — never a running total. Each session stands on its own, so
+        One point per recorded session. Each session stands on its own, so
         older work leaves the graph as newer sessions arrive.
       </p>
 
