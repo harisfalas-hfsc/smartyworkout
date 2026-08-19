@@ -35,7 +35,9 @@ export type QueuedAction = QueueRuleItem & {
     | "notification-read"
     | "notification-delete"
     | "thread-read"
-    | "thread-delete";
+    | "thread-delete"
+    | "profile-save"
+    | "workout-generate";
 };
 
 const QUEUE_KEY = "pending-actions";
