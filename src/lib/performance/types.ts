@@ -43,7 +43,13 @@ export type WorkoutResultRow = {
   created_at: string;
 };
 
-export type LoadState = "None" | "Low" | "Moderate" | "High" | "Very High";
+export type LoadState =
+  | "None"
+  | "Limited Data"
+  | "Low"
+  | "Moderate"
+  | "High"
+  | "Very High";
 export type ReadinessState =
   | "Limited Data"
   | "Ready"
