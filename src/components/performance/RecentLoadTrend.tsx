@@ -3,19 +3,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 import { Loader2 } from "lucide-react";
+import { MetricLineChart, MetricPicker } from "@/components/performance/MetricLineChart";
 import { getSessionLoads } from "@/lib/performance.functions";
 import { formatDate } from "@/lib/date-format";
-import { cn } from "@/lib/utils";
 
 type Session = {
   workoutId: string;
@@ -108,67 +99,21 @@ export function RecentLoadTrend() {
         </p>
       ) : (
         <>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {available.map((m) => (
-              <button
-                key={m.key}
-                type="button"
-                onClick={() => setMetricKey(m.key)}
-                className={cn(
-                  "rounded-full border px-3 py-1 text-xs font-semibold",
-                  m.key === metric.key
-                    ? "border-blue-400 bg-primary/10 text-foreground"
-                    : "border-border text-muted-foreground",
-                )}
-              >
-                {m.label}
-              </button>
-            ))}
+          <div className="mt-3">
+            <MetricPicker
+              value={metric.key}
+              onChange={(v) => setMetricKey(v as MetricKey)}
+              options={available.map((m) => ({ key: m.key, label: m.label, color: m.color }))}
+            />
           </div>
 
-          <div className="mt-3 h-48 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.6} />
-                <XAxis
-                  dataKey="label"
-                  tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
-                  stroke="var(--border)"
-                  interval="preserveStartEnd"
-                  minTickGap={16}
-                />
-                <YAxis
-                  tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
-                  stroke="var(--border)"
-                  width={40}
-                  tickFormatter={(v: number) =>
-                    Math.abs(v) >= 1000 ? `${Math.round(v / 100) / 10}k` : String(v)
-                  }
-                />
-                <Tooltip
-                  formatter={(v: number | string) => [`${v}${metric.unit}`, metric.label]}
-                  contentStyle={{
-                    fontSize: 12,
-                    background: "var(--card)",
-                    color: "var(--foreground)",
-                    border: "1px solid var(--border)",
-                    borderRadius: 12,
-                  }}
-                  labelStyle={{ color: "var(--muted-foreground)" }}
-                  cursor={{ stroke: "var(--border)" }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="value"
-                  stroke={metric.color}
-                  strokeWidth={2}
-                  connectNulls
-                  isAnimationActive={false}
-                  dot={{ r: 3, fill: metric.color, stroke: metric.color }}
-                  activeDot={{ r: 5 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+          <div className="mt-3">
+            <MetricLineChart
+              data={data}
+              color={metric.color}
+              label={metric.label}
+              unit={metric.unit}
+            />
           </div>
         </>
       )}
