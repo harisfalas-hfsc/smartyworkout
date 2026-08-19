@@ -31,6 +31,22 @@ export function OfflineSync() {
     const run = async (action: QueuedAction) => {
       const p = action.payload as never;
       switch (action.kind) {
+        case "set-log": {
+          const { error } = await supabase.from("set_logs").upsert(action.payload as never, {
+            onConflict: "id",
+          });
+          if (error) throw new Error(error.message);
+          return;
+        }
+        case "workout-result": {
+          const { error } = await supabase.from("workout_results").upsert(action.payload as never, {
+            onConflict: "id",
+          });
+          if (error) throw new Error(error.message);
+          return;
+        }
+        case "attempt-complete":
+          return;
         case "workout-status":
           await saveStatus({ data: p });
           return;
