@@ -2,15 +2,15 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Activity, Gauge, Loader2 } from "lucide-react";
 import { getPerformanceOverview } from "@/lib/performance.functions";
+import { CONFIDENCE_NOTE } from "@/lib/performance/confidence";
 
 type Overview = Awaited<ReturnType<typeof getPerformanceOverview>>;
 
-function LoadRow({ label, state }: { label: string; state: { level: string; reason: string } }) {
+function LoadRow({ label, state }: { label: string; state: string }) {
   return (
     <div className="rounded-xl border border-border p-3">
       <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className="text-base font-bold capitalize">{state.level.replace(/-/g, " ")}</p>
-      <p className="text-xs text-muted-foreground">{state.reason}</p>
+      <p className="text-base font-bold">{state}</p>
     </div>
   );
 }
@@ -77,14 +77,17 @@ export function TrainingLoadPanel() {
             {data.strength.map((h) => (
               <li key={h.exerciseName} className="flex justify-between gap-3">
                 <span className="capitalize">{h.exerciseName}</span>
-                <span className="text-muted-foreground">{h.summary}</span>
+                <span className="text-muted-foreground">
+                  {h.sessions.length} logged session{h.sessions.length === 1 ? "" : "s"} · trend{" "}
+                  {h.trend}
+                </span>
               </li>
             ))}
           </ul>
         </div>
       ) : (
         <p className="text-xs text-muted-foreground">
-          {data.confidence.label} — log sets or workout results to build history. Nothing is
+          {CONFIDENCE_NOTE[data.confidence]}{" "} log sets or workout results to build history. Nothing is
           estimated on your behalf.
         </p>
       )}
