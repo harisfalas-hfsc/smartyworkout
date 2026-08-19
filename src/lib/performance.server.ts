@@ -268,3 +268,87 @@ function consecutiveDays(days: Set<string>): number {
   }
   return streak;
 }
+
+/**
+ * Recomputes the stored loads and note for ONE attempt from its own set logs.
+ * Never creates a new attempt: it only patches the row it was given.
+ */
+export async function recalcAttempt(
+  supabase: Client,
+  userId: string,
+  workoutId: string,
+  attempt: number,
+) {
+  const { analysisNote: note } = await import("@/lib/performance/analysis");
+  const { strengthLoad, conditioningLoad } = await import("@/lib/performance/load");
+
+  const [{ data: setRows }, { data: resultRow }] = await Promise.all([
+    supabase
+      .from("set_logs")
+      .select(SET_COLUMNS)
+      .eq("user_id", userId)
+      .eq("workout_id", workoutId)
+      .eq("attempt", attempt),
+    supabase
+      .from("workout_results")
+      .select(RESULT_COLUMNS)
+      .eq("user_id", userId)
+      .eq("workout_id", workoutId)
+      .eq("attempt", attempt)
+      .maybeSingle(),
+  ]);
+
+  const sets = (setRows ?? []) as SetLogRow[];
+  const result = (resultRow ?? null) as WorkoutResultRow | null;
+  if (!result) return { updated: false, note: null as string | null };
+
+  const analysis = note({ sets, result, history: [] });
+  const dataPoints =
+    sets.length +
+    [result.duration_seconds, result.rounds, result.intervals_done, result.rpe].filter(
+      (v) => v !== null,
+    ).length;
+
+  const { error } = await supabase
+    .from("workout_results")
+    .update({
+      analysis_note: analysis,
+      strength_load: strengthLoad(sets),
+      conditioning_load: conditioningLoad({ sets, result }),
+      data_points: dataPoints,
+    })
+    .eq("user_id", userId)
+    .eq("workout_id", workoutId)
+    .eq("attempt", attempt);
+  if (error) throw new Error(error.message);
+  return { updated: true, note: analysis };
+}
+
+/** Attempt number for a NEW session: never reuses an attempt that has data. */
+export async function nextAttemptNumber(
+  supabase: Client,
+  userId: string,
+  workoutId: string,
+): Promise<number> {
+  const [{ data: sets }, { data: results }] = await Promise.all([
+    supabase
+      .from("set_logs")
+      .select("attempt")
+      .eq("user_id", userId)
+      .eq("workout_id", workoutId)
+      .order("attempt", { ascending: false })
+      .limit(1),
+    supabase
+      .from("workout_results")
+      .select("attempt")
+      .eq("user_id", userId)
+      .eq("workout_id", workoutId)
+      .order("attempt", { ascending: false })
+      .limit(1),
+  ]);
+  const highest = Math.max(
+    (sets ?? []).length ? Number((sets as Array<{ attempt: number }>)[0]!.attempt) : 0,
+    (results ?? []).length ? Number((results as Array<{ attempt: number }>)[0]!.attempt) : 0,
+  );
+  return highest + 1;
+}
