@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Activity, Gauge, Loader2 } from "lucide-react";
+import { Activity, Gauge, Info, Loader2 } from "lucide-react";
 import { getPerformanceOverview } from "@/lib/performance.functions";
 import { CONFIDENCE_NOTE } from "@/lib/performance/confidence";
+import { countLabel } from "@/lib/format/labels";
 
 type Overview = Awaited<ReturnType<typeof getPerformanceOverview>>;
 
