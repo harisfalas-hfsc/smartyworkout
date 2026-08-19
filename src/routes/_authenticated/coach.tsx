@@ -19,6 +19,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { generateWorkout } from "@/lib/coach.functions";
+import { isOnline } from "@/lib/offline/connectivity";
+import { enqueueAction } from "@/lib/offline/queue";
 import {
   getExercisePreferences,
   setUseLibraryPreferences as saveUseLibraryPreferences,
@@ -213,31 +215,34 @@ function CoachPage() {
 
   async function generate(surprise = false, levelOverride?: string) {
     if (busy || wodMode) return;
-    if (!navigator.onLine) {
-      toast.error("You must be online to generate a workout.");
+    const request = {
+      goal: surprise ? "custom" : goal,
+      ...(surprise || !showFocus ? {} : { focus }),
+
+      mood,
+      minutes,
+      location,
+      equipment: equipment.length ? equipment : ["bodyweight"],
+      equipmentOther: equipment.includes("other") ? otherEquipment.trim() : "",
+      note: note.trim(),
+      useLibraryPreferences,
+
+      level: surprise ? "auto" : (levelOverride ?? level),
+      surprise,
+    };
+    if (!isOnline()) {
+      // Building a workout needs Smarty Coach on the server, so we never fake it.
+      // The request is stored safely and sent automatically when the connection returns.
+      const { data: auth } = await supabase.auth.getUser();
+      await enqueueAction("workout-generate", request, auth.user?.id ?? null, 2);
+      toast.success("You're offline. Your workout request is saved and will be created automatically once you're back online.");
       return;
     }
     setBusy(true);
     setResuming(false);
     localStorage.setItem("smarty:generating", "1");
     try {
-      const res = await run({
-        data: {
-          goal: surprise ? "custom" : goal,
-          ...(surprise || !showFocus ? {} : { focus }),
-
-          mood,
-          minutes,
-          location,
-          equipment: equipment.length ? equipment : ["bodyweight"],
-          equipmentOther: equipment.includes("other") ? otherEquipment.trim() : "",
-          note: note.trim(),
-          useLibraryPreferences,
-
-          level: surprise ? "auto" : (levelOverride ?? level),
-          surprise,
-        },
-      });
+      const res = await run({ data: request });
       navigate({ to: "/workout/$workoutId", params: { workoutId: res.id } });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Smarty Coach could not build that workout.");
