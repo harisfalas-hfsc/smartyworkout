@@ -54,12 +54,17 @@ export function OfflineSync() {
           await removeThreads({ data: p });
           announceInboxChanged();
           return;
+        case "session-debrief":
+          await saveDebrief({ data: p });
+          return;
         case "workout-feedback": {
           const { data: auth } = await supabase.auth.getUser();
           if (!auth.user) throw new Error("no session");
           const { error } = await supabase
             .from("workout_feedback")
-            .insert({ ...action.payload, user_id: auth.user.id } as never);
+            .upsert({ ...action.payload, user_id: auth.user.id } as never, {
+              onConflict: "workout_id,user_id,attempt",
+            });
           if (error) throw new Error(error.message);
           return;
         }
