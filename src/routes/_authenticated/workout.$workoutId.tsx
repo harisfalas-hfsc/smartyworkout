@@ -18,6 +18,8 @@ import { Share2 } from "lucide-react";
 import { getMyAccessState } from "@/lib/access.functions";
 import { toast } from "sonner";
 import { WorkoutDisplay, type WorkoutRow } from "@/components/workout/WorkoutDisplay";
+import { PerformancePanel } from "@/components/workout/PerformancePanel";
+
 import { ParqWaiverDialog } from "@/components/ParqWaiverDialog";
 
 export const Route = createFileRoute("/_authenticated/workout/$workoutId")({
