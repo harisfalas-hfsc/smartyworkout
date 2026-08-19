@@ -763,10 +763,27 @@ function Logbook() {
 
   const active = useMemo(() => parseFilters(filter), [filter]);
 
+  // Logged sessions power the calendar's day/period training-load totals.
+  const fetchSessionLoads = useServerFn(getSessionLoads);
+  const [sessions, setSessions] = useState<SessionLoad[]>([]);
+  useEffect(() => {
+    if (!user?.id) return;
+    let alive = true;
+    void fetchSessionLoads({ data: {} })
+      .then((res) => {
+        if (alive) setSessions(res.sessions as SessionLoad[]);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [user?.id, fetchSessionLoads]);
+
   useEffect(() => {
     if (cached.data) setRows(cached.data);
     else if (!cached.loading) setRows([]);
   }, [cached.data, cached.loading]);
+
 
   async function toggleFavorite(id: string, next: boolean) {
     setRows((prev) => prev?.map((r) => (r.id === id ? { ...r, is_favorite: next } : r)) ?? prev);
