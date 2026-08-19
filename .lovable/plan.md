@@ -44,8 +44,16 @@ Everything else you asked about does work: what you log does feed Progress — s
 ### 6. Repeat the same workout and see if you did it better
 
 - Each run of a workout becomes an **attempt**. Set logs and results are stamped with an attempt number instead of overwriting.
-- The workout page gains an **Attempts** block: one row per attempt with the date, the result (rounds / time / intervals), total reps, strength and conditioning load, RPE — and the change versus your previous attempt (green when better, red when worse), exactly the "5 times, 350 then 428" picture you described.
-- Progress gains a **Repeated workouts** section listing the sessions you have done more than once and whether the trend is up.
+- The workout page gains an **Attempts** block. Each row is identified by the **date and time of the session** (DD/MM/YYYY, e.g. "14/08/2026 · 07:12"); the attempt number is shown only as a small secondary marker ("#3"). The history reads as a list of real dated sessions.
+- Each row shows the result (rounds / time / intervals), total reps, strength and conditioning load, RPE — and the change versus the previous session, exactly the "5 times, 350 then 428" picture you described.
+- **Comparison is metric-aware.** Direction of "better" is defined per metric, never assumed:
+  - For time: **lower is better**.
+  - AMRAP rounds, reps, distance, intervals completed, load lifted: **higher is better**.
+  - RPE and training load: **neutral** — shown as context with a plain up/down arrow, never coloured as an improvement or a regression.
+  - Anything without a defined direction stays neutral.
+- **Editing an existing session edits that same session.** The recap/editor always writes back to the attempt it opened, then recalculates that attempt's result and loads in place. It never creates a new attempt; a new attempt is only created when the player is started again.
+- Progress gains a **Repeated workouts** section listing the sessions you have done more than once and whether the trend is up, using the same metric-aware direction rules.
+
 
 ## Technical notes
 
