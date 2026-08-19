@@ -38,6 +38,26 @@ Database migration (backward compatible, no data destroyed):
 
 Only objective facts are stored: what the user typed, plus durations the timer actually measured. Anything not provided is stored as unavailable. A workout completed with zero logging still records completion normally.
 
+### Workout completion vs performance completion
+
+These are two independent concepts and are stored in two different places.
+
+- **Workout completion** stays exactly as today: `workouts.status` / `completed_at`, set by the existing Finish / Mark done actions. A user can finish or exit a workout without completing every prescribed set, rep, round or interval, and that stays valid.
+- **Performance completion** is derived only from `set_logs` and `workout_results`. In the example (planned 4 × 8 @ 80 kg; logged 80×8, 80×8, 80×6, nothing for set 4) the workout is completed, while the performance view shows 3 of 4 sets logged and 22 of the 32 planned reps recorded — set 4 stays unavailable, never zero and never assumed.
+- Finishing a workout never back-fills sets, reps, kg, rounds, intervals or time. Nothing is estimated, ever.
+- The two figures are labelled distinctly in the UI so "workout completed" is never read as "prescription completed".
+
+### Three separate difficulty concepts
+
+Tracked and displayed as three distinct things, never conflated:
+
+1. **Selected difficulty** — the stars the user chose (or the WOD's programmed stars).
+2. **Recommended difficulty** — SmartyCoach's suggestion, only produced when evidence and history are sufficient; otherwise no star recommendation is made at all.
+3. **Demonstrated performance** — what the logged data actually shows.
+
+Choosing 1, 2 or 3 stars is never treated as evidence of capability in either direction. Star recommendations come from demonstrated performance plus load/readiness, never from past selections.
+
+
 ## Phase 3 — Deterministic analysis
 
 `src/lib/performance/analysis.ts` — pure functions producing **one short note** from stored rows only: prescription met / exceeded / load reduced / reps missed / partial, or a conditioning comparison against the previous comparable result, or the explicit "not enough logged performance data yet" fallback. Detailed trends live in Progress, not in this note. Written on completion into `workout_results.analysis_note`.
