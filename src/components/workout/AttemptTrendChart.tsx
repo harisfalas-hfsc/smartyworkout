@@ -111,13 +111,13 @@ export function AttemptTrendChart({ points }: { points: AttemptPoint[] }) {
       <div className="h-56 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis dataKey="label" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-            <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" width={44} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+            <XAxis dataKey="label" tick={{ fontSize: 10 }} stroke="var(--muted-foreground)" />
+            <YAxis tick={{ fontSize: 10 }} stroke="var(--muted-foreground)" width={44} />
             <Tooltip
               contentStyle={{
-                background: "hsl(var(--card))",
-                border: "1px solid hsl(var(--border))",
+                background: "var(--card)",
+                border: "1px solid var(--border)",
                 borderRadius: 12,
                 fontSize: 12,
               }}
