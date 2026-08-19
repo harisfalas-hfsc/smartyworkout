@@ -240,7 +240,7 @@ export function ConversationsPanel({
                       {t.user_unread && <span className="mr-1 text-primary">•</span>}
                       {t.subject}
                     </span>
-                    {last && (
+                    {last && !open && (
                       <span className="mt-0.5 block line-clamp-2 text-xs text-muted-foreground">
                         {last.sender === "admin" ? "Smarty Workout: " : "You: "}
                         {last.body}

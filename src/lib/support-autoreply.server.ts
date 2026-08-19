@@ -1,5 +1,9 @@
 import { classifySupportMessage, escalationMessage } from "@/lib/support-autoreply";
 
+const AUTO_REPLY_FOOTER =
+  "If this does not answer your question, reply in this conversation. We can answer automatically up to twice. Your third message is sent to Haris for a personal reply within 24–48 hours.\n\n" +
+  "Yours in good health,\nHaris Falas, BSc Sports Science, Exo Specialist, CSCS";
+
 /**
  * Instant, credit-free support answering.
  *
@@ -31,7 +35,7 @@ export async function autoRespondToSupportMessage(input: {
     const answer = classifySupportMessage(subject, message);
     const tooManyRounds = (inboundCount ?? 1) >= 3;
     const escalated = !answer || tooManyRounds;
-    const body = escalated ? escalationMessage() : answer!.body;
+    const body = escalated ? escalationMessage() : `${answer?.body ?? ""}\n\n${AUTO_REPLY_FOOTER}`;
     const label = answer?.label ?? "Needs a human";
 
     const { data: inserted } = await supabaseAdmin
