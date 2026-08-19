@@ -21,14 +21,22 @@ export type StepTracking = {
   metric: TrackingMetricName;
   /** Whether logging individual sets makes sense for this step. */
   setBased: boolean;
+  /**
+   * Fixed work window in seconds, when the prescription states a duration for a
+   * countable movement ("20 sec dumbbell clean"). The question then becomes
+   * "how many reps inside this window", never "how many seconds".
+   */
+  windowSeconds: number | null;
 };
 
 export type TrackingMetricName =
   | "reps"
   | "reps_load"
+  | "reps_in_time"
   | "hold"
   | "distance"
   | "completion";
+
 
 export type PlannedPrescription = {
   sets: number | null;
