@@ -31,12 +31,37 @@ function priceInfo(subscription: any) {
   };
 }
 
-async function upsertSubscription(subscription: any, env: StripeEnv) {
+/**
+ * Reads what we already stored so an out-of-order redelivery can be rejected
+ * before it overwrites a newer state.
+ */
+async function storedSubscription(subscriptionId: string, env: StripeEnv) {
+  const { data } = await getSupabase()
+    .from("subscriptions")
+    .select("status, updated_at, last_event_at, current_period_end")
+    .eq("provider_subscription_id", subscriptionId)
+    .eq("environment", env)
+    .maybeSingle();
+  return (data as StoredSubscription) ?? null;
+}
+
+async function upsertSubscription(subscription: any, env: StripeEnv, eventCreatedAt: number | null) {
   const userId = subscription.metadata?.userId;
   if (!userId) {
     console.error("No userId in subscription metadata");
     return;
   }
+
+  const stored = await storedSubscription(subscription.id, env);
+  const decision = shouldApplySubscriptionEvent(stored, {
+    createdAt: eventCreatedAt,
+    status: subscription.status,
+  });
+  if (!decision.apply) {
+    console.log(`[payments-webhook] skipped ${subscription.id}: ${decision.reason}`);
+    return;
+  }
+
   const { priceId, productId, periodStart, periodEnd } = priceInfo(subscription);
 
   await getSupabase()
@@ -54,6 +79,7 @@ async function upsertSubscription(subscription: any, env: StripeEnv) {
         current_period_end: isoFromUnix(periodEnd),
         cancel_at_period_end: subscription.cancel_at_period_end ?? false,
         environment: env,
+        last_event_at: eventCreatedAt,
         updated_at: new Date().toISOString(),
       },
       { onConflict: "provider_subscription_id" },
@@ -65,7 +91,11 @@ async function upsertSubscription(subscription: any, env: StripeEnv) {
     details: `Subscription ${subscription.id} for user ${userId} is now "${subscription.status}"${
       subscription.cancel_at_period_end ? " (set to cancel at period end)" : ""
     }.`,
-    dedupeKey: `sub-${subscription.id}-${subscription.status}-${subscription.cancel_at_period_end ? 1 : 0}`,
+    dedupeKey: billingDedupeKey({
+      kind: "sub",
+      objectId: subscription.id,
+      state: `${subscription.status}-${subscription.cancel_at_period_end ? 1 : 0}`,
+    }),
   });
 }
 
@@ -85,10 +115,24 @@ async function adminAlert(input: {
 }
 
 
-async function markCanceled(subscription: any, env: StripeEnv) {
+async function markCanceled(subscription: any, env: StripeEnv, eventCreatedAt: number | null) {
+  const stored = await storedSubscription(subscription.id, env);
+  const decision = shouldApplySubscriptionEvent(stored, {
+    createdAt: eventCreatedAt,
+    status: "canceled",
+  });
+  if (!decision.apply) {
+    console.log(`[payments-webhook] skipped cancel of ${subscription.id}: ${decision.reason}`);
+    return;
+  }
+
   await getSupabase()
     .from("subscriptions")
-    .update({ status: "canceled", updated_at: new Date().toISOString() })
+    .update({
+      status: "canceled",
+      last_event_at: eventCreatedAt,
+      updated_at: new Date().toISOString(),
+    })
     .eq("provider_subscription_id", subscription.id)
     .eq("environment", env);
 
@@ -96,9 +140,10 @@ async function markCanceled(subscription: any, env: StripeEnv) {
     kind: "Membership",
     title: "Membership canceled",
     details: `Subscription ${subscription.id} was canceled.`,
-    dedupeKey: `sub-canceled-${subscription.id}`,
+    dedupeKey: billingDedupeKey({ kind: "sub-canceled", objectId: subscription.id }),
   });
 }
+
 
 function euro(amount: number | null | undefined, currency: string | null | undefined): string {
   if (typeof amount !== "number") return "your membership";
