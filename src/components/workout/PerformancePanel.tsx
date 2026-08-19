@@ -98,6 +98,17 @@ export function PerformancePanel({
   }
 
   const attempts = data?.attempts ?? [];
+  const chartPoints: AttemptPoint[] = attempts.map((a) => ({
+    attempt: a.attempt,
+    performedAt: a.performedAt,
+    totalReps: a.totalReps,
+    totalVolumeKg: a.totalVolumeKg,
+    strengthLoad: a.strengthLoad,
+    conditioningLoad: a.conditioningLoad,
+    rpe: a.rpe,
+    durationSeconds: a.result?.duration_seconds ?? null,
+  }));
+
 
   return (
     <section className="mt-5 rounded-2xl border-2 border-blue-400 bg-card p-5">
