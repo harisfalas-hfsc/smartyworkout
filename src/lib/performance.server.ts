@@ -6,6 +6,7 @@ import { buildExerciseHistories } from "@/lib/performance/strength";
 import { compareConditioning, describeResult } from "@/lib/performance/conditioning";
 import { compareAttempts, seriesTrend } from "@/lib/performance/compare";
 import { dataConfidence } from "@/lib/performance/confidence";
+import { loadCoverage } from "@/lib/performance/coverage";
 import {
   conditioningLoadState,
   overallLoadState,
