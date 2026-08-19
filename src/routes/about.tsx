@@ -2,7 +2,25 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/PageHeader";
 import { SmartyCard, SmartyRow } from "@/components/SmartyCard";
-import { Brain, Compass, Clock, Sparkles, SlidersHorizontal, FlaskConical, RefreshCw } from "lucide-react";
+import {
+  Brain,
+  Compass,
+  Clock,
+  Sparkles,
+  SlidersHorizontal,
+  FlaskConical,
+  RefreshCw,
+  LineChart,
+  PlayCircle,
+  ClipboardCheck,
+  NotebookPen,
+  TrendingUp,
+  Activity,
+  Trophy,
+  WifiOff,
+  BookOpen,
+} from "lucide-react";
+
 
 export const Route = createFileRoute("/about")({
   head: () => ({
