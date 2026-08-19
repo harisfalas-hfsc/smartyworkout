@@ -1184,6 +1184,7 @@ export type Database = {
         Row: {
           activation: string | null
           category: string
+          coach_rationale: string[]
           community_hidden: boolean
           community_source_id: string | null
           completed_at: string | null
@@ -1234,6 +1235,7 @@ export type Database = {
         Insert: {
           activation?: string | null
           category: string
+          coach_rationale?: string[]
           community_hidden?: boolean
           community_source_id?: string | null
           completed_at?: string | null
@@ -1284,6 +1286,7 @@ export type Database = {
         Update: {
           activation?: string | null
           category?: string
+          coach_rationale?: string[]
           community_hidden?: boolean
           community_source_id?: string | null
           completed_at?: string | null
