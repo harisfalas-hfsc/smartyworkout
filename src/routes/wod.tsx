@@ -306,6 +306,10 @@ function WodPage() {
         </p>
       </section>
 
+      <WodContextNote />
+
+
+
       <section className="relative px-1 py-1">
         <SwipeToExplore onPrev={() => api?.scrollPrev()} onNext={() => api?.scrollNext()} />
 
