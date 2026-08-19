@@ -12,43 +12,46 @@ Adds an adaptive tracking layer to the existing Workout Player, real performance
 
 ## Phase 1 — Adaptive tracking in the existing player
 
-New client module `src/lib/workout/tracking-model.ts`: given the workout (category, format) plus the parsed step (prescription text, section, exercise equipment from the library media/details cache), it returns a **tracking descriptor**:
+New client module `src/lib/workout/tracking-model.ts`. For each step it reads the actual prescription text, the step's section/sub-section, the workout `category`/`format`, and the exercise's `equipment` field from the library (`"body weight"` marks unloaded movements, same test the generator already uses in `pool.server.ts`). From that it derives a **primary metric plus optional secondary metrics** — never a blanket "timed":
 
-- `strength-load` → set #, reps, kg (Strength, Muscle Building, loaded exercises)
-- `reps-only` → set #, reps (bodyweight, Pilates, Mobility & Stability, unloaded circuit moves)
-- `timed` → duration captured from the existing timer, no inputs
-- `rounds` → AMRAP: rounds + extra reps (workout-level result)
-- `intervals` → EMOM/TABATA: intervals completed / programmed, reps per interval
-- `for-time` → completion time + finished / partial
-- `completion-only` → Micro Workouts, Recovery, warm-up/cool-down steps
-- Challenge maps to reps / time / duration by prescription shape.
+- Loaded strength/hypertrophy step → primary reps, secondary load (kg), set number.
+- Bodyweight / Pilates / Mobility step → primary reps, no kg field at all.
+- Hold (plank, dead hang) → primary duration.
+- Distance movement (run, row, ski, bike) → primary duration, secondary distance when the prescription states one.
+- Per-step timed work inside a larger workout stays a **step-level** metric; it never becomes the workout result.
+- Workout-level result metrics apply only where the format defines one: AMRAP → duration + rounds + extra reps; FOR TIME → completion time + finished/partial; EMOM/TABATA → intervals completed vs programmed, with the actual per-interval prescription preserved.
+- Micro Workouts / Recovery / prep sections → completion only.
+- Challenge → reps, time or duration, chosen from the prescription shape.
 
-It also parses the **planned** values out of the prescription (sets × reps @ kg, minutes, rounds) so planned vs actual can be compared.
+EMOM and TABATA stay prescription-aware: the parser keeps each interval's own exercise and rep target when the prescription varies per interval, so actual work is compared against the actual prescription rather than a uniform assumption.
 
-The player keeps its exact layout and dark visual language; only the input row becomes conditional — kg never appears where it is irrelevant, and the "Log set" button is never required. Every slide keeps a plain `Done — next`, and a final workout-result step appears only for AMRAP / EMOM / FOR TIME / Challenge formats.
+Planned values (sets × reps @ kg, minutes, rounds, intervals) are parsed from the same prescription so planned vs actual is possible without inventing anything.
+
+The player keeps its exact layout, dark visual language and navigation. Only the input row becomes conditional; kg disappears where irrelevant, logging is never required, and the flow stays DO → optionally log → DONE → NEXT. No analytical messages are shown while training. A single workout-result step appears only for AMRAP / EMOM / TABATA / FOR TIME / Challenge, and an optional 1-10 RPE prompt appears once at the end.
 
 ## Phase 2 — Storage
 
 Database migration (backward compatible, no data destroyed):
 
-- `set_logs`: add `planned_reps`, `planned_weight_kg`, `planned_seconds`, `rpe`, `metric` (text), `rounds`, `interval_index`, `distance_m`, `partial` (bool). All nullable — existing rows keep working.
-- New `workout_results` table (one row per workout): `user_id`, `workout_id`, `format`, `category`, `metric`, `duration_seconds`, `rounds`, `extra_reps`, `intervals_done`, `intervals_total`, `finished` (bool), `rpe`, `analysis_note`, `training_load` (numeric), `data_points` (int). RLS scoped to `auth.uid()`, with the required GRANTs.
+- `set_logs`: add `planned_reps`, `planned_weight_kg`, `planned_seconds`, `rpe`, `metric` (text), `rounds`, `interval_index`, `distance_m`, `partial` (bool). All nullable — existing rows keep working and missing fields stay NULL (= unavailable, never estimated).
+- New `workout_results` table (one row per workout): `user_id`, `workout_id`, `format`, `category`, `metric`, `duration_seconds`, `rounds`, `extra_reps`, `intervals_done`, `intervals_total`, `finished` (bool), `rpe`, `analysis_note`, `strength_load`, `conditioning_load`, `data_points`. RLS scoped to `auth.uid()`, with the required GRANTs.
 
-Logging stays optional everywhere: pressing Done through a workout stores completion plus whatever objective data the player already knows (timers run, slides completed) and nothing invented.
+Only objective facts are stored: what the user typed, plus durations the timer actually measured. Anything not provided is stored as unavailable. A workout completed with zero logging still records completion normally.
 
 ## Phase 3 — Deterministic analysis
 
-`src/lib/performance/analysis.ts` — pure functions producing the short post-workout note from stored rows only: prescription met / exceeded / load reduced / reps missed / partial, conditioning comparison vs the previous comparable result, and the explicit "not enough logged performance data yet" fallback. Written on completion into `workout_results.analysis_note`.
+`src/lib/performance/analysis.ts` — pure functions producing **one short note** from stored rows only: prescription met / exceeded / load reduced / reps missed / partial, or a conditioning comparison against the previous comparable result, or the explicit "not enough logged performance data yet" fallback. Detailed trends live in Progress, not in this note. Written on completion into `workout_results.analysis_note`.
 
 ## Phase 4-6 — History, training load, data confidence
 
-- `src/lib/performance/strength.ts`: per-exercise history, load/rep/volume trends, repeated-success detection (needs 3 comparable sessions before suggesting progression).
-- `src/lib/performance/conditioning.ts`: AMRAP total work, FOR TIME deltas, EMOM interval completion.
-- `src/lib/performance/load.ts`: deterministic session load from volume, duration, difficulty stars, format and RPE when present; accumulates into recent-window states Low / Moderate / High / Very High. No fake numeric scores exposed.
-- `src/lib/performance/readiness.ts`: Ready / Moderate / Caution / Recovery Recommended from recent load, load trend and RPE.
+- `src/lib/performance/strength.ts`: per-exercise history and load/rep/volume trends; progression is only suggested after three comparable successful sessions.
+- `src/lib/performance/conditioning.ts`: AMRAP total work, FOR TIME deltas, EMOM/TABATA interval completion, distance/pace where logged.
+- `src/lib/performance/load.ts`: **three separate, domain-specific measures** — Strength Load (sets, reps, load, volume), Conditioning Load (duration, rounds, reps, intervals, distance, completion), and an Overall Recent Training Load derived from whichever domains actually have data. Each is a documented, conservative formula in code, surfaced to the user only as Low / Moderate / High / Very High — no raw numbers, no pseudo-precision.
+- `src/lib/performance/readiness.ts`: a training-management indicator only. Returns **Limited Data** when evidence is insufficient; Ready / Moderate / Caution / Recovery Recommended otherwise. No medical or physiological claims.
 - `src/lib/performance/confidence.ts`: Limited / Developing / Established data.
 
 All computed server-side in a new `src/lib/performance.functions.ts` (auth middleware) and reused by Progress, Logbook and Coach.
+
 
 ## Phase 7-8 — SmartyCoach rules engine
 
