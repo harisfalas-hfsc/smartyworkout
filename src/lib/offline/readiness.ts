@@ -25,5 +25,9 @@ export async function readOfflineReadiness(): Promise<OfflineReadiness> {
 }
 
 export async function markOfflineReady(value: Omit<OfflineReadiness, "ready" | "preparedAt">) {
-  await writeCache(KEY, { ...value, ready: true, preparedAt: Date.now() });
+  await writeCache(KEY, {
+    ...value,
+    ready: value.exercises > 0,
+    preparedAt: value.exercises > 0 ? Date.now() : null,
+  });
 }

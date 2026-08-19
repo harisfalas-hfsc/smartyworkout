@@ -32,14 +32,15 @@ export function OfflineSync() {
       const p = action.payload as never;
       switch (action.kind) {
         case "set-log": {
-          const { error } = await supabase.from("set_logs").upsert(action.payload as never, {
+          const { clientKey: _clientKey, ...payload } = action.payload;
+          const { error } = await supabase.from("set_logs").upsert(payload as never, {
             onConflict: "id",
           });
           if (error) throw new Error(error.message);
           return;
         }
         case "workout-result": {
-          const { local_status: _localStatus, ...payload } = action.payload;
+          const { local_status: _localStatus, clientKey: _clientKey, ...payload } = action.payload;
           const { error } = await supabase.from("workout_results").upsert(payload as never, {
             onConflict: "workout_id,attempt",
           });
@@ -79,9 +80,10 @@ export function OfflineSync() {
         case "workout-feedback": {
           const { data: auth } = await supabase.auth.getUser();
           if (!auth.user) throw new Error("no session");
+          const { clientKey: _clientKey, ...payload } = action.payload;
           const { error } = await supabase
             .from("workout_feedback")
-            .upsert({ ...action.payload, user_id: auth.user.id } as never, {
+            .upsert({ ...payload, user_id: auth.user.id } as never, {
               onConflict: "workout_id,user_id,attempt",
             });
           if (error) throw new Error(error.message);

@@ -28,7 +28,7 @@ import {
   migrateLocalDatabase,
 } from "@/lib/offline/db";
 import { mergeServerPerformance } from "@/lib/offline/performance-store";
-import { markOfflineReady } from "@/lib/offline/readiness";
+import { markOfflineReady, readOfflineReadiness } from "@/lib/offline/readiness";
 
 const LOGBOOK_COLUMNS =
   "id,name,category,duration_min,difficulty_stars,difficulty_label,mood,status,is_favorite,scheduled_at,completed_at,created_at,is_wod,created_by,workout_feedback(difficulty_rating,feeling)";
@@ -173,7 +173,7 @@ export function OfflineBootstrap() {
         const chunk = ids.slice(i, i + 40);
         try {
           const result = await loadExerciseDetails({ data: { ids: chunk } });
-          for (const exercise of result.exercises as Array<{ id: string; gif_url?: string | null }>) {
+          for (const exercise of result.exercises as unknown as Array<{ id: string; gif_url?: string | null }>) {
             await writeCache(`exercise:${exercise.id}`, exercise);
             if (exercise.gif_url) void fetch(exercise.gif_url).catch(() => undefined);
           }
@@ -237,11 +237,12 @@ export function OfflineBootstrap() {
         await step("library", 24 * 60 * 60_000, phaseLibrary);
         await step("community", 15 * 60_000, () => phaseCommunity().catch(() => undefined));
 
+        const previous = await readOfflineReadiness();
         await markOfflineReady({
           userId: user.id,
-          workouts: preparedWorkouts,
-          exercises: preparedExercises,
-          performanceRows: preparedPerformance,
+          workouts: preparedWorkouts || (previous.userId === user.id ? previous.workouts : 0),
+          exercises: preparedExercises || previous.exercises,
+          performanceRows: preparedPerformance || (previous.userId === user.id ? previous.performanceRows : 0),
         });
 
         void trimCache(800);

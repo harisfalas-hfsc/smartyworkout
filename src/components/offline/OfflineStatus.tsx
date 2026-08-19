@@ -3,6 +3,8 @@ import { CloudOff, RefreshCw, ServerCrash, X } from "lucide-react";
 import { useConnectivityState } from "@/lib/offline/useOnlineStatus";
 import { pendingActionCount } from "@/lib/offline/queue";
 import { requestSync, subscribeSyncState, type SyncState } from "@/lib/offline/sync-bus";
+import { readOfflineReadiness, type OfflineReadiness } from "@/lib/offline/readiness";
+import { useAuth } from "@/hooks/useAuth";
 
 /**
  * Small, non-blocking connectivity pill.
@@ -12,11 +14,21 @@ import { requestSync, subscribeSyncState, type SyncState } from "@/lib/offline/s
  */
 export function OfflineStatus() {
   const state = useConnectivityState();
+  const { user } = useAuth();
   const [sync, setSync] = useState<SyncState>("idle");
   const [pending, setPending] = useState(0);
   const [dismissed, setDismissed] = useState(false);
+  const [readiness, setReadiness] = useState<OfflineReadiness | null>(null);
 
   useEffect(() => subscribeSyncState(setSync), []);
+
+  useEffect(() => {
+    let active = true;
+    void readOfflineReadiness().then((value) => active && setReadiness(value));
+    return () => {
+      active = false;
+    };
+  }, [state, sync, user?.id]);
 
   useEffect(() => {
     let active = true;
@@ -38,8 +50,11 @@ export function OfflineStatus() {
   const show = offline || backendDown || sync === "syncing" || pending > 0;
   if (!show || dismissed) return null;
 
+  const prepared = Boolean(readiness?.ready && readiness.userId === (user?.id ?? null));
   const label = offline
-    ? "Offline — your saved data is available"
+    ? prepared
+      ? "Offline. Saved data is ready"
+      : "Offline. Some content may not be available yet"
     : backendDown
       ? "Can't reach SmartyWorkout right now"
       : sync === "syncing"
