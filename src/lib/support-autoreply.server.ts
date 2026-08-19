@@ -43,6 +43,7 @@ export async function autoRespondToSupportMessage(input: {
       .insert({ thread_id: threadId, sender: "admin", body } as never)
       .select("id")
       .single();
+    const insertedId = (inserted as { id?: string } | null)?.id ?? threadId;
 
     await supabaseAdmin
       .from("support_threads")
@@ -61,7 +62,7 @@ export async function autoRespondToSupportMessage(input: {
         kind: "support",
         title: escalated ? "Your message is with Haris" : "Smarty Workout answered your message",
         body: body.slice(0, 240),
-        dedupe_key: `support-auto-${(inserted as any)?.id ?? threadId}`,
+        dedupe_key: `support-auto-${insertedId}`,
       } as never);
     }
 
@@ -71,7 +72,7 @@ export async function autoRespondToSupportMessage(input: {
         const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
         await sendTemplateEmail("support-reply", email, {
           templateData: { name, subject, message: body },
-          idempotencyKey: `support-auto-${(inserted as any)?.id ?? threadId}`,
+          idempotencyKey: `support-auto-${insertedId}`,
         });
       } catch (e) {
         console.error("[support-auto] member email failed:", e);
@@ -93,7 +94,7 @@ export async function autoRespondToSupportMessage(input: {
           `\n\nMember's message\n${message}` +
           `\n\nReply in the conversation\n${body}`,
         link: "/admin",
-        dedupeKey: `support-auto-${(inserted as any)?.id ?? threadId}`,
+        dedupeKey: `support-auto-${insertedId}`,
       });
     } catch (e) {
       console.error("[support-auto] admin alert failed:", e);
