@@ -52,6 +52,8 @@ import {
   type LogbookFilter as Filter,
 } from "@/lib/logbook/rows";
 import { equipmentBadges } from "@/lib/format/labels";
+import { getSessionLoads } from "@/lib/performance.functions";
+import { ProgressSection } from "@/components/progress/ProgressSection";
 
 type View = "list" | "calendar" | "scheduled" | "progress";
 type LogSearch = { filter: string; view: View; equip?: string };
@@ -763,10 +765,27 @@ function Logbook() {
 
   const active = useMemo(() => parseFilters(filter), [filter]);
 
+  // Logged sessions power the calendar's day/period training-load totals.
+  const fetchSessionLoads = useServerFn(getSessionLoads);
+  const [sessions, setSessions] = useState<SessionLoad[]>([]);
+  useEffect(() => {
+    if (!user?.id) return;
+    let alive = true;
+    void fetchSessionLoads({ data: {} })
+      .then((res) => {
+        if (alive) setSessions(res.sessions as SessionLoad[]);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [user?.id, fetchSessionLoads]);
+
   useEffect(() => {
     if (cached.data) setRows(cached.data);
     else if (!cached.loading) setRows([]);
   }, [cached.data, cached.loading]);
+
 
   async function toggleFavorite(id: string, next: boolean) {
     setRows((prev) => prev?.map((r) => (r.id === id ? { ...r, is_favorite: next } : r)) ?? prev);
@@ -854,42 +873,29 @@ function Logbook() {
         subtitle="Every workout you created — completed, still to do, or scheduled."
       />
 
-      <div className="mt-5 space-y-2">
-        <div className="grid grid-cols-2 gap-2">
+      {/* Four views, one place. Two-up on mobile so every tab stays thumb-sized. */}
+      <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {(["list", "calendar", "scheduled", "progress"] as const).map((v) => (
           <Button
-            variant={view === "list" ? "default" : "secondary"}
-            className="h-11 w-full rounded-2xl"
-            onClick={() =>
-              navigate({ search: (p: LogSearch) => ({ ...p, view: "list" as const }) })
-            }
+            key={v}
+            variant={view === v ? "default" : "secondary"}
+            className="h-11 w-full rounded-2xl capitalize"
+            onClick={() => navigate({ search: (p: LogSearch) => ({ ...p, view: v }) })}
           >
-            List
+            {v}
           </Button>
-          <Button
-            variant={view === "calendar" ? "default" : "secondary"}
-            className="h-11 w-full rounded-2xl"
-            onClick={() =>
-              navigate({ search: (p: LogSearch) => ({ ...p, view: "calendar" as const }) })
-            }
-          >
-            Calendar
-          </Button>
-        </div>
-        <Button
-          variant={view === "scheduled" ? "default" : "secondary"}
-          className="h-11 w-full rounded-2xl"
-          onClick={() =>
-            navigate({ search: (p: LogSearch) => ({ ...p, view: "scheduled" as const }) })
-          }
-        >
-          Scheduled
-        </Button>
+        ))}
       </div>
 
-      {view === "calendar" ? (
+      {view === "progress" ? (
+        <div className="mt-4">
+          <ProgressSection />
+        </div>
+      ) : view === "calendar" ? (
         <div className="mt-4">
           <CalendarView
             rows={rows}
+            sessions={sessions}
             onToggleFavorite={toggleFavorite}
             actions={actions}
             busy={busy}

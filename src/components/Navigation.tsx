@@ -154,24 +154,12 @@ export function Navigation() {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-primary" />
                 <DropdownMenuItem asChild>
-                  <Link to="/coach"><Sparkles className="h-4 w-4 mr-2" /> Smarty Coach</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/wod"><CalendarCheck className="h-4 w-4 mr-2" /> Workout of the Day</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
                   <Link to="/logbook" search={{ filter: "all" as const, view: "list" as const }}><BookOpen className="h-4 w-4 mr-2" /> Logbook</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/progress"><TrendingUp className="h-4 w-4 mr-2" /> Progress</Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-primary" />
-                <DropdownMenuItem asChild>
-                  <Link to="/community"><Users className="h-4 w-4 mr-2" /> Smarty Community</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link to="/inbox" search={{ tab: "messages" as const, compose: false }}><Mail className="h-4 w-4 mr-2" /> Inbox &amp; messages</Link>
                 </DropdownMenuItem>
+
 
                 {isAdmin && (
                   <>
