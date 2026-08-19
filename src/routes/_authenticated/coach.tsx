@@ -26,6 +26,9 @@ import {
 import { Link } from "@tanstack/react-router";
 import { ParqWaiverDialog } from "@/components/ParqWaiverDialog";
 import { MembershipRequiredDialog } from "@/components/MembershipRequiredDialog";
+import { CoachRecommendationCard } from "@/components/coach/CoachRecommendationCard";
+import { levelToStars, starsToLevel } from "@/lib/workout/spec";
+
 
 import {
   EQUIPMENT,
