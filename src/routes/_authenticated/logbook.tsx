@@ -873,39 +873,25 @@ function Logbook() {
         subtitle="Every workout you created — completed, still to do, or scheduled."
       />
 
-      <div className="mt-5 space-y-2">
-        <div className="grid grid-cols-2 gap-2">
+      {/* Four views, one place. Two-up on mobile so every tab stays thumb-sized. */}
+      <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {(["list", "calendar", "scheduled", "progress"] as const).map((v) => (
           <Button
-            variant={view === "list" ? "default" : "secondary"}
-            className="h-11 w-full rounded-2xl"
-            onClick={() =>
-              navigate({ search: (p: LogSearch) => ({ ...p, view: "list" as const }) })
-            }
+            key={v}
+            variant={view === v ? "default" : "secondary"}
+            className="h-11 w-full rounded-2xl capitalize"
+            onClick={() => navigate({ search: (p: LogSearch) => ({ ...p, view: v }) })}
           >
-            List
+            {v}
           </Button>
-          <Button
-            variant={view === "calendar" ? "default" : "secondary"}
-            className="h-11 w-full rounded-2xl"
-            onClick={() =>
-              navigate({ search: (p: LogSearch) => ({ ...p, view: "calendar" as const }) })
-            }
-          >
-            Calendar
-          </Button>
-        </div>
-        <Button
-          variant={view === "scheduled" ? "default" : "secondary"}
-          className="h-11 w-full rounded-2xl"
-          onClick={() =>
-            navigate({ search: (p: LogSearch) => ({ ...p, view: "scheduled" as const }) })
-          }
-        >
-          Scheduled
-        </Button>
+        ))}
       </div>
 
-      {view === "calendar" ? (
+      {view === "progress" ? (
+        <div className="mt-4">
+          <ProgressSection />
+        </div>
+      ) : view === "calendar" ? (
         <div className="mt-4">
           <CalendarView
             rows={rows}
