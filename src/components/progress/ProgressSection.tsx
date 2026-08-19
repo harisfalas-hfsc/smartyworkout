@@ -15,6 +15,8 @@ import {
   Lock,
 } from "lucide-react";
 import { TrainingLoadPanel } from "@/components/performance/TrainingLoadPanel";
+import { RecentLoadTrend } from "@/components/performance/RecentLoadTrend";
+
 import { getProgressOverview, type ProgressOverview } from "@/lib/progress.functions";
 import { CATEGORY_LABEL, CATEGORY_UNIT } from "@/lib/progress-config";
 import { cn } from "@/lib/utils";
@@ -222,7 +224,11 @@ export function ProgressSection() {
       <section>
         <h2 className="text-lg font-extrabold">Training load</h2>
         <TrainingLoadPanel />
+        <div className="mt-3">
+          <RecentLoadTrend />
+        </div>
       </section>
+
 
       <section>
         <h2 className="text-lg font-extrabold">Awards</h2>
