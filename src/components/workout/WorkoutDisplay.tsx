@@ -336,12 +336,15 @@ export function WorkoutDisplay({
         softTissue={softTissue}
         workoutName={workout.name}
         workoutId={workout.id}
-
+        category={workout.category}
+        format={workout.format}
+        html={html}
         onFinish={() => {
           setPlayer(false);
           onComplete();
         }}
       />
+
 
       <Dialog open={reader} onOpenChange={setReader}>
         <DialogContent className="h-[100dvh] w-full max-w-none overflow-x-hidden overflow-y-auto border-0 bg-background p-0 text-foreground [&>button]:hidden sm:h-[92vh] sm:max-w-2xl sm:rounded-3xl">
