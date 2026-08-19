@@ -1,14 +1,10 @@
 // Scenario tests: the two flows that used to corrupt data — a retried offline
 // action replayed twice, and Stripe events that arrive out of order.
 import { describe, expect, it } from "vitest";
-import {
-  mergeIntoQueue,
-  nextAttemptDelayMs,
-  type QueuedActionLike,
-} from "@/lib/offline/queue-rules";
+import { backoffDelay, mergeIntoQueue, type QueueRuleItem } from "@/lib/offline/queue-rules";
 import { shouldApplySubscriptionEvent } from "@/lib/billing/subscription-events";
 
-function action(over: Partial<QueuedActionLike>): QueuedActionLike {
+function action(over: Partial<QueueRuleItem>): QueueRuleItem {
   return {
     id: over.id ?? "1",
     kind: over.kind ?? "log_performance",
@@ -30,7 +26,7 @@ describe("offline replay", () => {
   });
 
   it("backs off further on each failed attempt", () => {
-    expect(nextAttemptDelayMs(1)).toBeLessThan(nextAttemptDelayMs(3));
+    expect(backoffDelay(1)).toBeLessThan(backoffDelay(3));
   });
 });
 
