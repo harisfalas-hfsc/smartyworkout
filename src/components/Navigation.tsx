@@ -9,14 +9,12 @@ import {
   Wrench,
   Crown,
   Info,
-  Mail,
   HelpCircle,
   Shield,
   FileText,
   AlertTriangle,
   ClipboardList,
   Sparkles,
-  BookOpen,
   ChevronLeft,
   User,
   UserCircle,
@@ -27,7 +25,6 @@ import {
   Moon,
   TrendingUp,
   LogIn,
-  UserPlus,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -152,15 +149,6 @@ export function Navigation() {
                 <DropdownMenuItem asChild>
                   <Link to="/profile"><UserCircle className="h-4 w-4 mr-2" /> Training profile</Link>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-primary" />
-                <DropdownMenuItem asChild>
-                  <Link to="/logbook" search={{ filter: "all" as const, view: "list" as const }}><BookOpen className="h-4 w-4 mr-2" /> Logbook</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/inbox" search={{ tab: "messages" as const, compose: false }}><Mail className="h-4 w-4 mr-2" /> Inbox &amp; messages</Link>
-                </DropdownMenuItem>
-
-
                 {isAdmin && (
                   <>
                     <DropdownMenuSeparator className="bg-primary" />
@@ -202,11 +190,6 @@ export function Navigation() {
                 <DropdownMenuSeparator className="bg-primary" />
                 <DropdownMenuItem asChild>
                   <Link to="/auth"><LogIn className="h-4 w-4 mr-2" /> Sign in</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/auth" search={{ mode: "signup" } as never}>
-                    <UserPlus className="h-4 w-4 mr-2" /> Create account
-                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-primary" />
                 <DropdownMenuItem onSelect={() => toggleTheme()}>
