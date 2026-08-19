@@ -376,6 +376,97 @@ function FounderNotePage() {
         </SectionCard>
 
         <SectionCard
+          icon={<LineChart size={20} />}
+          title="What happens after the workout"
+        >
+          <P>
+            A workout you cannot measure is a workout you cannot improve. This is
+            the part most apps skip, and the part I care about most.
+          </P>
+          <List
+            items={[
+              {
+                icon: <PlayCircle size={18} />,
+                text: (
+                  <>
+                    <strong>The player records what you actually did.</strong>{" "}
+                    Reps, weight, time, rounds or reps-in-time — set by set, in
+                    the format each exercise is prescribed in.
+                  </>
+                ),
+              },
+              {
+                icon: <ClipboardCheck size={18} />,
+                text: (
+                  <>
+                    <strong>One session debrief, not two.</strong> RPE, how you
+                    felt, whether you enjoyed it, and a note. Asked once at the
+                    end, and you can edit your answers any time — your progress
+                    updates instantly.
+                  </>
+                ),
+              },
+              {
+                icon: <NotebookPen size={18} />,
+                text: (
+                  <>
+                    <strong>Your Logbook keeps everything.</strong> A calendar of
+                    completed, scheduled, favourite and skipped sessions, with
+                    equipment badges and filters, so you can repeat any workout
+                    with one tap.
+                  </>
+                ),
+              },
+              {
+                icon: <TrendingUp size={18} />,
+                text: (
+                  <>
+                    <strong>Real progress, fairly compared.</strong> When you
+                    repeat a workout, each attempt is matched against the
+                    previous one only when the prescription is genuinely the
+                    same. 20 reps last time, 24 today — the app says so, next to
+                    the RPE and the feeling you logged that day.
+                  </>
+                ),
+              },
+              {
+                icon: <Activity size={18} />,
+                text: (
+                  <>
+                    <strong>Training load in your own units.</strong> No
+                    invented scores: your recent workload is compared with your
+                    own 21-day baseline and adjusted by your RPE, so “too much”
+                    and “too little” mean something for you specifically.
+                  </>
+                ),
+              },
+              {
+                icon: <Trophy size={18} />,
+                text: (
+                  <>
+                    <strong>Achievements and reminders.</strong> Milestones
+                    unlock as you train, and notifications keep scheduled
+                    sessions from quietly disappearing.
+                  </>
+                ),
+              },
+              {
+                icon: <WifiOff size={18} />,
+                text: (
+                  <>
+                    <strong>Offline mode.</strong> Your workouts, logbook and
+                    player keep working in a basement gym with no signal.
+                    Everything you log syncs the moment you are back online.
+                  </>
+                ),
+              },
+            ]}
+          />
+        </SectionCard>
+
+
+
+        <SectionCard
           icon={<Smartphone size={20} />}
           title="Easy to use, and better than a chatbot"
         >
