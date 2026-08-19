@@ -48,6 +48,19 @@ export default defineConfig({
         ],
         runtimeCaching: [
           {
+            urlPattern: ({ request, url }) =>
+              request.mode === "navigate" &&
+              !url.pathname.startsWith("/~oauth") &&
+              !url.pathname.startsWith("/api/"),
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "smarty-pages",
+              networkTimeoutSeconds: 4,
+              expiration: { maxEntries: 80, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
             // JS/CSS chunks: cache first so the app shell works offline.
             urlPattern: ({ url }) => /\.(?:js|css)$/.test(url.pathname),
             handler: "CacheFirst",

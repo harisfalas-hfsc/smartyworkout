@@ -298,11 +298,21 @@ export function WorkoutPlayerDialog({
     onOpenChange(false);
     if (!loggedAnythingRef.current) return;
     loggedAnythingRef.current = false;
+    if (user) {
+      await completeLocalAttempt(user.id, workoutId, attempt);
+      await enqueueAction(
+        "workout-status",
+        { workoutId, status: "completed" },
+        user.id,
+        0,
+      );
+    }
     try {
       await markStatus({ data: { workoutId, status: "completed" } });
       onFinish();
     } catch {
-      /* offline — the workout page keeps its own status handling */
+      toast.success("Workout completion saved on this device.");
+      onFinish();
     }
   }
 
