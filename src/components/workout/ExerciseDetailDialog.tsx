@@ -20,24 +20,24 @@ export function ExerciseDetailDialog({
 
   return (
     <Dialog open={Boolean(exerciseId)} onOpenChange={(open) => (!open ? onClose() : undefined)}>
-      <DialogContent className="max-h-[78vh] w-[calc(100vw-3rem)] max-w-md overflow-y-auto overflow-x-hidden rounded-2xl border-2 border-primary p-0 sm:max-h-[86vh] sm:w-full sm:max-w-lg [&>button]:hidden">
-        {/* Always-visible branded close button */}
-        <DialogClose className="absolute right-3 top-3 z-20 grid h-9 w-9 place-items-center rounded-full border-2 border-primary bg-background/95 text-primary shadow-lg backdrop-blur transition-colors hover:bg-primary hover:text-primary-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-          <X className="h-4 w-4" strokeWidth={3} />
-          <span className="sr-only">Close</span>
-        </DialogClose>
+      <DialogContent className="max-h-[78vh] w-[calc(100vw-3rem)] max-w-md gap-0 overflow-y-auto overflow-x-hidden rounded-2xl border-2 border-primary p-0 sm:max-h-[86vh] sm:w-full sm:max-w-lg [&>button]:hidden [&>div:first-child]:hidden">
+        {/* Media hero — flush to the top edge of the card */}
+        <div className="relative w-full overflow-hidden rounded-t-[calc(1rem-2px)] border-b-2 border-primary bg-white">
+          {/* Close button sits inside the media area */}
+          <DialogClose className="absolute right-2.5 top-2.5 z-20 grid h-9 w-9 place-items-center rounded-full border-2 border-primary bg-background/90 text-primary shadow-lg backdrop-blur transition-colors hover:bg-primary hover:text-primary-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            <X className="h-4 w-4" strokeWidth={3} />
+            <span className="sr-only">Close</span>
+          </DialogClose>
 
-        {/* Media hero */}
-        <div className="relative w-full overflow-hidden rounded-t-2xl border-b-2 border-primary bg-secondary">
           {ex?.gif_url ? (
             <img
               src={ex.gif_url}
               alt={`${ex.name} demonstration`}
               loading="lazy"
-              className="max-h-[38vh] w-full bg-white object-contain sm:max-h-[34vh]"
+              className="block max-h-[38vh] w-full object-contain sm:max-h-[34vh]"
             />
           ) : (
-            <div className="flex h-44 w-full items-center justify-center text-muted-foreground">
+            <div className="flex h-44 w-full items-center justify-center bg-secondary text-muted-foreground">
               {loading ? (
                 <Loader2 className="h-7 w-7 animate-spin text-primary" />
               ) : (
@@ -46,6 +46,7 @@ export function ExerciseDetailDialog({
             </div>
           )}
         </div>
+
 
 
         <div className="space-y-4 p-4 sm:p-5">
