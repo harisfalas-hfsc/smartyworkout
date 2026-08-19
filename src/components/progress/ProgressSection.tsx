@@ -252,13 +252,13 @@ export function ProgressSection() {
                       <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      {num(value)} / {num(next.threshold)} —{" "}
+                      {num(value)} / {num(next.threshold)}. {" "}
                       {num(Math.max(0, next.threshold - value))} {unit} to go
                     </p>
                   </div>
                 ) : (
                   <p className="mt-3 text-sm font-semibold text-primary">
-                    Maximum current level — keep improving your score and ranking.
+                    Maximum current level. Keep improving your score and ranking.
                   </p>
                 )}
 
@@ -271,7 +271,7 @@ export function ProgressSection() {
                       <div
                         key={d.id}
                         title={
-                          has && when ? `${d.description} — earned ${formatDate(when)}` : d.description
+                          has && when ? `${d.description}. Earned ${formatDate(when)}` : d.description
                         }
                         className={cn(
                           "flex min-w-[92px] flex-1 flex-col items-center gap-1 rounded-xl border p-3 text-center sm:flex-none",
