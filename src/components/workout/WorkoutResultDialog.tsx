@@ -153,24 +153,6 @@ export function WorkoutResultDialog({
           </div>
         ) : null}
 
-        <div>
-          <p className="mb-1 text-xs uppercase tracking-[0.2em] text-neutral-500">
-            Effort (optional)
-          </p>
-          <div className="flex flex-wrap gap-1">
-            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-              <Button
-                key={n}
-                size="sm"
-                variant={rpe === n ? "default" : "secondary"}
-                className="h-8 w-8 p-0 text-xs"
-                onClick={() => setRpe(rpe === n ? null : n)}
-              >
-                {n}
-              </Button>
-            ))}
-          </div>
-        </div>
 
         <div className="flex gap-2">
           <Button
