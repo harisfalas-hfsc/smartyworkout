@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Activity, Gauge, Info, Loader2 } from "lucide-react";
+import { Gauge, Info, Loader2 } from "lucide-react";
 import { getPerformanceOverview } from "@/lib/performance.functions";
-import { CONFIDENCE_NOTE } from "@/lib/performance/confidence";
-import { countLabel } from "@/lib/format/labels";
 
 type Overview = Awaited<ReturnType<typeof getPerformanceOverview>>;
 
@@ -80,29 +78,6 @@ export function TrainingLoadPanel() {
           ) : null}
         </div>
       ) : null}
-
-      {data.strength.length ? (
-        <div className="rounded-2xl border-2 border-blue-400 bg-card p-4">
-          <p className="flex items-center gap-2 font-bold">
-            <Activity className="h-4 w-4 text-primary" /> Demonstrated performance
-          </p>
-          <ul className="mt-2 space-y-1 text-sm">
-            {data.strength.map((h) => (
-              <li key={h.exerciseName} className="flex justify-between gap-3">
-                <span className="capitalize">{h.exerciseName}</span>
-                <span className="text-muted-foreground">
-                  {countLabel(h.sessions.length, "logged session")} · trend {h.trend}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : (
-        <p className="text-xs text-muted-foreground">
-          {CONFIDENCE_NOTE[data.confidence]}{" "} log sets or workout results to build history. Nothing is
-          estimated on your behalf.
-        </p>
-      )}
 
     </div>
   );

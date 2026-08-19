@@ -19,6 +19,14 @@ import { getProgressOverview, type ProgressOverview } from "@/lib/progress.funct
 import { CATEGORY_LABEL, CATEGORY_UNIT } from "@/lib/progress-config";
 import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/date-format";
+import { SCORE_RULES } from "@/lib/progress-config";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const ICONS: Record<string, typeof Trophy> = {
   trophy: Trophy,
@@ -37,11 +45,13 @@ function Stat({
   label,
   value,
   to,
+  onClick,
 }: {
   icon: typeof Flame;
   label: string;
   value: string | number;
   to?: { filter: "all" | "completed" | "planned" | "favorites" | "scheduled" };
+  onClick?: () => void;
 }) {
   const body = (
     <>
@@ -50,6 +60,17 @@ function Stat({
       <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
     </>
   );
+  if (onClick)
+    return (
+      <Button
+        type="button"
+        variant="outline"
+        onClick={onClick}
+        className="h-auto min-h-32 w-full items-start justify-start whitespace-normal rounded-2xl border-2 border-blue-400 bg-card p-4 text-left text-foreground"
+      >
+        <span>{body}</span>
+      </Button>
+    );
   if (!to) return <div className="rounded-2xl border-2 border-blue-400 bg-card p-4">{body}</div>;
   return (
     <Link
@@ -90,6 +111,7 @@ export function ProgressSection() {
   const fetchOverview = useServerFn(getProgressOverview);
   const [data, setData] = useState<ProgressOverview | null>(null);
   const [unlocked, setUnlocked] = useState<string[]>([]);
+  const [detail, setDetail] = useState<"score" | "rank" | "current" | "longest" | "days" | "membership" | "awards" | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -134,34 +156,41 @@ export function ProgressSection() {
     );
 
   const s = data.stats;
+  const scoreParts = [
+    { label: "Completed workouts", value: s.workouts_completed, points: s.workouts_completed * SCORE_RULES.perCompletedWorkout },
+    { label: "Generated workouts", value: s.workouts_generated, points: s.workouts_generated * SCORE_RULES.perGeneratedWorkout },
+    { label: "Active training days", value: s.active_days, points: s.active_days * SCORE_RULES.perStreakDay },
+    { label: "Membership months", value: s.subscription_months, points: s.subscription_months * SCORE_RULES.perSubscriptionMonth },
+    { label: "Award points", value: data.badges.length, points: s.badge_points },
+  ];
 
   return (
     <div className="space-y-8">
       <section className="rounded-3xl border-2 border-blue-400 bg-card p-5 sm:p-7">
         <p className="text-xs font-bold uppercase tracking-wider text-primary">Smarty Progress</p>
         <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <div>
+          <button type="button" onClick={() => setDetail("score")} className="text-left">
             <p className="text-3xl font-black leading-none">{num(s.score)}</p>
-            <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">Score</p>
-          </div>
-          <div>
+            <p className="mt-1 text-xs uppercase tracking-wide text-primary">Score · View details</p>
+          </button>
+          <button type="button" onClick={() => setDetail("rank")} className="text-left">
             <p className="text-3xl font-black leading-none">#{data.rank}</p>
-            <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">
-              Rank of {num(data.totalRanked)}
+            <p className="mt-1 text-xs uppercase tracking-wide text-primary">
+              Rank of {num(data.totalRanked)} · Details
             </p>
-          </div>
-          <div>
+          </button>
+          <button type="button" onClick={() => setDetail("current")} className="text-left">
             <p className="text-3xl font-black leading-none">{s.current_streak}d</p>
-            <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">
-              Current streak
+            <p className="mt-1 text-xs uppercase tracking-wide text-primary">
+              Current streak · Details
             </p>
-          </div>
-          <div>
+          </button>
+          <button type="button" onClick={() => setDetail("longest")} className="text-left">
             <p className="text-3xl font-black leading-none">{s.longest_streak}d</p>
-            <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">
-              Longest streak
+            <p className="mt-1 text-xs uppercase tracking-wide text-primary">
+              Longest streak · Details
             </p>
-          </div>
+          </button>
         </div>
       </section>
 
@@ -186,7 +215,7 @@ export function ProgressSection() {
             value={num(Math.max(0, s.workouts_generated - s.workouts_completed))}
             to={{ filter: "planned" }}
           />
-          <Stat icon={Timer} label="Training days" value={num(s.active_days)} />
+          <Stat icon={Timer} label="Training days" value={num(s.active_days)} onClick={() => setDetail("days")} />
         </div>
       </section>
 
@@ -260,25 +289,47 @@ export function ProgressSection() {
         </div>
       </section>
 
-      <section>
-        <h2 className="text-lg font-extrabold">Personal records</h2>
-        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Stat icon={Sparkles} label="Total generated" value={num(s.workouts_generated)} />
-          <Stat icon={Trophy} label="Total completed" value={num(s.workouts_completed)} />
-          <Stat icon={Flame} label="Current streak" value={`${s.current_streak}d`} />
-          <Stat icon={Flame} label="Longest streak" value={`${s.longest_streak}d`} />
-          <Stat icon={Crown} label="Membership" value={`${s.subscription_months} mo`} />
-          <Stat icon={Medal} label="Progress score" value={num(s.score)} />
-          <Stat icon={Trophy} label="Ranking" value={`#${data.rank}`} />
-          <Stat icon={Medal} label="Awards earned" value={num(data.badges.length)} />
-        </div>
-      </section>
-
       <Button asChild>
         <Link to="/coach">Train now</Link>
       </Button>
 
       {unlocked.length > 0 && <BadgeUnlockedToast names={unlocked} onClose={() => setUnlocked([])} />}
+
+      <Dialog open={detail !== null} onOpenChange={(open) => !open && setDetail(null)}>
+        <DialogContent className="max-h-[82vh] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-2xl p-5">
+          <DialogHeader className="pr-8 text-left">
+            <DialogTitle>
+              {detail === "score" ? "Progress score" : detail === "rank" ? "Your ranking" : detail === "current" ? "Current streak" : detail === "longest" ? "Longest streak" : detail === "days" ? "Training days" : detail === "membership" ? "Membership" : "Awards earned"}
+            </DialogTitle>
+            <DialogDescription>
+              {detail === "score" ? "A transparent total built from your saved training activity and awards." : detail === "rank" ? "Members are ordered by score, then completed workouts, longest streak, and the time the score was reached." : detail === "current" ? "Consecutive calendar days with a completed workout, ending today or yesterday." : detail === "longest" ? "Your best run of consecutive calendar days with completed workouts." : detail === "days" ? "The number of different calendar days on which you completed at least one workout." : detail === "membership" ? "Whole active membership months recorded on your account." : "Awards already unlocked from completed workouts, generated workouts, streaks, and membership."}
+            </DialogDescription>
+          </DialogHeader>
+
+          {detail === "score" ? (
+            <div className="space-y-2">
+              {scoreParts.map((part) => (
+                <div key={part.label} className="flex items-center justify-between gap-3 border-b border-border py-2 text-sm">
+                  <span>{part.label} <span className="text-muted-foreground">× {part.value}</span></span>
+                  <strong>{num(part.points)} pts</strong>
+                </div>
+              ))}
+              <div className="flex justify-between pt-2 font-black"><span>Total</span><span>{num(s.score)} pts</span></div>
+            </div>
+          ) : detail === "awards" ? (
+            data.badges.length ? (
+              <ul className="space-y-2">
+                {data.badges.map((badge) => <li key={badge.badge_id} className="rounded-xl border border-border p-3"><p className="font-bold">{badge.badge_name}</p><p className="text-xs text-muted-foreground">{badge.points} points · earned {formatDate(badge.earned_at)}</p></li>)}
+              </ul>
+            ) : <p className="text-sm text-muted-foreground">No awards earned yet. The Awards section shows the next target in each category.</p>
+          ) : (
+            <div className="rounded-xl border border-border p-4">
+              <p className="text-3xl font-black">{detail === "rank" ? `#${data.rank} of ${num(data.totalRanked)}` : detail === "current" ? `${s.current_streak} days` : detail === "longest" ? `${s.longest_streak} days` : detail === "days" ? `${s.active_days} days` : `${s.subscription_months} months`}</p>
+              {(detail === "current" || detail === "longest" || detail === "days") ? <Button asChild variant="outline" className="mt-4 w-full"><Link to="/logbook" search={{ filter: "completed", view: "calendar" as const }}>View completed days</Link></Button> : null}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
