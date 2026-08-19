@@ -41,7 +41,7 @@ export type QueuedAction = QueueRuleItem & {
 const QUEUE_KEY = "pending-actions";
 
 const store =
-  typeof indexedDB !== "undefined" ? createStore("smarty-offline", "queue") : undefined;
+  typeof indexedDB !== "undefined" ? createStore("smarty-offline-queue", "queue") : undefined;
 
 export async function readQueue(): Promise<QueuedAction[]> {
   if (!store) return [];

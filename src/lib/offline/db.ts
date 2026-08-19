@@ -13,7 +13,7 @@ import { createStore, get, set, del, keys } from "idb-keyval";
 export const LOCAL_DB_VERSION = 2;
 
 const metaStore =
-  typeof indexedDB !== "undefined" ? createStore("smarty-offline", "meta") : undefined;
+  typeof indexedDB !== "undefined" ? createStore("smarty-offline-meta", "meta") : undefined;
 
 type Meta = {
   dbVersion: number;

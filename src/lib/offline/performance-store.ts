@@ -16,7 +16,7 @@ import { readiness } from "@/lib/performance/readiness";
 
 const performanceStore =
   typeof indexedDB !== "undefined"
-    ? createStore("smarty-offline", "performance")
+    ? createStore("smarty-offline-performance", "performance")
     : undefined;
 
 export type LocalSetLog = SetLogRow & { user_id: string; local_status: "pending" | "synced" };
