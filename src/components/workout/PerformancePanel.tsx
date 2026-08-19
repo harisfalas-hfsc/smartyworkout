@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Activity, ArrowDown, ArrowUp, LineChart, Loader2, Minus, Pencil } from "lucide-react";
+import {
+  Activity,
+  ArrowDown,
+  ArrowUp,
+  ChevronDown,
+  LineChart,
+  Loader2,
+  Minus,
+  Pencil,
+} from "lucide-react";
 import { getWorkoutPerformance } from "@/lib/performance.functions";
 import { Button } from "@/components/ui/button";
 import { formatDateTime } from "@/lib/date-format";
@@ -26,6 +35,23 @@ function fmtTime(seconds: number | null | undefined) {
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
+
+/** Overall verdict of a session versus the previous one, from its own metric deltas. */
+function attemptVerdict(a: Attempt): "better" | "worse" | "same" | null {
+  const metrics = a.comparison && a.comparison.reason !== "version_changed" ? a.comparison.metrics : [];
+  if (!metrics.length) return null;
+  const better = metrics.filter((m) => m.verdict === "better").length;
+  const worse = metrics.filter((m) => m.verdict === "worse").length;
+  if (better > worse) return "better";
+  if (worse > better) return "worse";
+  return "same";
+}
+
+const VERDICT_STYLE = {
+  better: { text: "text-emerald-500", border: "border-emerald-500/60", label: "Better" },
+  worse: { text: "text-red-500", border: "border-red-500/60", label: "Harder" },
+  same: { text: "text-muted-foreground", border: "border-border", label: "Same" },
+} as const;
 
 function DeltaRow({ m }: { m: Delta }) {
   const tone =
