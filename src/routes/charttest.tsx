@@ -29,7 +29,7 @@ function ChartTest() {
         <p className="font-bold">Last 10 sessions</p>
         <div className="mt-3 h-48 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: -18 }}>
+            <LineChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.6} />
               <XAxis
                 dataKey="label"
@@ -41,7 +41,7 @@ function ChartTest() {
               <YAxis
                 tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
                 stroke="var(--border)"
-                width={44}
+                width={40} tickFormatter={(v: number) => (Math.abs(v) >= 1000 ? `${Math.round(v / 100) / 10}k` : String(v))}
               />
               <Tooltip contentStyle={{ fontSize: 12 }} />
               <Line

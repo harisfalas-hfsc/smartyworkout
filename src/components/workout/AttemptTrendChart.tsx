@@ -110,10 +110,10 @@ export function AttemptTrendChart({ points }: { points: AttemptPoint[] }) {
 
       <div className="h-56 w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
+          <LineChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
             <XAxis dataKey="label" tick={{ fontSize: 10 }} stroke="var(--muted-foreground)" />
-            <YAxis tick={{ fontSize: 10 }} stroke="var(--muted-foreground)" width={44} />
+            <YAxis tick={{ fontSize: 10 }} stroke="var(--muted-foreground)" width={40} tickFormatter={(v: number) => (Math.abs(v) >= 1000 ? `${Math.round(v / 100) / 10}k` : String(v))} />
             <Tooltip
               contentStyle={{
                 background: "var(--card)",
