@@ -283,7 +283,12 @@ function WorkoutPage() {
         }}
       />
 
-      <PerformancePanel workoutId={workoutId} />
+      <PerformancePanel
+        workoutId={workoutId}
+        html={w.main_workout ?? ""}
+        category={w.category ?? null}
+        format={w.format ?? null}
+      />
 
 
 

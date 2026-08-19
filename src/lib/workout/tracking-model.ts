@@ -21,14 +21,22 @@ export type StepTracking = {
   metric: TrackingMetricName;
   /** Whether logging individual sets makes sense for this step. */
   setBased: boolean;
+  /**
+   * Fixed work window in seconds, when the prescription states a duration for a
+   * countable movement ("20 sec dumbbell clean"). The question then becomes
+   * "how many reps inside this window", never "how many seconds".
+   */
+  windowSeconds: number | null;
 };
 
 export type TrackingMetricName =
   | "reps"
   | "reps_load"
+  | "reps_in_time"
   | "hold"
   | "distance"
   | "completion";
+
 
 export type PlannedPrescription = {
   sets: number | null;
@@ -133,26 +141,40 @@ export function deriveStepTracking(input: {
     category === "RECOVERY" ||
     category === "MICRO-WORKOUTS"
   ) {
-    return { primary: "completion", load: false, distance: false, metric: "completion", setBased: false };
+    return { primary: "completion", load: false, distance: false, metric: "completion", setBased: false, windowSeconds: null };
   }
 
   if (has(text, DISTANCE_WORDS) && (planned.distanceM !== null || planned.seconds !== null)) {
-    return { primary: "duration", load: false, distance: true, metric: "distance", setBased: false };
-  }
-
-  if (has(text, HOLD_WORDS) || (planned.reps === null && planned.seconds !== null)) {
-    return { primary: "duration", load: false, distance: false, metric: "hold", setBased: true };
+    return { primary: "duration", load: false, distance: true, metric: "distance", setBased: false, windowSeconds: planned.seconds };
   }
 
   const equipment = (input.equipment ?? "").trim().toLowerCase();
   const unloaded =
     BODYWEIGHT_EQUIPMENT.has(equipment) || UNLOADED_CATEGORIES.has(category);
 
-  if (unloaded) {
-    return { primary: "reps", load: false, distance: false, metric: "reps", setBased: true };
+  // A stated duration on an isometric position is genuinely a hold.
+  if (has(text, HOLD_WORDS)) {
+    return { primary: "duration", load: false, distance: false, metric: "hold", setBased: true, windowSeconds: planned.seconds };
   }
 
-  return { primary: "reps", load: true, distance: false, metric: "reps_load", setBased: true };
+  // A stated duration on a countable movement ("20 sec dumbbell clean") is a
+  // fixed work window: what matters is how many reps fit inside it.
+  if (planned.reps === null && planned.seconds !== null) {
+    return {
+      primary: "reps",
+      load: !unloaded,
+      distance: false,
+      metric: "reps_in_time",
+      setBased: true,
+      windowSeconds: planned.seconds,
+    };
+  }
+
+  if (unloaded) {
+    return { primary: "reps", load: false, distance: false, metric: "reps", setBased: true, windowSeconds: null };
+  }
+
+  return { primary: "reps", load: true, distance: false, metric: "reps_load", setBased: true, windowSeconds: null };
 }
 
 // ---------------------------------------------------------------------------

@@ -1,38 +1,79 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Activity, Loader2 } from "lucide-react";
+import { Activity, ArrowDown, ArrowUp, Loader2, Minus, Pencil } from "lucide-react";
 import { getWorkoutPerformance } from "@/lib/performance.functions";
+import { Button } from "@/components/ui/button";
+import { formatDateTime } from "@/lib/date-format";
+import { parseWorkoutSteps, type WorkoutStep } from "@/lib/workout/parse-steps";
+import { PerformanceEditorDialog } from "./PerformanceEditorDialog";
 
 type Perf = Awaited<ReturnType<typeof getWorkoutPerformance>>;
+type Attempt = Perf["attempts"][number];
+type Delta = NonNullable<Attempt["comparison"]>["metrics"][number];
+
+function DeltaRow({ m }: { m: Delta }) {
+  const tone =
+    m.verdict === "better"
+      ? "text-emerald-500"
+      : m.verdict === "worse"
+        ? "text-red-500"
+        : "text-muted-foreground";
+  const Icon = m.verdict === "better" ? ArrowUp : m.verdict === "worse" ? ArrowDown : Minus;
+  return (
+    <li className="flex items-center justify-between gap-3 border-t border-border py-1 text-sm">
+      <span>{m.label}</span>
+      <span className={`flex shrink-0 items-center gap-1.5 ${tone}`}>
+        <Icon className="h-3.5 w-3.5" />
+        {m.current ?? "—"}
+        {m.previous !== null ? (
+          <span className="text-xs text-muted-foreground">(was {m.previous})</span>
+        ) : null}
+      </span>
+    </li>
+  );
+}
 
 /**
  * Objective performance only. This block never states whether the workout was
  * completed — that is a separate concept shown by the workout status itself.
+ * Repeats of the same workout are kept as separate dated sessions.
  */
-export function PerformancePanel({ workoutId }: { workoutId: string }) {
+export function PerformancePanel({
+  workoutId,
+  html,
+  category = null,
+  format = null,
+}: {
+  workoutId: string;
+  html?: string | null;
+  category?: string | null;
+  format?: string | null;
+}) {
   const fetchPerformance = useServerFn(getWorkoutPerformance);
   const [data, setData] = useState<Perf | null>(null);
   const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<number | null>(null);
 
-  useEffect(() => {
-    let active = true;
+  const steps: WorkoutStep[] = useMemo(
+    () => (html ? parseWorkoutSteps(html) : []),
+    [html],
+  );
+
+  const load = useCallback(() => {
     setLoading(true);
-    fetchPerformance({ data: { workoutId } })
-      .then((res) => {
-        if (active) setData(res as Perf);
-      })
+    return fetchPerformance({ data: { workoutId } })
+      .then((res) => setData(res as Perf))
       .catch(() => {
         /* offline or unavailable — the block simply stays empty */
       })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
+      .finally(() => setLoading(false));
   }, [workoutId, fetchPerformance]);
 
-  if (loading) {
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  if (loading && !data) {
     return (
       <section className="mt-5 rounded-2xl border-2 border-blue-400 bg-card p-5">
         <Loader2 className="h-4 w-4 animate-spin text-primary" />
@@ -40,21 +81,7 @@ export function PerformancePanel({ workoutId }: { workoutId: string }) {
     );
   }
 
-  if (!data || (!data.sets.length && !data.result)) {
-    return (
-      <section className="mt-5 rounded-2xl border-2 border-blue-400 bg-card p-5">
-        <h2 className="mb-1 flex items-center gap-2 text-lg font-bold">
-          <Activity className="h-5 w-5 text-primary" /> Performance
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          No performance data logged for this workout. Logging is always optional and never changes
-          whether the workout counts as completed.
-        </p>
-      </section>
-    );
-  }
-
-  const c = data.completion;
+  const attempts = data?.attempts ?? [];
 
   return (
     <section className="mt-5 rounded-2xl border-2 border-blue-400 bg-card p-5">
@@ -62,50 +89,111 @@ export function PerformancePanel({ workoutId }: { workoutId: string }) {
         <Activity className="h-5 w-5 text-primary" /> Performance
       </h2>
       <p className="mb-3 text-xs text-muted-foreground">
-        What was actually recorded. Separate from workout completion — anything not logged stays
-        unavailable and is never estimated.
+        What was actually recorded, session by session. Separate from workout completion — anything
+        not logged stays unavailable and is never estimated.
       </p>
 
-      <div className="grid gap-2 sm:grid-cols-2">
-        <div className="rounded-xl border border-border p-3">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">Sets logged</p>
-          <p className="text-lg font-bold">
-            {c.setsLogged}
-            {c.setsPlanned !== null ? ` of ${c.setsPlanned} prescribed` : ""}
+      {!attempts.length ? (
+        <>
+          <p className="text-sm text-muted-foreground">
+            No performance data logged for this workout yet. Logging is always optional and never
+            changes whether the workout counts as completed.
           </p>
+          {steps.length ? (
+            <Button variant="secondary" className="mt-3" onClick={() => setEditing(1)}>
+              <Pencil className="mr-1.5 h-4 w-4" /> Log performance
+            </Button>
+          ) : null}
+        </>
+      ) : (
+        <div className="space-y-3">
+          {[...attempts].reverse().map((a) => {
+            const c = a.completion;
+            return (
+              <article key={a.attempt} className="rounded-xl border border-border p-3">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div>
+                    <p className="font-semibold">
+                      {a.performedAt ? formatDateTime(a.performedAt) : "Undated session"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Session {a.attempt} of {attempts.length}
+                    </p>
+                  </div>
+                  {steps.length ? (
+                    <Button variant="ghost" size="sm" onClick={() => setEditing(a.attempt)}>
+                      <Pencil className="mr-1.5 h-3.5 w-3.5" /> Edit
+                    </Button>
+                  ) : null}
+                </div>
+
+                <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                  <div className="rounded-lg border border-border p-2">
+                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                      Sets logged
+                    </p>
+                    <p className="font-bold">
+                      {c.setsLogged}
+                      {c.setsPlanned !== null ? ` of ${c.setsPlanned} prescribed` : ""}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-border p-2">
+                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                      Reps logged
+                    </p>
+                    <p className="font-bold">
+                      {c.repsLogged === null
+                        ? "Not logged"
+                        : `${c.repsLogged}${c.repsPlanned !== null ? ` of ${c.repsPlanned} prescribed` : ""}`}
+                    </p>
+                  </div>
+                </div>
+
+                {a.resultText ? (
+                  <p className="mt-2 text-sm">
+                    <span className="font-semibold text-primary">Result:</span> {a.resultText}
+                  </p>
+                ) : null}
+
+                {a.comparison && a.comparison.reason === "version_changed" ? (
+                  <p className="mt-2 rounded-lg border border-border bg-muted/40 p-2 text-xs text-muted-foreground">
+                    This session used a different version of the workout, so it is not directly
+                    comparable with the previous one. Both are kept in full.
+                  </p>
+                ) : a.comparison && a.comparison.metrics.length ? (
+                  <ul className="mt-2">
+                    {a.comparison.metrics.map((m) => (
+                      <DeltaRow key={m.key} m={m} />
+                    ))}
+                  </ul>
+                ) : null}
+
+                {a.note ? (
+                  <p className="mt-2 text-sm text-muted-foreground">{a.note}</p>
+                ) : null}
+              </article>
+            );
+          })}
         </div>
-        <div className="rounded-xl border border-border p-3">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">Reps logged</p>
-          <p className="text-lg font-bold">
-            {c.repsLogged === null
-              ? "Not logged"
-              : `${c.repsLogged}${c.repsPlanned !== null ? ` of ${c.repsPlanned} prescribed` : ""}`}
-          </p>
-        </div>
-      </div>
+      )}
 
-      {data.resultText ? (
-        <p className="mt-3 text-sm">
-          <span className="font-semibold text-primary">Result:</span> {data.resultText}
-        </p>
-      ) : null}
-
-      {data.note ? <p className="mt-3 text-sm text-muted-foreground">{data.note}</p> : null}
-
-      {data.steps.length ? (
-        <ul className="mt-3 space-y-1 text-sm">
-          {data.steps.map((s) => (
-            <li key={s.stepIndex} className="flex justify-between gap-3 border-t border-border pt-1">
-              <span className="capitalize">{s.exerciseName}</span>
-              <span className="shrink-0 text-muted-foreground">
-                {s.loggedSets} set{s.loggedSets === 1 ? "" : "s"}
-                {s.loggedReps !== null
-                  ? ` · ${s.loggedReps}${s.plannedReps !== null ? `/${s.plannedReps}` : ""} reps`
-                  : ""}
-              </span>
-            </li>
-          ))}
-        </ul>
+      {editing !== null ? (
+        <PerformanceEditorDialog
+          open
+          onOpenChange={(o) => {
+            if (!o) setEditing(null);
+          }}
+          workoutId={workoutId}
+          attempt={editing}
+          steps={steps}
+          category={category}
+          format={format}
+          title="Edit this session"
+          onSaved={() => {
+            setEditing(null);
+            void load();
+          }}
+        />
       ) : null}
     </section>
   );

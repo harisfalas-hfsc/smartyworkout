@@ -8,7 +8,7 @@ import {
   CarouselItem,
   type CarouselApi,
 } from "@/components/ui/carousel";
-import { Check, ChevronLeft, ChevronRight, Cylinder, Dumbbell, Pause, Play, RotateCcw, X } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Cylinder, Dumbbell, Minus, Pause, Play, Plus, RotateCcw, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,7 +19,9 @@ import {
   deriveWorkoutResultModel,
   parsePlanned,
 } from "@/lib/workout/tracking-model";
-import { saveWorkoutResult } from "@/lib/performance.functions";
+import { saveWorkoutResult, startWorkoutAttempt } from "@/lib/performance.functions";
+import { prescriptionHash } from "@/lib/workout/prescription-fingerprint";
+import { PerformanceEditorDialog } from "./PerformanceEditorDialog";
 import { WorkoutResultDialog, type WorkoutResultInput } from "./WorkoutResultDialog";
 import { useExerciseMedia } from "./ExerciseMediaProvider";
 
@@ -59,6 +61,11 @@ export function WorkoutPlayerDialog({
     [category, format, html, steps],
   );
   const storeResult = useServerFn(saveWorkoutResult);
+  const beginAttempt = useServerFn(startWorkoutAttempt);
+  const planHash = useMemo(
+    () => prescriptionHash({ format, category, steps }),
+    [format, category, steps],
+  );
 
   const { details, ensure } = useExerciseMedia();
   const [api, setApi] = useState<CarouselApi>();
@@ -74,7 +81,11 @@ export function WorkoutPlayerDialog({
   const [distance, setDistance] = useState("");
   const [savingSet, setSavingSet] = useState(false);
   const [resultOpen, setResultOpen] = useState(false);
+  const [recapOpen, setRecapOpen] = useState(false);
+  const [attempt, setAttempt] = useState(1);
+  const [lastSet, setLastSet] = useState<Record<number, { reps: string; weight: string; seconds: string; distance: string }>>({});
   const beepRef = useRef<number>(0);
+  const loggableRef = useRef(false);
   const startedAtRef = useRef<number | null>(null);
 
   useKeepScreenAwake(open);
@@ -83,6 +94,38 @@ export function WorkoutPlayerDialog({
     if (open && startedAtRef.current === null) startedAtRef.current = Date.now();
     if (!open) startedAtRef.current = null;
   }, [open]);
+
+  // Each run of a workout is its own attempt, so repeats never overwrite history.
+  useEffect(() => {
+    if (!open) return;
+    let active = true;
+    beginAttempt({ data: { workoutId } })
+      .then((res) => {
+        if (active) setAttempt((res as { attempt: number }).attempt ?? 1);
+      })
+      .catch(() => {
+        /* offline — the session still plays, logging retries with attempt 1 */
+      });
+    return () => {
+      active = false;
+    };
+  }, [open, workoutId, beginAttempt]);
+
+  // The phone back button steps back one slide instead of quitting the session.
+  useEffect(() => {
+    if (!open || typeof window === "undefined") return;
+    window.history.pushState({ smartyPlayer: true }, "");
+    const onPop = () => {
+      if (api && api.canScrollPrev()) {
+        api.scrollPrev();
+        window.history.pushState({ smartyPlayer: true }, "");
+        return;
+      }
+      onOpenChange(false);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [open, api, onOpenChange]);
 
 
 
@@ -117,6 +160,11 @@ export function WorkoutPlayerDialog({
     () => (slide?.kind === "exercise" ? parsePlanned(slide.step.prescription) : null),
     [slide],
   );
+
+  // The countdown must not jump away from a step that still wants numbers.
+  useEffect(() => {
+    loggableRef.current = Boolean(tracking && tracking.primary !== "completion");
+  }, [tracking]);
 
   // Preload media for the current window of slides.
   useEffect(() => {
@@ -174,6 +222,7 @@ export function WorkoutPlayerDialog({
     const { error } = await supabase.from("set_logs").insert({
       user_id: auth.user.id,
       workout_id: workoutId,
+      attempt,
       step_index: index,
       exercise_id: slide.step.exerciseId || null,
       exercise_name: slide.step.name,
@@ -198,6 +247,10 @@ export function WorkoutPlayerDialog({
       return;
     }
     setLogged((prev) => ({ ...prev, [index]: setNumber }));
+    setLastSet((prev) => ({
+      ...prev,
+      [index]: { reps, weight, seconds: heldSeconds, distance },
+    }));
     setReps("");
     setWeight("");
     setHeldSeconds("");
@@ -206,6 +259,11 @@ export function WorkoutPlayerDialog({
   }
 
   function finishWorkout() {
+    setRecapOpen(true);
+  }
+
+  function afterRecap() {
+    setRecapOpen(false);
     if (resultModel.metric !== "none") {
       setResultOpen(true);
       return;
@@ -226,6 +284,9 @@ export function WorkoutPlayerDialog({
         await storeResult({
           data: {
             workoutId,
+            attempt,
+            prescriptionHash: planHash,
+            performedAt: new Date(startedAtRef.current ?? Date.now()).toISOString(),
             format,
             category,
             metric: resultModel.metric,
@@ -265,7 +326,8 @@ export function WorkoutPlayerDialog({
         }
         setRunning(false);
         beepRef.current += 1;
-        window.setTimeout(() => api?.scrollNext(), 400);
+        // Loggable steps stop here so there is time to write the numbers down.
+        if (!loggableRef.current) window.setTimeout(() => api?.scrollNext(), 400);
         return 0;
       });
     }, 1000);
@@ -347,41 +409,31 @@ export function WorkoutPlayerDialog({
 
           {slide?.kind === "exercise" && tracking && tracking.primary !== "completion" ? (
             <div className="space-y-2">
-              <div className="flex items-center gap-2">
+              <div className="flex items-end gap-2">
                 {tracking.primary === "reps" ? (
-                  <Input
-                    inputMode="numeric"
-                    placeholder="Reps"
+                  <StepperField
+                    label={
+                      tracking.windowSeconds
+                        ? `Reps in ${tracking.windowSeconds}s`
+                        : "Reps completed"
+                    }
                     value={reps}
-                    onChange={(e) => setReps(e.target.value)}
-                    className="h-11 flex-1 border-neutral-700 bg-neutral-900 text-neutral-50 placeholder:text-neutral-500"
+                    onChange={setReps}
+                    step={1}
                   />
                 ) : (
-                  <Input
-                    inputMode="numeric"
-                    placeholder="Seconds"
+                  <StepperField
+                    label="Seconds held"
                     value={heldSeconds}
-                    onChange={(e) => setHeldSeconds(e.target.value)}
-                    className="h-11 flex-1 border-neutral-700 bg-neutral-900 text-neutral-50 placeholder:text-neutral-500"
+                    onChange={setHeldSeconds}
+                    step={5}
                   />
                 )}
                 {tracking.load ? (
-                  <Input
-                    inputMode="decimal"
-                    placeholder="kg"
-                    value={weight}
-                    onChange={(e) => setWeight(e.target.value)}
-                    className="h-11 flex-1 border-neutral-700 bg-neutral-900 text-neutral-50 placeholder:text-neutral-500"
-                  />
+                  <StepperField label="Weight (kg)" value={weight} onChange={setWeight} step={2.5} />
                 ) : null}
                 {tracking.distance ? (
-                  <Input
-                    inputMode="numeric"
-                    placeholder="metres"
-                    value={distance}
-                    onChange={(e) => setDistance(e.target.value)}
-                    className="h-11 flex-1 border-neutral-700 bg-neutral-900 text-neutral-50 placeholder:text-neutral-500"
-                  />
+                  <StepperField label="Distance (m)" value={distance} onChange={setDistance} step={50} />
                 ) : null}
                 <Button
                   variant="secondary"
@@ -393,6 +445,24 @@ export function WorkoutPlayerDialog({
                   Log set {(logged[index] ?? 0) + 1}
                 </Button>
               </div>
+              {lastSet[index] ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full text-neutral-300"
+                  disabled={savingSet}
+                  onClick={() => {
+                    const prev = lastSet[index]!;
+                    setReps(prev.reps);
+                    setWeight(prev.weight);
+                    setHeldSeconds(prev.seconds);
+                    setDistance(prev.distance);
+                  }}
+                >
+                  <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+                  Repeat last set
+                </Button>
+              ) : null}
               {planned && (planned.sets || planned.reps || planned.weightKg) ? (
                 <p className="text-center text-[11px] text-neutral-500">
                   Prescribed{" "}
@@ -403,11 +473,16 @@ export function WorkoutPlayerDialog({
                       : `${planned.sets} sets`}
                   {planned.weightKg ? ` @ ${planned.weightKg} kg` : ""} · logged{" "}
                   {logged[index] ?? 0}
-                  {planned.sets ? ` of ${planned.sets}` : ""} · logging is optional
+                  {planned.sets ? ` of ${planned.sets}` : ""} · you can also fill this in at the end
                 </p>
-              ) : null}
+              ) : (
+                <p className="text-center text-[11px] text-neutral-500">
+                  Skip it if you are moving — you can fill it in on the recap at the end.
+                </p>
+              )}
             </div>
           ) : null}
+
 
 
 
@@ -463,6 +538,21 @@ export function WorkoutPlayerDialog({
             </Button>
           ) : null}
         </div>
+
+        <PerformanceEditorDialog
+          open={recapOpen}
+          onOpenChange={(o) => {
+            if (!o) afterRecap();
+            else setRecapOpen(true);
+          }}
+          workoutId={workoutId}
+          attempt={attempt}
+          steps={steps}
+          category={category}
+          format={format}
+          title="Session recap"
+          onSaved={afterRecap}
+        />
 
         <WorkoutResultDialog
           open={resultOpen}
@@ -527,6 +617,57 @@ function PlayerSlideView({ step, gifUrl }: { step: WorkoutStep; gifUrl: string |
       {step.prescription ? (
         <p className="text-lg text-neutral-300">{step.prescription}</p>
       ) : null}
+    </div>
+  );
+}
+
+function StepperField({
+  label,
+  value,
+  onChange,
+  step,
+}: {
+  label: string;
+  value: string;
+  onChange: (next: string) => void;
+  step: number;
+}) {
+  const bump = (delta: number) => {
+    const current = value.trim() === "" ? 0 : Number(value);
+    const next = Math.max(0, Math.round((current + delta) * 100) / 100);
+    onChange(String(next));
+  };
+  return (
+    <div className="min-w-0 flex-1 space-y-1">
+      <p className="truncate text-[10px] uppercase tracking-[0.15em] text-neutral-400">{label}</p>
+      <div className="flex items-center gap-1">
+        <Button
+          type="button"
+          variant="secondary"
+          size="icon"
+          className="h-11 w-9 shrink-0"
+          onClick={() => bump(-step)}
+          aria-label={`Decrease ${label}`}
+        >
+          <Minus className="h-4 w-4" />
+        </Button>
+        <Input
+          inputMode="decimal"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="h-11 min-w-0 flex-1 border-neutral-700 bg-neutral-900 text-center text-neutral-50"
+        />
+        <Button
+          type="button"
+          variant="secondary"
+          size="icon"
+          className="h-11 w-9 shrink-0"
+          onClick={() => bump(step)}
+          aria-label={`Increase ${label}`}
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 }

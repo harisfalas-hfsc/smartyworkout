@@ -4,6 +4,8 @@
 export type SetLogRow = {
   id: string;
   workout_id: string;
+  /** Which session of this workout the log belongs to (1 = first time). */
+  attempt: number;
   step_index: number;
   exercise_id: string | null;
   exercise_name: string;
@@ -26,6 +28,12 @@ export type SetLogRow = {
 
 export type WorkoutResultRow = {
   workout_id: string;
+  /** Which session of this workout the result belongs to (1 = first time). */
+  attempt: number;
+  /** Fingerprint of the prescription performed, for comparability checks. */
+  prescription_hash: string | null;
+  /** When the session was actually performed. */
+  performed_at: string;
   format: string | null;
   category: string | null;
   metric: string | null;
