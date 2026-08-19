@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +14,13 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useKeepScreenAwake } from "@/hooks/useKeepScreenAwake";
 import { buildSlides, parseStepTiming, type WorkoutStep } from "@/lib/workout/parse-steps";
+import {
+  deriveStepTracking,
+  deriveWorkoutResultModel,
+  parsePlanned,
+} from "@/lib/workout/tracking-model";
+import { saveWorkoutResult } from "@/lib/performance.functions";
+import { WorkoutResultDialog, type WorkoutResultInput } from "./WorkoutResultDialog";
 import { useExerciseMedia } from "./ExerciseMediaProvider";
 
 
@@ -29,6 +37,9 @@ export function WorkoutPlayerDialog({
   softTissue = [],
   workoutName,
   workoutId,
+  category = null,
+  format = null,
+  html = null,
   onFinish,
 }: {
   open: boolean;
@@ -37,9 +48,17 @@ export function WorkoutPlayerDialog({
   softTissue?: string[];
   workoutName: string;
   workoutId: string;
+  category?: string | null;
+  format?: string | null;
+  html?: string | null;
   onFinish: () => void;
 }) {
   const slides = useMemo(() => buildSlides(steps, softTissue), [steps, softTissue]);
+  const resultModel = useMemo(
+    () => deriveWorkoutResultModel({ category, format, html, steps }),
+    [category, format, html, steps],
+  );
+  const storeResult = useServerFn(saveWorkoutResult);
 
   const { details, ensure } = useExerciseMedia();
   const [api, setApi] = useState<CarouselApi>();
@@ -51,10 +70,20 @@ export function WorkoutPlayerDialog({
   const [logged, setLogged] = useState<Record<number, number>>({});
   const [reps, setReps] = useState("");
   const [weight, setWeight] = useState("");
+  const [heldSeconds, setHeldSeconds] = useState("");
+  const [distance, setDistance] = useState("");
   const [savingSet, setSavingSet] = useState(false);
+  const [resultOpen, setResultOpen] = useState(false);
   const beepRef = useRef<number>(0);
+  const startedAtRef = useRef<number | null>(null);
 
   useKeepScreenAwake(open);
+
+  useEffect(() => {
+    if (open && startedAtRef.current === null) startedAtRef.current = Date.now();
+    if (!open) startedAtRef.current = null;
+  }, [open]);
+
 
 
   useEffect(() => {
@@ -70,6 +99,22 @@ export function WorkoutPlayerDialog({
   const slide = slides[index];
   const timing = useMemo(
     () => (slide?.kind === "exercise" ? parseStepTiming(slide.step) : { mode: "manual" as const }),
+    [slide],
+  );
+
+  const equipment =
+    slide?.kind === "exercise" ? (details[slide.step.exerciseId]?.equipment ?? null) : null;
+
+  // What is worth recording on THIS step — never a blanket assumption.
+  const tracking = useMemo(
+    () =>
+      slide?.kind === "exercise"
+        ? deriveStepTracking({ step: slide.step, category, format, equipment })
+        : null,
+    [slide, category, format, equipment],
+  );
+  const planned = useMemo(
+    () => (slide?.kind === "exercise" ? parsePlanned(slide.step.prescription) : null),
     [slide],
   );
 
@@ -91,18 +136,32 @@ export function WorkoutPlayerDialog({
     setRound(1);
     setReps("");
     setWeight("");
+    setHeldSeconds("");
+    setDistance("");
     if (timing.mode === "timed") setRemaining(timing.seconds);
     else if (timing.mode === "tabata") setRemaining(timing.work);
     else setRemaining(0);
   }, [index, timing]);
 
   async function logSet() {
-    if (!slide || slide.kind !== "exercise") return;
-    const repsValue = reps.trim() ? Number(reps) : null;
-    const weightValue = weight.trim() ? Number(weight) : null;
-    const secondsValue = timing.mode === "timed" ? timing.seconds : null;
-    if (repsValue === null && weightValue === null && secondsValue === null) {
-      toast.error("Add reps or weight first.");
+    if (!slide || slide.kind !== "exercise" || !tracking) return;
+    const repsValue = tracking.primary === "reps" && reps.trim() ? Number(reps) : null;
+    const weightValue = tracking.load && weight.trim() ? Number(weight) : null;
+    const distanceValue = tracking.distance && distance.trim() ? Number(distance) : null;
+    const typedSeconds = heldSeconds.trim() ? Number(heldSeconds) : null;
+    const measuredSeconds =
+      tracking.primary === "duration" && timing.mode === "timed" && remaining < timing.seconds
+        ? timing.seconds - remaining
+        : null;
+    const secondsValue = typedSeconds ?? measuredSeconds;
+
+    if (
+      repsValue === null &&
+      weightValue === null &&
+      secondsValue === null &&
+      distanceValue === null
+    ) {
+      toast.error("Nothing to log yet — add a value first.");
       return;
     }
     setSavingSet(true);
@@ -123,6 +182,15 @@ export function WorkoutPlayerDialog({
       reps: repsValue,
       weight_kg: weightValue,
       seconds: secondsValue,
+      distance_m: distanceValue,
+      metric: tracking.metric,
+      // Planned values are parsed from the prescription so planned vs actual is
+      // possible. Nothing is filled in on the athlete's behalf.
+      planned_reps: planned?.reps ?? null,
+      planned_weight_kg: planned?.weightKg ?? null,
+      planned_seconds: planned?.seconds ?? null,
+      partial:
+        planned?.reps != null && repsValue != null ? repsValue < planned.reps : false,
     } as never);
     setSavingSet(false);
     if (error) {
@@ -132,8 +200,51 @@ export function WorkoutPlayerDialog({
     setLogged((prev) => ({ ...prev, [index]: setNumber }));
     setReps("");
     setWeight("");
+    setHeldSeconds("");
+    setDistance("");
     toast.success(`Set ${setNumber} logged.`);
   }
+
+  function finishWorkout() {
+    if (resultModel.metric !== "none") {
+      setResultOpen(true);
+      return;
+    }
+    onFinish();
+  }
+
+  async function submitResult(result: WorkoutResultInput) {
+    setResultOpen(false);
+    const hasAnything =
+      result.durationSeconds !== null ||
+      result.rounds !== null ||
+      result.intervalsDone !== null ||
+      result.finished !== null ||
+      result.rpe !== null;
+    if (hasAnything) {
+      try {
+        await storeResult({
+          data: {
+            workoutId,
+            format,
+            category,
+            metric: resultModel.metric,
+            durationSeconds: result.durationSeconds,
+            rounds: result.rounds,
+            extraReps: result.extraReps,
+            intervalsDone: result.intervalsDone,
+            intervalsTotal: resultModel.intervalsTotal,
+            finished: result.finished,
+            rpe: result.rpe,
+          },
+        });
+      } catch {
+        toast.error("Your result could not be saved, but the workout still counts.");
+      }
+    }
+    onFinish();
+  }
+
 
 
   useEffect(() => {
@@ -234,33 +345,70 @@ export function WorkoutPlayerDialog({
             </p>
           )}
 
-          {slide?.kind === "exercise" ? (
-            <div className="flex items-center gap-2">
-              <Input
-                inputMode="numeric"
-                placeholder="Reps"
-                value={reps}
-                onChange={(e) => setReps(e.target.value)}
-                className="h-11 flex-1 border-neutral-700 bg-neutral-900 text-neutral-50 placeholder:text-neutral-500"
-              />
-              <Input
-                inputMode="decimal"
-                placeholder="kg"
-                value={weight}
-                onChange={(e) => setWeight(e.target.value)}
-                className="h-11 flex-1 border-neutral-700 bg-neutral-900 text-neutral-50 placeholder:text-neutral-500"
-              />
-              <Button
-                variant="secondary"
-                className="h-11 shrink-0"
-                disabled={savingSet}
-                onClick={logSet}
-              >
-                <Check className="mr-1.5 h-4 w-4" />
-                Log set {(logged[index] ?? 0) + 1}
-              </Button>
+          {slide?.kind === "exercise" && tracking && tracking.primary !== "completion" ? (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                {tracking.primary === "reps" ? (
+                  <Input
+                    inputMode="numeric"
+                    placeholder="Reps"
+                    value={reps}
+                    onChange={(e) => setReps(e.target.value)}
+                    className="h-11 flex-1 border-neutral-700 bg-neutral-900 text-neutral-50 placeholder:text-neutral-500"
+                  />
+                ) : (
+                  <Input
+                    inputMode="numeric"
+                    placeholder="Seconds"
+                    value={heldSeconds}
+                    onChange={(e) => setHeldSeconds(e.target.value)}
+                    className="h-11 flex-1 border-neutral-700 bg-neutral-900 text-neutral-50 placeholder:text-neutral-500"
+                  />
+                )}
+                {tracking.load ? (
+                  <Input
+                    inputMode="decimal"
+                    placeholder="kg"
+                    value={weight}
+                    onChange={(e) => setWeight(e.target.value)}
+                    className="h-11 flex-1 border-neutral-700 bg-neutral-900 text-neutral-50 placeholder:text-neutral-500"
+                  />
+                ) : null}
+                {tracking.distance ? (
+                  <Input
+                    inputMode="numeric"
+                    placeholder="metres"
+                    value={distance}
+                    onChange={(e) => setDistance(e.target.value)}
+                    className="h-11 flex-1 border-neutral-700 bg-neutral-900 text-neutral-50 placeholder:text-neutral-500"
+                  />
+                ) : null}
+                <Button
+                  variant="secondary"
+                  className="h-11 shrink-0"
+                  disabled={savingSet}
+                  onClick={logSet}
+                >
+                  <Check className="mr-1.5 h-4 w-4" />
+                  Log set {(logged[index] ?? 0) + 1}
+                </Button>
+              </div>
+              {planned && (planned.sets || planned.reps || planned.weightKg) ? (
+                <p className="text-center text-[11px] text-neutral-500">
+                  Prescribed{" "}
+                  {planned.sets && planned.reps
+                    ? `${planned.sets} × ${planned.reps}`
+                    : planned.reps
+                      ? `${planned.reps} reps`
+                      : `${planned.sets} sets`}
+                  {planned.weightKg ? ` @ ${planned.weightKg} kg` : ""} · logged{" "}
+                  {logged[index] ?? 0}
+                  {planned.sets ? ` of ${planned.sets}` : ""} · logging is optional
+                </p>
+              ) : null}
             </div>
           ) : null}
+
 
 
 
@@ -294,7 +442,7 @@ export function WorkoutPlayerDialog({
                 </Button>
               </div>
             ) : index === total - 1 ? (
-              <Button onClick={onFinish}>Finish workout</Button>
+              <Button onClick={finishWorkout}>Finish workout</Button>
             ) : (
               <Button onClick={() => api?.scrollNext()}>Done — next</Button>
             )}
@@ -310,15 +458,26 @@ export function WorkoutPlayerDialog({
           </div>
 
           {index === total - 1 && timing.mode !== "manual" ? (
-            <Button variant="secondary" className="w-full" onClick={onFinish}>
+            <Button variant="secondary" className="w-full" onClick={finishWorkout}>
               Finish workout
             </Button>
           ) : null}
         </div>
+
+        <WorkoutResultDialog
+          open={resultOpen}
+          onOpenChange={setResultOpen}
+          model={resultModel}
+          elapsedSeconds={
+            startedAtRef.current ? Math.round((Date.now() - startedAtRef.current) / 1000) : null
+          }
+          onSubmit={submitResult}
+        />
       </DialogContent>
     </Dialog>
   );
 }
+
 
 function SoftTissueSlide({ lines }: { lines: string[] }) {
   return (

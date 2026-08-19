@@ -664,10 +664,19 @@ export type Database = {
         Row: {
           completed_at: string
           created_at: string
+          distance_m: number | null
           exercise_id: string | null
           exercise_name: string
           id: string
+          interval_index: number | null
+          metric: string | null
+          partial: boolean
+          planned_reps: number | null
+          planned_seconds: number | null
+          planned_weight_kg: number | null
           reps: number | null
+          rounds: number | null
+          rpe: number | null
           seconds: number | null
           section: string | null
           set_number: number
@@ -679,10 +688,19 @@ export type Database = {
         Insert: {
           completed_at?: string
           created_at?: string
+          distance_m?: number | null
           exercise_id?: string | null
           exercise_name: string
           id?: string
+          interval_index?: number | null
+          metric?: string | null
+          partial?: boolean
+          planned_reps?: number | null
+          planned_seconds?: number | null
+          planned_weight_kg?: number | null
           reps?: number | null
+          rounds?: number | null
+          rpe?: number | null
           seconds?: number | null
           section?: string | null
           set_number?: number
@@ -694,10 +712,19 @@ export type Database = {
         Update: {
           completed_at?: string
           created_at?: string
+          distance_m?: number | null
           exercise_id?: string | null
           exercise_name?: string
           id?: string
+          interval_index?: number | null
+          metric?: string | null
+          partial?: boolean
+          planned_reps?: number | null
+          planned_seconds?: number | null
+          planned_weight_kg?: number | null
           reps?: number | null
+          rounds?: number | null
+          rpe?: number | null
           seconds?: number | null
           section?: string | null
           set_number?: number
@@ -1044,6 +1071,87 @@ export type Database = {
             columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "generation_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_results: {
+        Row: {
+          analysis_note: string | null
+          category: string | null
+          conditioning_load: number | null
+          created_at: string
+          data_points: number
+          duration_seconds: number | null
+          extra_reps: number | null
+          finished: boolean | null
+          format: string | null
+          id: string
+          intervals_done: number | null
+          intervals_total: number | null
+          metric: string | null
+          rounds: number | null
+          rpe: number | null
+          strength_load: number | null
+          updated_at: string
+          user_id: string
+          workout_id: string
+        }
+        Insert: {
+          analysis_note?: string | null
+          category?: string | null
+          conditioning_load?: number | null
+          created_at?: string
+          data_points?: number
+          duration_seconds?: number | null
+          extra_reps?: number | null
+          finished?: boolean | null
+          format?: string | null
+          id?: string
+          intervals_done?: number | null
+          intervals_total?: number | null
+          metric?: string | null
+          rounds?: number | null
+          rpe?: number | null
+          strength_load?: number | null
+          updated_at?: string
+          user_id: string
+          workout_id: string
+        }
+        Update: {
+          analysis_note?: string | null
+          category?: string | null
+          conditioning_load?: number | null
+          created_at?: string
+          data_points?: number
+          duration_seconds?: number | null
+          extra_reps?: number | null
+          finished?: boolean | null
+          format?: string | null
+          id?: string
+          intervals_done?: number | null
+          intervals_total?: number | null
+          metric?: string | null
+          rounds?: number | null
+          rpe?: number | null
+          strength_load?: number | null
+          updated_at?: string
+          user_id?: string
+          workout_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_results_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: true
+            referencedRelation: "community_workouts_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_results_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: true
+            referencedRelation: "workouts"
             referencedColumns: ["id"]
           },
         ]

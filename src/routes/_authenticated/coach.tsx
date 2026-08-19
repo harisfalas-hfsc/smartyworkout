@@ -26,6 +26,9 @@ import {
 import { Link } from "@tanstack/react-router";
 import { ParqWaiverDialog } from "@/components/ParqWaiverDialog";
 import { MembershipRequiredDialog } from "@/components/MembershipRequiredDialog";
+import { CoachRecommendationCard } from "@/components/coach/CoachRecommendationCard";
+import { levelToStars, starsToLevel } from "@/lib/workout/spec";
+
 
 import {
   EQUIPMENT,
@@ -439,7 +442,16 @@ function CoachPage() {
               </button>
             ))}
           </div>
+          <div className="mt-3">
+            <CoachRecommendationCard
+              selectedStars={
+                level === "auto" ? 2 : levelToStars(level as "beginner" | "intermediate" | "advanced")
+              }
+              onApplyStars={(stars) => setLevel(starsToLevel(stars))}
+            />
+          </div>
         </QuestionCard>
+
 
 
         <QuestionCard step={showFocus ? 5 : 4} icon={Clock} title="Time available">

@@ -26,6 +26,8 @@ import { ParqWaiverDialog } from "@/components/ParqWaiverDialog";
 import { MembershipRequiredDialog } from "@/components/MembershipRequiredDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { PageHeader } from "@/components/PageHeader";
+import { WodContextNote } from "@/components/performance/WodContextNote";
+
 
 export const Route = createFileRoute("/wod")({
   head: () => ({
@@ -305,6 +307,10 @@ function WodPage() {
           better over the long run.
         </p>
       </section>
+
+      <WodContextNote />
+
+
 
       <section className="relative px-1 py-1">
         <SwipeToExplore onPrev={() => api?.scrollPrev()} onNext={() => api?.scrollNext()} />

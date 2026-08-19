@@ -15,6 +15,8 @@ import {
   Lock,
 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
+import { TrainingLoadPanel } from "@/components/performance/TrainingLoadPanel";
+
 import { getProgressOverview, type ProgressOverview } from "@/lib/progress.functions";
 import { CATEGORY_LABEL, CATEGORY_UNIT } from "@/lib/progress-config";
 import { cn } from "@/lib/utils";
@@ -212,8 +214,13 @@ function Progress() {
         <Stat icon={Timer} label="Training days" value={num(s.active_days)} />
       </div>
 
+      {/* Training load & demonstrated performance */}
+      <h2 className="mt-8 text-lg font-extrabold">Training load</h2>
+      <TrainingLoadPanel />
+
       {/* Awards */}
       <h2 className="mt-8 text-lg font-extrabold">Awards</h2>
+
       <div className="mt-3 space-y-4">
         {byCategory.map(({ category, defs, next, value, earned }) => {
           const unit = CATEGORY_UNIT[category] ?? "";

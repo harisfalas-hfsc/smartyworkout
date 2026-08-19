@@ -18,6 +18,8 @@ import { Share2 } from "lucide-react";
 import { getMyAccessState } from "@/lib/access.functions";
 import { toast } from "sonner";
 import { WorkoutDisplay, type WorkoutRow } from "@/components/workout/WorkoutDisplay";
+import { PerformancePanel } from "@/components/workout/PerformancePanel";
+
 import { ParqWaiverDialog } from "@/components/ParqWaiverDialog";
 
 export const Route = createFileRoute("/_authenticated/workout/$workoutId")({
@@ -280,6 +282,10 @@ function WorkoutPage() {
           setScheduledAt(next.scheduledAt);
         }}
       />
+
+      <PerformancePanel workoutId={workoutId} />
+
+
 
 
       <section className="mt-6 rounded-2xl border-2 border-blue-400 bg-card p-5">
