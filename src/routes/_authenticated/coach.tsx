@@ -439,7 +439,16 @@ function CoachPage() {
               </button>
             ))}
           </div>
+          <div className="mt-3">
+            <CoachRecommendationCard
+              selectedStars={
+                level === "auto" ? 2 : levelToStars(level as "beginner" | "intermediate" | "advanced")
+              }
+              onApplyStars={(stars) => setLevel(starsToLevel(stars))}
+            />
+          </div>
         </QuestionCard>
+
 
 
         <QuestionCard step={showFocus ? 5 : 4} icon={Clock} title="Time available">
