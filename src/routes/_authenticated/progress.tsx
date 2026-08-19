@@ -212,8 +212,13 @@ function Progress() {
         <Stat icon={Timer} label="Training days" value={num(s.active_days)} />
       </div>
 
+      {/* Training load & demonstrated performance */}
+      <h2 className="mt-8 text-lg font-extrabold">Training load</h2>
+      <TrainingLoadPanel />
+
       {/* Awards */}
       <h2 className="mt-8 text-lg font-extrabold">Awards</h2>
+
       <div className="mt-3 space-y-4">
         {byCategory.map(({ category, defs, next, value, earned }) => {
           const unit = CATEGORY_UNIT[category] ?? "";
