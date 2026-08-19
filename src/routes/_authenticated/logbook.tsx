@@ -394,6 +394,91 @@ function Legend() {
   );
 }
 
+type SessionLoad = {
+  workoutId: string;
+  attempt: number;
+  performedAt: string;
+  rpe: number | null;
+  strengthLoad: number | null;
+  conditioningLoad: number | null;
+  durationSeconds: number | null;
+};
+
+type PeriodTotals = {
+  sessions: number;
+  strength: number | null;
+  conditioning: number | null;
+  total: number | null;
+  avgRpe: number | null;
+  minutes: number | null;
+};
+
+/** Adds up only what was actually recorded — nothing is estimated. */
+function summariseSessions(list: SessionLoad[]): PeriodTotals {
+  const sum = (pick: (s: SessionLoad) => number | null) => {
+    const values = list.map(pick).filter((v): v is number => v !== null);
+    return values.length ? values.reduce((a, b) => a + b, 0) : null;
+  };
+  const strength = sum((s) => s.strengthLoad);
+  const conditioning = sum((s) => s.conditioningLoad);
+  const rpes = list.map((s) => s.rpe).filter((v): v is number => v !== null);
+  const seconds = sum((s) => s.durationSeconds);
+  return {
+    sessions: list.length,
+    strength,
+    conditioning,
+    total:
+      strength === null && conditioning === null ? null : (strength ?? 0) + (conditioning ?? 0),
+    avgRpe: rpes.length ? Math.round((rpes.reduce((a, b) => a + b, 0) / rpes.length) * 10) / 10 : null,
+    minutes: seconds === null ? null : Math.round(seconds / 60),
+  };
+}
+
+function Tile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-border p-2">
+      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="font-bold">{value}</p>
+    </div>
+  );
+}
+
+function PeriodSummary({
+  title,
+  totals,
+  completedCount,
+  onClear,
+}: {
+  title: string;
+  totals: PeriodTotals;
+  completedCount: number;
+  onClear?: () => void;
+}) {
+  const n = (v: number | null, suffix = "") =>
+    v === null ? "Not logged" : `${Math.round(v).toLocaleString()}${suffix}`;
+  return (
+    <div className="rounded-2xl border-2 border-blue-400 bg-card p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm font-bold">{title}</p>
+        {onClear ? (
+          <Button variant="ghost" size="sm" onClick={onClear}>
+            Single day
+          </Button>
+        ) : null}
+      </div>
+      <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <Tile label="Completed" value={String(completedCount)} />
+        <Tile label="Sessions logged" value={String(totals.sessions)} />
+        <Tile label="Training load" value={n(totals.total)} />
+        <Tile label="Strength load" value={n(totals.strength)} />
+        <Tile label="Conditioning load" value={n(totals.conditioning)} />
+        <Tile label="Average RPE" value={totals.avgRpe === null ? "Not logged" : `${totals.avgRpe} / 10`} />
+      </div>
+    </div>
+  );
+}
+
+
 function CalendarView({
   rows,
   sessions,
