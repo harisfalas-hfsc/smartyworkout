@@ -265,11 +265,11 @@ export function PerformanceEditorDialog({
           </ScrollArea>
         )}
 
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="gap-2 sm:gap-2">
+          <Button variant="secondary" className="h-11 rounded-2xl" onClick={() => onOpenChange(false)}>
             Not now
           </Button>
-          <Button onClick={save} disabled={saving || loading}>
+          <Button className="h-11 rounded-2xl font-extrabold" onClick={save} disabled={saving || loading}>
             {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Save performance
           </Button>
