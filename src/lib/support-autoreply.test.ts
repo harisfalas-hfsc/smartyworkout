@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classifySupportMessage } from "./support-autoreply";
+import { classifySupportMessage, escalationMessage } from "./support-autoreply";
 
 describe("support auto-responder", () => {
   it("answers the choice between Workout of the Day and manual generation", () => {
@@ -29,5 +29,14 @@ describe("support auto-responder", () => {
 
     expect(answer?.topic).toBe("wod");
     expect(answer?.body).toContain("same session for every member");
+  });
+
+  it("keeps internal automation and reply limits out of member-facing escalation copy", () => {
+    const message = escalationMessage();
+
+    expect(message).toContain("forwarded your request to the administrator");
+    expect(message).not.toContain("automatically");
+    expect(message).not.toContain("up to twice");
+    expect(message).not.toContain("third message");
   });
 });

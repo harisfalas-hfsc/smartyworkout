@@ -1,8 +1,8 @@
 import { classifySupportMessage, escalationMessage } from "@/lib/support-autoreply";
 
-const AUTO_REPLY_FOOTER =
-  "If this does not answer your question, reply in this conversation. We can answer automatically up to twice. Your third message is sent to Haris for a personal reply within 24–48 hours.\n\n" +
-  "Yours in good health,\nHaris Falas, BSc Sports Science, Exo Specialist, CSCS";
+const REPLY_FOOTER =
+  "If you need anything else about this question, reply in this conversation.\n\n" +
+  "Yours in good health,\nThe Smarty Workout team";
 
 /**
  * Instant, credit-free support answering.
@@ -35,7 +35,7 @@ export async function autoRespondToSupportMessage(input: {
     const answer = classifySupportMessage(subject, message);
     const tooManyRounds = (inboundCount ?? 1) >= 3;
     const escalated = !answer || tooManyRounds;
-    const body = escalated ? escalationMessage() : `${answer?.body ?? ""}\n\n${AUTO_REPLY_FOOTER}`;
+    const body = escalated ? escalationMessage() : `${answer?.body ?? ""}\n\n${REPLY_FOOTER}`;
     const label = answer?.label ?? "Needs a human";
 
     const { data: inserted } = await supabaseAdmin
@@ -43,6 +43,7 @@ export async function autoRespondToSupportMessage(input: {
       .insert({ thread_id: threadId, sender: "admin", body } as never)
       .select("id")
       .single();
+    const insertedId = (inserted as { id?: string } | null)?.id ?? threadId;
 
     await supabaseAdmin
       .from("support_threads")
@@ -59,11 +60,9 @@ export async function autoRespondToSupportMessage(input: {
       await supabaseAdmin.from("notifications").insert({
         user_id: userId,
         kind: "support",
-        title: escalated
-          ? "Your message is with Haris"
-          : "Smarty Workout answered your message",
+        title: escalated ? "Your message is with Haris" : "Smarty Workout answered your message",
         body: body.slice(0, 240),
-        dedupe_key: `support-auto-${(inserted as any)?.id ?? threadId}`,
+        dedupe_key: `support-auto-${insertedId}`,
       } as never);
     }
 
@@ -73,29 +72,29 @@ export async function autoRespondToSupportMessage(input: {
         const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
         await sendTemplateEmail("support-reply", email, {
           templateData: { name, subject, message: body },
-          idempotencyKey: `support-auto-${(inserted as any)?.id ?? threadId}`,
+          idempotencyKey: `support-auto-${insertedId}`,
         });
       } catch (e) {
         console.error("[support-auto] member email failed:", e);
       }
     }
 
-    // The administrator sees the whole interaction, and is told explicitly when
-    // a personal reply is expected.
+    // Keep the full conversation visible to administrators, whether or not a
+    // personal reply is currently required.
     try {
       const { notifyAdmins } = await import("@/lib/admin-alert.server");
       await notifyAdmins({
         kind: escalated ? "support-escalation" : "support-auto-reply",
         title: escalated
-          ? `Reply expected: ${name || email} — ${subject}`
-          : `Auto-answered (${label}): ${name || email}`,
+          ? `Reply required: ${name || email} | ${subject}`
+          : `Support conversation: ${name || email} | ${subject}`,
         details:
-          `From: ${name} <${email}>\nSubject: ${subject}\nTopic: ${label}` +
-          (tooManyRounds ? "\nReason: member has written 3+ times in this thread" : "") +
-          `\n\n--- Their message ---\n${message}` +
-          `\n\n--- ${escalated ? "Holding reply sent" : "Automatic reply sent"} ---\n${body}`,
+          `Member\n${name} <${email}>\n\nSubject\n${subject}\n\nTopic\n${label}` +
+          (tooManyRounds ? "\n\nStatus\nAdministrator reply required" : "") +
+          `\n\nMember's message\n${message}` +
+          `\n\nReply in the conversation\n${body}`,
         link: "/admin",
-        dedupeKey: `support-auto-${(inserted as any)?.id ?? threadId}`,
+        dedupeKey: `support-auto-${insertedId}`,
       });
     } catch (e) {
       console.error("[support-auto] admin alert failed:", e);
