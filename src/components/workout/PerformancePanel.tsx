@@ -123,6 +123,15 @@ export function PerformancePanel({
         </>
       ) : (
         <div className="space-y-3">
+          {attempts.length >= 2 ? (
+            <div className="rounded-xl border-2 border-primary/60 bg-primary/5 p-3">
+              <h3 className="mb-2 flex items-center gap-2 text-sm font-bold">
+                <LineChart className="h-4 w-4 text-primary" /> Session comparison
+              </h3>
+              <AttemptTrendChart points={chartPoints} />
+            </div>
+          ) : null}
+
           {[...attempts].reverse().map((a) => {
             const c = a.completion;
             return (
