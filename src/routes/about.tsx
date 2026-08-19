@@ -251,6 +251,72 @@ function AboutPage() {
         </div>
       </div>
 
+      <SmartyCard
+        tone="blue"
+        eyebrow="After the workout"
+        eyebrowIcon={LineChart}
+        title={
+          <>
+            Your training is{" "}
+            <span className="text-primary">tracked, measured & remembered</span>
+          </>
+        }
+        description="Smarty Workout does not stop when the session ends. What you actually did, how it felt, and how it compares with last time all feed back into your next workout."
+        className="mx-auto mt-6 max-w-xl lg:max-w-6xl"
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <SmartyRow
+            icon={PlayCircle}
+            title="Guided player"
+            subtitle="Timers, rest, swipe — and logs your reps, weight, time and rounds set by set."
+            tone="blue"
+          />
+          <SmartyRow
+            icon={ClipboardCheck}
+            title="One session debrief"
+            subtitle="RPE, how you felt, enjoyment and notes — asked once, editable any time."
+            tone="blue"
+          />
+          <SmartyRow
+            icon={NotebookPen}
+            title="Logbook & calendar"
+            subtitle="Every workout saved, scheduled, favourited or repeated, with equipment badges."
+            tone="blue"
+          />
+          <SmartyRow
+            icon={TrendingUp}
+            title="Progress & comparison"
+            subtitle="Repeat a workout and each attempt is compared like-for-like — 20 reps then 24 is progress, and it is shown."
+            tone="blue"
+          />
+          <SmartyRow
+            icon={Activity}
+            title="Training load"
+            subtitle="Your recent workload against your own 21-day baseline, adjusted by your RPE."
+            tone="blue"
+          />
+          <SmartyRow
+            icon={Trophy}
+            title="Achievements & reminders"
+            subtitle="Milestones unlock as you train, and notifications keep scheduled sessions on track."
+            tone="blue"
+          />
+          <SmartyRow
+            icon={WifiOff}
+            title="Offline mode"
+            subtitle="Workouts, logbook and player keep working with no signal — everything syncs later."
+            tone="blue"
+          />
+          <SmartyRow
+            icon={BookOpen}
+            title="Exercise library"
+            subtitle="1,384 movements with GIFs, plus your own likes and dislikes fed to Smarty Coach."
+            tone="blue"
+          />
+        </div>
+      </SmartyCard>
+
     </div>
+
   );
 }
