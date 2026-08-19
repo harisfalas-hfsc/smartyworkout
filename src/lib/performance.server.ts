@@ -35,7 +35,8 @@ export async function loadWorkoutPerformance(
   userId: string,
   workoutId: string,
 ) {
-  const [{ data: setRows }, { data: resultRows }, { data: history }] = await Promise.all([
+  const [{ data: setRows }, { data: resultRows }, { data: history }, { data: feedbackRows }] =
+    await Promise.all([
     supabase
       .from("set_logs")
       .select(SET_COLUMNS)
@@ -56,11 +57,26 @@ export async function loadWorkoutPerformance(
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(30),
+    supabase
+      .from("workout_feedback")
+      .select("attempt,rpe,difficulty_rating,feeling,enjoyed,would_repeat,comment")
+      .eq("user_id", userId)
+      .eq("workout_id", workoutId)
+      .order("attempt", { ascending: true }),
   ]);
 
   const allSets = (setRows ?? []) as SetLogRow[];
   const allResults = (resultRows ?? []) as WorkoutResultRow[];
   const past = (history ?? []) as WorkoutResultRow[];
+  const allFeedback = (feedbackRows ?? []) as Array<{
+    attempt: number | null;
+    rpe: number | null;
+    difficulty_rating: string | null;
+    feeling: string | null;
+    enjoyed: string | null;
+    would_repeat: string | null;
+    comment: string | null;
+  }>;
 
   // Every attempt number that exists in either table.
   const attemptNumbers = Array.from(
@@ -71,8 +87,20 @@ export async function loadWorkoutPerformance(
     const sets = allSets.filter((s) => (s.attempt ?? 1) === n);
     const result = allResults.find((r) => (r.attempt ?? 1) === n) ?? null;
     const totals = setTotals(sets);
+    const fb = allFeedback.find((f) => (f.attempt ?? 1) === n) ?? null;
     return {
       attempt: n,
+      // The debrief the member answered for THIS session, shown beside its numbers.
+      debrief: fb
+        ? {
+            rpe: fb.rpe,
+            difficulty: fb.difficulty_rating,
+            feeling: fb.feeling,
+            enjoyed: fb.enjoyed,
+            wouldRepeat: fb.would_repeat,
+            comment: fb.comment,
+          }
+        : null,
       performedAt:
         result?.performed_at ??
         result?.created_at ??
@@ -88,7 +116,7 @@ export async function loadWorkoutPerformance(
       totalVolumeKg: totals.volume,
       strengthLoad: result?.strength_load ?? null,
       conditioningLoad: result?.conditioning_load ?? null,
-      rpe: result?.rpe ?? null,
+      rpe: result?.rpe ?? fb?.rpe ?? null,
       note: result?.analysis_note ?? null,
     };
   });

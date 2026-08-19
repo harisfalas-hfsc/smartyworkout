@@ -168,6 +168,35 @@ export function PerformancePanel({
                   </ul>
                 ) : null}
 
+                {a.debrief &&
+                (a.debrief.rpe !== null ||
+                  a.debrief.feeling ||
+                  a.debrief.difficulty ||
+                  a.debrief.enjoyed ||
+                  a.debrief.wouldRepeat) ? (
+                  <div className="mt-2 rounded-lg border border-primary/40 bg-primary/5 p-2">
+                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                      How it felt
+                    </p>
+                    <p className="text-sm font-semibold">
+                      {[
+                        a.debrief.rpe !== null ? `RPE ${a.debrief.rpe}` : null,
+                        a.debrief.feeling ? `felt ${a.debrief.feeling.toLowerCase()}` : null,
+                        a.debrief.difficulty ? a.debrief.difficulty.toLowerCase() : null,
+                        a.debrief.enjoyed ? `enjoyed: ${a.debrief.enjoyed.toLowerCase()}` : null,
+                        a.debrief.wouldRepeat
+                          ? `repeat: ${a.debrief.wouldRepeat.toLowerCase()}`
+                          : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </p>
+                    {a.debrief.comment ? (
+                      <p className="mt-1 text-xs text-muted-foreground">“{a.debrief.comment}”</p>
+                    ) : null}
+                  </div>
+                ) : null}
+
                 {a.note ? (
                   <p className="mt-2 text-sm text-muted-foreground">{a.note}</p>
                 ) : null}
