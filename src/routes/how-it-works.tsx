@@ -336,7 +336,10 @@ function HowItWorks() {
 
         <div className="mt-6 flex justify-center">
           <Button asChild size="lg" className="font-extrabold uppercase">
-            <Link to="/logbook">Open my logbook</Link>
+            <Link to="/logbook" search={{ filter: "all", equip: "all", view: "list" }}>
+              Open my logbook
+            </Link>
+
           </Button>
         </div>
       </section>
