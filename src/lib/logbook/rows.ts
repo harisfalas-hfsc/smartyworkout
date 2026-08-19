@@ -42,10 +42,10 @@ export function matchesFilter(row: LogbookRow, filter: LogbookFilter): boolean {
 }
 
 /** Filters combine as "any of"; equipment narrows the result. */
-export function filterRows(
-  rows: readonly LogbookRow[],
+export function filterRows<T extends LogbookRow>(
+  rows: readonly T[],
   options: { filters: LogbookFilter[]; equipment?: string },
-): LogbookRow[] {
+): T[] {
   const byStatus = options.filters.length
     ? rows.filter((r) => options.filters.some((f) => matchesFilter(r, f)))
     : [...rows];
