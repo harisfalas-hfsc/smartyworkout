@@ -53,8 +53,9 @@ import {
 } from "@/lib/logbook/rows";
 import { equipmentBadges } from "@/lib/format/labels";
 
-type View = "list" | "calendar" | "scheduled";
+type View = "list" | "calendar" | "scheduled" | "progress";
 type LogSearch = { filter: string; view: View; equip?: string };
+
 
 export const Route = createFileRoute("/_authenticated/logbook")({
   validateSearch: (search: Record<string, unknown>): LogSearch => ({
@@ -65,7 +66,10 @@ export const Route = createFileRoute("/_authenticated/logbook")({
         ? ("calendar" as const)
         : search["view"] === "scheduled"
           ? ("scheduled" as const)
-          : ("list" as const),
+          : search["view"] === "progress"
+            ? ("progress" as const)
+            : ("list" as const),
+
   }),
   head: () => ({
     meta: [
@@ -301,13 +305,17 @@ function MonthGrid({
   selected,
   onSelect,
   onlyScheduled,
+  inRange,
 }: {
   cursor: Date;
   byDay: Map<string, Row[]>;
   selected: string;
   onSelect: (key: string) => void;
   onlyScheduled?: boolean;
+  /** When given, highlights every day of the selected period. */
+  inRange?: (key: string) => boolean;
 }) {
+
   const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
   const offset = (first.getDay() + 6) % 7; // Monday-first
   const days = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate();
@@ -332,7 +340,7 @@ function MonthGrid({
           if (!d) return <span key={`e${i}`} />;
           const key = dayKey(d);
           const items = byDay.get(key) ?? [];
-          const isSelected = key === selected;
+          const isSelected = inRange ? inRange(key) : key === selected;
           const dim = onlyScheduled && items.length === 0;
           return (
             <button
@@ -386,13 +394,100 @@ function Legend() {
   );
 }
 
+type SessionLoad = {
+  workoutId: string;
+  attempt: number;
+  performedAt: string;
+  rpe: number | null;
+  strengthLoad: number | null;
+  conditioningLoad: number | null;
+  durationSeconds: number | null;
+};
+
+type PeriodTotals = {
+  sessions: number;
+  strength: number | null;
+  conditioning: number | null;
+  total: number | null;
+  avgRpe: number | null;
+  minutes: number | null;
+};
+
+/** Adds up only what was actually recorded — nothing is estimated. */
+function summariseSessions(list: SessionLoad[]): PeriodTotals {
+  const sum = (pick: (s: SessionLoad) => number | null) => {
+    const values = list.map(pick).filter((v): v is number => v !== null);
+    return values.length ? values.reduce((a, b) => a + b, 0) : null;
+  };
+  const strength = sum((s) => s.strengthLoad);
+  const conditioning = sum((s) => s.conditioningLoad);
+  const rpes = list.map((s) => s.rpe).filter((v): v is number => v !== null);
+  const seconds = sum((s) => s.durationSeconds);
+  return {
+    sessions: list.length,
+    strength,
+    conditioning,
+    total:
+      strength === null && conditioning === null ? null : (strength ?? 0) + (conditioning ?? 0),
+    avgRpe: rpes.length ? Math.round((rpes.reduce((a, b) => a + b, 0) / rpes.length) * 10) / 10 : null,
+    minutes: seconds === null ? null : Math.round(seconds / 60),
+  };
+}
+
+function Tile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-border p-2">
+      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="font-bold">{value}</p>
+    </div>
+  );
+}
+
+function PeriodSummary({
+  title,
+  totals,
+  completedCount,
+  onClear,
+}: {
+  title: string;
+  totals: PeriodTotals;
+  completedCount: number;
+  onClear?: () => void;
+}) {
+  const n = (v: number | null, suffix = "") =>
+    v === null ? "Not logged" : `${Math.round(v).toLocaleString()}${suffix}`;
+  return (
+    <div className="rounded-2xl border-2 border-blue-400 bg-card p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm font-bold">{title}</p>
+        {onClear ? (
+          <Button variant="ghost" size="sm" onClick={onClear}>
+            Single day
+          </Button>
+        ) : null}
+      </div>
+      <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <Tile label="Completed" value={String(completedCount)} />
+        <Tile label="Sessions logged" value={String(totals.sessions)} />
+        <Tile label="Training load" value={n(totals.total)} />
+        <Tile label="Strength load" value={n(totals.strength)} />
+        <Tile label="Conditioning load" value={n(totals.conditioning)} />
+        <Tile label="Average RPE" value={totals.avgRpe === null ? "Not logged" : `${totals.avgRpe} / 10`} />
+      </div>
+    </div>
+  );
+}
+
+
 function CalendarView({
   rows,
+  sessions,
   onToggleFavorite,
   actions,
   busy,
 }: {
   rows: Row[];
+  sessions: SessionLoad[];
   onToggleFavorite: (id: string, next: boolean) => void;
   actions: {
     complete: (id: string) => void;
@@ -405,7 +500,8 @@ function CalendarView({
     const d = new Date();
     return new Date(d.getFullYear(), d.getMonth(), 1);
   });
-  const [selected, setSelected] = useState<string>(() => dayKey(new Date()));
+  const [start, setStart] = useState<string>(() => dayKey(new Date()));
+  const [end, setEnd] = useState<string | null>(null);
 
   const byDay = useMemo(() => {
     const map = new Map<string, Row[]>();
@@ -416,7 +512,21 @@ function CalendarView({
     return map;
   }, [rows]);
 
-  const selectedRows = byDay.get(selected) ?? [];
+  // One tap picks a day. A second tap on a later day makes it a period.
+  function pick(key: string) {
+    if (end || key <= start) {
+      setStart(key);
+      setEnd(null);
+      return;
+    }
+    setEnd(key);
+  }
+
+  const inRange = (key: string) => (end ? key >= start && key <= end : key === start);
+  const periodRows = rows.filter((r) => inRange(dayKey(anchorDate(r))));
+  const periodSessions = sessions.filter((s) => inRange(dayKey(new Date(s.performedAt))));
+  const totals = summariseSessions(periodSessions);
+  const completedCount = periodRows.filter((r) => r.status === "completed").length;
 
   return (
     <div className="space-y-4">
@@ -441,43 +551,59 @@ function CalendarView({
           </Button>
         </div>
 
-        <MonthGrid cursor={cursor} byDay={byDay} selected={selected} onSelect={setSelected} />
+        <MonthGrid
+          cursor={cursor}
+          byDay={byDay}
+          selected={start}
+          onSelect={pick}
+          inRange={inRange}
+        />
         <Legend />
+        <p className="mt-2 text-[11px] text-muted-foreground">
+          Tap a day to see it. Tap a later day to measure the whole period between them.
+        </p>
       </div>
 
-      <div>
-        <p className="mb-2 text-sm font-bold">
-          {formatWeekdayLong(new Date(`${selected}T00:00:00`))}
-        </p>
-        {selectedRows.length === 0 ? (
-          <div className="rounded-2xl border-2 border-blue-400 bg-card p-6 text-center text-sm text-muted-foreground">
-            Nothing on this day.
-          </div>
-        ) : (
-          <ul className="grid gap-3 sm:grid-cols-2">
-            {selectedRows.map((r) => (
-              <li key={r.id}>
-                <WorkoutCard
-                  r={r}
-                  onToggleFavorite={onToggleFavorite}
-                  actions={
-                    <DayActions
-                      r={r}
-                      busy={busy}
-                      onComplete={actions.complete}
-                      onReschedule={actions.reschedule}
-                      onClear={actions.clear}
-                    />
-                  }
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      <PeriodSummary
+        title={
+          end
+            ? `${formatDate(`${start}T00:00:00`)} → ${formatDate(`${end}T00:00:00`)}`
+            : formatWeekdayLong(new Date(`${start}T00:00:00`))
+        }
+        totals={totals}
+        completedCount={completedCount}
+        onClear={end ? () => setEnd(null) : undefined}
+      />
+
+      {periodRows.length === 0 ? (
+        <div className="rounded-2xl border-2 border-blue-400 bg-card p-6 text-center text-sm text-muted-foreground">
+          Nothing on {end ? "these days" : "this day"}.
+        </div>
+      ) : (
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {periodRows.map((r) => (
+            <li key={r.id}>
+              <WorkoutCard
+                r={r}
+                onToggleFavorite={onToggleFavorite}
+                actions={
+                  <DayActions
+                    r={r}
+                    busy={busy}
+                    onComplete={actions.complete}
+                    onReschedule={actions.reschedule}
+                    onClear={actions.clear}
+                  />
+                }
+              />
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
+
 
 /** Scheduled-only calendar: hops month by month through everything you planned. */
 function ScheduledView({

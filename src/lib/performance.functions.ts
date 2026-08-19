@@ -283,3 +283,43 @@ export const savePerformanceEdits = createServerFn({ method: "POST" })
     const recalc = await recalcAttempt(supabase as never, userId, data.workoutId, data.attempt);
     return { saved: data.rows.length, attempt: data.attempt, note: recalc.note };
   });
+
+/**
+ * Every recorded session (one row per attempt) with its dated load figures.
+ * The logbook calendar aggregates these per day or per selected period.
+ */
+export const getSessionLoads = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(() => ({}))
+  .handler(async ({ context }) => {
+    const db = context.supabase as never as { from: (t: string) => any };
+    const { data, error } = await db
+      .from("workout_results")
+      .select(
+        "workout_id,attempt,performed_at,rpe,strength_load,conditioning_load,duration_seconds",
+      )
+      .eq("user_id", context.userId)
+      .order("performed_at", { ascending: true })
+      .limit(1000);
+    if (error) throw new Error(error.message);
+    return {
+      sessions: ((data ?? []) as Array<Record<string, unknown>>).map((r) => ({
+        workoutId: String(r["workout_id"]),
+        attempt: Number(r["attempt"] ?? 1),
+        performedAt: String(r["performed_at"]),
+        rpe: r["rpe"] === null || r["rpe"] === undefined ? null : Number(r["rpe"]),
+        strengthLoad:
+          r["strength_load"] === null || r["strength_load"] === undefined
+            ? null
+            : Number(r["strength_load"]),
+        conditioningLoad:
+          r["conditioning_load"] === null || r["conditioning_load"] === undefined
+            ? null
+            : Number(r["conditioning_load"]),
+        durationSeconds:
+          r["duration_seconds"] === null || r["duration_seconds"] === undefined
+            ? null
+            : Number(r["duration_seconds"]),
+      })),
+    };
+  });
