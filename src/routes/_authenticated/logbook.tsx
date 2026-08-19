@@ -52,7 +52,7 @@ const FILTERS: Array<{ id: Filter; label: string }> = [
 const FILTER_IDS = FILTERS.map((f) => f.id) as string[];
 
 type View = "list" | "calendar" | "scheduled";
-type LogSearch = { filter: string; view: View; equip: string };
+type LogSearch = { filter: string; view: View; equip?: string };
 
 export const Route = createFileRoute("/_authenticated/logbook")({
   validateSearch: (search: Record<string, unknown>): LogSearch => ({
@@ -629,7 +629,8 @@ function ScheduledView({
 }
 
 function Logbook() {
-  const { filter, view, equip } = Route.useSearch();
+  const { filter, view } = Route.useSearch();
+  const equip = Route.useSearch().equip ?? "all";
   const navigate = useNavigate({ from: "/logbook" });
   const [rows, setRows] = useState<Row[] | null>(null);
   const [busy, setBusy] = useState(false);
