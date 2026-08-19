@@ -20,9 +20,9 @@ export type LogbookFilter = "completed" | "planned" | "favorites" | "scheduled";
 
 export const LOGBOOK_FILTERS: { id: LogbookFilter; label: string }[] = [
   { id: "completed", label: "Completed" },
-  { id: "planned", label: "Planned" },
-  { id: "favorites", label: "Favourites" },
+  { id: "planned", label: "Not done" },
   { id: "scheduled", label: "Scheduled" },
+  { id: "favorites", label: "Favourites" },
 ];
 
 export const LOGBOOK_FILTER_IDS = LOGBOOK_FILTERS.map((f) => f.id) as string[];

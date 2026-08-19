@@ -96,6 +96,7 @@ describe("filterMenuLabel", () => {
   it("summarises the active filters", () => {
     expect(filterMenuLabel([], "all")).toBe("All workouts");
     expect(filterMenuLabel(["completed"], "all")).toBe("Completed");
+    expect(filterMenuLabel(["planned"], "all")).toBe("Not done");
     expect(filterMenuLabel(["completed", "favorites"], "all")).toBe("2 filters");
     expect(filterMenuLabel([], "Rower")).toBe("All workouts · Rower");
   });
