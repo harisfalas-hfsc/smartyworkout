@@ -1,15 +1,31 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Activity, ArrowDown, ArrowUp, Loader2, Minus, Pencil } from "lucide-react";
+import { Activity, ArrowDown, ArrowUp, LineChart, Loader2, Minus, Pencil } from "lucide-react";
 import { getWorkoutPerformance } from "@/lib/performance.functions";
 import { Button } from "@/components/ui/button";
 import { formatDateTime } from "@/lib/date-format";
 import { parseWorkoutSteps, type WorkoutStep } from "@/lib/workout/parse-steps";
 import { PerformanceEditorDialog } from "./PerformanceEditorDialog";
+import { AttemptTrendChart, type AttemptPoint } from "./AttemptTrendChart";
 
 type Perf = Awaited<ReturnType<typeof getWorkoutPerformance>>;
 type Attempt = Perf["attempts"][number];
 type Delta = NonNullable<Attempt["comparison"]>["metrics"][number];
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-border p-2">
+      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="font-bold">{value}</p>
+    </div>
+  );
+}
+
+function fmtTime(seconds: number | null | undefined) {
+  if (seconds === null || seconds === undefined) return "Not logged";
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+}
+
 
 function DeltaRow({ m }: { m: Delta }) {
   const tone =
@@ -82,6 +98,17 @@ export function PerformancePanel({
   }
 
   const attempts = data?.attempts ?? [];
+  const chartPoints: AttemptPoint[] = attempts.map((a) => ({
+    attempt: a.attempt,
+    performedAt: a.performedAt,
+    totalReps: a.totalReps,
+    totalVolumeKg: a.totalVolumeKg,
+    strengthLoad: a.strengthLoad,
+    conditioningLoad: a.conditioningLoad,
+    rpe: a.rpe,
+    durationSeconds: a.result?.duration_seconds ?? null,
+  }));
+
 
   return (
     <section className="mt-5 rounded-2xl border-2 border-blue-400 bg-card p-5">
@@ -107,6 +134,15 @@ export function PerformancePanel({
         </>
       ) : (
         <div className="space-y-3">
+          {attempts.length >= 2 ? (
+            <div className="rounded-xl border-2 border-primary/60 bg-primary/5 p-3">
+              <h3 className="mb-2 flex items-center gap-2 text-sm font-bold">
+                <LineChart className="h-4 w-4 text-primary" /> Session comparison
+              </h3>
+              <AttemptTrendChart points={chartPoints} />
+            </div>
+          ) : null}
+
           {[...attempts].reverse().map((a) => {
             const c = a.completion;
             return (
@@ -148,6 +184,38 @@ export function PerformancePanel({
                     </p>
                   </div>
                 </div>
+
+                {/* Read-only session statistics. Editing is a separate, explicit action. */}
+                <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  <Stat
+                    label="RPE"
+                    value={a.rpe === null ? "Not logged" : `${a.rpe} / 10`}
+                  />
+                  <Stat
+                    label="Strength load"
+                    value={a.strengthLoad === null ? "Not logged" : String(Math.round(a.strengthLoad))}
+                  />
+                  <Stat
+                    label="Conditioning load"
+                    value={
+                      a.conditioningLoad === null ? "Not logged" : String(Math.round(a.conditioningLoad))
+                    }
+                  />
+                  <Stat
+                    label="Session load"
+                    value={
+                      a.strengthLoad === null && a.conditioningLoad === null
+                        ? "Not logged"
+                        : String(Math.round((a.strengthLoad ?? 0) + (a.conditioningLoad ?? 0)))
+                    }
+                  />
+                  <Stat
+                    label="Volume"
+                    value={a.totalVolumeKg === null ? "Not logged" : `${Math.round(a.totalVolumeKg)} kg`}
+                  />
+                  <Stat label="Session time" value={fmtTime(a.result?.duration_seconds ?? null)} />
+                </div>
+
 
                 {a.resultText ? (
                   <p className="mt-2 text-sm">
