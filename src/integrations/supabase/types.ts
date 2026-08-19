@@ -662,6 +662,7 @@ export type Database = {
       }
       set_logs: {
         Row: {
+          attempt: number
           completed_at: string
           created_at: string
           distance_m: number | null
@@ -686,6 +687,7 @@ export type Database = {
           workout_id: string
         }
         Insert: {
+          attempt?: number
           completed_at?: string
           created_at?: string
           distance_m?: number | null
@@ -710,6 +712,7 @@ export type Database = {
           workout_id: string
         }
         Update: {
+          attempt?: number
           completed_at?: string
           created_at?: string
           distance_m?: number | null
@@ -1078,6 +1081,7 @@ export type Database = {
       workout_results: {
         Row: {
           analysis_note: string | null
+          attempt: number
           category: string | null
           conditioning_load: number | null
           created_at: string
@@ -1090,6 +1094,8 @@ export type Database = {
           intervals_done: number | null
           intervals_total: number | null
           metric: string | null
+          performed_at: string
+          prescription_hash: string | null
           rounds: number | null
           rpe: number | null
           strength_load: number | null
@@ -1099,6 +1105,7 @@ export type Database = {
         }
         Insert: {
           analysis_note?: string | null
+          attempt?: number
           category?: string | null
           conditioning_load?: number | null
           created_at?: string
@@ -1111,6 +1118,8 @@ export type Database = {
           intervals_done?: number | null
           intervals_total?: number | null
           metric?: string | null
+          performed_at?: string
+          prescription_hash?: string | null
           rounds?: number | null
           rpe?: number | null
           strength_load?: number | null
@@ -1120,6 +1129,7 @@ export type Database = {
         }
         Update: {
           analysis_note?: string | null
+          attempt?: number
           category?: string | null
           conditioning_load?: number | null
           created_at?: string
@@ -1132,6 +1142,8 @@ export type Database = {
           intervals_done?: number | null
           intervals_total?: number | null
           metric?: string | null
+          performed_at?: string
+          prescription_hash?: string | null
           rounds?: number | null
           rpe?: number | null
           strength_load?: number | null
@@ -1143,14 +1155,14 @@ export type Database = {
           {
             foreignKeyName: "workout_results_workout_id_fkey"
             columns: ["workout_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "community_workouts_public"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "workout_results_workout_id_fkey"
             columns: ["workout_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "workouts"
             referencedColumns: ["id"]
           },
