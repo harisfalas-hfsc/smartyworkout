@@ -31,9 +31,6 @@ export interface AutoAnswer {
   score: number;
 }
 
-const SIGNATURE =
-  "If this does not solve it, just reply to this message — Haris will answer you personally within 24–48 hours.\n\nYours in good health,\nHaris Falas, BSc Sports Science, Exo Specialist, CSCS";
-
 interface Rule {
   topic: SupportTopic;
   label: string;
@@ -198,6 +195,11 @@ const RULES: Rule[] = [
   },
 ];
 
+const WOD_AND_MANUAL_GENERATION_BODY =
+  "No. Workout of the Day mode and manual Smarty Coach generation cannot be used at the same time.\n\n" +
+  "Workout of the Day already creates your two workouts for the day automatically: one equipment workout and one bodyweight workout. Those two workouts are your daily pair, so manual generation is paused while Workout of the Day mode is active.\n\n" +
+  "If you prefer to create your own two workouts with the Smarty Coach questionnaire, unsubscribe from Workout of the Day mode first. You can switch between the two options, but you cannot receive the two automatic Workout of the Day workouts and generate two additional workouts on the same day.";
+
 const ESCALATION_BODY =
   "Thanks for coming back to us.\n\n" +
   "This one needs a human, so it is now in front of Haris personally. You will get a proper answer here (and by email) within 24–48 hours — usually much sooner.\n\n" +
@@ -213,13 +215,34 @@ export function classifySupportMessage(subject: string, message: string): AutoAn
   const text = `${subject ?? ""} \n ${message ?? ""}`.toLowerCase();
   if (text.trim().length < 3) return null;
 
+  const asksAboutWod = text.includes("workout of the day") || text.includes("wod");
+  const asksAboutManualGeneration = [
+    "generate",
+    "create a workout",
+    "create my workout",
+    "make a workout",
+    "own workout",
+    "another workout",
+    "additional workout",
+    "two workouts",
+    "2 workouts",
+  ].some((phrase) => text.includes(phrase));
+  if (asksAboutWod && asksAboutManualGeneration) {
+    return {
+      topic: "subscription",
+      label: "Workout of the Day or manual workouts",
+      body: WOD_AND_MANUAL_GENERATION_BODY,
+      score: 10,
+    };
+  }
+
   let best: AutoAnswer | null = null;
   for (const rule of RULES) {
     let score = 0;
     for (const k of rule.strong ?? []) if (text.includes(k)) score += 2;
     for (const k of rule.keywords) if (text.includes(k)) score += 1;
     if (score > 0 && (!best || score > best.score)) {
-      best = { topic: rule.topic, label: rule.label, body: `${rule.body}\n\n${SIGNATURE}`, score };
+      best = { topic: rule.topic, label: rule.label, body: rule.body, score };
     }
   }
   // Require at least one strong hit (2) or two weak hits before answering.
