@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { setWorkoutStatus } from "@/lib/coach.functions";
+import { generateWorkout, setWorkoutStatus } from "@/lib/coach.functions";
 import { reactToWorkout, rateWorkout } from "@/lib/community.functions";
 import { deleteNotifications, setNotificationsRead } from "@/lib/daily.functions";
 import { deleteMyThreads, setThreadsRead } from "@/lib/support.functions";
@@ -23,6 +23,7 @@ export function OfflineSync() {
   const setThreadRead = useServerFn(setThreadsRead);
   const removeThreads = useServerFn(deleteMyThreads);
   const saveDebrief = useServerFn(saveSessionFeedback);
+  const generate = useServerFn(generateWorkout);
   const busy = useRef(false);
 
   useEffect(() => {
@@ -49,6 +50,24 @@ export function OfflineSync() {
         }
         case "attempt-complete":
           return;
+        case "profile-save": {
+          const { clientKey: _clientKey, userId, ...payload } = action.payload as Record<string, unknown> & {
+            userId: string;
+          };
+          const { error } = await supabase
+            .from("profiles")
+            .update(payload as never)
+            .eq("id", userId);
+          if (error) throw new Error(error.message);
+          toast.success("Your training profile is now saved to your account.");
+          return;
+        }
+        case "workout-generate": {
+          const { clientKey: _clientKey, ...payload } = action.payload as Record<string, unknown>;
+          await generate({ data: payload } as never);
+          toast.success("Your saved workout request has been created.");
+          return;
+        }
         case "workout-status":
           await saveStatus({ data: p });
           return;
@@ -111,7 +130,7 @@ export function OfflineSync() {
 
     void flush();
     return onSyncRequested(() => void flush());
-  }, [online, saveStatus, react, rate, setNotificationRead, removeNotifications, setThreadRead, removeThreads, saveDebrief]);
+  }, [online, generate, saveStatus, react, rate, setNotificationRead, removeNotifications, setThreadRead, removeThreads, saveDebrief]);
 
   return null;
 }
