@@ -141,26 +141,40 @@ export function deriveStepTracking(input: {
     category === "RECOVERY" ||
     category === "MICRO-WORKOUTS"
   ) {
-    return { primary: "completion", load: false, distance: false, metric: "completion", setBased: false };
+    return { primary: "completion", load: false, distance: false, metric: "completion", setBased: false, windowSeconds: null };
   }
 
   if (has(text, DISTANCE_WORDS) && (planned.distanceM !== null || planned.seconds !== null)) {
-    return { primary: "duration", load: false, distance: true, metric: "distance", setBased: false };
-  }
-
-  if (has(text, HOLD_WORDS) || (planned.reps === null && planned.seconds !== null)) {
-    return { primary: "duration", load: false, distance: false, metric: "hold", setBased: true };
+    return { primary: "duration", load: false, distance: true, metric: "distance", setBased: false, windowSeconds: planned.seconds };
   }
 
   const equipment = (input.equipment ?? "").trim().toLowerCase();
   const unloaded =
     BODYWEIGHT_EQUIPMENT.has(equipment) || UNLOADED_CATEGORIES.has(category);
 
-  if (unloaded) {
-    return { primary: "reps", load: false, distance: false, metric: "reps", setBased: true };
+  // A stated duration on an isometric position is genuinely a hold.
+  if (has(text, HOLD_WORDS)) {
+    return { primary: "duration", load: false, distance: false, metric: "hold", setBased: true, windowSeconds: planned.seconds };
   }
 
-  return { primary: "reps", load: true, distance: false, metric: "reps_load", setBased: true };
+  // A stated duration on a countable movement ("20 sec dumbbell clean") is a
+  // fixed work window: what matters is how many reps fit inside it.
+  if (planned.reps === null && planned.seconds !== null) {
+    return {
+      primary: "reps",
+      load: !unloaded,
+      distance: false,
+      metric: "reps_in_time",
+      setBased: true,
+      windowSeconds: planned.seconds,
+    };
+  }
+
+  if (unloaded) {
+    return { primary: "reps", load: false, distance: false, metric: "reps", setBased: true, windowSeconds: null };
+  }
+
+  return { primary: "reps", load: true, distance: false, metric: "reps_load", setBased: true, windowSeconds: null };
 }
 
 // ---------------------------------------------------------------------------
