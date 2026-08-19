@@ -95,6 +95,8 @@ export function PerformancePanel({
   const [data, setData] = useState<Perf | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<number | null>(null);
+  // Only one session is expanded at a time, so a long history stays one screen tall.
+  const [openAttempt, setOpenAttempt] = useState<number | null>(null);
 
   const steps: WorkoutStep[] = useMemo(
     () => (html ? parseWorkoutSteps(html) : []),
@@ -169,25 +171,48 @@ export function PerformancePanel({
             </div>
           ) : null}
 
-          {[...attempts].reverse().map((a) => {
+          {[...attempts].reverse().map((a, i) => {
             const c = a.completion;
+            const verdict = attemptVerdict(a);
+            const style = verdict ? VERDICT_STYLE[verdict] : null;
+            const open = (openAttempt ?? attempts[attempts.length - 1]?.attempt) === a.attempt;
             return (
-              <article key={a.attempt} className="rounded-xl border border-border p-3">
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div>
-                    <p className="font-semibold">
+              <article
+                key={a.attempt}
+                className={`overflow-hidden rounded-xl border ${style ? style.border : "border-border"}`}
+              >
+                <button
+                  type="button"
+                  aria-expanded={open}
+                  onClick={() => setOpenAttempt(open ? -1 : a.attempt)}
+                  className="flex w-full items-center gap-3 p-3 text-left"
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-semibold">
                       {a.performedAt ? formatDateTime(a.performedAt) : "Undated session"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
+                    </span>
+                    <span className="block text-xs text-muted-foreground">
                       Session {a.attempt} of {attempts.length}
-                    </p>
-                  </div>
-                  {steps.length ? (
+                      {i === 0 ? " · latest" : ""}
+                    </span>
+                  </span>
+                  {style ? (
+                    <span className={`shrink-0 text-xs font-bold ${style.text}`}>{style.label}</span>
+                  ) : null}
+                  <ChevronDown
+                    className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
+                  />
+                </button>
+
+                {!open ? null : (
+                <div className="border-t border-border p-3">
+                {steps.length ? (
+                  <div className="mb-2 flex justify-end">
                     <Button variant="ghost" size="sm" onClick={() => setEditing(a.attempt)}>
                       <Pencil className="mr-1.5 h-3.5 w-3.5" /> Edit
                     </Button>
-                  ) : null}
-                </div>
+                  </div>
+                ) : null}
 
                 <div className="mt-2 grid gap-2 sm:grid-cols-2">
                   <div className="rounded-lg border border-border p-2">
@@ -294,6 +319,8 @@ export function PerformancePanel({
                 {a.note ? (
                   <p className="mt-2 text-sm text-muted-foreground">{a.note}</p>
                 ) : null}
+                </div>
+                )}
               </article>
             );
           })}
