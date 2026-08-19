@@ -52,11 +52,12 @@ const FILTERS: Array<{ id: Filter; label: string }> = [
 const FILTER_IDS = FILTERS.map((f) => f.id) as string[];
 
 type View = "list" | "calendar" | "scheduled";
-type LogSearch = { filter: string; view: View };
+type LogSearch = { filter: string; view: View; equip: string };
 
 export const Route = createFileRoute("/_authenticated/logbook")({
   validateSearch: (search: Record<string, unknown>): LogSearch => ({
     filter: String(search["filter"] ?? "all"),
+    equip: String(search["equip"] ?? "all"),
     view:
       search["view"] === "calendar"
         ? ("calendar" as const)
@@ -93,6 +94,7 @@ type Row = {
   created_at: string;
   is_wod: boolean | null;
   created_by: string | null;
+  equipment: string[] | null;
   workout_feedback: Array<{ difficulty_rating: string | null; feeling: string | null }>;
 };
 
@@ -197,6 +199,24 @@ function WorkoutCard({
             <StatusLine r={r} />
           </span>
         </div>
+
+        {r.equipment?.length ? (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {r.equipment.slice(0, 4).map((e) => (
+              <span
+                key={e}
+                className="rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold capitalize text-primary"
+              >
+                {e}
+              </span>
+            ))}
+            {r.equipment.length > 4 ? (
+              <span className="rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground">
+                +{r.equipment.length - 4}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
 
         {r.mood || r.workout_feedback?.[0]?.difficulty_rating ? (
           <p className="mt-2 text-xs text-muted-foreground">
@@ -609,7 +629,7 @@ function ScheduledView({
 }
 
 function Logbook() {
-  const { filter, view } = Route.useSearch();
+  const { filter, view, equip } = Route.useSearch();
   const navigate = useNavigate({ from: "/logbook" });
   const [rows, setRows] = useState<Row[] | null>(null);
   const [busy, setBusy] = useState(false);
@@ -621,7 +641,7 @@ function Logbook() {
     const { data, error } = await supabase
       .from("workouts")
       .select(
-        "id,name,category,duration_min,difficulty_stars,difficulty_label,mood,status,is_favorite,scheduled_at,completed_at,created_at,is_wod,created_by,workout_feedback(difficulty_rating,feeling)",
+        "id,name,category,duration_min,difficulty_stars,difficulty_label,mood,status,is_favorite,scheduled_at,completed_at,created_at,is_wod,created_by,equipment,workout_feedback(difficulty_rating,feeling)",
       )
       .order("created_at", { ascending: false })
       .limit(300);
@@ -701,6 +721,10 @@ function Logbook() {
       ),
   };
 
+  function setEquip(next: string) {
+    void navigate({ search: (p: LogSearch) => ({ ...p, equip: next }) });
+  }
+
   function setActive(next: Filter[]) {
     const value = next.length ? next.join(",") : "all";
     void navigate({ search: (p: LogSearch) => ({ ...p, filter: value }) });
@@ -714,7 +738,12 @@ function Logbook() {
     );
 
   // Multiple filters combine as "any of" — pick favourites + scheduled to see both.
-  const filtered = active.length ? rows.filter((r) => active.some((f) => matches(r, f))) : rows;
+  const byStatus = active.length ? rows.filter((r) => active.some((f) => matches(r, f))) : rows;
+  const filtered =
+    equip === "all" ? byStatus : byStatus.filter((r) => (r.equipment ?? []).includes(equip));
+  const equipmentOptions = Array.from(
+    new Set(rows.flatMap((r) => r.equipment ?? []).filter(Boolean)),
+  ).sort((a, b) => a.localeCompare(b));
 
   const label =
     active.length === 0
@@ -722,6 +751,7 @@ function Logbook() {
       : active.length === 1
         ? FILTERS.find((f) => f.id === active[0])!.label
         : `${active.length} filters`;
+  const menuLabel = equip === "all" ? label : `${label} · ${equip}`;
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">
@@ -791,7 +821,7 @@ function Logbook() {
                 <Button variant="outline" className="h-11 w-full justify-between rounded-2xl">
                   <span className="inline-flex items-center gap-2 truncate">
                     <ListFilter className="h-4 w-4 shrink-0" />
-                    {label}
+                    {menuLabel}
                   </span>
                   <span className="shrink-0 text-muted-foreground">{filtered.length}</span>
                 </Button>
@@ -818,6 +848,29 @@ function Logbook() {
                     {f.label} · {rows.filter((r) => matches(r, f.id)).length}
                   </DropdownMenuCheckboxItem>
                 ))}
+                {equipmentOptions.length ? (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel>Equipment</DropdownMenuLabel>
+                    <DropdownMenuCheckboxItem
+                      checked={equip === "all"}
+                      onCheckedChange={() => setEquip("all")}
+                      className="h-11"
+                    >
+                      Any equipment
+                    </DropdownMenuCheckboxItem>
+                    {equipmentOptions.map((e) => (
+                      <DropdownMenuCheckboxItem
+                        key={e}
+                        checked={equip === e}
+                        onCheckedChange={(checked) => setEquip(checked ? e : "all")}
+                        className="h-11 capitalize"
+                      >
+                        {e} · {rows.filter((r) => (r.equipment ?? []).includes(e)).length}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </>
+                ) : null}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
