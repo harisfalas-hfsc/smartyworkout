@@ -71,10 +71,12 @@ function Stars({ n }: { n: number }) {
 export function WorkoutDisplay({
   workout,
   onComplete,
+  onPlayerClosed,
   children,
 }: {
   workout: WorkoutRow;
   onComplete: () => void;
+  onPlayerClosed?: () => void;
   children?: React.ReactNode;
 }) {
   const html = workout.main_workout ?? "";
@@ -331,7 +333,10 @@ export function WorkoutDisplay({
 
       <WorkoutPlayerDialog
         open={player}
-        onOpenChange={setPlayer}
+        onOpenChange={(o) => {
+          setPlayer(o);
+          if (!o) onPlayerClosed?.();
+        }}
         steps={steps}
         softTissue={softTissue}
         workoutName={workout.name}
@@ -342,6 +347,7 @@ export function WorkoutDisplay({
         onFinish={() => {
           setPlayer(false);
           onComplete();
+          onPlayerClosed?.();
         }}
       />
 

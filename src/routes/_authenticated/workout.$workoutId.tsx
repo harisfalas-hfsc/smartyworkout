@@ -91,22 +91,22 @@ function WorkoutPage() {
   }, [cached.data, cached.loading]);
 
 
-  useEffect(() => {
-    let active = true;
-    readFeedback({ data: { workoutId } })
-      .then((res) => {
-        if (active) setFeedback((res as { feedback: SessionFeedback | null }).feedback);
-      })
-      .catch(() => {
-        /* offline — the debrief can still be answered and queued */
-      });
-    return () => {
-      active = false;
-    };
+  const refreshFeedback = useCallback(async () => {
+    try {
+      const res = await readFeedback({ data: { workoutId } });
+      setFeedback((res as { feedback: SessionFeedback | null }).feedback);
+    } catch {
+      /* offline — the debrief can still be answered and queued */
+    }
   }, [workoutId, readFeedback]);
+
+  useEffect(() => {
+    void refreshFeedback();
+  }, [refreshFeedback]);
 
   async function complete() {
     setDone(true);
+    void refreshFeedback();
     try {
       await saveStatus({ data: { workoutId, status: "completed" } });
       toast.success("Marked as completed.");
@@ -206,7 +206,13 @@ function WorkoutPage() {
   );
 
   return (
-    <WorkoutDisplay workout={w} onComplete={complete}>
+    <WorkoutDisplay
+      workout={w}
+      onComplete={complete}
+      onPlayerClosed={() => {
+        void refreshFeedback();
+      }}
+    >
       <CachedNotice savedAt={cached.savedAt} show={cached.fromCache} />
       <WorkoutStatusPanel
         workoutId={workoutId}
@@ -259,10 +265,11 @@ function WorkoutPage() {
       ) : (
         <section className="mt-6 space-y-4 rounded-2xl border-2 border-blue-400 bg-card p-5">
           <div>
-            <h3 className="text-lg font-bold">How was the workout?</h3>
+            <h3 className="text-lg font-bold">Your session debrief</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              Private — only you and Smarty Coach see this. Four quick questions, and they are the
-              same ones the player asks, so you never answer twice.
+              {hasAnswers
+                ? "Saved from your session — private, only you and Smarty Coach see it. Edit any answer and it updates everywhere."
+                : "Private — only you and Smarty Coach see this. If you already answered in the player, your answers appear here automatically."}
             </p>
           </div>
 
