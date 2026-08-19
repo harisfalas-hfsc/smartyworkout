@@ -185,6 +185,38 @@ export function PerformancePanel({
                   </div>
                 </div>
 
+                {/* Read-only session statistics. Editing is a separate, explicit action. */}
+                <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  <Stat
+                    label="RPE"
+                    value={a.rpe === null ? "Not logged" : `${a.rpe} / 10`}
+                  />
+                  <Stat
+                    label="Strength load"
+                    value={a.strengthLoad === null ? "Not logged" : String(Math.round(a.strengthLoad))}
+                  />
+                  <Stat
+                    label="Conditioning load"
+                    value={
+                      a.conditioningLoad === null ? "Not logged" : String(Math.round(a.conditioningLoad))
+                    }
+                  />
+                  <Stat
+                    label="Session load"
+                    value={
+                      a.strengthLoad === null && a.conditioningLoad === null
+                        ? "Not logged"
+                        : String(Math.round((a.strengthLoad ?? 0) + (a.conditioningLoad ?? 0)))
+                    }
+                  />
+                  <Stat
+                    label="Volume"
+                    value={a.totalVolumeKg === null ? "Not logged" : `${Math.round(a.totalVolumeKg)} kg`}
+                  />
+                  <Stat label="Session time" value={fmtTime(a.result?.duration_seconds ?? null)} />
+                </div>
+
+
                 {a.resultText ? (
                   <p className="mt-2 text-sm">
                     <span className="font-semibold text-primary">Result:</span> {a.resultText}
