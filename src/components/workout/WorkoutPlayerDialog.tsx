@@ -102,6 +102,22 @@ export function WorkoutPlayerDialog({
     [slide],
   );
 
+  const equipment =
+    slide?.kind === "exercise" ? (details[slide.step.exerciseId]?.equipment ?? null) : null;
+
+  // What is worth recording on THIS step — never a blanket assumption.
+  const tracking = useMemo(
+    () =>
+      slide?.kind === "exercise"
+        ? deriveStepTracking({ step: slide.step, category, format, equipment })
+        : null,
+    [slide, category, format, equipment],
+  );
+  const planned = useMemo(
+    () => (slide?.kind === "exercise" ? parsePlanned(slide.step.prescription) : null),
+    [slide],
+  );
+
   // Preload media for the current window of slides.
   useEffect(() => {
     if (!open) return;
@@ -120,18 +136,32 @@ export function WorkoutPlayerDialog({
     setRound(1);
     setReps("");
     setWeight("");
+    setHeldSeconds("");
+    setDistance("");
     if (timing.mode === "timed") setRemaining(timing.seconds);
     else if (timing.mode === "tabata") setRemaining(timing.work);
     else setRemaining(0);
   }, [index, timing]);
 
   async function logSet() {
-    if (!slide || slide.kind !== "exercise") return;
-    const repsValue = reps.trim() ? Number(reps) : null;
-    const weightValue = weight.trim() ? Number(weight) : null;
-    const secondsValue = timing.mode === "timed" ? timing.seconds : null;
-    if (repsValue === null && weightValue === null && secondsValue === null) {
-      toast.error("Add reps or weight first.");
+    if (!slide || slide.kind !== "exercise" || !tracking) return;
+    const repsValue = tracking.primary === "reps" && reps.trim() ? Number(reps) : null;
+    const weightValue = tracking.load && weight.trim() ? Number(weight) : null;
+    const distanceValue = tracking.distance && distance.trim() ? Number(distance) : null;
+    const typedSeconds = heldSeconds.trim() ? Number(heldSeconds) : null;
+    const measuredSeconds =
+      tracking.primary === "duration" && timing.mode === "timed" && remaining < timing.seconds
+        ? timing.seconds - remaining
+        : null;
+    const secondsValue = typedSeconds ?? measuredSeconds;
+
+    if (
+      repsValue === null &&
+      weightValue === null &&
+      secondsValue === null &&
+      distanceValue === null
+    ) {
+      toast.error("Nothing to log yet — add a value first.");
       return;
     }
     setSavingSet(true);
@@ -152,6 +182,15 @@ export function WorkoutPlayerDialog({
       reps: repsValue,
       weight_kg: weightValue,
       seconds: secondsValue,
+      distance_m: distanceValue,
+      metric: tracking.metric,
+      // Planned values are parsed from the prescription so planned vs actual is
+      // possible. Nothing is filled in on the athlete's behalf.
+      planned_reps: planned?.reps ?? null,
+      planned_weight_kg: planned?.weightKg ?? null,
+      planned_seconds: planned?.seconds ?? null,
+      partial:
+        planned?.reps != null && repsValue != null ? repsValue < planned.reps : false,
     } as never);
     setSavingSet(false);
     if (error) {
@@ -161,8 +200,51 @@ export function WorkoutPlayerDialog({
     setLogged((prev) => ({ ...prev, [index]: setNumber }));
     setReps("");
     setWeight("");
+    setHeldSeconds("");
+    setDistance("");
     toast.success(`Set ${setNumber} logged.`);
   }
+
+  function finishWorkout() {
+    if (resultModel.metric !== "none") {
+      setResultOpen(true);
+      return;
+    }
+    onFinish();
+  }
+
+  async function submitResult(result: WorkoutResultInput) {
+    setResultOpen(false);
+    const hasAnything =
+      result.durationSeconds !== null ||
+      result.rounds !== null ||
+      result.intervalsDone !== null ||
+      result.finished !== null ||
+      result.rpe !== null;
+    if (hasAnything) {
+      try {
+        await storeResult({
+          data: {
+            workoutId,
+            format,
+            category,
+            metric: resultModel.metric,
+            durationSeconds: result.durationSeconds,
+            rounds: result.rounds,
+            extraReps: result.extraReps,
+            intervalsDone: result.intervalsDone,
+            intervalsTotal: resultModel.intervalsTotal,
+            finished: result.finished,
+            rpe: result.rpe,
+          },
+        });
+      } catch {
+        toast.error("Your result could not be saved, but the workout still counts.");
+      }
+    }
+    onFinish();
+  }
+
 
 
   useEffect(() => {
