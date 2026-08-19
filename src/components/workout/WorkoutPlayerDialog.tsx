@@ -351,7 +351,6 @@ export function WorkoutPlayerDialog({
         const performedAt = new Date(startedAtRef.current ?? Date.now()).toISOString();
         const local = await saveLocalResult(user.id, {
             id,
-            workoutId,
             workout_id: workoutId,
             attempt,
             prescription_hash: planHash,
