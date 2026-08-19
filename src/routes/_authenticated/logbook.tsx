@@ -52,6 +52,8 @@ import {
   type LogbookFilter as Filter,
 } from "@/lib/logbook/rows";
 import { equipmentBadges } from "@/lib/format/labels";
+import { getSessionLoads } from "@/lib/performance.functions";
+import { ProgressSection } from "@/components/progress/ProgressSection";
 
 type View = "list" | "calendar" | "scheduled" | "progress";
 type LogSearch = { filter: string; view: View; equip?: string };
@@ -907,6 +909,7 @@ function Logbook() {
         <div className="mt-4">
           <CalendarView
             rows={rows}
+            sessions={sessions}
             onToggleFavorite={toggleFavorite}
             actions={actions}
             busy={busy}
