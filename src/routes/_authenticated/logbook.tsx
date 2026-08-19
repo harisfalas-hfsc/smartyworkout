@@ -66,7 +66,10 @@ export const Route = createFileRoute("/_authenticated/logbook")({
         ? ("calendar" as const)
         : search["view"] === "scheduled"
           ? ("scheduled" as const)
-          : ("list" as const),
+          : search["view"] === "progress"
+            ? ("progress" as const)
+            : ("list" as const),
+
   }),
   head: () => ({
     meta: [
