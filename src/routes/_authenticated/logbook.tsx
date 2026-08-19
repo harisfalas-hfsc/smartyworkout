@@ -410,7 +410,6 @@ type PeriodTotals = {
   sessions: number;
   strength: number | null;
   conditioning: number | null;
-  total: number | null;
   avgRpe: number | null;
   minutes: number | null;
 };
@@ -429,8 +428,6 @@ function summariseSessions(list: SessionLoad[]): PeriodTotals {
     sessions: list.length,
     strength,
     conditioning,
-    total:
-      strength === null && conditioning === null ? null : (strength ?? 0) + (conditioning ?? 0),
     avgRpe: rpes.length ? Math.round((rpes.reduce((a, b) => a + b, 0) / rpes.length) * 10) / 10 : null,
     minutes: seconds === null ? null : Math.round(seconds / 60),
   };
@@ -471,10 +468,10 @@ function PeriodSummary({
       <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
         <Tile label="Completed" value={String(completedCount)} />
         <Tile label="Sessions logged" value={String(totals.sessions)} />
-        <Tile label="Training load" value={n(totals.total)} />
-        <Tile label="Strength load" value={n(totals.strength)} />
-        <Tile label="Conditioning load" value={n(totals.conditioning)} />
+        <Tile label="Strength volume" value={n(totals.strength, " kg")} />
+        <Tile label="Conditioning work" value={n(totals.conditioning, " sec")} />
         <Tile label="Average RPE" value={totals.avgRpe === null ? "Not logged" : `${totals.avgRpe} / 10`} />
+        <Tile label="Recorded duration" value={n(totals.minutes, " min")} />
       </div>
     </div>
   );
@@ -504,6 +501,7 @@ function CalendarView({
   });
   const [start, setStart] = useState<string>(() => dayKey(new Date()));
   const [end, setEnd] = useState<string | null>(null);
+  const [selectionMode, setSelectionMode] = useState<"day" | "period">("day");
 
   const byDay = useMemo(() => {
     const map = new Map<string, Row[]>();
@@ -514,14 +512,25 @@ function CalendarView({
     return map;
   }, [rows]);
 
-  // One tap picks a day. A second tap on a later day makes it a period.
   function pick(key: string) {
-    if (end || key <= start) {
+    if (selectionMode === "day") {
       setStart(key);
       setEnd(null);
       return;
     }
-    setEnd(key);
+    if (end) {
+      setStart(key);
+      setEnd(null);
+      return;
+    }
+    if (key < start) {
+      setEnd(start);
+      setStart(key);
+    } else if (key === start) {
+      setEnd(null);
+    } else {
+      setEnd(key);
+    }
   }
 
   const inRange = (key: string) => (end ? key >= start && key <= end : key === start);
@@ -533,6 +542,22 @@ function CalendarView({
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border-2 border-blue-400 bg-card p-4">
+        <div className="mb-3 grid grid-cols-2 gap-2" aria-label="Calendar selection mode">
+          <Button
+            type="button"
+            variant={selectionMode === "day" ? "default" : "secondary"}
+            onClick={() => { setSelectionMode("day"); setEnd(null); }}
+          >
+            One day
+          </Button>
+          <Button
+            type="button"
+            variant={selectionMode === "period" ? "default" : "secondary"}
+            onClick={() => { setSelectionMode("period"); setEnd(null); }}
+          >
+            Date range
+          </Button>
+        </div>
         <div className="flex items-center justify-between">
           <Button
             variant="ghost"
@@ -561,9 +586,14 @@ function CalendarView({
           inRange={inRange}
         />
         <Legend />
-        <p className="mt-2 text-[11px] text-muted-foreground">
-          Tap a day to see it. Tap a later day to measure the whole period between them.
+        <p className="mt-2 text-sm font-medium text-foreground">
+          {selectionMode === "day"
+            ? "Select any day to see its workouts, recorded load, duration, and RPE."
+            : end
+              ? "Range selected. Select another day to start a new range."
+              : "Select the first day, then select the last day of the range."}
         </p>
+        <p className="mt-1 text-[11px] text-muted-foreground">A blue filled cell is selected. A blue outline without fill marks today.</p>
       </div>
 
       <PeriodSummary
@@ -574,7 +604,7 @@ function CalendarView({
         }
         totals={totals}
         completedCount={completedCount}
-        onClear={end ? () => setEnd(null) : undefined}
+        onClear={end ? () => { setSelectionMode("day"); setEnd(null); } : undefined}
       />
 
       {periodRows.length === 0 ? (
