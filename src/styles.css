@@ -202,3 +202,24 @@ body {
 body {
   -webkit-tap-highlight-color: transparent;
 }
+
+/* Native-app feel on mobile: hide every scrollbar (page, cards, dialogs,
+ * popovers, sheets, drawers). Desktop keeps its scrollbars untouched. */
+@media (max-width: 767px) {
+  html,
+  body,
+  * {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  *::-webkit-scrollbar,
+  *::-webkit-scrollbar-thumb,
+  *::-webkit-scrollbar-track {
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
+    background: transparent !important;
+  }
+}
