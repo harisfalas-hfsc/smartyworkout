@@ -283,7 +283,12 @@ function WorkoutPage() {
         }}
       />
 
-      <PerformancePanel workoutId={workoutId} />
+      <PerformancePanel
+        workoutId={workoutId}
+        html={[w.warm_up, w.main_workout, w.finisher, w.cool_down].filter(Boolean).join("\n")}
+        category={w.category ?? null}
+        format={w.format ?? null}
+      />
 
 
 
