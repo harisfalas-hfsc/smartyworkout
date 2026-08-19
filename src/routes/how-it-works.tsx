@@ -278,6 +278,45 @@ function HowItWorks() {
         </div>
       </section>
 
+      <section className="mt-6 rounded-2xl border-2 border-blue-400 bg-card p-5 sm:p-8">
+        <p className="text-center text-[11px] font-bold uppercase tracking-[0.18em] text-primary">
+          After you train — tracking &amp; progress
+        </p>
+        <h2 className="mt-2 text-center text-xl font-extrabold uppercase sm:text-2xl">
+          Every session becomes data that improves the next one.
+        </h2>
+        <p className="mx-auto mt-2 max-w-2xl text-center text-sm leading-6 text-muted-foreground">
+          The workout is only half of it. Smarty Workout records what you actually did, how it felt,
+          and how it compares with the last time you did the same session — then feeds all of it
+          back to Smarty Coach.
+        </p>
+
+        <div className="mt-6 grid gap-6 sm:grid-cols-4 sm:gap-4">
+          {TRACKING_STEPS.map((s) => (
+            <div key={s.n} className="flex flex-col items-center text-center">
+              <div className="text-4xl font-black leading-none text-primary sm:text-5xl">
+                {s.n}
+              </div>
+              <div className="mt-3 text-base font-bold uppercase">{s.title}</div>
+              <div className="mt-1 text-sm text-muted-foreground">{s.desc}</div>
+            </div>
+          ))}
+        </div>
+
+        <p className="mt-6 text-center text-sm font-semibold leading-snug text-muted-foreground">
+          Achievements unlock as you train, notifications remind you about scheduled sessions, and{" "}
+          <span className="text-primary">offline mode</span> keeps your workouts, logbook and player
+          working with no signal — everything syncs when you are back online.
+        </p>
+
+        <div className="mt-6 flex justify-center">
+          <Button asChild size="lg" className="font-extrabold uppercase">
+            <Link to="/logbook">Open my logbook</Link>
+          </Button>
+        </div>
+      </section>
+
     </div>
+
   );
 }
