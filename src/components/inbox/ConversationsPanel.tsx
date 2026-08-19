@@ -1,10 +1,26 @@
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Mail, MailOpen, MessageSquare, Send, Trash2 } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Loader2,
+  Mail,
+  MailOpen,
+  MessageSquare,
+  Send,
+  Trash2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   deleteMyThreads,
   listMyThreads,
@@ -48,6 +64,8 @@ export function ConversationsPanel({
   const [newSubject, setNewSubject] = useState("");
   const [newBody, setNewBody] = useState("");
   const [composing, setComposing] = useState(Boolean(defaultComposing));
+  const [readFilter, setReadFilter] = useState<"all" | "unread" | "read">("all");
+  const [sortOrder, setSortOrder] = useState<"latest" | "oldest">("latest");
 
   const reload = useCallback(async () => {
     try {
@@ -63,6 +81,17 @@ export function ConversationsPanel({
   }, [reload]);
 
   const unread = useMemo(() => threads.filter((t) => t.user_unread).length, [threads]);
+  const visibleThreads = useMemo(() => {
+    const filtered = threads.filter((thread) => {
+      if (readFilter === "unread") return thread.user_unread;
+      if (readFilter === "read") return !thread.user_unread;
+      return true;
+    });
+    return [...filtered].sort((a, b) => {
+      const difference = new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime();
+      return sortOrder === "latest" ? difference : -difference;
+    });
+  }, [readFilter, sortOrder, threads]);
 
   useEffect(() => {
     onUnread?.(unread);
@@ -172,21 +201,48 @@ export function ConversationsPanel({
   return (
     <div>
 
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        <Button onClick={() => setComposing((v) => !v)} className="rounded-2xl">
-          <MessageSquare className="mr-2 h-4 w-4" /> New message
+      <div className="mb-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+        <Button
+          variant={composing ? "default" : "secondary"}
+          onClick={() => setComposing((v) => !v)}
+          className="rounded-2xl"
+          aria-pressed={composing}
+        >
+          <MessageSquare className="mr-2 h-4 w-4" /> {composing ? "Close form" : "New message"}
         </Button>
         <Button variant="secondary" className="rounded-2xl" onClick={markAllRead} disabled={!unread}>
           <MailOpen className="mr-2 h-4 w-4" /> Mark all read
         </Button>
         <Button
           variant="ghost"
-          className="rounded-2xl text-destructive"
+          className="col-span-2 rounded-2xl text-destructive sm:col-span-1"
           onClick={deleteAll}
           disabled={!threads.length}
         >
           <Trash2 className="mr-2 h-4 w-4" /> Delete all
         </Button>
+      </div>
+
+      <div className="mb-4 grid grid-cols-2 gap-2" aria-label="Message filters">
+        <Select value={readFilter} onValueChange={(value) => setReadFilter(value as typeof readFilter)}>
+          <SelectTrigger className="h-10 rounded-2xl border-2 border-primary bg-card">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All messages</SelectItem>
+            <SelectItem value="unread">Unread</SelectItem>
+            <SelectItem value="read">Read</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={sortOrder} onValueChange={(value) => setSortOrder(value as typeof sortOrder)}>
+          <SelectTrigger className="h-10 rounded-2xl border-2 border-primary bg-card">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="latest">Latest first</SelectItem>
+            <SelectItem value="oldest">Oldest first</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {composing && (
@@ -216,21 +272,24 @@ export function ConversationsPanel({
         <div className="flex justify-center py-10">
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
-      ) : threads.length === 0 ? (
+      ) : visibleThreads.length === 0 ? (
         <p className="rounded-2xl border-2 border-blue-400 p-6 text-center text-sm text-muted-foreground">
-          No conversations yet. Start one above — we reply within 24 to 48 hours.
+          {threads.length ? "No messages match this filter." : "No conversations yet. Start one above."}
         </p>
       ) : (
         <ul className="space-y-3">
-          {threads.map((t) => {
+          {visibleThreads.map((t) => {
             const open = openId === t.id;
-            const last = t.messages?.[t.messages.length - 1];
+            const messages = t.messages ?? [];
+            const latestQuestion = [...messages].reverse().find((message) => message.sender === "user");
+            const latestReply = [...messages].reverse().find((message) => message.sender === "admin");
             return (
-              <li key={t.id} className="rounded-2xl border-2 border-blue-400 bg-card">
+              <li key={t.id} className="overflow-hidden rounded-2xl border-2 border-primary bg-card">
                 <button
                   type="button"
                   onClick={() => openThread(t)}
-                  className="flex w-full items-start gap-3 p-4 text-left"
+                  className="flex w-full items-start gap-3 p-3 text-left sm:p-4"
+                  aria-expanded={open}
                 >
                   <span className="mt-0.5 text-primary">
                     {t.user_unread ? <Mail className="h-4 w-4" /> : <MailOpen className="h-4 w-4" />}
@@ -240,33 +299,45 @@ export function ConversationsPanel({
                       {t.user_unread && <span className="mr-1 text-primary">•</span>}
                       {t.subject}
                     </span>
-                    {last && !open && (
-                      <span className="mt-0.5 block line-clamp-2 text-xs text-muted-foreground">
-                        {last.sender === "admin" ? "Smarty Workout: " : "You: "}
-                        {last.body}
+                    {!open && latestQuestion && (
+                      <span className="mt-1 block line-clamp-1 text-xs text-muted-foreground">
+                        <strong className="text-foreground">You:</strong> {latestQuestion.body}
+                      </span>
+                    )}
+                    {!open && latestReply && (
+                      <span className="block line-clamp-1 text-xs text-muted-foreground">
+                        <strong className="text-primary">Reply:</strong> {latestReply.body}
                       </span>
                     )}
                     <span className="mt-1 block text-[11px] text-muted-foreground">
-                      {when(t.last_message_at)}
+                      {when(t.last_message_at)} · {messages.length} {messages.length === 1 ? "message" : "messages"}
                     </span>
                   </span>
+                  {open ? (
+                    <ChevronUp className="mt-1 h-4 w-4 shrink-0 text-primary" />
+                  ) : (
+                    <ChevronDown className="mt-1 h-4 w-4 shrink-0 text-primary" />
+                  )}
                 </button>
 
                 {open && (
                   <div className="space-y-3 border-t border-border p-4">
-                    <div className="space-y-2">
-                      {(t.messages ?? []).map((m) => (
+                    <div className="space-y-3">
+                      {messages.map((m) => (
                         <div
                           key={m.id}
-                          className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${
+                          className={`rounded-xl border px-3 py-2 text-sm ${
                             m.sender === "admin"
-                              ? "bg-primary/10 text-foreground"
-                              : "ml-auto bg-secondary text-secondary-foreground"
+                              ? "border-primary/40 bg-primary/10 text-foreground"
+                              : "border-border bg-secondary text-secondary-foreground"
                           }`}
                         >
+                          <p className={`mb-1 text-xs font-bold ${m.sender === "admin" ? "text-primary" : "text-foreground"}`}>
+                            {m.sender === "admin" ? "Smarty Workout reply" : "Your message"}
+                          </p>
                           <p className="whitespace-pre-wrap">{m.body}</p>
                           <p className="mt-1 text-[10px] text-muted-foreground">
-                            {m.sender === "admin" ? "Smarty Workout" : "You"} · {when(m.created_at)}
+                            {when(m.created_at)}
                           </p>
                         </div>
                       ))}

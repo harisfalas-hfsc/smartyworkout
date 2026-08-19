@@ -201,10 +201,9 @@ const WOD_AND_MANUAL_GENERATION_BODY =
   "If you prefer to create your own two workouts with the Smarty Coach questionnaire, unsubscribe from Workout of the Day mode first. You can switch between the two options, but you cannot receive the two automatic Workout of the Day workouts and generate two additional workouts on the same day.";
 
 const ESCALATION_BODY =
-  "Thanks for coming back to us.\n\n" +
-  "This one needs a human, so it is now in front of Haris personally. You will get a proper answer here (and by email) within 24–48 hours — usually much sooner.\n\n" +
-  "Nothing else is needed from you; if you have extra details (screenshots, the exact page, the date of a payment), add them in a reply and they will be waiting with the ticket.\n\n" +
-  "Yours in good health,\nHaris Falas, BSc Sports Science, Exo Specialist, CSCS";
+  "Thank you for the additional details. We have forwarded your request to the administrator, who will reply here and by email shortly.\n\n" +
+  "If you have a screenshot or another useful detail, you can add it to this conversation.\n\n" +
+  "Yours in good health,\nThe Smarty Workout team";
 
 export function escalationMessage(): string {
   return ESCALATION_BODY;
