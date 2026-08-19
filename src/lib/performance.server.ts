@@ -6,11 +6,11 @@ import { buildExerciseHistories } from "@/lib/performance/strength";
 import { compareConditioning, describeResult } from "@/lib/performance/conditioning";
 import { dataConfidence } from "@/lib/performance/confidence";
 import {
-  conditioningLoad,
   conditioningLoadState,
   overallLoadState,
-  strengthLoad,
   strengthLoadState,
+  summarizeConditioning,
+  summarizeStrength,
 } from "@/lib/performance/load";
 import { readiness } from "@/lib/performance/readiness";
 import type { SetLogRow, WorkoutResultRow } from "@/lib/performance/types";
