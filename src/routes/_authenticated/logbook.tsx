@@ -446,33 +446,55 @@ function PeriodSummary({
   title,
   totals,
   completedCount,
+  sessions,
+  start,
+  end,
   onClear,
 }: {
   title: string;
   totals: PeriodTotals;
   completedCount: number;
+  sessions: SessionLoad[];
+  start: string;
+  end: string;
   onClear?: () => void;
 }) {
+  const [view, setView] = useState<"numbers" | "graph">("numbers");
   const n = (v: number | null, suffix = "") =>
     v === null ? "Not logged" : `${Math.round(v).toLocaleString()}${suffix}`;
   return (
     <div className="rounded-2xl border-2 border-blue-400 bg-card p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm font-bold">{title}</p>
-        {onClear ? (
-          <Button variant="ghost" size="sm" onClick={onClear}>
-            Single day
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setView(view === "numbers" ? "graph" : "numbers")}
+          >
+            {view === "numbers" ? "View as graph" : "View numbers"}
           </Button>
-        ) : null}
+          {onClear ? (
+            <Button variant="ghost" size="sm" onClick={onClear}>
+              Back to one day
+            </Button>
+          ) : null}
+        </div>
       </div>
-      <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
-        <Tile label="Completed" value={String(completedCount)} />
-        <Tile label="Sessions logged" value={String(totals.sessions)} />
-        <Tile label="Strength volume" value={n(totals.strength, " kg")} />
-        <Tile label="Conditioning work" value={n(totals.conditioning, " sec")} />
-        <Tile label="Average RPE" value={totals.avgRpe === null ? "Not logged" : `${totals.avgRpe} / 10`} />
-        <Tile label="Recorded duration" value={n(totals.minutes, " min")} />
-      </div>
+      {view === "numbers" ? (
+        <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+          <Tile label="Completed" value={String(completedCount)} />
+          <Tile label="Sessions logged" value={String(totals.sessions)} />
+          <Tile label="Strength volume" value={n(totals.strength, " kg")} />
+          <Tile label="Conditioning work" value={n(totals.conditioning, " sec")} />
+          <Tile label="Average RPE" value={totals.avgRpe === null ? "Not logged" : `${totals.avgRpe} / 10`} />
+          <Tile label="Recorded duration" value={n(totals.minutes, " min")} />
+        </div>
+      ) : (
+        <div className="mt-3">
+          <PeriodTrendChart sessions={sessions} start={start} end={end} />
+        </div>
+      )}
     </div>
   );
 }
@@ -604,6 +626,9 @@ function CalendarView({
         }
         totals={totals}
         completedCount={completedCount}
+        sessions={periodSessions}
+        start={start}
+        end={end ?? start}
         onClear={end ? () => { setSelectionMode("day"); setEnd(null); } : undefined}
       />
 
