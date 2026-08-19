@@ -59,9 +59,10 @@ Everything else you asked about does work: what you log does feed Progress — s
 
 - `src/lib/workout/tracking-model.ts`: add `reps_in_time` to `TrackingMetricName`; a countable-movement check so a stated duration plus a countable movement resolves to `primary: "reps"` with `windowSeconds`, while `HOLD_WORDS` still resolve to duration. Unit tests for Tabata/EMOM/AMRAP/hold/distance cases.
 - `src/components/workout/WorkoutPlayerDialog.tsx`: labelled inputs, stepper + repeat-last-set, remove auto-advance for loggable steps, `history.pushState` guard for back, and a recap step before `onFinish`.
-- New `src/components/workout/PerformanceEditorDialog.tsx` plus a server function to upsert/patch `set_logs` for one workout attempt; reused by the recap and by "Edit performance".
-- Database migration: add `attempt integer not null default 1` to `set_logs` and `workout_results`; replace the `workout_id` unique constraint on `workout_results` with `(workout_id, attempt)`; keep existing rows at attempt 1. A helper resolves the next attempt number when a workout is played again.
-- `src/lib/performance.server.ts`: `loadWorkoutPerformance` returns all attempts (per-attempt sets, result, loads, deltas) instead of a single `maybeSingle()` result; overview aggregation unchanged.
+- New `src/components/workout/PerformanceEditorDialog.tsx` plus a server function that patches `set_logs` for **one explicit `(workout_id, attempt)` pair** — the attempt id is always passed in, never re-derived, so editing can never allocate a new attempt. Saving re-runs the result/load computation for that attempt only.
+- Database migration: add `attempt integer not null default 1` to `set_logs` and `workout_results`; replace the `workout_id` unique constraint on `workout_results` with `(workout_id, attempt)`; keep existing rows at attempt 1. Next-attempt allocation happens only at player start.
+- New `src/lib/performance/compare.ts`: a metric direction map (`lower_better` for time, `higher_better` for rounds/reps/distance/intervals/load-lifted, `neutral` for RPE and training load) plus a `compareAttempts` helper. All attempt deltas and the Progress trend go through it; unit tests cover each direction.
+- `src/lib/performance.server.ts`: `loadWorkoutPerformance` returns all attempts (per-attempt sets, result, loads, dated timestamps, direction-aware deltas) instead of a single `maybeSingle()` result; overview aggregation unchanged.
 - `src/routes/_authenticated/logbook.tsx`: add `equipment` (and `location`) to the row query, badge component, equipment filter in the existing dropdown.
 
 ## Order of work
