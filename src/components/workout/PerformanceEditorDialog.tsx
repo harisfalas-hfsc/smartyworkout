@@ -188,7 +188,7 @@ export function PerformanceEditorDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90dvh] max-w-lg overflow-hidden">
+      <DialogContent className="mx-auto max-h-[85vh] w-[calc(100%-2.5rem)] max-w-md overflow-y-auto rounded-3xl border-2 border-primary p-5 sm:p-6">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
