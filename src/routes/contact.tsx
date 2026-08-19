@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { isOnline } from "@/lib/offline/connectivity";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -78,7 +79,7 @@ function Contact() {
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
-    if (!navigator.onLine) {
+    if (!isOnline()) {
       setError("You must be online to send a message.");
       return;
     }

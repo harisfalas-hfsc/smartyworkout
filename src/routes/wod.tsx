@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { isOnline } from "@/lib/offline/connectivity";
 import { useServerFn } from "@tanstack/react-start";
 import { offlineFirst } from "@/lib/offline/offline-first";
 import { useCallback, useEffect, useState } from "react";
@@ -226,7 +227,7 @@ function WodPage() {
 
   async function toggleSub(subscribe: boolean) {
     if (busy || building) return;
-    if (!navigator.onLine) {
+    if (!isOnline()) {
       toast.error("You must be online to update Workout of the Day.");
       return;
     }
