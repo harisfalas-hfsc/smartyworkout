@@ -59,12 +59,13 @@ All computed server-side in a new `src/lib/performance.functions.ts` (auth middl
 
 On the Coach page, after the user picks goal/difficulty, a single compact card appears: "SmartyCoach recommendation" + one sentence + short reason, with `Continue` and `Change selection`. Never blocking. Limited-data users get the honest limited-information message.
 
-On the WOD page and the WOD workout view, the same engine renders only a read-only **context note** (e.g. recovery attention) — it cannot alter category, difficulty or content. This is enforced by the WOD page never calling the recommendation-for-generation path.
+On the WOD page and the WOD workout view, the same engine renders only a read-only **context note** (e.g. pay attention to recovery today). It cannot change the WOD's category, difficulty, exercise selection, format, duration, programming or periodization — the WOD never calls the recommendation-for-generation path, and no WOD field is ever written by this layer. Recommendations always speak in 1 / 2 / 3 stars.
 
 ## Phase 9 — Logbook & Progress
 
-- Workout page / Logbook detail: a "Performance" block listing logged sets (planned vs actual), workout result, RPE if given, and the automatic analysis note. Existing subjective feedback block stays as-is.
-- Progress page gains four sections below the existing content: Strength progress (per-exercise previous → current → trend), Conditioning progress, Training load (state + trend), Readiness, plus the consistency figures already shown. Nothing removed.
+- Workout page / Logbook detail: three clearly separate blocks — workout completion, objective performance (logged sets planned vs actual, workout result, RPE if given, the short analysis note), and the existing subjective feedback block, unchanged.
+- Progress page gains new sections below the existing content: Strength progress (per-exercise previous → current → trend), Conditioning progress, Strength Load / Conditioning Load / Overall Recent Load states, Readiness (including Limited Data), plus the consistency figures already shown. Nothing removed. This is where detailed trends live.
+
 
 ## Phase 10 — Tests
 
