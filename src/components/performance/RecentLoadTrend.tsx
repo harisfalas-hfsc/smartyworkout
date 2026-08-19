@@ -7,6 +7,8 @@ import { Loader2 } from "lucide-react";
 import { MetricLineChart, MetricPicker } from "@/components/performance/MetricLineChart";
 import { getSessionLoads } from "@/lib/performance.functions";
 import { formatDate } from "@/lib/date-format";
+import { useAuth } from "@/hooks/useAuth";
+import { localSessionLoads } from "@/lib/offline/performance-store";
 
 type Session = {
   workoutId: string;
@@ -42,12 +44,18 @@ const METRICS: {
 /** Per-session trend for the ten most recent recorded sessions. */
 export function RecentLoadTrend() {
   const fetchSessions = useServerFn(getSessionLoads);
+  const { user } = useAuth();
   const [sessions, setSessions] = useState<Session[] | null>(null);
   const [metricKey, setMetricKey] = useState<MetricKey>("strength");
 
   useEffect(() => {
     let active = true;
-    void fetchSessions({ data: {} })
+    if (!user) return;
+    void localSessionLoads(user.id)
+      .then((local) => {
+        if (active) setSessions(local);
+      })
+      .then(() => fetchSessions({ data: {} }))
       .then((res) => {
         if (active) setSessions((res.sessions as Session[]) ?? []);
       })
@@ -57,7 +65,7 @@ export function RecentLoadTrend() {
     return () => {
       active = false;
     };
-  }, [fetchSessions]);
+  }, [fetchSessions, user?.id]);
 
   const last10 = useMemo(() => (sessions ?? []).slice(-10), [sessions]);
   const available = useMemo(

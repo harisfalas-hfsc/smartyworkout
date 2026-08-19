@@ -60,6 +60,7 @@ import {
 import { equipmentBadges } from "@/lib/format/labels";
 import { getSessionLoads } from "@/lib/performance.functions";
 import { ProgressSection } from "@/components/progress/ProgressSection";
+import { localSessionLoads } from "@/lib/offline/performance-store";
 
 type View = "list" | "calendar" | "progress";
 type LogSearch = { filter: string; view: View; equip?: string };
@@ -865,7 +866,11 @@ function Logbook() {
   useEffect(() => {
     if (!user?.id) return;
     let alive = true;
-    void fetchSessionLoads({ data: {} })
+    void localSessionLoads(user.id)
+      .then((local) => {
+        if (alive) setSessions(local);
+      })
+      .then(() => fetchSessionLoads({ data: {} }))
       .then((res) => {
         if (alive) setSessions(res.sessions as SessionLoad[]);
       })

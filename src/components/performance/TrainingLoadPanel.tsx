@@ -3,6 +3,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { Activity, Dumbbell, Gauge, HeartPulse, Info, Loader2 } from "lucide-react";
 import { getPerformanceOverview } from "@/lib/performance.functions";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import { localPerformanceOverview } from "@/lib/offline/performance-store";
 
 type Overview = Awaited<ReturnType<typeof getPerformanceOverview>>;
 
@@ -33,13 +35,19 @@ function LoadRow({
  */
 export function TrainingLoadPanel() {
   const fetchOverview = useServerFn(getPerformanceOverview);
+  const { user } = useAuth();
   const [data, setData] = useState<Overview | null>(null);
   const [loading, setLoading] = useState(true);
   const [showExample, setShowExample] = useState(false);
 
   useEffect(() => {
     let active = true;
-    fetchOverview({ data: {} })
+    if (!user) return;
+    localPerformanceOverview(user.id)
+      .then((local) => {
+        if (active && local.loggedSessions > 0) setData(local as Overview);
+      })
+      .then(() => fetchOverview({ data: {} }))
       .then((res) => {
         if (active) setData(res as Overview);
       })
@@ -50,7 +58,7 @@ export function TrainingLoadPanel() {
     return () => {
       active = false;
     };
-  }, [fetchOverview]);
+  }, [fetchOverview, user?.id]);
 
   if (loading) {
     return (

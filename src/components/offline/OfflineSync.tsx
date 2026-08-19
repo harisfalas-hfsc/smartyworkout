@@ -39,8 +39,9 @@ export function OfflineSync() {
           return;
         }
         case "workout-result": {
-          const { error } = await supabase.from("workout_results").upsert(action.payload as never, {
-            onConflict: "id",
+          const { local_status: _localStatus, ...payload } = action.payload;
+          const { error } = await supabase.from("workout_results").upsert(payload as never, {
+            onConflict: "workout_id,attempt",
           });
           if (error) throw new Error(error.message);
           return;

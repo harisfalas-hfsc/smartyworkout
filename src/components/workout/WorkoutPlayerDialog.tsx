@@ -369,7 +369,7 @@ export function WorkoutPlayerDialog({
             data_points: [result.durationSeconds, result.rounds, result.intervalsDone].filter((v) => v !== null).length,
             created_at: performedAt,
         });
-        await enqueueAction("workout-result", { ...local, local_status: undefined }, user.id, 0);
+        await enqueueAction("workout-result", local, user.id, 0);
         void storeResult({ data: {
           workoutId, attempt, prescriptionHash: planHash, performedAt, format, category,
           metric: resultModel.metric, durationSeconds: result.durationSeconds, rounds: result.rounds,
