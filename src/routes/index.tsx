@@ -63,9 +63,9 @@ export const Route = createFileRoute("/")({
 function Home() {
   const { freeAccessMode } = useFreeAccessMode();
   return (
-    <div className="mx-auto flex max-w-6xl flex-col px-4 pb-8 pt-0 sm:pb-12">
+    <div className="mx-auto flex max-w-6xl flex-col px-4 pb-4 pt-0 sm:pb-6">
       {/* MOBILE — consistent with every other page: centered header + CTAs */}
-      <section className="py-8 sm:hidden">
+      <section className="py-6 sm:hidden">
         <PageHeader
           title={
             <>
@@ -118,7 +118,7 @@ function Home() {
 
 
       {/* FULL-BLEED HERO — desktop/tablet */}
-      <section className="relative left-1/2 mb-8 hidden w-screen -translate-x-1/2 overflow-hidden sm:mb-14 sm:block">
+      <section className="relative left-1/2 mb-4 hidden w-screen -translate-x-1/2 overflow-hidden sm:mb-6 sm:block">
         <img
           src={heroTraining}
           alt="Athlete training with dumbbells during a personalized workout session"
@@ -130,7 +130,8 @@ function Home() {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/92 via-black/75 to-black/25" />
         <div className="absolute inset-0 bg-gradient-to-t from-[oklch(0.18_0_0)] via-[oklch(0.18_0_0)]/25 to-transparent" />
-        <div className="relative mx-auto w-full max-w-6xl px-5 py-16 lg:px-6 lg:py-36">
+        <div className="relative mx-auto w-full max-w-6xl px-5 py-12 lg:px-6 lg:py-20">
+
           <div className="max-w-xl lg:max-w-3xl">
             <h1 className="text-[34px] font-extrabold uppercase leading-[1.05] tracking-tight text-white sm:text-[44px] lg:text-[60px]">
               Your personal workout
