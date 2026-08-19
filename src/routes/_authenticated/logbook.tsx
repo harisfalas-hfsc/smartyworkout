@@ -336,7 +336,7 @@ function MonthGrid({
           if (!d) return <span key={`e${i}`} />;
           const key = dayKey(d);
           const items = byDay.get(key) ?? [];
-          const isSelected = key === selected;
+          const isSelected = inRange ? inRange(key) : key === selected;
           const dim = onlyScheduled && items.length === 0;
           return (
             <button
