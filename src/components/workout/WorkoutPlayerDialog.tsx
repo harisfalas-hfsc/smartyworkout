@@ -19,7 +19,9 @@ import {
   deriveWorkoutResultModel,
   parsePlanned,
 } from "@/lib/workout/tracking-model";
-import { saveWorkoutResult } from "@/lib/performance.functions";
+import { saveWorkoutResult, startWorkoutAttempt } from "@/lib/performance.functions";
+import { prescriptionHash } from "@/lib/workout/prescription-fingerprint";
+import { PerformanceEditorDialog } from "./PerformanceEditorDialog";
 import { WorkoutResultDialog, type WorkoutResultInput } from "./WorkoutResultDialog";
 import { useExerciseMedia } from "./ExerciseMediaProvider";
 
@@ -59,6 +61,11 @@ export function WorkoutPlayerDialog({
     [category, format, html, steps],
   );
   const storeResult = useServerFn(saveWorkoutResult);
+  const beginAttempt = useServerFn(startWorkoutAttempt);
+  const planHash = useMemo(
+    () => prescriptionHash({ format, category, steps }),
+    [format, category, steps],
+  );
 
   const { details, ensure } = useExerciseMedia();
   const [api, setApi] = useState<CarouselApi>();
@@ -74,7 +81,11 @@ export function WorkoutPlayerDialog({
   const [distance, setDistance] = useState("");
   const [savingSet, setSavingSet] = useState(false);
   const [resultOpen, setResultOpen] = useState(false);
+  const [recapOpen, setRecapOpen] = useState(false);
+  const [attempt, setAttempt] = useState(1);
+  const [lastSet, setLastSet] = useState<Record<number, { reps: string; weight: string; seconds: string; distance: string }>>({});
   const beepRef = useRef<number>(0);
+  const loggableRef = useRef(false);
   const startedAtRef = useRef<number | null>(null);
 
   useKeepScreenAwake(open);
@@ -83,6 +94,38 @@ export function WorkoutPlayerDialog({
     if (open && startedAtRef.current === null) startedAtRef.current = Date.now();
     if (!open) startedAtRef.current = null;
   }, [open]);
+
+  // Each run of a workout is its own attempt, so repeats never overwrite history.
+  useEffect(() => {
+    if (!open) return;
+    let active = true;
+    beginAttempt({ data: { workoutId } })
+      .then((res) => {
+        if (active) setAttempt((res as { attempt: number }).attempt ?? 1);
+      })
+      .catch(() => {
+        /* offline — the session still plays, logging retries with attempt 1 */
+      });
+    return () => {
+      active = false;
+    };
+  }, [open, workoutId, beginAttempt]);
+
+  // The phone back button steps back one slide instead of quitting the session.
+  useEffect(() => {
+    if (!open || typeof window === "undefined") return;
+    window.history.pushState({ smartyPlayer: true }, "");
+    const onPop = () => {
+      if (api && api.canScrollPrev()) {
+        api.scrollPrev();
+        window.history.pushState({ smartyPlayer: true }, "");
+        return;
+      }
+      onOpenChange(false);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [open, api, onOpenChange]);
 
 
 
@@ -174,6 +217,7 @@ export function WorkoutPlayerDialog({
     const { error } = await supabase.from("set_logs").insert({
       user_id: auth.user.id,
       workout_id: workoutId,
+      attempt,
       step_index: index,
       exercise_id: slide.step.exerciseId || null,
       exercise_name: slide.step.name,
@@ -198,6 +242,10 @@ export function WorkoutPlayerDialog({
       return;
     }
     setLogged((prev) => ({ ...prev, [index]: setNumber }));
+    setLastSet((prev) => ({
+      ...prev,
+      [index]: { reps, weight, seconds: heldSeconds, distance },
+    }));
     setReps("");
     setWeight("");
     setHeldSeconds("");
@@ -206,6 +254,11 @@ export function WorkoutPlayerDialog({
   }
 
   function finishWorkout() {
+    setRecapOpen(true);
+  }
+
+  function afterRecap() {
+    setRecapOpen(false);
     if (resultModel.metric !== "none") {
       setResultOpen(true);
       return;
@@ -226,6 +279,9 @@ export function WorkoutPlayerDialog({
         await storeResult({
           data: {
             workoutId,
+            attempt,
+            prescriptionHash: planHash,
+            performedAt: new Date(startedAtRef.current ?? Date.now()).toISOString(),
             format,
             category,
             metric: resultModel.metric,
@@ -265,7 +321,8 @@ export function WorkoutPlayerDialog({
         }
         setRunning(false);
         beepRef.current += 1;
-        window.setTimeout(() => api?.scrollNext(), 400);
+        // Loggable steps stop here so there is time to write the numbers down.
+        if (!loggableRef.current) window.setTimeout(() => api?.scrollNext(), 400);
         return 0;
       });
     }, 1000);
