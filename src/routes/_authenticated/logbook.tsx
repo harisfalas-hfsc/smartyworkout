@@ -570,8 +570,8 @@ function CalendarView({
       <div className="rounded-2xl border-2 border-blue-400 bg-card p-4">
         <div className="mb-3 grid grid-cols-3 gap-2" aria-label="Calendar selection mode">
           {([
-            { id: "day", label: "One day", Icon: CalendarDays },
-            { id: "period", label: "Date range", Icon: CalendarRange },
+            { id: "day", label: "Day", Icon: CalendarDays },
+            { id: "period", label: "Dates", Icon: CalendarRange },
             { id: "scheduled", label: "Scheduled", Icon: CalendarCheck },
           ] as const).map(({ id, label, Icon }) => (
             <Button
