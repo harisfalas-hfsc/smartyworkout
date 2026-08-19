@@ -138,28 +138,30 @@ export function SessionDebriefDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100%-2rem)] max-w-sm rounded-2xl border-2 border-primary p-5">
-        <DialogTitle className="text-base font-bold">{card.title}</DialogTitle>
-        <p className="-mt-2 text-xs text-muted-foreground">{card.hint}</p>
+      <DialogContent className="mx-auto max-h-[85vh] min-h-[50vh] w-[calc(100%-2.5rem)] max-w-md overflow-y-auto rounded-3xl border-2 border-primary p-5 sm:p-6">
+        <DialogHeader className="space-y-1 pb-1 text-left">
+          <DialogTitle className="text-base font-bold">{card.title}</DialogTitle>
+          <DialogDescription className="text-xs">{card.hint}</DialogDescription>
+        </DialogHeader>
 
-        {card.body}
+        <div className="flex-1">{card.body}</div>
 
         <div className="flex items-center gap-2">
           {step > 0 ? (
-            <Button variant="secondary" className="h-11 flex-1" onClick={() => setStep(step - 1)}>
+            <Button variant="secondary" className="h-11 flex-1 rounded-2xl" onClick={() => setStep(step - 1)}>
               Back
             </Button>
           ) : (
             <Button
               variant="secondary"
-              className="h-11 flex-1"
+              className="h-11 flex-1 rounded-2xl"
               onClick={() => onOpenChange(false)}
             >
               Skip
             </Button>
           )}
           <Button
-            className="h-11 flex-1"
+            className="h-11 flex-1 rounded-2xl"
             disabled={saving}
             onClick={() => (last ? void submit() : setStep(step + 1))}
           >
