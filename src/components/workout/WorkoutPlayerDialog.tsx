@@ -442,7 +442,7 @@ export function WorkoutPlayerDialog({
                 </Button>
               </div>
             ) : index === total - 1 ? (
-              <Button onClick={onFinish}>Finish workout</Button>
+              <Button onClick={finishWorkout}>Finish workout</Button>
             ) : (
               <Button onClick={() => api?.scrollNext()}>Done — next</Button>
             )}
@@ -458,15 +458,26 @@ export function WorkoutPlayerDialog({
           </div>
 
           {index === total - 1 && timing.mode !== "manual" ? (
-            <Button variant="secondary" className="w-full" onClick={onFinish}>
+            <Button variant="secondary" className="w-full" onClick={finishWorkout}>
               Finish workout
             </Button>
           ) : null}
         </div>
+
+        <WorkoutResultDialog
+          open={resultOpen}
+          onOpenChange={setResultOpen}
+          model={resultModel}
+          elapsedSeconds={
+            startedAtRef.current ? Math.round((Date.now() - startedAtRef.current) / 1000) : null
+          }
+          onSubmit={submitResult}
+        />
       </DialogContent>
     </Dialog>
   );
 }
+
 
 function SoftTissueSlide({ lines }: { lines: string[] }) {
   return (
