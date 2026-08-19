@@ -13,7 +13,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthRouteImport } from './routes/auth'
-import { Route as CharttestRouteImport } from './routes/charttest'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DisclaimerRouteImport } from './routes/disclaimer'
 import { Route as ExerciseLibraryRouteImport } from './routes/exercise-library'
@@ -71,11 +70,6 @@ const AboutRoute = AboutRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CharttestRoute = CharttestRouteImport.update({
-  id: '/charttest',
-  path: '/charttest',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -284,7 +278,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
-  '/charttest': typeof CharttestRoute
   '/contact': typeof ContactRoute
   '/disclaimer': typeof DisclaimerRoute
   '/exercise-library': typeof ExerciseLibraryRoute
@@ -329,7 +322,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
-  '/charttest': typeof CharttestRoute
   '/contact': typeof ContactRoute
   '/disclaimer': typeof DisclaimerRoute
   '/exercise-library': typeof ExerciseLibraryRoute
@@ -376,7 +368,6 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
-  '/charttest': typeof CharttestRoute
   '/contact': typeof ContactRoute
   '/disclaimer': typeof DisclaimerRoute
   '/exercise-library': typeof ExerciseLibraryRoute
@@ -423,7 +414,6 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/auth'
-    | '/charttest'
     | '/contact'
     | '/disclaimer'
     | '/exercise-library'
@@ -468,7 +458,6 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/auth'
-    | '/charttest'
     | '/contact'
     | '/disclaimer'
     | '/exercise-library'
@@ -514,7 +503,6 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/about'
     | '/auth'
-    | '/charttest'
     | '/contact'
     | '/disclaimer'
     | '/exercise-library'
@@ -561,7 +549,6 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRoute
-  CharttestRoute: typeof CharttestRoute
   ContactRoute: typeof ContactRoute
   DisclaimerRoute: typeof DisclaimerRoute
   ExerciseLibraryRoute: typeof ExerciseLibraryRoute
@@ -620,13 +607,6 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/charttest': {
-      id: '/charttest'
-      path: '/charttest'
-      fullPath: '/charttest'
-      preLoaderRoute: typeof CharttestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -952,7 +932,6 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AboutRoute: AboutRoute,
   AuthRoute: AuthRoute,
-  CharttestRoute: CharttestRoute,
   ContactRoute: ContactRoute,
   DisclaimerRoute: DisclaimerRoute,
   ExerciseLibraryRoute: ExerciseLibraryRoute,
