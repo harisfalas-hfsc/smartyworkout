@@ -25,6 +25,14 @@ import {
   Library,
   Clock,
   ListChecks,
+  LineChart,
+  PlayCircle,
+  ClipboardCheck,
+  NotebookPen,
+  Activity,
+  Trophy,
+  WifiOff,
+
 } from "lucide-react";
 
 const URL = "https://smartyworkout.com/founder-note";
