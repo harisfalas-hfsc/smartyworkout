@@ -396,11 +396,13 @@ function Legend() {
 
 function CalendarView({
   rows,
+  sessions,
   onToggleFavorite,
   actions,
   busy,
 }: {
   rows: Row[];
+  sessions: SessionLoad[];
   onToggleFavorite: (id: string, next: boolean) => void;
   actions: {
     complete: (id: string) => void;
@@ -413,7 +415,8 @@ function CalendarView({
     const d = new Date();
     return new Date(d.getFullYear(), d.getMonth(), 1);
   });
-  const [selected, setSelected] = useState<string>(() => dayKey(new Date()));
+  const [start, setStart] = useState<string>(() => dayKey(new Date()));
+  const [end, setEnd] = useState<string | null>(null);
 
   const byDay = useMemo(() => {
     const map = new Map<string, Row[]>();
@@ -424,7 +427,21 @@ function CalendarView({
     return map;
   }, [rows]);
 
-  const selectedRows = byDay.get(selected) ?? [];
+  // One tap picks a day. A second tap on a later day makes it a period.
+  function pick(key: string) {
+    if (end || key <= start) {
+      setStart(key);
+      setEnd(null);
+      return;
+    }
+    setEnd(key);
+  }
+
+  const inRange = (key: string) => (end ? key >= start && key <= end : key === start);
+  const periodRows = rows.filter((r) => inRange(dayKey(anchorDate(r))));
+  const periodSessions = sessions.filter((s) => inRange(dayKey(new Date(s.performedAt))));
+  const totals = summariseSessions(periodSessions);
+  const completedCount = periodRows.filter((r) => r.status === "completed").length;
 
   return (
     <div className="space-y-4">
@@ -449,43 +466,59 @@ function CalendarView({
           </Button>
         </div>
 
-        <MonthGrid cursor={cursor} byDay={byDay} selected={selected} onSelect={setSelected} />
+        <MonthGrid
+          cursor={cursor}
+          byDay={byDay}
+          selected={start}
+          onSelect={pick}
+          inRange={inRange}
+        />
         <Legend />
+        <p className="mt-2 text-[11px] text-muted-foreground">
+          Tap a day to see it. Tap a later day to measure the whole period between them.
+        </p>
       </div>
 
-      <div>
-        <p className="mb-2 text-sm font-bold">
-          {formatWeekdayLong(new Date(`${selected}T00:00:00`))}
-        </p>
-        {selectedRows.length === 0 ? (
-          <div className="rounded-2xl border-2 border-blue-400 bg-card p-6 text-center text-sm text-muted-foreground">
-            Nothing on this day.
-          </div>
-        ) : (
-          <ul className="grid gap-3 sm:grid-cols-2">
-            {selectedRows.map((r) => (
-              <li key={r.id}>
-                <WorkoutCard
-                  r={r}
-                  onToggleFavorite={onToggleFavorite}
-                  actions={
-                    <DayActions
-                      r={r}
-                      busy={busy}
-                      onComplete={actions.complete}
-                      onReschedule={actions.reschedule}
-                      onClear={actions.clear}
-                    />
-                  }
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      <PeriodSummary
+        title={
+          end
+            ? `${formatDate(`${start}T00:00:00`)} → ${formatDate(`${end}T00:00:00`)}`
+            : formatWeekdayLong(new Date(`${start}T00:00:00`))
+        }
+        totals={totals}
+        completedCount={completedCount}
+        onClear={end ? () => setEnd(null) : undefined}
+      />
+
+      {periodRows.length === 0 ? (
+        <div className="rounded-2xl border-2 border-blue-400 bg-card p-6 text-center text-sm text-muted-foreground">
+          Nothing on {end ? "these days" : "this day"}.
+        </div>
+      ) : (
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {periodRows.map((r) => (
+            <li key={r.id}>
+              <WorkoutCard
+                r={r}
+                onToggleFavorite={onToggleFavorite}
+                actions={
+                  <DayActions
+                    r={r}
+                    busy={busy}
+                    onComplete={actions.complete}
+                    onReschedule={actions.reschedule}
+                    onClear={actions.clear}
+                  />
+                }
+              />
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
+
 
 /** Scheduled-only calendar: hops month by month through everything you planned. */
 function ScheduledView({
