@@ -586,6 +586,8 @@ function CalendarView({
             </Button>
           ))}
         </div>
+        {selectionMode === "scheduled" ? null : (
+        <>
         <div className="flex items-center justify-between">
           <Button
             variant="ghost"
@@ -622,8 +624,14 @@ function CalendarView({
               : "Select the first day, then select the last day of the range."}
         </p>
         <p className="mt-1 text-[11px] text-muted-foreground">A blue filled cell is selected. A blue outline without fill marks today.</p>
+        </>
+        )}
       </div>
 
+      {selectionMode === "scheduled" ? (
+        <ScheduledView rows={rows} onToggleFavorite={onToggleFavorite} actions={actions} busy={busy} />
+      ) : (
+      <>
       <PeriodSummary
         title={
           end
@@ -662,6 +670,8 @@ function CalendarView({
             </li>
           ))}
         </ul>
+      )}
+      </>
       )}
     </div>
   );
@@ -934,16 +944,21 @@ function Logbook() {
         subtitle="Every workout you created — completed, still to do, or scheduled."
       />
 
-      {/* Four views, one place. Two-up on mobile so every tab stays thumb-sized. */}
-      <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {(["list", "calendar", "scheduled", "progress"] as const).map((v) => (
+      {/* Three views, one line on every width. */}
+      <div className="mt-5 grid grid-cols-3 gap-2">
+        {([
+          { id: "list", label: "Workouts", Icon: Dumbbell },
+          { id: "calendar", label: "Calendar", Icon: CalendarDays },
+          { id: "progress", label: "Progress", Icon: TrendingUp },
+        ] as const).map(({ id, label, Icon }) => (
           <Button
-            key={v}
-            variant={view === v ? "default" : "secondary"}
-            className="h-11 w-full rounded-2xl capitalize"
-            onClick={() => navigate({ search: (p: LogSearch) => ({ ...p, view: v }) })}
+            key={id}
+            variant={view === id ? "default" : "secondary"}
+            className="h-11 w-full min-w-0 rounded-2xl px-2"
+            onClick={() => navigate({ search: (p: LogSearch) => ({ ...p, view: id }) })}
           >
-            {v}
+            <Icon className="h-4 w-4 shrink-0" />
+            <span className="truncate text-xs sm:text-sm">{label}</span>
           </Button>
         ))}
       </div>
@@ -957,15 +972,6 @@ function Logbook() {
           <CalendarView
             rows={rows}
             sessions={sessions}
-            onToggleFavorite={toggleFavorite}
-            actions={actions}
-            busy={busy}
-          />
-        </div>
-      ) : view === "scheduled" ? (
-        <div className="mt-4">
-          <ScheduledView
-            rows={rows}
             onToggleFavorite={toggleFavorite}
             actions={actions}
             busy={busy}
