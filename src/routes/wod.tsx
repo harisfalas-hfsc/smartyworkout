@@ -26,6 +26,8 @@ import { ParqWaiverDialog } from "@/components/ParqWaiverDialog";
 import { MembershipRequiredDialog } from "@/components/MembershipRequiredDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { PageHeader } from "@/components/PageHeader";
+import { WodContextNote } from "@/components/performance/WodContextNote";
+
 
 export const Route = createFileRoute("/wod")({
   head: () => ({
