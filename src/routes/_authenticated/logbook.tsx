@@ -30,6 +30,7 @@ import {
   ListFilter,
 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
+import { PeriodTrendChart } from "@/components/performance/PeriodTrendChart";
 import {
   formatDate,
   formatMonthYear,
