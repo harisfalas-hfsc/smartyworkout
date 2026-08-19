@@ -1,0 +1,2 @@
+ALTER TABLE public.subscriptions ADD COLUMN IF NOT EXISTS last_event_at BIGINT;
+COMMENT ON COLUMN public.subscriptions.last_event_at IS 'Provider event timestamp (unix seconds) of the last applied billing event; used to reject out-of-order webhook redeliveries.';

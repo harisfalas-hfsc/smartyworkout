@@ -761,6 +761,7 @@ export type Database = {
           current_period_start: string | null
           environment: string
           id: string
+          last_event_at: number | null
           price_id: string | null
           product_id: string | null
           provider: string
@@ -777,6 +778,7 @@ export type Database = {
           current_period_start?: string | null
           environment?: string
           id?: string
+          last_event_at?: number | null
           price_id?: string | null
           product_id?: string | null
           provider: string
@@ -793,6 +795,7 @@ export type Database = {
           current_period_start?: string | null
           environment?: string
           id?: string
+          last_event_at?: number | null
           price_id?: string | null
           product_id?: string | null
           provider?: string
