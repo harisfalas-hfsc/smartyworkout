@@ -1,6 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import { type StripeEnv, verifyWebhook } from "@/lib/stripe.server";
+import {
+  billingDedupeKey,
+  shouldApplySubscriptionEvent,
+  type StoredSubscription,
+} from "@/lib/billing/subscription-events";
 
 let _supabase: any = null;
 function getSupabase(): any {
@@ -186,14 +191,14 @@ async function handleInvoicePaid(invoice: any, env: StripeEnv) {
     body: `We received ${amount} for your Smarty Workout membership.${
       nextDate ? ` Your access is active until ${nextDate}.` : ""
     } Thank you for training with us — your receipt is on its way by email.`,
-    dedupeKey: `invoice-paid:${invoice.id}`,
+    dedupeKey: billingDedupeKey({ kind: "invoice-paid", objectId: invoice.id }),
   });
 
   await adminAlert({
     kind: "Payment",
     title: `Payment received — ${amount}`,
     details: `Invoice ${invoice.id} paid by user ${userId}.${nextDate ? ` Next period ends ${nextDate}.` : ""}`,
-    dedupeKey: `admin-invoice-paid-${invoice.id}`,
+    dedupeKey: billingDedupeKey({ kind: "admin-invoice-paid", objectId: invoice.id }),
   });
 }
 
@@ -217,14 +222,14 @@ async function handleInvoiceFailed(invoice: any, env: StripeEnv) {
     kind: "billing",
     title: nextAttempt ? "Payment didn't go through" : "Payment failed — action needed",
     body,
-    dedupeKey: `invoice-failed:${invoice.id}:${attempt}`,
+    dedupeKey: billingDedupeKey({ kind: "invoice-failed", objectId: invoice.id, state: attempt }),
   });
 
   await adminAlert({
     kind: "Payment",
     title: `Payment failed — ${amount}`,
     details: `Invoice ${invoice.id} failed for user ${userId} (attempt ${attempt}).`,
-    dedupeKey: `admin-invoice-failed-${invoice.id}-${attempt}`,
+    dedupeKey: billingDedupeKey({ kind: "admin-invoice-failed", objectId: invoice.id, state: attempt }),
   });
 }
 
@@ -234,10 +239,10 @@ async function handleWebhook(req: Request, env: StripeEnv) {
   switch (event.type) {
     case "customer.subscription.created":
     case "customer.subscription.updated":
-      await upsertSubscription(event.data.object, env);
+      await upsertSubscription(event.data.object, env, event.created ?? null);
       break;
     case "customer.subscription.deleted":
-      await markCanceled(event.data.object, env);
+      await markCanceled(event.data.object, env, event.created ?? null);
       break;
     case "invoice.paid":
     case "invoice.payment_succeeded":
