@@ -122,7 +122,7 @@ function TopicPage() {
             {topic.appLinks.map((l) => (
               <li key={l.to}>
                 <Link
-                  to={l.to}
+                  to={l.to as never}
                   className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline sm:text-base"
                 >
                   {l.label}
@@ -138,7 +138,7 @@ function TopicPage() {
             {topic.related.map((l) => (
               <li key={l.to}>
                 <Link
-                  to={l.to}
+                  to={l.to as never}
                   className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline sm:text-base"
                 >
                   {l.label}

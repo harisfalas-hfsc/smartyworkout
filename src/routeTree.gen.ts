@@ -45,6 +45,7 @@ import { Route as ToolsIndexRouteImport } from './routes/tools.index'
 import { Route as Tools1rmCalculatorRouteImport } from './routes/tools.1rm-calculator'
 import { Route as ToolsRoundsTrackerRouteImport } from './routes/tools.rounds-tracker'
 import { Route as ToolsWorkoutTimerRouteImport } from './routes/tools.workout-timer'
+import { Route as TrainingIndexRouteImport } from './routes/training.index'
 import { Route as TrainingSlugRouteImport } from './routes/training.$slug'
 import { Route as WWorkoutIdRouteImport } from './routes/w.$workoutId'
 import { Route as AuthenticatedCheckoutReturnRouteImport } from './routes/_authenticated/checkout.return'
@@ -235,6 +236,11 @@ const ToolsWorkoutTimerRoute = ToolsWorkoutTimerRouteImport.update({
   path: '/tools/workout-timer',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TrainingIndexRoute = TrainingIndexRouteImport.update({
+  id: '/training/',
+  path: '/training/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TrainingSlugRoute = TrainingSlugRouteImport.update({
   id: '/training/$slug',
   path: '/training/$slug',
@@ -324,6 +330,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/community/': typeof CommunityIndexRoute
   '/tools/': typeof ToolsIndexRoute
+  '/training/': typeof TrainingIndexRoute
   '/checkout/return': typeof AuthenticatedCheckoutReturnRoute
   '/workout/$workoutId': typeof AuthenticatedWorkoutWorkoutIdRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -370,6 +377,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/community': typeof CommunityIndexRoute
   '/tools': typeof ToolsIndexRoute
+  '/training': typeof TrainingIndexRoute
   '/checkout/return': typeof AuthenticatedCheckoutReturnRoute
   '/workout/$workoutId': typeof AuthenticatedWorkoutWorkoutIdRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -418,6 +426,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/community/': typeof CommunityIndexRoute
   '/tools/': typeof ToolsIndexRoute
+  '/training/': typeof TrainingIndexRoute
   '/_authenticated/checkout/return': typeof AuthenticatedCheckoutReturnRoute
   '/_authenticated/workout/$workoutId': typeof AuthenticatedWorkoutWorkoutIdRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -466,6 +475,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/community/'
     | '/tools/'
+    | '/training/'
     | '/checkout/return'
     | '/workout/$workoutId'
     | '/api/public/health'
@@ -512,6 +522,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/community'
     | '/tools'
+    | '/training'
     | '/checkout/return'
     | '/workout/$workoutId'
     | '/api/public/health'
@@ -559,6 +570,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/community/'
     | '/tools/'
+    | '/training/'
     | '/_authenticated/checkout/return'
     | '/_authenticated/workout/$workoutId'
     | '/api/public/health'
@@ -598,6 +610,7 @@ export interface RootRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
   CommunityIndexRoute: typeof CommunityIndexRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
+  TrainingIndexRoute: typeof TrainingIndexRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   CommunityWorkoutWorkoutIdRoute: typeof CommunityWorkoutWorkoutIdRoute
   ApiPublicHooksDailyRunRoute: typeof ApiPublicHooksDailyRunRoute
@@ -859,6 +872,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsWorkoutTimerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/training/': {
+      id: '/training/'
+      path: '/training'
+      fullPath: '/training/'
+      preLoaderRoute: typeof TrainingIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/training/$slug': {
       id: '/training/$slug'
       path: '/training/$slug'
@@ -997,6 +1017,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
   CommunityIndexRoute: CommunityIndexRoute,
   ToolsIndexRoute: ToolsIndexRoute,
+  TrainingIndexRoute: TrainingIndexRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   CommunityWorkoutWorkoutIdRoute: CommunityWorkoutWorkoutIdRoute,
   ApiPublicHooksDailyRunRoute: ApiPublicHooksDailyRunRoute,
