@@ -31,7 +31,9 @@ export default defineConfig({
           navigateFallback: "/",
           navigateFallbackDenylist: [/^\/api\//, /^\/~oauth(?:\/|$)/, /^\/lovable\//],
           additionalManifestEntries: [{ url: "/", revision: "smarty-shell-v1" }],
-          globPatterns: ["**/*.{js,css,html,png,jpg,jpeg,webp,svg,ico,woff,woff2}"],
+          // Keep the install shell lean. Images are cached on demand by the
+          // runtime rule below, avoiding failures from oversized media files.
+          globPatterns: ["**/*.{js,css,html,svg,ico,woff,woff2}"],
           runtimeCaching: [
             {
               urlPattern: ({ request }) => request.mode === "navigate",
