@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
+import { TRAINING_TOPIC_SLUGS } from "@/lib/seo/training-topics";
+
 
 const BASE_URL = "https://smartyworkout.com";
 
