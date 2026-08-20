@@ -22,6 +22,7 @@ export const OFFLINE_PUBLIC_ROUTES = [
   "/community",
   "/community/workouts",
   "/wod",
+  "/training",
   "/auth",
 ];
 

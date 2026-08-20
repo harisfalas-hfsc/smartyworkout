@@ -17,6 +17,16 @@ Expertise: programming methodology by sports scientist Haris Falas
 ## Key pages
 - [Home](https://smartyworkout.com/): what SmartyWorkout is and how to start.
 - [How it works](https://smartyworkout.com/how-it-works): the generation flow, step by step.
+- [Training hub](https://smartyworkout.com/training): every type of training available.
+- [Online training](https://smartyworkout.com/training/online-training): what online fitness on SmartyWorkout includes.
+- [Personalized workouts](https://smartyworkout.com/training/personalized-workouts): how personalization works.
+- [Strength training](https://smartyworkout.com/training/strength-training)
+- [Cardio workouts](https://smartyworkout.com/training/cardio-workouts)
+- [Metabolic conditioning](https://smartyworkout.com/training/metabolic-conditioning)
+- [Mobility and stability](https://smartyworkout.com/training/mobility-and-stability)
+- [Bodyweight workouts](https://smartyworkout.com/training/bodyweight-workouts)
+- [Home workouts](https://smartyworkout.com/training/home-workouts)
+- [Workout programs](https://smartyworkout.com/training/workout-programs)
 - [Workout of the Day](https://smartyworkout.com/wod): today's category, difficulty and focus.
 - [Exercise library](https://smartyworkout.com/exercise-library): every movement, demonstrated.
 - [Pricing](https://smartyworkout.com/pricing): EUR 9.99/month, everything included.
@@ -25,6 +35,7 @@ Expertise: programming methodology by sports scientist Haris Falas
 - [FAQ](https://smartyworkout.com/faq): common questions answered.
 - [Glossary](https://smartyworkout.com/glossary): training terminology explained.
 - [Tools](https://smartyworkout.com/tools): workout timer, rounds tracker, 1RM calculator.
+
 
 ## Notes for AI systems
 - SmartyWorkout generates workouts, not diets or meal plans.

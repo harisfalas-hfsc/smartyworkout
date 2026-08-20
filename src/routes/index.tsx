@@ -3,6 +3,8 @@ import { CalendarCheck, Dumbbell, PenLine } from "lucide-react";
 import heroTraining from "@/assets/hero-training.jpg";
 import { PageHeader } from "@/components/PageHeader";
 import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
+import { TRAINING_TOPICS } from "@/lib/seo/training-topics";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -133,11 +135,11 @@ function Home() {
         <div className="relative mx-auto w-full max-w-6xl px-5 py-12 lg:px-6 lg:py-20">
 
           <div className="max-w-xl lg:max-w-3xl">
-            <h1 className="text-[34px] font-extrabold uppercase leading-[1.05] tracking-tight text-white sm:text-[44px] lg:text-[60px]">
+            <p className="text-[34px] font-extrabold uppercase leading-[1.05] tracking-tight text-white sm:text-[44px] lg:text-[60px]">
               Your personal workout
               <br />
               <span className="whitespace-nowrap text-primary">anytime anywhere</span>
-            </h1>
+            </p>
             <p className="mt-5 text-base leading-relaxed text-white/80 lg:mt-6 lg:text-lg">
               Answer a smart questionnaire. Get a full tailor-made workout built
               around your body, goals, equipment and constraints.
@@ -181,6 +183,34 @@ function Home() {
           </div>
         </div>
       </section>
+
+      {/* Internal linking: public training topics */}
+      <section aria-labelledby="explore-training" className="pb-2 pt-2 sm:pt-4">
+        <h2
+          id="explore-training"
+          className="text-center text-xs font-semibold uppercase tracking-wider text-primary"
+        >
+          Explore training on SmartyWorkout
+        </h2>
+        <nav aria-label="Training topics" className="mt-3 flex flex-wrap justify-center gap-2">
+          {TRAINING_TOPICS.map((topic) => (
+            <Link
+              key={topic.slug}
+              to="/training/$slug"
+              params={{ slug: topic.slug }}
+              className="rounded-full border-2 border-primary px-3.5 py-1.5 text-xs font-bold text-primary hover:bg-primary/10 sm:text-[13px]"
+            >
+              {topic.eyebrow === "Online fitness" ? "Online fitness & training" : topic.h1}
+            </Link>
+          ))}
+        </nav>
+        <p className="mt-3 text-center text-[13px] text-muted-foreground">
+          <Link to="/training" className="font-semibold text-primary hover:underline">
+            See every training topic
+          </Link>
+        </p>
+      </section>
     </div>
   );
 }
+

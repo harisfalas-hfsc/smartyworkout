@@ -95,7 +95,11 @@ Disallow: /profile
 Disallow: /logbook
 Disallow: /progress
 Disallow: /notifications
+Disallow: /inbox
+Disallow: /messages
+Disallow: /diagnostics
 Disallow: /checkout
 Disallow: /workout/
+
 
 Sitemap: https://smartyworkout.com/sitemap.xml
