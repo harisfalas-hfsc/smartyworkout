@@ -29,6 +29,12 @@ import {
 } from "@/lib/offline/db";
 import { mergeServerPerformance } from "@/lib/offline/performance-store";
 import { markOfflineReady, readOfflineReadiness } from "@/lib/offline/readiness";
+import {
+  OFFLINE_MEMBER_ROUTES,
+  OFFLINE_PUBLIC_ROUTES,
+  registerAppServiceWorker,
+  warmOfflineRoutes,
+} from "@/lib/offline/register-sw";
 
 const LOGBOOK_COLUMNS =
   "id,name,category,duration_min,difficulty_stars,difficulty_label,mood,status,is_favorite,scheduled_at,completed_at,created_at,is_wod,created_by,workout_feedback(difficulty_rating,feeling)";
@@ -226,6 +232,7 @@ export function OfflineBootstrap() {
       setSyncState("syncing");
       await markSyncStarted();
       try {
+        await registerAppServiceWorker();
         await migrateLocalDatabase();
         await bindUser(user.id);
 
@@ -236,6 +243,10 @@ export function OfflineBootstrap() {
         await step("personal", 60_000, () => phasePersonal(access));
         await step("library", 24 * 60 * 60_000, phaseLibrary);
         await step("community", 15 * 60_000, () => phaseCommunity().catch(() => undefined));
+
+        // The shell is already installed, but warm every stable and member URL
+        // with the signed-in session so direct offline navigation is reliable.
+        await warmOfflineRoutes([...OFFLINE_PUBLIC_ROUTES, ...OFFLINE_MEMBER_ROUTES]);
 
         const previous = await readOfflineReadiness();
         await markOfflineReady({

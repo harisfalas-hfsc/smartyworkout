@@ -1,6 +1,27 @@
-import { registerSW } from "virtual:pwa-register";
-
 const APP_WORKER_PATH = "/sw.js";
+let registrationPromise: Promise<ServiceWorkerRegistration | null> | null = null;
+
+export const OFFLINE_PUBLIC_ROUTES = [
+  "/",
+  "/about",
+  "/how-it-works",
+  "/pricing",
+  "/faq",
+  "/founder-note",
+  "/haris-falas",
+  "/exercise-library",
+  "/tools",
+  "/tools/1rm-calculator",
+  "/tools/rounds-tracker",
+  "/tools/workout-timer",
+  "/glossary",
+  "/privacy",
+  "/terms",
+  "/disclaimer",
+  "/auth",
+];
+
+export const OFFLINE_MEMBER_ROUTES = ["/logbook", "/profile", "/account", "/inbox", "/coach"];
 
 function isLovablePreviewHost(hostname: string) {
   return (
@@ -29,8 +50,11 @@ async function unregisterAppWorkers() {
 }
 
 /** Installs the one app-shell worker in production and removes it everywhere else. */
-export async function registerAppServiceWorker() {
-  if (!("serviceWorker" in navigator)) return;
+export function registerAppServiceWorker(): Promise<ServiceWorkerRegistration | null> {
+  if (registrationPromise) return registrationPromise;
+  if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
+    return Promise.resolve(null);
+  }
 
   const disabled =
     !import.meta.env.PROD ||
@@ -39,11 +63,31 @@ export async function registerAppServiceWorker() {
     new URLSearchParams(window.location.search).get("sw") === "off";
 
   if (disabled) {
-    await unregisterAppWorkers();
-    return;
+    registrationPromise = unregisterAppWorkers().then(() => null).catch(() => null);
+    return registrationPromise;
   }
 
-  const update = registerSW({ immediate: true });
-  await navigator.serviceWorker.ready;
-  await update(true);
+  registrationPromise = (async () => {
+    try {
+      const registration = await navigator.serviceWorker.register(APP_WORKER_PATH, { scope: "/" });
+      await navigator.serviceWorker.ready;
+      window.setInterval(() => registration.update().catch(() => undefined), 60 * 60 * 1000);
+      return registration;
+    } catch {
+      return null;
+    }
+  })();
+  return registrationPromise;
+}
+
+/** Saves rendered route responses so direct navigation also works offline. */
+export async function warmOfflineRoutes(urls: string[]): Promise<void> {
+  if (typeof window === "undefined" || !("caches" in window)) return;
+  const cache = await caches.open("smarty-pages-v1");
+  await Promise.allSettled(
+    urls.map(async (url) => {
+      const response = await fetch(url, { credentials: "same-origin" });
+      if (response.ok && !response.redirected) await cache.put(url, response);
+    }),
+  );
 }
