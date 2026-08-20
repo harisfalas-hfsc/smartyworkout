@@ -3,6 +3,8 @@ import { CalendarCheck, Dumbbell, PenLine } from "lucide-react";
 import heroTraining from "@/assets/hero-training.jpg";
 import { PageHeader } from "@/components/PageHeader";
 import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
+import { TRAINING_TOPICS } from "@/lib/seo/training-topics";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
