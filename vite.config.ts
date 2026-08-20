@@ -63,6 +63,20 @@ export default defineConfig({
               cacheableResponse: { statuses: [0, 200] },
               plugins: [
                 {
+                  // Never store the offline fallback page as if it were a real page.
+                  cacheWillUpdate: async ({ response }) => {
+                    if (!response || response.status !== 200) return null;
+                    const body = await response.clone().text();
+                    if (body.includes("data-smarty-offline-page")) return null;
+                    return response;
+                  },
+                  // Never serve a previously poisoned cache entry.
+                  cachedResponseWillBeUsed: async ({ cachedResponse }) => {
+                    if (!cachedResponse) return cachedResponse;
+                    const body = await cachedResponse.clone().text();
+                    if (body.includes("data-smarty-offline-page")) return null;
+                    return cachedResponse;
+                  },
                   // Only when both network and cache fail do we show the
                   // branded offline page.
                   handlerDidError: async () =>

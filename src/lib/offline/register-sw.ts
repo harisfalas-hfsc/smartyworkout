@@ -41,7 +41,15 @@ export function registerAppServiceWorker() {
     void unregisterAppWorker();
     return;
   }
-  void navigator.serviceWorker.register(SW_URL, { scope: "/" }).catch(() => {
-    /* offline support is best-effort */
-  });
+  void navigator.serviceWorker
+    .register(SW_URL, { scope: "/" })
+    .then((reg) => {
+      // Always check for a newer worker on load so a bad cached shell can never
+      // strand the user on the offline page.
+      void reg.update().catch(() => {});
+    })
+    .catch(() => {
+      /* offline support is best-effort */
+    });
 }
+
