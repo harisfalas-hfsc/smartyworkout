@@ -27,6 +27,7 @@ export type QueuedAction = QueueRuleItem & {
     | "set-log"
     | "workout-result"
     | "attempt-complete"
+    | "workout-meta"
     | "workout-status"
     | "workout-feedback"
     | "session-debrief"

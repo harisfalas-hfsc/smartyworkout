@@ -895,7 +895,7 @@ function Logbook() {
     try {
       await saveMeta({ data: { workoutId: id, is_favorite: next } });
     } catch {
-      await enqueueAction("workout-status", { workoutId: id, is_favorite: next }, user?.id);
+      await enqueueAction("workout-meta", { workoutId: id, is_favorite: next }, user?.id);
       toast.success("Saved on this device — it will sync when you are online.");
     }
   }

@@ -49,7 +49,7 @@ async function fetchAllRows(table: "workouts" | "set_logs" | "workout_results" |
       .order("created_at", { ascending: false })
       .range(start, start + pageSize - 1);
     if (result.error) throw new Error(result.error.message);
-    const page = (result.data ?? []) as Record<string, unknown>[];
+    const page = (result.data ?? []) as unknown as Record<string, unknown>[];
     rows.push(...page);
     if (page.length < pageSize) break;
   }
@@ -164,9 +164,9 @@ export function OfflineBootstrap() {
           answeredAt: row.created_at,
         }));
         await mergeServerPerformance(user.id, {
-          sets: (setsResult.value.data ?? []) as never,
-          results: (resultsResult.value.data ?? []) as never,
-          feedback,
+          sets: setsResult.value as never,
+          results: resultsResult.value as never,
+          feedback: feedback as never,
         });
         preparedPerformance = setsResult.value.length + resultsResult.value.length + feedback.length;
       }
@@ -229,7 +229,11 @@ export function OfflineBootstrap() {
       const [workoutGroups, rankGroups, memberGroups, newestTalk, oldestTalk] = await Promise.all([
         Promise.all(workoutSorts.map((sort) => fetchCommunityWorkouts({ sort, limit: 30 }).catch(() => []))),
         Promise.all(rankSorts.map((sort) => fetchCommunityWorkouts({ sort, limit: 30 }).catch(() => []))),
-        Promise.all(memberSorts.map((sort) => sort === "workouts_shared" ? fetchCommunityCreators(sort, 30).catch(() => []) : fetchLeaders(sort, 30).catch(() => []))),
+        Promise.all(memberSorts.map((sort) => {
+          if (sort === "workouts_shared") return fetchCommunityCreators(sort, 30).catch(() => []);
+          const column = sort === "completed" ? "workouts_completed" : sort === "streak" ? "current_streak" : "score";
+          return fetchLeaders(column, 30).catch(() => []);
+        })),
         fetchLatestComments(30, "newest").catch(() => []),
         fetchLatestComments(30, "oldest").catch(() => []),
       ]);
