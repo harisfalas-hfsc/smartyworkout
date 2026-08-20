@@ -27,8 +27,11 @@ export default defineConfig({
         // The app is server-rendered: there is no index.html to fall back to.
         // Navigations are handled by public/sw-extra.js instead.
         importScripts: ["/sw-extra.js"],
-        // Precached branded page for routes never opened while online.
-        navigateFallback: "/offline.html",
+        // NOTE: no navigateFallback here. A global navigation fallback route
+        // hijacks every navigation (even online) and renders the offline page.
+        // The offline page is served only when the network actually fails,
+        // via the handlerDidError plugin on the navigation route below.
+
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,
@@ -58,8 +61,18 @@ export default defineConfig({
               networkTimeoutSeconds: 4,
               expiration: { maxEntries: 80, maxAgeSeconds: 60 * 60 * 24 * 30 },
               cacheableResponse: { statuses: [0, 200] },
+              plugins: [
+                {
+                  // Only when both network and cache fail do we show the
+                  // branded offline page.
+                  handlerDidError: async () =>
+                    (await caches.match("/offline.html")) ??
+                    new Response("", { status: 503 }),
+                },
+              ],
             },
           },
+
           {
             // JS/CSS chunks: cache first so the app shell works offline.
             urlPattern: ({ url }) => /\.(?:js|css)$/.test(url.pathname),
