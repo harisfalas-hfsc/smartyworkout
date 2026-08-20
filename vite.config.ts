@@ -27,8 +27,11 @@ export default defineConfig({
         // The app is server-rendered: there is no index.html to fall back to.
         // Navigations are handled by public/sw-extra.js instead.
         importScripts: ["/sw-extra.js"],
-        // Precached branded page for routes never opened while online.
-        navigateFallback: "/offline.html",
+        // NOTE: no navigateFallback here. A global navigation fallback route
+        // hijacks every navigation (even online) and renders the offline page.
+        // The offline page is served only when the network actually fails,
+        // via the handlerDidError plugin on the navigation route below.
+
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,
