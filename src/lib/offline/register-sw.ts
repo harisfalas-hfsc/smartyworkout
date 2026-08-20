@@ -7,6 +7,7 @@ export const OFFLINE_PUBLIC_ROUTES = [
   "/how-it-works",
   "/pricing",
   "/faq",
+  "/contact",
   "/founder-note",
   "/haris-falas",
   "/exercise-library",
@@ -18,6 +19,9 @@ export const OFFLINE_PUBLIC_ROUTES = [
   "/privacy",
   "/terms",
   "/disclaimer",
+  "/community",
+  "/community/workouts",
+  "/wod",
   "/auth",
 ];
 

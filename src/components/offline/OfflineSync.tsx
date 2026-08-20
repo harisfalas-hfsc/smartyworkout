@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { generateWorkout, setWorkoutStatus } from "@/lib/coach.functions";
+import { generateWorkout, setWorkoutMeta, setWorkoutStatus } from "@/lib/coach.functions";
 import { reactToWorkout, rateWorkout } from "@/lib/community.functions";
 import { deleteNotifications, setNotificationsRead } from "@/lib/daily.functions";
 import { deleteMyThreads, setThreadsRead } from "@/lib/support.functions";
@@ -16,6 +16,7 @@ import { announceInboxChanged } from "@/lib/inbox-sync";
 export function OfflineSync() {
   const online = useOnlineStatus();
   const saveStatus = useServerFn(setWorkoutStatus);
+  const saveMeta = useServerFn(setWorkoutMeta);
   const react = useServerFn(reactToWorkout);
   const rate = useServerFn(rateWorkout);
   const setNotificationRead = useServerFn(setNotificationsRead);
@@ -70,6 +71,9 @@ export function OfflineSync() {
         }
         case "workout-status":
           await saveStatus({ data: p });
+          return;
+        case "workout-meta":
+          await saveMeta({ data: p });
           return;
         case "community-like":
           await react({ data: p });
@@ -130,7 +134,7 @@ export function OfflineSync() {
 
     void flush();
     return onSyncRequested(() => void flush());
-  }, [online, generate, saveStatus, react, rate, setNotificationRead, removeNotifications, setThreadRead, removeThreads, saveDebrief]);
+  }, [online, generate, saveStatus, saveMeta, react, rate, setNotificationRead, removeNotifications, setThreadRead, removeThreads, saveDebrief]);
 
   return null;
 }

@@ -1,4 +1,5 @@
 import { readCache, writeCache, scopedKey, trimCache } from "./store";
+import { isOnline } from "./connectivity";
 
 /**
  * Runs a loader and stores the result on the device.
@@ -11,6 +12,11 @@ export async function offlineFirst<T>(
   userId?: string | null,
 ): Promise<T> {
   const fullKey = scopedKey(userId ?? null, key);
+  if (!isOnline()) {
+    const cached = await readCache<T>(fullKey);
+    if (cached) return cached.data;
+    throw new Error("No saved offline copy is available on this device yet.");
+  }
   try {
     const fresh = await loader();
     void writeCache(fullKey, fresh).then(() => trimCache());

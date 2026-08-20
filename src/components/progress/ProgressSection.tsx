@@ -22,6 +22,7 @@ import { CATEGORY_LABEL, CATEGORY_UNIT } from "@/lib/progress-config";
 import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/date-format";
 import { SCORE_RULES } from "@/lib/progress-config";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Dialog,
   DialogContent,
@@ -110,6 +111,7 @@ function BadgeUnlockedToast({ names, onClose }: { names: string[]; onClose: () =
  * and progress are one place, never three.
  */
 export function ProgressSection() {
+  const { user } = useAuth();
   const fetchOverview = useServerFn(getProgressOverview);
   const [data, setData] = useState<ProgressOverview | null>(null);
   const [unlocked, setUnlocked] = useState<string[]>([]);
@@ -117,7 +119,8 @@ export function ProgressSection() {
 
   useEffect(() => {
     let active = true;
-    void offlineFirst("progress:overview", () => fetchOverview({ data: {} } as never))
+    if (!user?.id) return;
+    void offlineFirst("progress:overview", () => fetchOverview({ data: {} } as never), user.id)
       .then((r) => {
         if (!active) return;
         setData(r);
@@ -127,7 +130,7 @@ export function ProgressSection() {
     return () => {
       active = false;
     };
-  }, [fetchOverview]);
+  }, [fetchOverview, user?.id]);
 
   const byCategory = useMemo(() => {
     if (!data) return [];

@@ -61,6 +61,8 @@ import { equipmentBadges } from "@/lib/format/labels";
 import { getSessionLoads } from "@/lib/performance.functions";
 import { ProgressSection } from "@/components/progress/ProgressSection";
 import { localSessionLoads } from "@/lib/offline/performance-store";
+import { enqueueAction } from "@/lib/offline/queue";
+import { scopedKey, writeCache } from "@/lib/offline/store";
 
 type View = "list" | "calendar" | "progress";
 type LogSearch = { filter: string; view: View; equip?: string };
@@ -887,12 +889,14 @@ function Logbook() {
 
 
   async function toggleFavorite(id: string, next: boolean) {
-    setRows((prev) => prev?.map((r) => (r.id === id ? { ...r, is_favorite: next } : r)) ?? prev);
+    const updated = rows?.map((r) => (r.id === id ? { ...r, is_favorite: next } : r)) ?? [];
+    setRows(updated);
+    if (user?.id) await writeCache(scopedKey(user.id, "logbook:list"), updated);
     try {
       await saveMeta({ data: { workoutId: id, is_favorite: next } });
     } catch {
-      setRows((prev) => prev?.map((r) => (r.id === id ? { ...r, is_favorite: !next } : r)) ?? prev);
-      toast.error("Could not save that.");
+      await enqueueAction("workout-meta", { workoutId: id, is_favorite: next }, user?.id);
+      toast.success("Saved on this device — it will sync when you are online.");
     }
   }
 
@@ -905,13 +909,15 @@ function Logbook() {
     if (busy) return;
     setBusy(true);
     const before = rows;
-    setRows((prev) => prev?.map((r) => (r.id === id ? { ...r, ...optimistic } : r)) ?? prev);
+    const updated = rows?.map((r) => (r.id === id ? { ...r, ...optimistic } : r)) ?? [];
+    setRows(updated);
+    if (user?.id) await writeCache(scopedKey(user.id, "logbook:list"), updated);
     try {
       await saveStatus({ data: { workoutId: id, ...patch } });
       toast.success(message);
-    } catch (e) {
-      setRows(before ?? null);
-      toast.error((e as Error).message);
+    } catch {
+      await enqueueAction("workout-status", { workoutId: id, ...patch }, user?.id);
+      toast.success("Saved on this device — it will sync when you are online.");
     } finally {
       setBusy(false);
     }
