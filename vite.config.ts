@@ -70,6 +70,11 @@ export default defineConfig({
                 cacheName: "smarty-pages-v1",
                 networkTimeoutSeconds: 5,
                 cacheableResponse: { statuses: [0, 200] },
+                // Dynamic member URLs (for example /workout/:id) cannot all be
+                // known at build time. If neither network nor an exact cached
+                // page is available, always boot the precached app shell so the
+                // router and IndexedDB can render the saved workout locally.
+                precacheFallback: { fallbackURL: "/" },
               },
             },
             {
