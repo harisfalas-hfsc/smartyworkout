@@ -9,6 +9,7 @@ import { listMyThreads } from "@/lib/support.functions";
 import { scopedKey, trimCache, writeCache } from "@/lib/offline/store";
 import {
   fetchComments,
+  fetchCategories,
   fetchCommunityCreators,
   fetchCommunityWorkouts,
   fetchLatestComments,
@@ -237,6 +238,7 @@ export function OfflineBootstrap() {
         fetchLatestComments(30, "newest").catch(() => []),
         fetchLatestComments(30, "oldest").catch(() => []),
       ]);
+      const categories = await fetchCategories().catch(() => []);
       if (!active) return;
       await Promise.all([
         ...workoutSorts.map((sort, index) => save(`community:workouts:${sort}`, workoutGroups[index])),
@@ -245,6 +247,10 @@ export function OfflineBootstrap() {
         save("community:comments:newest", newestTalk),
         save("community:comments:oldest", oldestTalk),
         save("community:comments:discussed", newestTalk),
+        save("community:categories", categories),
+        ...workoutSorts.map((sort, index) =>
+          save(`community:browse:${sort}:0:all:all:0`, workoutGroups[index]?.slice(0, 12) ?? []),
+        ),
       ]);
 
       const ids = [...new Set(workoutGroups.flat().map((w) => w.id))];

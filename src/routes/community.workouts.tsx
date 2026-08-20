@@ -21,6 +21,7 @@ import {
 import { fetchBadgesFor, fetchCategories, fetchCommunityWorkouts } from "@/lib/community-queries";
 import { SORTS, type CommunityBadge, type CommunitySort, type CommunityWorkoutCard as CardData } from "@/lib/community";
 import { CATEGORIES, MAX_STARS } from "@/lib/workout/spec";
+import { offlineFirst } from "@/lib/offline/offline-first";
 
 const searchSchema = z.object({
   sort: fallback(z.string(), "latest").default("latest"),
@@ -70,7 +71,7 @@ function BrowsePage() {
   const difficulty = Math.max(0, Math.min(MAX_STARS, search.difficulty));
 
   useEffect(() => {
-    void fetchCategories().then((rows) => {
+    void offlineFirst("community:categories", fetchCategories).then((rows) => {
       const merged = Array.from(new Set([...CATEGORIES, ...rows]));
       setCategories(merged);
     });
@@ -84,19 +85,26 @@ function BrowsePage() {
     let active = true;
     setLoading(true);
     void (async () => {
-      const list = await fetchCommunityWorkouts({
-        sort,
-        difficulty: difficulty || null,
-        category: search.category || null,
-        search: search.q || null,
-        limit: PAGE,
-        offset: page * PAGE,
-      });
+      const cacheKey = ["community:browse", sort, difficulty, search.category || "all", search.q || "all", page].join(":");
+      const list = await offlineFirst(cacheKey, () =>
+        fetchCommunityWorkouts({
+          sort,
+          difficulty: difficulty || null,
+          category: search.category || null,
+          search: search.q || null,
+          limit: PAGE,
+          offset: page * PAGE,
+        }),
+      ).catch(() => [] as CardData[]);
       if (!active) return;
       setRows((prev) => (page === 0 ? list : [...prev, ...list]));
       setDone(list.length < PAGE);
       setLoading(false);
-      const map = await fetchBadgesFor(list.map((w) => w.creator_id));
+      const creatorIds = list.map((w) => w.creator_id).sort();
+      const map = await offlineFirst(
+        `community:badges:${creatorIds.join(",")}`,
+        () => fetchBadgesFor(creatorIds),
+      ).catch(() => ({} as Record<string, CommunityBadge[]>));
       if (active) setBadges((prev) => ({ ...prev, ...map }));
     })();
     return () => {
