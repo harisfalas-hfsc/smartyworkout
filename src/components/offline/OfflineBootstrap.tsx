@@ -101,8 +101,8 @@ export function OfflineBootstrap() {
     const phaseIdentity = async () => {
       const [accessResult, hubResult] = await Promise.allSettled([loadAccess({}), loadHub({})]);
       if (!active) return null;
-      if (accessResult.status === "fulfilled") void save("account:access", accessResult.value);
-      if (hubResult.status === "fulfilled") void save("wod:hub", hubResult.value);
+      if (accessResult.status === "fulfilled") await save("account:access", accessResult.value);
+      if (hubResult.status === "fulfilled") await save("wod:hub", hubResult.value);
 
       // Warm the avatar into the media cache so it paints instantly offline,
       // even if the member never opened a page that renders it this session.
@@ -193,17 +193,17 @@ export function OfflineBootstrap() {
       }
       if (!active || !exercises.length) return;
       preparedExercises = exercises.length;
-      void writeCache(scopedKey(null, "library:list:All|All|All|All|"), exercises);
+      await writeCache(scopedKey(null, "library:list:All|All|All|All|"), exercises);
       const unique = (key: string) =>
         [...new Set(exercises.map((row) => row[key]).filter(Boolean))].sort();
-      void writeCache(scopedKey(null, "library:filters"), {
+      await writeCache(scopedKey(null, "library:filters"), {
         bodyParts: unique("body_part"),
         equipment: unique("equipment"),
         targets: unique("target_muscle"),
         difficulties: unique("difficulty"),
       });
       for (const exercise of exercises) {
-        if (typeof exercise["id"] === "string") void writeCache(`exercise:${exercise["id"]}`, exercise);
+        if (typeof exercise["id"] === "string") await writeCache(`exercise:${exercise["id"]}`, exercise);
       }
 
       const ids = exercises.map((row) => String(row["id"] ?? "")).filter(Boolean);
@@ -292,7 +292,7 @@ export function OfflineBootstrap() {
           performanceRows: preparedPerformance || (previous.userId === user.id ? previous.performanceRows : 0),
         });
 
-        void trimCache(800);
+        await trimCache(800);
         await markSyncFinished();
         setSyncState("idle");
       } catch (error) {
