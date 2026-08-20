@@ -47,9 +47,9 @@ export function OfflineStatus() {
 
   const offline = state === "offline";
   const backendDown = state === "backend-unreachable";
-  // Online preparation and replay stay silent. A status pill is only useful
-  // when connectivity is genuinely unavailable or the backend cannot answer.
-  const show = offline || backendDown;
+  // Match the proven Smarty Diet behaviour: make the initial preparation
+  // visible, then disappear once this device is fully up to date.
+  const show = offline || backendDown || sync === "syncing" || pending > 0;
   if (!show || dismissed) return null;
 
   const prepared = Boolean(readiness?.ready && readiness.userId === (user?.id ?? null));
@@ -57,7 +57,7 @@ export function OfflineStatus() {
     ? prepared
       ? "Offline. Saved data is ready"
       : "Offline. Some content may not be available yet"
-    : backendDown
+      : backendDown
       ? "Can't reach SmartyWorkout right now"
       : sync === "syncing"
         ? "Syncing…"

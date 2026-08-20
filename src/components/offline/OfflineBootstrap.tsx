@@ -37,7 +37,24 @@ import {
 } from "@/lib/offline/register-sw";
 
 const LOGBOOK_COLUMNS =
-  "id,name,category,duration_min,difficulty_stars,difficulty_label,mood,status,is_favorite,scheduled_at,completed_at,created_at,is_wod,created_by,workout_feedback(difficulty_rating,feeling)";
+  "id,name,category,duration_min,difficulty_stars,difficulty_label,mood,status,is_favorite,scheduled_at,completed_at,created_at,is_wod,created_by,equipment,workout_feedback(difficulty_rating,feeling)";
+
+async function fetchAllRows(table: "workouts" | "set_logs" | "workout_results" | "workout_feedback", select = "*") {
+  const rows: Record<string, unknown>[] = [];
+  const pageSize = 1000;
+  for (let start = 0; ; start += pageSize) {
+    const result = await supabase
+      .from(table)
+      .select(select)
+      .order("created_at", { ascending: false })
+      .range(start, start + pageSize - 1);
+    if (result.error) throw new Error(result.error.message);
+    const page = (result.data ?? []) as Record<string, unknown>[];
+    rows.push(...page);
+    if (page.length < pageSize) break;
+  }
+  return rows;
+}
 
 /** Builds the signed-in member's offline copy as soon as the app starts online. */
 export function OfflineBootstrap() {
@@ -52,8 +69,31 @@ export function OfflineBootstrap() {
   const running = useRef(false);
 
   useEffect(() => {
-    if (!user) return;
     let active = true;
+
+    // Public pages are prepared for every visitor, not only signed-in members.
+    // This is deliberately independent from member-data synchronization.
+    if (!user) {
+      const preparePublicShell = async () => {
+        if (!isOnline()) return;
+        setSyncState("syncing");
+        try {
+          await registerAppServiceWorker();
+          await warmOfflineRoutes(OFFLINE_PUBLIC_ROUTES);
+          setSyncState("idle");
+        } catch {
+          setSyncState("error");
+        }
+      };
+      void preparePublicShell();
+      const stopPublicConnectivity = subscribeConnectivity((online) => {
+        if (online) void preparePublicShell();
+      });
+      return () => {
+        active = false;
+        stopPublicConnectivity();
+      };
+    }
 
     const save = (key: string, value: unknown) => writeCache(scopedKey(user.id, key), value);
 
@@ -86,41 +126,33 @@ export function OfflineBootstrap() {
         await Promise.allSettled([
           loadNotifications({}),
           loadThreads({}),
-          supabase
-            .from("workouts")
-            .select(LOGBOOK_COLUMNS)
-            .order("created_at", { ascending: false })
-            .limit(300),
-          supabase
-            .from("workouts")
-            .select("*")
-            .order("created_at", { ascending: false })
-            .limit(300),
+          fetchAllRows("workouts", LOGBOOK_COLUMNS),
+          fetchAllRows("workouts"),
           supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
-          supabase.from("set_logs").select("*").order("completed_at", { ascending: false }).limit(3000),
-          supabase.from("workout_results").select("*").order("performed_at", { ascending: false }).limit(1000),
-          supabase.from("workout_feedback").select("*").order("created_at", { ascending: false }).limit(1000),
+          fetchAllRows("set_logs"),
+          fetchAllRows("workout_results"),
+          fetchAllRows("workout_feedback"),
         ]);
       if (!active) return;
       if (notificationResult.status === "fulfilled")
-        void save("inbox:notifications", notificationResult.value);
-      if (threadResult.status === "fulfilled") void save("inbox:threads", threadResult.value);
-      if (logbookResult.status === "fulfilled" && !logbookResult.value.error)
-        void save("logbook:list", logbookResult.value.data ?? []);
-      if (workoutResult.status === "fulfilled" && !workoutResult.value.error) {
-        preparedWorkouts = workoutResult.value.data?.length ?? 0;
-        for (const workout of workoutResult.value.data ?? []) {
-          void save(`workout:${workout.id}`, { row: workout, access });
+        await save("inbox:notifications", notificationResult.value);
+      if (threadResult.status === "fulfilled") await save("inbox:threads", threadResult.value);
+      if (logbookResult.status === "fulfilled")
+        await save("logbook:list", logbookResult.value ?? []);
+      if (workoutResult.status === "fulfilled") {
+        preparedWorkouts = workoutResult.value.length;
+        for (const workout of workoutResult.value) {
+          await save(`workout:${String(workout["id"])}`, { row: workout, access });
         }
       }
       if (profileResult.status === "fulfilled" && !profileResult.value.error && profileResult.value.data)
-        void save("profile:full", profileResult.value.data);
+        await save("profile:full", profileResult.value.data);
       if (
-        setsResult.status === "fulfilled" && !setsResult.value.error &&
-        resultsResult.status === "fulfilled" && !resultsResult.value.error &&
-        feedbackResult.status === "fulfilled" && !feedbackResult.value.error
+        setsResult.status === "fulfilled" &&
+        resultsResult.status === "fulfilled" &&
+        feedbackResult.status === "fulfilled"
       ) {
-        const feedback = (feedbackResult.value.data ?? []).map((row) => ({
+        const feedback = feedbackResult.value.map((row) => ({
           id: row.id,
           workout_id: row.workout_id,
           attempt: row.attempt,
@@ -136,9 +168,9 @@ export function OfflineBootstrap() {
           results: (resultsResult.value.data ?? []) as never,
           feedback,
         });
-        preparedPerformance = (setsResult.value.data?.length ?? 0) + (resultsResult.value.data?.length ?? 0) + feedback.length;
+        preparedPerformance = setsResult.value.length + resultsResult.value.length + feedback.length;
       }
-      void loadProgressOverview({ data: {} } as never)
+      await loadProgressOverview({ data: {} } as never)
         .then((overview) => save("progress:overview", overview))
         .catch(() => undefined);
     };
@@ -191,32 +223,32 @@ export function OfflineBootstrap() {
 
     /** Priority 4 — community reading copy. */
     const phaseCommunity = async () => {
-      const [latest, top, rated, completedRank, leadersScore, creators, talk] = await Promise.all([
-        fetchCommunityWorkouts({ sort: "latest", limit: 30 }),
-        fetchCommunityWorkouts({ sort: "liked", limit: 30 }).catch(() => []),
-        fetchCommunityWorkouts({ sort: "rated", limit: 30 }).catch(() => []),
-        fetchCommunityWorkouts({ sort: "completed", limit: 30 }).catch(() => []),
-        fetchLeaders("score", 30).catch(() => []),
-        fetchCommunityCreators("workouts_shared", 30).catch(() => []),
+      const workoutSorts = ["latest", "liked", "rated"] as const;
+      const rankSorts = ["completed", "liked", "rated", "commented"] as const;
+      const memberSorts = ["score", "completed", "streak", "workouts_shared"] as const;
+      const [workoutGroups, rankGroups, memberGroups, newestTalk, oldestTalk] = await Promise.all([
+        Promise.all(workoutSorts.map((sort) => fetchCommunityWorkouts({ sort, limit: 30 }).catch(() => []))),
+        Promise.all(rankSorts.map((sort) => fetchCommunityWorkouts({ sort, limit: 30 }).catch(() => []))),
+        Promise.all(memberSorts.map((sort) => sort === "workouts_shared" ? fetchCommunityCreators(sort, 30).catch(() => []) : fetchLeaders(sort, 30).catch(() => []))),
         fetchLatestComments(30, "newest").catch(() => []),
+        fetchLatestComments(30, "oldest").catch(() => []),
       ]);
       if (!active) return;
-      void save("community:workouts:latest", latest);
-      void save("community:workouts:liked", top);
-      void save("community:workouts:rated", rated);
-      void save("community:ranked:completed", completedRank);
-      void save("community:members:score", leadersScore);
-      void save("community:members:workouts_shared", creators);
-      void save("community:comments:newest", talk);
+      await Promise.all([
+        ...workoutSorts.map((sort, index) => save(`community:workouts:${sort}`, workoutGroups[index])),
+        ...rankSorts.map((sort, index) => save(`community:ranked:${sort}`, rankGroups[index])),
+        ...memberSorts.map((sort, index) => save(`community:members:${sort}`, memberGroups[index])),
+        save("community:comments:newest", newestTalk),
+        save("community:comments:oldest", oldestTalk),
+        save("community:comments:discussed", newestTalk),
+      ]);
 
-      const ids = [...new Set(latest.map((w) => w.id))].slice(0, 20);
+      const ids = [...new Set(workoutGroups.flat().map((w) => w.id))];
       for (const id of ids) {
-        void loadSharedWorkout({ data: { workoutId: id } })
-          .then((detail) => save(`community:workout:${id}`, detail))
-          .catch(() => undefined);
-        void fetchComments(id)
-          .then((rows) => save(`community:workout-comments:${id}`, rows))
-          .catch(() => undefined);
+        await Promise.allSettled([
+          loadSharedWorkout({ data: { workoutId: id } }).then((detail) => save(`community:workout:${id}`, detail)),
+          fetchComments(id).then((rows) => save(`community:workout-comments:${id}`, rows)),
+        ]);
       }
     };
 
