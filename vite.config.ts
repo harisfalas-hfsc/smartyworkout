@@ -7,6 +7,28 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { VitePWA } from "vite-plugin-pwa";
 
+// Stable pages are installed with the app shell so they open directly without
+// a connection. Member data is warmed separately after authentication.
+const OFFLINE_PUBLIC_ROUTES = [
+  "/",
+  "/about",
+  "/how-it-works",
+  "/pricing",
+  "/faq",
+  "/founder-note",
+  "/haris-falas",
+  "/exercise-library",
+  "/tools",
+  "/tools/1rm-calculator",
+  "/tools/rounds-tracker",
+  "/tools/workout-timer",
+  "/glossary",
+  "/privacy",
+  "/terms",
+  "/disclaimer",
+  "/auth",
+];
+
 export default defineConfig({
   vite: {
     plugins: [
@@ -15,6 +37,9 @@ export default defineConfig({
         injectRegister: null,
         strategies: "generateSW",
         filename: "sw.js",
+        // TanStack Start publishes browser files from dist/client. Without this,
+        // an installed phone can have a manifest but no usable /sw.js shell.
+        outDir: "dist/client",
         includeAssets: [
           "favicon.ico",
           "favicon.png",
@@ -30,7 +55,10 @@ export default defineConfig({
           skipWaiting: true,
           navigateFallback: "/",
           navigateFallbackDenylist: [/^\/api\//, /^\/~oauth(?:\/|$)/, /^\/lovable\//],
-          additionalManifestEntries: [{ url: "/", revision: "smarty-shell-v1" }],
+          additionalManifestEntries: OFFLINE_PUBLIC_ROUTES.map((url) => ({
+            url,
+            revision: null,
+          })),
           // Keep the install shell lean. Images are cached on demand by the
           // runtime rule below, avoiding failures from oversized media files.
           globPatterns: ["**/*.{js,css,html,svg,ico,woff,woff2}"],
@@ -42,6 +70,11 @@ export default defineConfig({
                 cacheName: "smarty-pages-v1",
                 networkTimeoutSeconds: 5,
                 cacheableResponse: { statuses: [0, 200] },
+                // Dynamic member URLs (for example /workout/:id) cannot all be
+                // known at build time. If neither network nor an exact cached
+                // page is available, always boot the precached app shell so the
+                // router and IndexedDB can render the saved workout locally.
+                precacheFallback: { fallbackURL: "/" },
               },
             },
             {
