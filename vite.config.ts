@@ -61,8 +61,18 @@ export default defineConfig({
               networkTimeoutSeconds: 4,
               expiration: { maxEntries: 80, maxAgeSeconds: 60 * 60 * 24 * 30 },
               cacheableResponse: { statuses: [0, 200] },
+              plugins: [
+                {
+                  // Only when both network and cache fail do we show the
+                  // branded offline page.
+                  handlerDidError: async () =>
+                    (await caches.match("/offline.html")) ??
+                    new Response("", { status: 503 }),
+                },
+              ],
             },
           },
+
           {
             // JS/CSS chunks: cache first so the app shell works offline.
             urlPattern: ({ url }) => /\.(?:js|css)$/.test(url.pathname),
