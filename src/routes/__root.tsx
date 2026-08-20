@@ -20,7 +20,6 @@ import { ThemeProvider, THEME_INIT_SCRIPT } from "../lib/theme";
 import { OfflineStatus } from "../components/offline/OfflineStatus";
 import { OfflineSync } from "../components/offline/OfflineSync";
 import { OfflineBootstrap } from "../components/offline/OfflineBootstrap";
-import { registerAppServiceWorker } from "../lib/offline/register-sw";
 import { bootNativeShell } from "../lib/offline/native-boot";
 
 
@@ -341,7 +340,6 @@ function RootComponent() {
 
   useEffect(() => {
     bootNativeShell();
-    registerAppServiceWorker();
   }, []);
 
 
