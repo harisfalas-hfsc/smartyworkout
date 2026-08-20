@@ -175,12 +175,16 @@ export async function runWodForUser(
 
 
 /** Posts the daily motivational message for one athlete (idempotent per local day). */
-export async function runMotivationForUser(db: DB, prof: DailyProfile): Promise<boolean> {
+export async function runMotivationForUser(
+  db: DB,
+  prof: DailyProfile,
+  pool?: string[],
+): Promise<boolean> {
   const timeZone = prof.timezone || "Europe/Athens";
   const today = localDateISO(new Date(), timeZone);
   if (prof.last_motivation_on === today) return false;
   const streak = await completedStreak(db, prof.id, timeZone);
-  const msg = motivationFor(`${prof.id}:${today}`, streak);
+  const msg = motivationFor(`${prof.id}:${today}`, streak, pool);
   await db.from("notifications").insert({
     user_id: prof.id,
     kind: "motivation",

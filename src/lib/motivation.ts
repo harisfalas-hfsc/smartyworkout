@@ -30,10 +30,15 @@ const STREAK_LINES: string[] = [
   "sessions on the trot. Don't stop now.",
 ];
 
-export function motivationFor(seedKey: string, streak = 0): { title: string; body: string } {
+export function motivationFor(
+  seedKey: string,
+  streak = 0,
+  pool?: string[],
+): { title: string; body: string } {
   let seed = 0;
   for (let i = 0; i < seedKey.length; i++) seed = (seed * 31 + seedKey.charCodeAt(i)) >>> 0;
-  const body = LINES[seed % LINES.length]!;
+  const lines = pool && pool.length ? pool : LINES;
+  const body = lines[seed % lines.length]!;
   const title =
     streak >= 2
       ? `${streak}-day ${STREAK_LINES[seed % STREAK_LINES.length]!}`

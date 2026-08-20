@@ -289,6 +289,72 @@ export type Database = {
         }
         Relationships: []
       }
+      cron_jobs: {
+        Row: {
+          content: Json
+          enabled: boolean
+          hour: number
+          key: string
+          last_run_on: string | null
+          minute: number
+          timezone: string
+          updated_at: string
+        }
+        Insert: {
+          content?: Json
+          enabled?: boolean
+          hour?: number
+          key: string
+          last_run_on?: string | null
+          minute?: number
+          timezone?: string
+          updated_at?: string
+        }
+        Update: {
+          content?: Json
+          enabled?: boolean
+          hour?: number
+          key?: string
+          last_run_on?: string | null
+          minute?: number
+          timezone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cron_runs: {
+        Row: {
+          changed: boolean
+          details: Json
+          id: string
+          job_key: string
+          ran_at: string
+          status: string
+          summary: string | null
+          trigger: string
+        }
+        Insert: {
+          changed?: boolean
+          details?: Json
+          id?: string
+          job_key: string
+          ran_at?: string
+          status?: string
+          summary?: string | null
+          trigger?: string
+        }
+        Update: {
+          changed?: boolean
+          details?: Json
+          id?: string
+          job_key?: string
+          ran_at?: string
+          status?: string
+          summary?: string | null
+          trigger?: string
+        }
+        Relationships: []
+      }
       exercises: {
         Row: {
           body_part: string | null
