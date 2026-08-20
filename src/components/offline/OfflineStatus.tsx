@@ -47,7 +47,9 @@ export function OfflineStatus() {
 
   const offline = state === "offline";
   const backendDown = state === "backend-unreachable";
-  const show = offline || backendDown || sync === "syncing" || pending > 0;
+  // Online preparation and replay stay silent. A status pill is only useful
+  // when connectivity is genuinely unavailable or the backend cannot answer.
+  const show = offline || backendDown;
   if (!show || dismissed) return null;
 
   const prepared = Boolean(readiness?.ready && readiness.userId === (user?.id ?? null));
