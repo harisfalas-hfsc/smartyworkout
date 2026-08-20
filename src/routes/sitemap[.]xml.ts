@@ -29,6 +29,14 @@ const ENTRIES: SitemapEntry[] = [
   { path: "/contact", changefreq: "yearly", priority: "0.5" },
   { path: "/glossary", changefreq: "monthly", priority: "0.75" },
 
+  { path: "/training", changefreq: "monthly", priority: "0.85" },
+  ...TRAINING_TOPIC_SLUGS.map((slug) => ({
+    path: `/training/${slug}`,
+    changefreq: "monthly" as const,
+    priority: "0.8",
+  })),
+
+
 
   { path: "/tools", changefreq: "monthly", priority: "0.8" },
   { path: "/tools/workout-timer", changefreq: "monthly", priority: "0.8" },
