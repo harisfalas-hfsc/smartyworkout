@@ -8,7 +8,7 @@ import {
   CarouselItem,
   type CarouselApi,
 } from "@/components/ui/carousel";
-import { Check, ChevronLeft, ChevronRight, Cylinder, Dumbbell, Minus, Pause, Play, Plus, RotateCcw, X } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Cylinder, Dumbbell, Flag, Minus, Pause, Play, Plus, RotateCcw, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
