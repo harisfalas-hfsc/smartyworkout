@@ -128,3 +128,88 @@ export async function warmOfflineRoutes(urls: string[]): Promise<void> {
     }),
   );
 }
+
+/** Fingerprint of the app files the page is currently running. */
+function runningBuildStamp(): string {
+  if (typeof document === "undefined") return "";
+  return [...document.querySelectorAll<HTMLScriptElement>("script[src]")]
+    .map((script) => script.getAttribute("src") ?? "")
+    .filter((src) => src.includes("/assets/") || src.includes("/_build/"))
+    .sort()
+    .join("|");
+}
+
+function buildStampFromHtml(html: string): string {
+  return [...html.matchAll(/<script[^>]+src="([^"]+)"/g)]
+    .map((match) => match[1] ?? "")
+    .filter((src) => src.includes("/assets/") || src.includes("/_build/"))
+    .sort()
+    .join("|");
+}
+
+const UPDATE_RELOAD_GUARD = "smarty:build-reload";
+let updateCheckRunning = false;
+
+/**
+ * Makes a published release land on every device by itself.
+ *
+ * The app compares the files it is running with the files the server is
+ * serving right now. When they differ, saved pages are dropped, the worker is
+ * replaced and the app reloads once — which is also what the phone apps do,
+ * since they display exactly this web app inside their own window.
+ */
+export async function checkForAppUpdate(): Promise<boolean> {
+  if (typeof window === "undefined" || !navigator.onLine || updateCheckRunning) return false;
+  updateCheckRunning = true;
+  try {
+    const current = runningBuildStamp();
+    if (!current) return false;
+    const response = await fetch(`/?_=${Date.now()}`, {
+      cache: "no-store",
+      credentials: "same-origin",
+      headers: { "cache-control": "no-cache" },
+    });
+    if (!response.ok) return false;
+    const latest = buildStampFromHtml(await response.text());
+    if (!latest || latest === current) {
+      sessionStorage.removeItem(UPDATE_RELOAD_GUARD);
+      return false;
+    }
+    if (sessionStorage.getItem(UPDATE_RELOAD_GUARD) === "1") return false;
+    sessionStorage.setItem(UPDATE_RELOAD_GUARD, "1");
+
+    if ("caches" in window) {
+      const names = await caches.keys();
+      await Promise.allSettled(
+        names.filter((name) => name.startsWith("smarty-pages")).map((name) => caches.delete(name)),
+      );
+    }
+    if ("serviceWorker" in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.allSettled(
+        registrations.map(async (registration) => {
+          await registration.update().catch(() => undefined);
+          registration.waiting?.postMessage({ type: "SKIP_WAITING" });
+        }),
+      );
+    }
+    window.location.reload();
+    return true;
+  } catch {
+    return false;
+  } finally {
+    updateCheckRunning = false;
+  }
+}
+
+/** Runs the release check at start, on every return to the app and hourly. */
+export function watchForAppUpdates(): void {
+  if (typeof window === "undefined") return;
+  const run = () => void checkForAppUpdate();
+  run();
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") run();
+  });
+  window.addEventListener("online", run);
+  window.setInterval(run, 30 * 60 * 1000);
+}
