@@ -163,19 +163,19 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="w-full min-w-0 space-y-4 overflow-x-hidden">
       {title && <h2 className="text-lg font-extrabold">{title}</h2>}
 
-      <div className="rounded-2xl border-2 border-blue-400 bg-card p-3 sm:p-4">
+      <div className="min-w-0 rounded-2xl border-2 border-blue-400 bg-card p-3 sm:p-4">
         <div className="flex flex-col gap-2 sm:flex-row">
-          <div className="relative flex-1">
+          <div className="relative min-w-0 flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && setSearchTerm(search.trim())}
-              placeholder="Search workout name"
-              className="pl-9"
+              placeholder="Search workout, member name or email"
+              className="w-full pl-9 text-base sm:text-sm"
             />
           </div>
           <div className="flex gap-2">
@@ -285,22 +285,16 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
       ) : rows.length === 0 ? (
         <p className="py-10 text-center text-sm text-muted-foreground">No workouts found.</p>
       ) : (
-        <div className="grid gap-3 lg:grid-cols-2">
+        <div className="grid min-w-0 gap-3 lg:grid-cols-2">
           {rows.map((w) => (
             <button
               key={w.id}
               type="button"
               onClick={() => setOpenId(w.id)}
-              className="w-full rounded-2xl border-2 border-blue-400 bg-card p-4 text-left transition hover:bg-accent"
+              className="w-full min-w-0 overflow-hidden rounded-2xl border-2 border-blue-400 bg-card p-4 text-left transition hover:bg-accent"
             >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="truncate font-semibold">{w.name}</p>
-                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                    {formatDateTime(w.created_at)} ·{" "}
-                    {w.user_name || w.user_email || "Unknown member"}
-                  </p>
-                </div>
+              <div className="flex min-w-0 items-start justify-between gap-2">
+                <p className="min-w-0 break-words font-semibold">{w.name}</p>
                 <Badge variant={w.is_wod ? "default" : "outline"} className="shrink-0 gap-1">
                   {w.is_wod ? (
                     <>
@@ -313,6 +307,15 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
                   )}
                 </Badge>
               </div>
+
+              <MemberLine
+                name={w.user_name}
+                email={w.user_email}
+                userId={w.user_id}
+                createdAt={w.created_at}
+                wodDate={w.is_wod ? w.wod_date : null}
+              />
+
               <div className="mt-3 flex flex-wrap gap-1.5">
                 <Badge variant="secondary">{w.category}</Badge>
                 {w.focus && <Badge variant="outline">{w.focus}</Badge>}
@@ -324,7 +327,7 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
                 {w.location && <Badge variant="outline">{w.location}</Badge>}
               </div>
               {w.equipment.length > 0 && (
-                <p className="mt-2 truncate text-xs text-muted-foreground">
+                <p className="mt-2 break-words text-xs text-muted-foreground">
                   Equipment: {w.equipment.join(", ")}
                 </p>
               )}
@@ -358,9 +361,9 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
       )}
 
       <Dialog open={Boolean(openId)} onOpenChange={(o) => !o && setOpenId(null)}>
-        <DialogContent className="max-h-[90dvh] max-w-[720px] overflow-y-auto">
+        <DialogContent className="max-h-[90dvh] w-[calc(100vw-1.5rem)] max-w-[720px] overflow-y-auto overflow-x-hidden sm:w-full">
           <DialogHeader>
-            <DialogTitle className="pr-6 text-left text-base">
+            <DialogTitle className="break-words pr-8 text-left text-base">
               {detail?.name ?? "Workout"}
             </DialogTitle>
           </DialogHeader>
@@ -370,7 +373,7 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
             </div>
           ) : (
             <ExerciseMediaProvider ids={detailIds}>
-              <div className="space-y-4 text-sm">
+              <div className="min-w-0 space-y-4 break-words text-sm">
                 <div className="flex flex-wrap gap-1.5">
                   <Badge variant="secondary">{detail.category}</Badge>
                   {detail.focus && <Badge variant="outline">{detail.focus}</Badge>}
@@ -382,10 +385,13 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
                     {detail.is_wod ? "Workout of the Day" : "By request"}
                   </Badge>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {formatDateTime(detail.created_at)} ·{" "}
-                  {detail.user_name || detail.user_email || "Unknown member"}
-                </p>
+                <MemberLine
+                  name={detail.user_name}
+                  email={detail.user_email}
+                  userId={detail.user_id}
+                  createdAt={detail.created_at}
+                  wodDate={detail.is_wod ? detail.wod_date : null}
+                />
                 {detail.description_html && (
                   <Section title="Description" html={detail.description_html} />
                 )}
@@ -405,11 +411,41 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
 
 function Section({ title, html }: { title: string; html: string }) {
   return (
-    <div className="rounded-2xl border-2 border-blue-400 bg-card p-3">
+    <div className="min-w-0 overflow-hidden rounded-2xl border-2 border-blue-400 bg-card p-3">
       <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         {title}
       </p>
-      <ExerciseHTMLContent html={html} onOpenExercise={() => {}} />
+      <div className="min-w-0 break-words [&_*]:max-w-full [&_img]:h-auto [&_pre]:overflow-x-auto [&_table]:block [&_table]:overflow-x-auto">
+        <ExerciseHTMLContent html={html} onOpenExercise={() => {}} />
+      </div>
+    </div>
+  );
+}
+
+/** Full credentials for the member a workout belongs to — never just a first name. */
+function MemberLine({
+  name,
+  email,
+  userId,
+  createdAt,
+  wodDate,
+}: {
+  name: string;
+  email: string;
+  userId: string;
+  createdAt: string;
+  wodDate: string | null;
+}) {
+  return (
+    <div className="mt-1.5 min-w-0 space-y-0.5 text-xs text-muted-foreground">
+      <p className="break-words">
+        <span className="font-semibold text-foreground">{name || "Unnamed member"}</span>
+        {email ? <span className="break-all"> · {email}</span> : null}
+      </p>
+      <p className="break-all">
+        ID {userId.slice(0, 8)} · Created {formatDateTime(createdAt)}
+        {wodDate ? ` · WOD for ${wodDate}` : ""}
+      </p>
     </div>
   );
 }

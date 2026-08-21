@@ -637,7 +637,20 @@ export const adminListWorkouts = createServerFn({ method: "POST" })
           q = q.lte("created_at", end.toISOString());
         }
         const search = data.search?.trim();
-        if (search) q = q.ilike("name", `%${search}%`);
+        if (search) {
+          // Match the workout name, or any member whose name/email matches.
+          const { data: matches } = await supabaseAdmin
+            .from("profiles")
+            .select("id")
+            .or(`display_name.ilike.%${search}%,email.ilike.%${search}%`)
+            .limit(500);
+          const ids = ((matches ?? []) as any[]).map((p) => p.id);
+          if (ids.length) {
+            q = q.or(`name.ilike.%${search}%,user_id.in.(${ids.join(",")})`);
+          } else {
+            q = q.ilike("name", `%${search}%`);
+          }
+        }
 
         const { data: rows, error, count } = await q.range((page - 1) * pageSize, page * pageSize - 1);
         if (error) return { error: error.message };
