@@ -305,6 +305,10 @@ export function OfflineBootstrap() {
     };
 
     const prefetch = async () => {
+      if (retryTimer) {
+        window.clearTimeout(retryTimer);
+        retryTimer = 0;
+      }
       if (!isOnline() || running.current) return;
       running.current = true;
       setSyncState("syncing");
