@@ -21,7 +21,7 @@ import { OfflineStatus } from "../components/offline/OfflineStatus";
 import { OfflineSync } from "../components/offline/OfflineSync";
 import { OfflineBootstrap } from "../components/offline/OfflineBootstrap";
 import { bootNativeShell } from "../lib/offline/native-boot";
-import { registerAppServiceWorker } from "../lib/offline/register-sw";
+import { registerAppServiceWorker, watchForAppUpdates } from "../lib/offline/register-sw";
 
 
 const SITE_URL = "https://smartyworkout.com";
@@ -342,6 +342,9 @@ function RootComponent() {
   useEffect(() => {
     bootNativeShell();
     void registerAppServiceWorker();
+    // A published release must reach browsers, installed apps and the phone
+    // apps on its own, without anyone clearing anything by hand.
+    watchForAppUpdates();
   }, []);
 
 
