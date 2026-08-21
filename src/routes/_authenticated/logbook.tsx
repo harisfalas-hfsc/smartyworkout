@@ -60,7 +60,9 @@ import {
 import { equipmentBadges } from "@/lib/format/labels";
 import { getSessionLoads } from "@/lib/performance.functions";
 import { ProgressSection } from "@/components/progress/ProgressSection";
-import { localSessionLoads } from "@/lib/offline/performance-store";
+import { localSessionLoads, readLocalPerformance } from "@/lib/offline/performance-store";
+import { SessionDebriefDialog } from "@/components/workout/SessionDebriefDialog";
+import type { SessionFeedback } from "@/lib/feedback.functions";
 import { enqueueAction } from "@/lib/offline/queue";
 import { scopedKey, writeCache } from "@/lib/offline/store";
 
@@ -502,6 +504,18 @@ function PeriodSummary({
           <PeriodTrendChart sessions={sessions} start={start} end={end} />
         </div>
       )}
+
+      {debrief ? (
+        <SessionDebriefDialog
+          open
+          onOpenChange={(next) => {
+            if (!next) setDebrief(null);
+          }}
+          workoutId={debrief.workoutId}
+          attempt={debrief.attempt}
+          initial={debrief.initial}
+        />
+      ) : null}
     </div>
   );
 }
@@ -840,6 +854,34 @@ function Logbook() {
   const saveMeta = useServerFn(setWorkoutMeta);
   const saveStatus = useServerFn(setWorkoutStatus);
   const { user } = useAuth();
+  // Marking a workout done from the logbook opens the same debrief the player uses,
+  // so a session logged here still carries effort + feel data into load and progress.
+  const [debrief, setDebrief] = useState<{
+    workoutId: string;
+    attempt: number;
+    initial: SessionFeedback | null;
+  } | null>(null);
+
+  const openDebrief = useCallback(
+    async (workoutId: string) => {
+      if (!user?.id) return;
+      let attempt = 1;
+      let initial: SessionFeedback | null = null;
+      try {
+        const perf = await readLocalPerformance(user.id);
+        const attempts = perf.attempts.filter((a) => a.workout_id === workoutId);
+        attempt = attempts.length ? Math.max(...attempts.map((a) => a.attempt)) : 1;
+        const fb = perf.feedback
+          .filter((f) => f.workout_id === workoutId && f.attempt === attempt)
+          .at(-1);
+        if (fb) initial = fb;
+      } catch {
+        /* local store unavailable — start a fresh debrief */
+      }
+      setDebrief({ workoutId, attempt, initial });
+    },
+    [user?.id],
+  );
 
   const loadRows = useCallback(async () => {
     const { data, error } = await supabase
@@ -930,7 +972,7 @@ function Logbook() {
         { status: "completed", scheduled_at: null },
         { status: "completed", scheduled_at: null, completed_at: new Date().toISOString() },
         "Marked as completed.",
-      ),
+      ).then(() => openDebrief(id)),
     reschedule: (id: string, iso: string) =>
       void patchStatus(
         id,
