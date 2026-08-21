@@ -342,6 +342,7 @@ export function OfflineBootstrap() {
         let access: unknown = null;
         const identityDone = await step("identity", 60_000, async () => {
           access = await phaseIdentity();
+          return access !== null;
         });
         const personalDone = await step("personal", 60_000, () => phasePersonal(access));
         const libraryDone = await step("library", 24 * 60 * 60_000, phaseLibrary);
@@ -366,11 +367,13 @@ export function OfflineBootstrap() {
         // Large enough to keep the whole exercise library, whose entries are
         // expendable and were previously evicted on every start.
         await trimCache(6000);
-        await markSyncFinished();
-        setSyncState("idle");
-
-        // Finish what an interrupted or partly failed start left behind.
-        if (!fullySynced && active && isOnline()) {
+        if (fullySynced) {
+          await markSyncFinished();
+          setSyncState("idle");
+        } else if (active && isOnline()) {
+          // Stay visibly in the syncing state while an incomplete pass retries.
+          // The app must never claim completion while local records are missing.
+          setSyncState("syncing");
           retryTimer = window.setTimeout(() => void prefetch(), 20_000);
         }
       } catch (error) {
