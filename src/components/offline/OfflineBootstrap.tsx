@@ -225,18 +225,27 @@ export function OfflineBootstrap() {
       }
 
       const ids = exercises.map((row) => String(row["id"] ?? "")).filter(Boolean);
+      let complete = true;
       for (let i = 0; i < ids.length; i += 40) {
+        if (!active) return false;
         const chunk = ids.slice(i, i + 40);
         try {
           const result = await loadExerciseDetails({ data: { ids: chunk } });
+          const mediaUrls: string[] = [];
           for (const exercise of result.exercises as unknown as Array<{ id: string; gif_url?: string | null }>) {
             await writeCache(`exercise:${exercise.id}`, exercise);
-            if (exercise.gif_url) void fetch(exercise.gif_url).catch(() => undefined);
+            if (exercise.gif_url) mediaUrls.push(exercise.gif_url);
           }
+          // Media is downloaded, not fired and forgotten, so the player always
+          // has its pictures offline. Already-stored files are skipped.
+          const media = await cacheMediaUrls(mediaUrls, { isActive: () => active });
+          if (media.failed > 0) complete = false;
         } catch {
           /* metadata remains available even when media cannot be cached */
+          complete = false;
         }
       }
+      return complete;
     };
 
     /** Priority 4 — community reading copy. */
