@@ -15,6 +15,7 @@ export type ExerciseDetail = {
   description: string | null;
   instructions: string[] | null;
   gif_url: string | null;
+  gif_path?: string | null;
 };
 
 type Ctx = {
