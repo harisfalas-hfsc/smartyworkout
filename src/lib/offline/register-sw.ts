@@ -1,4 +1,6 @@
 const APP_WORKER_PATH = "/sw.js";
+const PAGE_CACHE_NAME = "smarty-pages-v2";
+const RELOAD_GUARD = "smarty:sw-controller-reload";
 let registrationPromise: Promise<ServiceWorkerRegistration | null> | null = null;
 
 export const OFFLINE_PUBLIC_ROUTES = [
@@ -74,8 +76,18 @@ export function registerAppServiceWorker(): Promise<ServiceWorkerRegistration | 
 
   registrationPromise = (async () => {
     try {
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (refreshing || sessionStorage.getItem(RELOAD_GUARD) === "1") return;
+        refreshing = true;
+        sessionStorage.setItem(RELOAD_GUARD, "1");
+        window.location.reload();
+      });
+
       const registration = await navigator.serviceWorker.register(APP_WORKER_PATH, { scope: "/" });
       await navigator.serviceWorker.ready;
+      await registration.update();
+      sessionStorage.removeItem(RELOAD_GUARD);
       window.setInterval(() => registration.update().catch(() => undefined), 60 * 60 * 1000);
       return registration;
     } catch {
@@ -88,7 +100,7 @@ export function registerAppServiceWorker(): Promise<ServiceWorkerRegistration | 
 /** Saves rendered route responses so direct navigation also works offline. */
 export async function warmOfflineRoutes(urls: string[]): Promise<void> {
   if (typeof window === "undefined" || !("caches" in window)) return;
-  const cache = await caches.open("smarty-pages-v1");
+  const cache = await caches.open(PAGE_CACHE_NAME);
   await Promise.allSettled(
     urls.map(async (url) => {
       const response = await fetch(url, { credentials: "same-origin" });
