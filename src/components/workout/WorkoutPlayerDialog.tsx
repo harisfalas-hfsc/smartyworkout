@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/carousel";
 import { Check, ChevronLeft, ChevronRight, Cylinder, Dumbbell, Flag, Minus, Pause, Play, Plus, RotateCcw, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { ExerciseImage } from "@/components/ExerciseImage";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useKeepScreenAwake } from "@/hooks/useKeepScreenAwake";
@@ -502,6 +503,7 @@ export function WorkoutPlayerDialog({
                     <PlayerSlideView
                       step={s.step}
                       gifUrl={details[s.step.exerciseId]?.gif_url ?? null}
+                      gifPath={details[s.step.exerciseId]?.gif_path ?? null}
                       canGoPrevious={index > 0}
                       canGoNext={index < total - 1}
                       onPrevious={() => api?.scrollPrev()}
@@ -804,6 +806,7 @@ function TransitionSlide({ next, ...navigation }: { next: string } & SlideNaviga
 function PlayerSlideView({
   step,
   gifUrl,
+  gifPath,
   canGoPrevious,
   canGoNext,
   onPrevious,
@@ -811,6 +814,7 @@ function PlayerSlideView({
 }: {
   step: WorkoutStep;
   gifUrl: string | null;
+  gifPath: string | null;
   canGoPrevious: boolean;
   canGoNext: boolean;
   onPrevious: () => void;
@@ -820,15 +824,13 @@ function PlayerSlideView({
     <SlideShell
       media={
         <>
-          {gifUrl ? (
-            <img
-              src={gifUrl}
-              alt={`${step.name} demonstration`}
-              className="block h-full w-full object-contain"
-            />
-          ) : (
-            <Dumbbell className="h-10 w-10 text-neutral-400" />
-          )}
+          <ExerciseImage
+            path={gifPath}
+            url={gifUrl}
+            alt={`${step.name} demonstration`}
+            className="block h-full w-full rounded-none object-contain"
+            fallbackClassName="flex h-full w-full items-center justify-center bg-transparent"
+          />
           <SlideNavigation
             canGoPrevious={canGoPrevious}
             canGoNext={canGoNext}

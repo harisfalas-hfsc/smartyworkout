@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { Dumbbell, Loader2, X } from "lucide-react";
 import { useExerciseMedia } from "./ExerciseMediaProvider";
+import { ExerciseImage } from "@/components/ExerciseImage";
 
 export function ExerciseDetailDialog({
   exerciseId,
@@ -29,12 +30,13 @@ export function ExerciseDetailDialog({
             <span className="sr-only">Close</span>
           </DialogClose>
 
-          {ex?.gif_url ? (
-            <img
-              src={ex.gif_url}
+          {ex?.gif_url || ex?.gif_path ? (
+            <ExerciseImage
+              path={ex.gif_path}
+              url={ex.gif_url}
               alt={`${ex.name} demonstration`}
-              loading="lazy"
-              className="block max-h-[38vh] w-full object-contain sm:max-h-[34vh]"
+              className="block h-auto max-h-[38vh] w-full rounded-none bg-white object-contain sm:max-h-[34vh]"
+              fallbackClassName="flex h-44 w-full items-center justify-center bg-secondary"
             />
           ) : (
             <div className="flex h-44 w-full items-center justify-center bg-secondary text-muted-foreground">

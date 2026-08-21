@@ -30,7 +30,7 @@ import {
 } from "@/lib/offline/db";
 import { mergeServerPerformance } from "@/lib/offline/performance-store";
 import { markOfflineReady, readOfflineReadiness } from "@/lib/offline/readiness";
-import { cacheMediaUrls } from "@/lib/offline/media-cache";
+import { cacheExerciseMedia, cacheMediaUrls, storedMediaCount } from "@/lib/offline/media-cache";
 import {
   OFFLINE_MEMBER_ROUTES,
   OFFLINE_PUBLIC_ROUTES,
@@ -252,14 +252,19 @@ export function OfflineBootstrap() {
         const chunk = ids.slice(i, i + 40);
         try {
           const result = await loadExerciseDetails({ data: { ids: chunk } });
-          const mediaUrls: string[] = [];
-          for (const exercise of result.exercises as unknown as Array<{ id: string; gif_url?: string | null }>) {
+          const media_items: { path: string; url: string }[] = [];
+          for (const exercise of result.exercises as unknown as Array<{
+            id: string;
+            gif_url?: string | null;
+            gif_path?: string | null;
+          }>) {
             await writeCache(`exercise:${exercise.id}`, exercise);
-            if (exercise.gif_url) mediaUrls.push(exercise.gif_url);
+            if (exercise.gif_url && exercise.gif_path)
+              media_items.push({ path: exercise.gif_path, url: exercise.gif_url });
           }
-          // Media is downloaded, not fired and forgotten, so the player always
-          // has its pictures offline. Already-stored files are skipped.
-          const media = await cacheMediaUrls(mediaUrls, { isActive: () => active });
+          // Pictures are stored under their permanent address, never under the
+          // temporary download link, so a file downloaded once is kept for good.
+          const media = await cacheExerciseMedia(media_items, { isActive: () => active });
           if (media.failed > 0) complete = false;
         } catch {
           /* metadata remains available even when media cannot be cached */
@@ -345,7 +350,7 @@ export function OfflineBootstrap() {
           return access !== null;
         });
         const personalDone = await step("personal", 60_000, () => phasePersonal(access));
-        const libraryDone = await step("library", 24 * 60 * 60_000, phaseLibrary);
+        const libraryDone = await step("library-media-v2", 24 * 60 * 60_000, phaseLibrary);
         const communityDone = await step("community", 15 * 60_000, () =>
           phaseCommunity().catch(() => false),
         );
@@ -355,11 +360,14 @@ export function OfflineBootstrap() {
         // with the signed-in session so direct offline navigation is reliable.
         await warmOfflineRoutes([...OFFLINE_PUBLIC_ROUTES, ...OFFLINE_MEMBER_ROUTES]);
 
+        // Truthful reporting: the number shown to the user is the real count of
+        // pictures stored on this device, never an optimistic estimate.
+        const storedPictures = await storedMediaCount();
         const previous = await readOfflineReadiness();
         await markOfflineReady({
           userId: user.id,
           workouts: preparedWorkouts || (previous.userId === user.id ? previous.workouts : 0),
-          exercises: preparedExercises || previous.exercises,
+          exercises: storedPictures || preparedExercises || previous.exercises,
           performanceRows: preparedPerformance || (previous.userId === user.id ? previous.performanceRows : 0),
           complete: fullySynced,
         });
