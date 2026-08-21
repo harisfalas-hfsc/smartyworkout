@@ -618,15 +618,6 @@ export function WorkoutPlayerDialog({
             ) : (
               <Button onClick={() => api?.scrollNext()}>Done — next</Button>
             )}
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-neutral-300"
-              onClick={() => api?.scrollNext()}
-            >
-              <ChevronRight className="h-6 w-6" />
-            </Button>
           </div>
 
           {index === total - 1 && timing.mode !== "manual" ? (
