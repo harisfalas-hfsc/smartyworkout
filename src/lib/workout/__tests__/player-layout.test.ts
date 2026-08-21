@@ -9,7 +9,10 @@ describe("workout player layout", () => {
     expect(carousel).toContain('className="h-full overflow-hidden"');
     expect(player).toContain('CarouselContent className="ml-0 h-full min-h-0"');
     expect(player).toContain('CarouselItem key={i} className="h-full pl-0"');
-    expect(player.match(/grid h-full min-h-0 grid-rows/g)).toHaveLength(3);
+    // every slide type renders the exact same fixed-size media frame
+    expect(player).toContain("h-[clamp(9rem,32dvh,17rem)]");
+    expect(player.match(/<SlideShell/g)).toHaveLength(3);
+
   });
 
   it("uses one stable footer height and keeps navigation visible on every slide", () => {
