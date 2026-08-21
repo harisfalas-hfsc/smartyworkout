@@ -665,6 +665,24 @@ export const adminListWorkouts = createServerFn({ method: "POST" })
             .in("id", userIds);
           for (const p of (profiles ?? []) as any[])
             nameById.set(p.id, { name: p.display_name ?? "", email: p.email ?? "" });
+
+          // Older profiles can predate the email column. Admin Auth is the
+          // authoritative fallback, so every archive row identifies its owner.
+          await Promise.all(
+            userIds.map(async (id) => {
+              const current = nameById.get(id);
+              if (current?.email) return;
+              const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(id);
+              const user = authUser.user;
+              if (!user) return;
+              nameById.set(id, {
+                name:
+                  current?.name ||
+                  String(user.user_metadata?.full_name ?? user.user_metadata?.name ?? ""),
+                email: user.email ?? "",
+              });
+            }),
+          );
         }
 
         // Facet values across the whole archive so filters never show dead options.
@@ -749,12 +767,23 @@ export const adminGetWorkout = createServerFn({ method: "POST" })
           .select("display_name, email")
           .eq("id", row.user_id)
           .maybeSingle();
+        let ownerName = (p as any)?.display_name ?? "";
+        let ownerEmail = (p as any)?.email ?? "";
+        if (!ownerEmail) {
+          const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(row.user_id);
+          ownerEmail = authUser.user?.email ?? "";
+          ownerName =
+            ownerName ||
+            String(
+              authUser.user?.user_metadata?.full_name ?? authUser.user?.user_metadata?.name ?? "",
+            );
+        }
         return {
           workout: {
             ...row,
             equipment: (row.equipment ?? []) as string[],
-            user_name: (p as any)?.display_name ?? "",
-            user_email: (p as any)?.email ?? "",
+            user_name: ownerName,
+            user_email: ownerEmail,
           } as AdminWorkoutDetail,
         };
       } catch (e) {
