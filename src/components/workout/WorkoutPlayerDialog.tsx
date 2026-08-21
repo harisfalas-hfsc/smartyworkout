@@ -828,8 +828,8 @@ function PlayerSlideView({
             path={gifPath}
             url={gifUrl}
             alt={`${step.name} demonstration`}
-            className="block h-full w-full rounded-none object-contain"
-            fallbackClassName="flex h-full w-full items-center justify-center bg-transparent"
+            className="block h-full w-full rounded-none bg-neutral-50 object-contain"
+            fallbackClassName="flex h-full w-full items-center justify-center bg-neutral-50"
           />
           <SlideNavigation
             canGoPrevious={canGoPrevious}

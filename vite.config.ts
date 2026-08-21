@@ -7,6 +7,8 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { VitePWA } from "vite-plugin-pwa";
 
+const APP_BUILD_ID = `${Date.now()}`;
+
 // Routes are real HTML responses, not fingerprinted assets. Giving every
 // production build a new revision prevents an installed phone from retaining
 // HTML that points at JavaScript or CSS files from an older deployment.
@@ -18,6 +20,16 @@ const APP_SHELL_REVISION = new Date().toISOString();
 export default defineConfig({
   vite: {
     plugins: [
+      {
+        name: "smarty-build-version",
+        generateBundle() {
+          this.emitFile({
+            type: "asset",
+            fileName: "build-version.json",
+            source: JSON.stringify({ buildId: APP_BUILD_ID }),
+          });
+        },
+      },
       VitePWA({
         registerType: "autoUpdate",
         injectRegister: null,
@@ -54,7 +66,6 @@ export default defineConfig({
               handler: "NetworkFirst",
               options: {
                 cacheName: "smarty-pages-v3",
-                networkTimeoutSeconds: 5,
                 cacheableResponse: { statuses: [0, 200] },
               },
             },
@@ -84,6 +95,9 @@ export default defineConfig({
         },
       }),
     ],
+    define: {
+      __APP_BUILD_ID__: JSON.stringify(APP_BUILD_ID),
+    },
   },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
