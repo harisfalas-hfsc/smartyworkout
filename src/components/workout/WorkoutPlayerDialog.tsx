@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/carousel";
 import { Check, ChevronLeft, ChevronRight, Cylinder, Dumbbell, Flag, Minus, Pause, Play, Plus, RotateCcw, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { ExerciseImage } from "@/components/ExerciseImage";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useKeepScreenAwake } from "@/hooks/useKeepScreenAwake";
