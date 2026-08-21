@@ -435,7 +435,7 @@ export function WorkoutPlayerDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="grid h-auto max-h-[100dvh] max-w-none grid-rows-[auto_4px_auto_clamp(12rem,31dvh,15rem)] gap-0 overflow-hidden border-0 bg-neutral-950 p-0 text-neutral-50 [&>div.sticky]:hidden sm:max-w-2xl sm:rounded-3xl"
+        className="grid h-auto max-h-[100dvh] max-w-none grid-rows-[auto_4px_auto_clamp(11rem,30dvh,14rem)] gap-0 overflow-hidden border-0 bg-neutral-950 p-0 text-neutral-50 [&>div.sticky]:hidden sm:max-w-2xl sm:rounded-3xl"
       >
         <DialogTitle className="sr-only">{workoutName} player</DialogTitle>
 
@@ -467,7 +467,7 @@ export function WorkoutPlayerDialog({
           <div className="h-1 bg-primary transition-all" style={{ width: `${progress}%` }} />
         </div>
 
-        <div className="relative h-[calc(clamp(12rem,34dvh,18rem)+6rem)] overflow-hidden">
+        <div className="relative h-[calc(clamp(9rem,26dvh,15rem)+5rem)] overflow-hidden">
           <Carousel setApi={setApi} className="h-full overflow-hidden">
             <CarouselContent className="ml-0 h-full min-h-0">
               {slides.map((s, i) => (
@@ -722,13 +722,13 @@ function SlideNavigation({
 }
 
 const MEDIA_FRAME_CLASS =
-  "relative flex h-[clamp(12rem,34dvh,18rem)] w-full shrink-0 items-center justify-center overflow-hidden bg-neutral-50";
+  "relative mx-3 flex h-[clamp(9rem,26dvh,15rem)] items-center justify-center overflow-hidden rounded-2xl bg-neutral-50 sm:mx-6";
 
 function SlideShell({ media, info }: { media: React.ReactNode; info: React.ReactNode }) {
   return (
-    <div className="grid h-full min-h-0 w-full grid-rows-[clamp(12rem,34dvh,18rem)_6rem] content-start overflow-hidden text-center">
+    <div className="grid h-full min-h-0 w-full grid-rows-[clamp(9rem,26dvh,15rem)_5rem] content-start overflow-hidden text-center">
       <div className={MEDIA_FRAME_CLASS}>{media}</div>
-      <div className="flex h-24 w-full min-w-0 flex-col justify-center overflow-hidden border-b border-neutral-800 px-4 py-2 sm:px-6">{info}</div>
+      <div className="flex h-20 w-full min-w-0 flex-col justify-center overflow-hidden border-b border-neutral-800 px-4 py-1 sm:px-6">{info}</div>
     </div>
   );
 }
