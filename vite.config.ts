@@ -62,15 +62,15 @@ export default defineConfig({
           cleanupOutdatedCaches: true,
           clientsClaim: true,
           skipWaiting: true,
-          navigateFallback: "/",
-          navigateFallbackDenylist: [/^\/api\//, /^\/~oauth(?:\/|$)/, /^\/lovable\//],
-          additionalManifestEntries: OFFLINE_PUBLIC_ROUTES.map((url) => ({
-            url,
-            revision: APP_SHELL_REVISION,
-          })),
+          importScripts: ["/sw-extra.js"],
+          // No page URL is precached under its real address: a precached page is
+          // served cache-first, which is exactly what made phones keep showing an
+          // old published version. Only a hidden shell copy is stored, used as a
+          // last resort when the device is offline.
+          additionalManifestEntries: [{ url: "/?shell=1", revision: APP_SHELL_REVISION }],
           // Keep the install shell lean. Images are cached on demand by the
           // runtime rule below, avoiding failures from oversized media files.
-          globPatterns: ["**/*.{js,css,html,svg,ico,woff,woff2}"],
+          globPatterns: ["**/*.{js,css,svg,ico,woff,woff2}"],
           runtimeCaching: [
             {
               urlPattern: ({ request }) => request.mode === "navigate",
@@ -79,11 +79,6 @@ export default defineConfig({
                 cacheName: "smarty-pages-v3",
                 networkTimeoutSeconds: 5,
                 cacheableResponse: { statuses: [0, 200] },
-                // Dynamic member URLs (for example /workout/:id) cannot all be
-                // known at build time. If neither network nor an exact cached
-                // page is available, always boot the precached app shell so the
-                // router and IndexedDB can render the saved workout locally.
-                precacheFallback: { fallbackURL: "/" },
               },
             },
             {
