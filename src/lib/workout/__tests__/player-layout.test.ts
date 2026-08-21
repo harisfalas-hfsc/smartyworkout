@@ -12,6 +12,7 @@ describe("workout player layout", () => {
     // every slide type renders the exact same fixed-size media frame
     expect(player).toContain("h-[clamp(9rem,26dvh,15rem)]");
     expect(player).toContain("grid-rows-[clamp(9rem,26dvh,15rem)_5rem]");
+    expect(player).toContain('className="block h-full w-full rounded-none bg-neutral-50 object-contain"');
     expect(player.match(/<SlideShell/g)).toHaveLength(3);
 
   });

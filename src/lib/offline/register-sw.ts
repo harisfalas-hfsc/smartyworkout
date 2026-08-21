@@ -1,6 +1,7 @@
 const APP_WORKER_PATH = "/sw.js";
 const PAGE_CACHE_NAME = "smarty-pages-v3";
 const RELOAD_GUARD = "smarty:sw-controller-reload";
+declare const __APP_BUILD_ID__: string;
 let registrationPromise: Promise<ServiceWorkerRegistration | null> | null = null;
 
 export const OFFLINE_PUBLIC_ROUTES = [
@@ -162,16 +163,30 @@ export async function checkForAppUpdate(): Promise<boolean> {
   if (typeof window === "undefined" || !navigator.onLine || updateCheckRunning) return false;
   updateCheckRunning = true;
   try {
-    const current = runningBuildStamp();
-    if (!current) return false;
-    const response = await fetch(`/?_=${Date.now()}`, {
+    const versionResponse = await fetch(`/build-version.json?_=${Date.now()}`, {
       cache: "no-store",
       credentials: "same-origin",
       headers: { "cache-control": "no-cache" },
     });
-    if (!response.ok) return false;
-    const latest = buildStampFromHtml(await response.text());
-    if (!latest || latest === current) {
+    let changed = false;
+    if (versionResponse.ok) {
+      const version = (await versionResponse.json()) as { buildId?: string };
+      changed = Boolean(version.buildId && version.buildId !== __APP_BUILD_ID__);
+    } else {
+      // Compatibility fallback for the first release that introduces the
+      // dedicated version file.
+      const current = runningBuildStamp();
+      if (!current) return false;
+      const response = await fetch(`/?_=${Date.now()}`, {
+        cache: "no-store",
+        credentials: "same-origin",
+        headers: { "cache-control": "no-cache" },
+      });
+      if (!response.ok) return false;
+      const latest = buildStampFromHtml(await response.text());
+      changed = Boolean(latest && latest !== current);
+    }
+    if (!changed) {
       sessionStorage.removeItem(UPDATE_RELOAD_GUARD);
       return false;
     }
