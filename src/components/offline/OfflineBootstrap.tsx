@@ -370,6 +370,7 @@ export function OfflineBootstrap() {
     window.addEventListener("focus", onFocus);
     return () => {
       active = false;
+      if (retryTimer) window.clearTimeout(retryTimer);
       stopConnectivity();
       stopManual();
       window.removeEventListener("focus", onFocus);
