@@ -315,12 +315,15 @@ export function OfflineBootstrap() {
         await bindUser(user.id);
 
         let access: unknown = null;
-        await step("identity", 60_000, async () => {
+        const identityDone = await step("identity", 60_000, async () => {
           access = await phaseIdentity();
         });
-        await step("personal", 60_000, () => phasePersonal(access));
-        await step("library", 24 * 60 * 60_000, phaseLibrary);
-        await step("community", 15 * 60_000, () => phaseCommunity().catch(() => undefined));
+        const personalDone = await step("personal", 60_000, () => phasePersonal(access));
+        const libraryDone = await step("library", 24 * 60 * 60_000, phaseLibrary);
+        const communityDone = await step("community", 15 * 60_000, () =>
+          phaseCommunity().catch(() => false),
+        );
+        const fullySynced = identityDone && personalDone && libraryDone && communityDone;
 
         // The shell is already installed, but warm every stable and member URL
         // with the signed-in session so direct offline navigation is reliable.
