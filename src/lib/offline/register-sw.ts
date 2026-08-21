@@ -123,7 +123,7 @@ export async function warmOfflineRoutes(urls: string[]): Promise<void> {
   const cache = await caches.open(PAGE_CACHE_NAME);
   await Promise.allSettled(
     urls.map(async (url) => {
-      const response = await fetch(url, { credentials: "same-origin" });
+      const response = await fetch(url, { credentials: "same-origin", cache: "reload" });
       if (response.ok && !response.redirected) await cache.put(url, response);
     }),
   );
