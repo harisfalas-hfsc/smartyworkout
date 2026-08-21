@@ -71,6 +71,10 @@ function DiagnosticsPage() {
 
     const logbook = user ? await readCache(scopedKey(user.id, "logbook:list")) : null;
     const cachedProfile = user ? await readCache(scopedKey(user.id, "profile:full")) : null;
+    const storageEstimate =
+      typeof navigator !== "undefined" && navigator.storage?.estimate
+        ? await navigator.storage.estimate().catch(() => null)
+        : null;
 
     setReport({
       platform: isNativeApp() ? `native (${nativePlatform()})` : "web / PWA",
@@ -82,6 +86,8 @@ function DiagnosticsPage() {
       serviceWorkerActive: swActive,
       serviceWorkerControllingPage: swControlling,
       cachedFiles: shellCached,
+      browserStorageUsedBytes: storageEstimate?.usage ?? "unavailable",
+      browserStorageQuotaBytes: storageEstimate?.quota ?? "unavailable",
       localDatabase: typeof indexedDB !== "undefined",
       localDatabaseVersion: meta.dbVersion,
       signedInUser: user ? user.id : "none",

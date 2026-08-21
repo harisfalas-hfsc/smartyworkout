@@ -24,10 +24,13 @@ export async function readOfflineReadiness(): Promise<OfflineReadiness> {
   );
 }
 
-export async function markOfflineReady(value: Omit<OfflineReadiness, "ready" | "preparedAt">) {
+export async function markOfflineReady(
+  value: Omit<OfflineReadiness, "ready" | "preparedAt"> & { complete: boolean },
+) {
+  const { complete, ...counts } = value;
   await writeCache(KEY, {
-    ...value,
-    ready: value.exercises > 0,
-    preparedAt: value.exercises > 0 ? Date.now() : null,
+    ...counts,
+    ready: complete && value.workouts > 0 && value.exercises > 0,
+    preparedAt: complete && value.workouts > 0 && value.exercises > 0 ? Date.now() : null,
   });
 }

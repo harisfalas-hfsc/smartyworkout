@@ -340,6 +340,7 @@ export function OfflineBootstrap() {
           workouts: preparedWorkouts || (previous.userId === user.id ? previous.workouts : 0),
           exercises: preparedExercises || previous.exercises,
           performanceRows: preparedPerformance || (previous.userId === user.id ? previous.performanceRows : 0),
+          complete: fullySynced,
         });
 
         // Large enough to keep the whole exercise library, whose entries are

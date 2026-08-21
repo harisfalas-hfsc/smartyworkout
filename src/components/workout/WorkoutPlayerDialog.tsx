@@ -427,7 +427,7 @@ export function WorkoutPlayerDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="h-[100dvh] max-w-none gap-0 overflow-hidden border-0 bg-neutral-950 p-0 text-neutral-50 [&>button]:hidden [&>div>button]:hidden sm:h-[92vh] sm:max-w-md sm:rounded-3xl"
+        className="h-[100dvh] max-w-none gap-0 overflow-hidden border-0 bg-neutral-950 p-0 text-neutral-50 [&>div.sticky>button]:hidden sm:h-[92vh] sm:max-w-md sm:rounded-3xl"
       >
         <DialogTitle className="sr-only">{workoutName} player</DialogTitle>
 
@@ -440,14 +440,16 @@ export function WorkoutPlayerDialog({
               {index + 1} / {total}
             </p>
           </div>
-          <button
+          <Button
             type="button"
+            variant="secondary"
+            size="icon"
             aria-label="Close player"
             onClick={() => void closePlayer()}
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/25 bg-neutral-900/80 text-neutral-50 shadow-lg backdrop-blur-sm transition active:scale-95 hover:bg-neutral-800"
+            className="h-11 w-11 shrink-0 rounded-full border-2 border-primary bg-neutral-50 text-neutral-950 shadow-lg transition active:scale-95 hover:bg-neutral-200"
           >
             <X className="h-5 w-5" />
-          </button>
+          </Button>
         </div>
 
         <div className="mt-3 h-1 w-full bg-neutral-800">
@@ -471,6 +473,10 @@ export function WorkoutPlayerDialog({
                     <PlayerSlideView
                       step={s.step}
                       gifUrl={details[s.step.exerciseId]?.gif_url ?? null}
+                      canGoPrevious={index > 0}
+                      canGoNext={index < total - 1}
+                      onPrevious={() => api?.scrollPrev()}
+                      onNext={() => api?.scrollNext()}
                     />
                   )}
                 </CarouselItem>
@@ -478,22 +484,6 @@ export function WorkoutPlayerDialog({
             </CarouselContent>
           </Carousel>
 
-          <button
-            type="button"
-            aria-label="Previous exercise"
-            onClick={() => api?.scrollPrev()}
-            className="absolute left-2 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-neutral-900/70 text-neutral-50 shadow-lg backdrop-blur-sm transition hover:bg-neutral-800/90 active:scale-95"
-          >
-            <ChevronLeft className="h-6 w-6" />
-          </button>
-          <button
-            type="button"
-            aria-label="Next exercise"
-            onClick={() => api?.scrollNext()}
-            className="absolute right-2 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-neutral-900/70 text-neutral-50 shadow-lg backdrop-blur-sm transition hover:bg-neutral-800/90 active:scale-95"
-          >
-            <ChevronRight className="h-6 w-6" />
-          </button>
         </div>
 
 
@@ -695,11 +685,24 @@ function SoftTissueSlide({ lines }: { lines: string[] }) {
   );
 }
 
-function PlayerSlideView({ step, gifUrl }: { step: WorkoutStep; gifUrl: string | null }) {
-
+function PlayerSlideView({
+  step,
+  gifUrl,
+  canGoPrevious,
+  canGoNext,
+  onPrevious,
+  onNext,
+}: {
+  step: WorkoutStep;
+  gifUrl: string | null;
+  canGoPrevious: boolean;
+  canGoNext: boolean;
+  onPrevious: () => void;
+  onNext: () => void;
+}) {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-4 px-5 text-center">
-      <div className="flex h-56 w-full items-center justify-center overflow-hidden rounded-2xl bg-neutral-900">
+      <div className="relative flex h-56 w-full shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-neutral-50">
         {gifUrl ? (
           <img
             src={gifUrl}
@@ -707,8 +710,30 @@ function PlayerSlideView({ step, gifUrl }: { step: WorkoutStep; gifUrl: string |
             className="h-full w-full object-contain"
           />
         ) : (
-          <Dumbbell className="h-10 w-10 text-neutral-600" />
+          <Dumbbell className="h-10 w-10 text-neutral-400" />
         )}
+        <Button
+          type="button"
+          variant="secondary"
+          size="icon"
+          aria-label="Previous exercise"
+          disabled={!canGoPrevious}
+          onClick={onPrevious}
+          className="absolute left-2 top-1/2 z-20 h-11 w-11 -translate-y-1/2 rounded-full border-2 border-primary bg-neutral-50 text-neutral-950 shadow-lg hover:bg-neutral-200 disabled:invisible"
+        >
+          <ChevronLeft className="h-6 w-6" />
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          size="icon"
+          aria-label="Next exercise"
+          disabled={!canGoNext}
+          onClick={onNext}
+          className="absolute right-2 top-1/2 z-20 h-11 w-11 -translate-y-1/2 rounded-full border-2 border-primary bg-neutral-50 text-neutral-950 shadow-lg hover:bg-neutral-200 disabled:invisible"
+        >
+          <ChevronRight className="h-6 w-6" />
+        </Button>
       </div>
       {step.subSection ? (
         <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
