@@ -337,12 +337,20 @@ export function OfflineBootstrap() {
           performanceRows: preparedPerformance || (previous.userId === user.id ? previous.performanceRows : 0),
         });
 
-        await trimCache(800);
+        // Large enough to keep the whole exercise library, whose entries are
+        // expendable and were previously evicted on every start.
+        await trimCache(6000);
         await markSyncFinished();
         setSyncState("idle");
+
+        // Finish what an interrupted or partly failed start left behind.
+        if (!fullySynced && active && isOnline()) {
+          retryTimer = window.setTimeout(() => void prefetch(), 20_000);
+        }
       } catch (error) {
         await markSyncFinished(error);
         setSyncState("error");
+        if (active && isOnline()) retryTimer = window.setTimeout(() => void prefetch(), 30_000);
       } finally {
         running.current = false;
       }
