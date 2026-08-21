@@ -360,11 +360,14 @@ export function OfflineBootstrap() {
         // with the signed-in session so direct offline navigation is reliable.
         await warmOfflineRoutes([...OFFLINE_PUBLIC_ROUTES, ...OFFLINE_MEMBER_ROUTES]);
 
+        // Truthful reporting: the number shown to the user is the real count of
+        // pictures stored on this device, never an optimistic estimate.
+        const storedPictures = await storedMediaCount();
         const previous = await readOfflineReadiness();
         await markOfflineReady({
           userId: user.id,
           workouts: preparedWorkouts || (previous.userId === user.id ? previous.workouts : 0),
-          exercises: preparedExercises || previous.exercises,
+          exercises: storedPictures || preparedExercises || previous.exercises,
           performanceRows: preparedPerformance || (previous.userId === user.id ? previous.performanceRows : 0),
           complete: fullySynced,
         });
@@ -372,9 +375,6 @@ export function OfflineBootstrap() {
         // Large enough to keep the whole exercise library, whose entries are
         // expendable and were previously evicted on every start.
         await trimCache(6000);
-        // Truthful reporting: the readiness record keeps the real number of
-        // stored pictures so the app can never claim a download it never made.
-        preparedExercises = preparedExercises || (await storedMediaCount());
         if (fullySynced) {
           await markSyncFinished();
           setSyncState("idle");
