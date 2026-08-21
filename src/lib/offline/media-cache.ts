@@ -104,15 +104,43 @@ export async function cacheExerciseMedia(
   return { requested: list.length, stored, failed };
 }
 
-/** Stores plain URLs (avatars and other stable addresses) as they are. */
+/**
+ * Stores plain, stable URLs (avatars, static images) under their real address
+ * so the browser finds them without any lookup while offline.
+ */
 export async function cacheMediaUrls(
   urls: string[],
   options: { concurrency?: number; isActive?: () => boolean } = {},
 ): Promise<{ requested: number; stored: number; failed: number }> {
-  return cacheExerciseMedia(
-    urls.filter(Boolean).map((url) => ({ path: url, url })),
-    options,
-  );
+  const unique = [...new Set(urls.filter(Boolean))];
+  if (typeof window === "undefined" || !("caches" in window) || !unique.length) {
+    return { requested: unique.length, stored: 0, failed: 0 };
+  }
+  const isActive = options.isActive ?? (() => true);
+  let stored = 0;
+  let failed = 0;
+  try {
+    const cache = await caches.open(MEDIA_CACHE_NAME);
+    for (const url of unique) {
+      if (!isActive()) break;
+      try {
+        if (await cache.match(url)) {
+          stored += 1;
+          continue;
+        }
+        const response = await fetch(url, { mode: "cors" }).catch(() => fetch(url, { mode: "no-cors" }));
+        if (response && (response.ok || response.type === "opaque")) {
+          await cache.put(url, response.clone());
+          stored += 1;
+        } else failed += 1;
+      } catch {
+        failed += 1;
+      }
+    }
+  } catch {
+    failed = unique.length;
+  }
+  return { requested: unique.length, stored, failed };
 }
 
 /** Number of stored pictures on this device, used by the diagnostics page. */
