@@ -680,26 +680,81 @@ export function WorkoutPlayerDialog({
 }
 
 
-function SoftTissueSlide({ lines }: { lines: string[] }) {
+type SlideNavigationProps = {
+  canGoPrevious: boolean;
+  canGoNext: boolean;
+  onPrevious: () => void;
+  onNext: () => void;
+};
+
+function SlideNavigation({
+  canGoPrevious,
+  canGoNext,
+  onPrevious,
+  onNext,
+}: SlideNavigationProps) {
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-4 px-6 text-center">
-      <div className="flex h-40 w-40 items-center justify-center rounded-full bg-neutral-900">
+    <>
+      <Button
+        type="button"
+        variant="secondary"
+        size="icon"
+        aria-label="Previous exercise"
+        disabled={!canGoPrevious}
+        onClick={onPrevious}
+        className="absolute left-2 top-1/2 z-20 h-11 w-11 -translate-y-1/2 rounded-full border-2 border-primary bg-neutral-50 text-neutral-950 shadow-lg hover:bg-neutral-200 disabled:opacity-35"
+      >
+        <ChevronLeft className="h-6 w-6" />
+      </Button>
+      <Button
+        type="button"
+        variant="secondary"
+        size="icon"
+        aria-label="Next exercise"
+        disabled={!canGoNext}
+        onClick={onNext}
+        className="absolute right-2 top-1/2 z-20 h-11 w-11 -translate-y-1/2 rounded-full border-2 border-primary bg-neutral-50 text-neutral-950 shadow-lg hover:bg-neutral-200 disabled:opacity-35"
+      >
+        <ChevronRight className="h-6 w-6" />
+      </Button>
+    </>
+  );
+}
+
+function SoftTissueSlide({
+  lines,
+  ...navigation
+}: { lines: string[] } & SlideNavigationProps) {
+  return (
+    <div className="grid h-full grid-rows-[minmax(0,1fr)_auto] gap-2 px-4 py-3 text-center sm:px-6">
+      <div className="relative flex min-h-0 items-center justify-center overflow-hidden rounded-2xl bg-neutral-50">
         <Cylinder className="h-16 w-16 text-primary" />
+        <SlideNavigation {...navigation} />
       </div>
-      <h2 className="text-2xl font-black">Soft Tissue Preparation</h2>
-      <p className="text-sm text-neutral-400">
-        Foam roller, lacrosse or trigger ball. Take your time before you move.
-      </p>
-      <ul className="w-full space-y-2 text-left">
-        {lines.map((line, i) => (
-          <li
-            key={i}
-            className="rounded-xl border border-neutral-800 bg-neutral-900 px-4 py-2 text-sm text-neutral-200"
-          >
-            {line}
-          </li>
-        ))}
-      </ul>
+      <div className="min-h-[5.5rem]">
+        <h2 className="text-xl font-black">Soft Tissue Preparation</h2>
+        <p className="line-clamp-2 text-sm text-neutral-300">
+          {lines.join(" · ") || "Foam roller, lacrosse or trigger ball. Take your time before you move."}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function TransitionSlide({ next, ...navigation }: { next: string } & SlideNavigationProps) {
+  return (
+    <div className="grid h-full grid-rows-[minmax(0,1fr)_auto] gap-2 px-4 py-3 text-center sm:px-6">
+      <div className="relative flex min-h-0 items-center justify-center overflow-hidden rounded-2xl bg-neutral-50 text-neutral-950">
+        <div>
+          <p className="text-xs font-bold uppercase text-primary">Next phase</p>
+          <h2 className="mt-2 text-3xl font-black">{next}</h2>
+        </div>
+        <SlideNavigation {...navigation} />
+      </div>
+      <div className="min-h-[5.5rem]">
+        <p className="text-sm font-bold uppercase text-primary">Transition</p>
+        <p className="text-sm text-neutral-300">Take a breath, reset, and continue when ready.</p>
+      </div>
     </div>
   );
 }
@@ -720,8 +775,8 @@ function PlayerSlideView({
   onNext: () => void;
 }) {
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-4 px-5 text-center">
-      <div className="relative flex h-56 w-full shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-neutral-50">
+    <div className="grid h-full grid-rows-[minmax(0,1fr)_auto] gap-2 px-4 py-3 text-center sm:px-6">
+      <div className="relative flex min-h-0 w-full items-center justify-center overflow-hidden rounded-2xl bg-neutral-50">
         {gifUrl ? (
           <img
             src={gifUrl}
@@ -731,38 +786,22 @@ function PlayerSlideView({
         ) : (
           <Dumbbell className="h-10 w-10 text-neutral-400" />
         )}
-        <Button
-          type="button"
-          variant="secondary"
-          size="icon"
-          aria-label="Previous exercise"
-          disabled={!canGoPrevious}
-          onClick={onPrevious}
-          className="absolute left-2 top-1/2 z-20 h-11 w-11 -translate-y-1/2 rounded-full border-2 border-primary bg-neutral-50 text-neutral-950 shadow-lg hover:bg-neutral-200 disabled:opacity-35"
-        >
-          <ChevronLeft className="h-6 w-6" />
-        </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          size="icon"
-          aria-label="Next exercise"
-          disabled={!canGoNext}
-          onClick={onNext}
-          className="absolute right-2 top-1/2 z-20 h-11 w-11 -translate-y-1/2 rounded-full border-2 border-primary bg-neutral-50 text-neutral-950 shadow-lg hover:bg-neutral-200 disabled:opacity-35"
-        >
-          <ChevronRight className="h-6 w-6" />
-        </Button>
+        <SlideNavigation
+          canGoPrevious={canGoPrevious}
+          canGoNext={canGoNext}
+          onPrevious={onPrevious}
+          onNext={onNext}
+        />
       </div>
-      {step.subSection ? (
-        <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
-          {step.subSection}
-        </span>
-      ) : null}
-      <h2 className="text-2xl font-black capitalize">{step.name}</h2>
-      {step.prescription ? (
-        <p className="text-lg text-neutral-300">{step.prescription}</p>
-      ) : null}
+      <div className="min-h-[5.5rem]">
+        {step.subSection ? (
+          <p className="truncate text-xs font-bold uppercase text-primary">{step.subSection}</p>
+        ) : null}
+        <h2 className="line-clamp-2 text-xl font-black capitalize sm:text-2xl">{step.name}</h2>
+        {step.prescription ? (
+          <p className="line-clamp-2 text-sm text-neutral-300 sm:text-base">{step.prescription}</p>
+        ) : null}
+      </div>
     </div>
   );
 }
