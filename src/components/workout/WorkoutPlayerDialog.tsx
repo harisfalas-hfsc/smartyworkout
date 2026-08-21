@@ -454,28 +454,48 @@ export function WorkoutPlayerDialog({
           <div className="h-1 bg-primary transition-all" style={{ width: `${progress}%` }} />
         </div>
 
-        <Carousel setApi={setApi} className="flex-1 overflow-hidden">
-          <CarouselContent className="ml-0 h-full">
-            {slides.map((s, i) => (
-              <CarouselItem key={i} className="pl-0">
-                {s.kind === "soft-tissue" ? (
-                  <SoftTissueSlide lines={s.lines} />
-                ) : s.kind === "break" ? (
-                  <div className="flex h-full flex-col items-center justify-center gap-3 px-8 text-center">
-                    <p className="text-sm uppercase tracking-[0.3em] text-neutral-500">Next up</p>
-                    <h2 className="text-3xl font-black">{s.next}</h2>
-                    <p className="text-neutral-400">Take a breath and reset.</p>
-                  </div>
-                ) : (
-                  <PlayerSlideView
-                    step={s.step}
-                    gifUrl={details[s.step.exerciseId]?.gif_url ?? null}
-                  />
-                )}
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-        </Carousel>
+        <div className="relative flex-1 overflow-hidden">
+          <Carousel setApi={setApi} className="h-full overflow-hidden">
+            <CarouselContent className="ml-0 h-full">
+              {slides.map((s, i) => (
+                <CarouselItem key={i} className="pl-0">
+                  {s.kind === "soft-tissue" ? (
+                    <SoftTissueSlide lines={s.lines} />
+                  ) : s.kind === "break" ? (
+                    <div className="flex h-full flex-col items-center justify-center gap-3 px-8 text-center">
+                      <p className="text-sm uppercase tracking-[0.3em] text-neutral-500">Next up</p>
+                      <h2 className="text-3xl font-black">{s.next}</h2>
+                      <p className="text-neutral-400">Take a breath and reset.</p>
+                    </div>
+                  ) : (
+                    <PlayerSlideView
+                      step={s.step}
+                      gifUrl={details[s.step.exerciseId]?.gif_url ?? null}
+                    />
+                  )}
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+          </Carousel>
+
+          <button
+            type="button"
+            aria-label="Previous exercise"
+            onClick={() => api?.scrollPrev()}
+            className="absolute left-2 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-neutral-900/70 text-neutral-50 shadow-lg backdrop-blur-sm transition hover:bg-neutral-800/90 active:scale-95"
+          >
+            <ChevronLeft className="h-6 w-6" />
+          </button>
+          <button
+            type="button"
+            aria-label="Next exercise"
+            onClick={() => api?.scrollNext()}
+            className="absolute right-2 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-neutral-900/70 text-neutral-50 shadow-lg backdrop-blur-sm transition hover:bg-neutral-800/90 active:scale-95"
+          >
+            <ChevronRight className="h-6 w-6" />
+          </button>
+        </div>
+
 
 
         <div className="space-y-3 border-t border-neutral-800 px-4 py-4">
