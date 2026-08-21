@@ -1,5 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowRight } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { TRAINING_TOPICS } from "@/lib/seo/training-topics";
 
 const URL = "https://smartyworkout.com/glossary";
 const TITLE = "Training Glossary — 25+ terms defined | SmartyWorkout";
