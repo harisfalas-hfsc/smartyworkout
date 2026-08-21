@@ -209,7 +209,7 @@ export function OfflineBootstrap() {
         exercises.push(...data);
         if (data.length < 1000) break;
       }
-      if (!active || !exercises.length) return;
+      if (!active || !exercises.length) return false;
       preparedExercises = exercises.length;
       await writeCache(scopedKey(null, "library:list:All|All|All|All|"), exercises);
       const unique = (key: string) =>
