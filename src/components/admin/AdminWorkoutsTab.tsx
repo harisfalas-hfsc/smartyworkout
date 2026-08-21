@@ -411,11 +411,41 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
 
 function Section({ title, html }: { title: string; html: string }) {
   return (
-    <div className="rounded-2xl border-2 border-blue-400 bg-card p-3">
+    <div className="min-w-0 overflow-hidden rounded-2xl border-2 border-blue-400 bg-card p-3">
       <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         {title}
       </p>
-      <ExerciseHTMLContent html={html} onOpenExercise={() => {}} />
+      <div className="min-w-0 break-words [&_*]:max-w-full [&_img]:h-auto [&_pre]:overflow-x-auto [&_table]:block [&_table]:overflow-x-auto">
+        <ExerciseHTMLContent html={html} onOpenExercise={() => {}} />
+      </div>
+    </div>
+  );
+}
+
+/** Full credentials for the member a workout belongs to — never just a first name. */
+function MemberLine({
+  name,
+  email,
+  userId,
+  createdAt,
+  wodDate,
+}: {
+  name: string;
+  email: string;
+  userId: string;
+  createdAt: string;
+  wodDate: string | null;
+}) {
+  return (
+    <div className="mt-1.5 min-w-0 space-y-0.5 text-xs text-muted-foreground">
+      <p className="break-words">
+        <span className="font-semibold text-foreground">{name || "Unnamed member"}</span>
+        {email ? <span className="break-all"> · {email}</span> : null}
+      </p>
+      <p className="break-all">
+        ID {userId.slice(0, 8)} · Created {formatDateTime(createdAt)}
+        {wodDate ? ` · WOD for ${wodDate}` : ""}
+      </p>
     </div>
   );
 }
