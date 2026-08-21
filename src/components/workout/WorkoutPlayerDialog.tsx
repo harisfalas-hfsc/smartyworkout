@@ -435,7 +435,7 @@ export function WorkoutPlayerDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="grid h-[100dvh] max-w-none grid-rows-[auto_4px_minmax(0,1fr)_15rem] gap-0 overflow-hidden border-0 bg-neutral-950 p-0 text-neutral-50 [&>div.sticky>button]:hidden sm:h-[92vh] sm:max-w-2xl sm:rounded-3xl"
+        className="grid h-[100dvh] max-w-none grid-rows-[auto_4px_minmax(0,1fr)_clamp(12rem,31dvh,15rem)] gap-0 overflow-hidden border-0 bg-neutral-950 p-0 text-neutral-50 [&>div.sticky>button]:hidden sm:h-[92vh] sm:max-w-2xl sm:rounded-3xl"
       >
         <DialogTitle className="sr-only">{workoutName} player</DialogTitle>
 
@@ -507,7 +507,7 @@ export function WorkoutPlayerDialog({
 
 
 
-        <div className="h-full space-y-3 overflow-y-auto border-t border-neutral-800 px-4 py-3 sm:px-6">
+        <div className="h-full space-y-2 overflow-y-auto border-t border-neutral-800 px-4 py-2 sm:space-y-3 sm:px-6 sm:py-3">
           {timing.mode !== "manual" ? (
             <div className="text-center">
               <p className="text-xs uppercase tracking-[0.3em] text-neutral-500">
@@ -523,7 +523,7 @@ export function WorkoutPlayerDialog({
 
           {slide?.kind === "exercise" && tracking && tracking.primary !== "completion" ? (
             <div className="space-y-2">
-              <div className="flex items-end gap-2">
+              <div className="grid grid-cols-2 items-end gap-2 sm:flex">
                 {tracking.primary === "reps" ? (
                   <StepperField
                     label={
@@ -551,7 +551,7 @@ export function WorkoutPlayerDialog({
                 ) : null}
                 <Button
                   variant="secondary"
-                  className="h-11 shrink-0"
+                  className="col-span-2 h-10 w-full shrink-0 sm:h-11 sm:w-auto"
                   disabled={savingSet}
                   onClick={logSet}
                 >
@@ -601,7 +601,7 @@ export function WorkoutPlayerDialog({
 
 
 
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex min-h-10 items-center justify-center gap-2">
             {timing.mode !== "manual" ? (
 
               <div className="flex gap-2">
@@ -722,13 +722,13 @@ function SlideNavigation({
 }
 
 const MEDIA_FRAME_CLASS =
-  "relative flex h-[clamp(9rem,32dvh,17rem)] w-full shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-neutral-50";
+  "relative flex h-[clamp(12rem,34dvh,18rem)] w-full shrink-0 items-center justify-center overflow-hidden bg-neutral-50";
 
 function SlideShell({ media, info }: { media: React.ReactNode; info: React.ReactNode }) {
   return (
-    <div className="flex h-full min-h-0 flex-col items-center gap-2 px-4 py-3 text-center sm:px-6">
+    <div className="grid h-full min-h-0 w-full grid-rows-[clamp(12rem,34dvh,18rem)_6rem] content-start overflow-hidden text-center">
       <div className={MEDIA_FRAME_CLASS}>{media}</div>
-      <div className="h-[5.5rem] w-full shrink-0 overflow-hidden">{info}</div>
+      <div className="flex h-24 w-full min-w-0 flex-col justify-center overflow-hidden border-b border-neutral-800 px-4 py-2 sm:px-6">{info}</div>
     </div>
   );
 }
@@ -804,7 +804,7 @@ function PlayerSlideView({
             <img
               src={gifUrl}
               alt={`${step.name} demonstration`}
-              className="h-full w-full object-contain"
+              className="block h-full w-full object-contain"
             />
           ) : (
             <Dumbbell className="h-10 w-10 text-neutral-400" />
@@ -857,7 +857,7 @@ function StepperField({
           type="button"
           variant="secondary"
           size="icon"
-          className="h-11 w-9 shrink-0"
+          className="h-10 w-8 shrink-0 sm:h-11 sm:w-9"
           onClick={() => bump(-step)}
           aria-label={`Decrease ${label}`}
         >
@@ -867,13 +867,13 @@ function StepperField({
           inputMode="decimal"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="h-11 min-w-0 flex-1 border-neutral-700 bg-neutral-900 text-center text-neutral-50"
+          className="h-10 min-w-0 flex-1 border-neutral-700 bg-neutral-900 px-1 text-center text-neutral-50 sm:h-11"
         />
         <Button
           type="button"
           variant="secondary"
           size="icon"
-          className="h-11 w-9 shrink-0"
+          className="h-10 w-8 shrink-0 sm:h-11 sm:w-9"
           onClick={() => bump(step)}
           aria-label={`Increase ${label}`}
         >
