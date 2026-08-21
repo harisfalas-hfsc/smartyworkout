@@ -105,6 +105,8 @@ export function WorkoutPlayerDialog({
   const [lastSet, setLastSet] = useState<Record<number, { reps: string; weight: string; seconds: string; distance: string }>>({});
   const beepRef = useRef<number>(0);
   const loggableRef = useRef(false);
+  const isLastSlideRef = useRef(false);
+  const finishRef = useRef<() => void>(() => {});
   const startedAtRef = useRef<number | null>(null);
 
   useKeepScreenAwake(open);
@@ -412,16 +414,24 @@ export function WorkoutPlayerDialog({
         setRunning(false);
         beepRef.current += 1;
         // Loggable steps stop here so there is time to write the numbers down.
-        if (!loggableRef.current) window.setTimeout(() => api?.scrollNext(), 400);
+        if (isLastSlideRef.current) {
+          // Last slide: the timer finishing ends the workout, so no extra button is needed.
+          window.setTimeout(() => finishRef.current(), 400);
+        } else if (!loggableRef.current) {
+          window.setTimeout(() => api?.scrollNext(), 400);
+        }
         return 0;
       });
     }, 1000);
     return () => window.clearInterval(id);
   }, [running, timing, phase, round, api]);
 
+  const total = slides.length;
+  isLastSlideRef.current = total > 0 && index === total - 1;
+  finishRef.current = finishWorkout;
+
   if (!open) return null;
 
-  const total = slides.length;
   const progress = total ? ((index + 1) / total) * 100 : 0;
   const currentSection =
     slide?.kind === "exercise"
@@ -625,18 +635,13 @@ export function WorkoutPlayerDialog({
                 <RotateCcw className="h-4 w-4" />
               </Button>
             </div>
-          ) : index === total - 1 ? (
-            <Button onClick={finishWorkout}>Finish workout</Button>
           ) : (
-            <Button onClick={() => api?.scrollNext()}>Done — next</Button>
+            <Button onClick={() => (index === total - 1 ? finishWorkout() : api?.scrollNext())}>
+              {index === total - 1 ? "Done — finish" : "Done — next"}
+            </Button>
           )}
         </div>
 
-        {index === total - 1 && timing.mode !== "manual" ? (
-          <Button variant="secondary" className="w-full" onClick={finishWorkout}>
-            Finish workout
-          </Button>
-        ) : null}
         </div>
 
         <SessionDebriefDialog
