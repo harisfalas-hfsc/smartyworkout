@@ -107,6 +107,8 @@ function WorkoutPage() {
   async function complete() {
     setDone(true);
     void refreshFeedback();
+    // Same rule as the player and the logbook: completing opens the recap right away.
+    if (!hasAnswers) setDebriefOpen(true);
     try {
       await saveStatus({ data: { workoutId, status: "completed" } });
       toast.success("Marked as completed.");
