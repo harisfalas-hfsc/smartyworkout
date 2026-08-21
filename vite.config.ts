@@ -7,6 +7,11 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { VitePWA } from "vite-plugin-pwa";
 
+// Routes are real HTML responses, not fingerprinted assets. Giving every
+// production build a new revision prevents an installed phone from retaining
+// HTML that points at JavaScript or CSS files from an older deployment.
+const APP_SHELL_REVISION = new Date().toISOString();
+
 // Stable pages are installed with the app shell so they open directly without
 // a connection. Member data is warmed separately after authentication.
 const OFFLINE_PUBLIC_ROUTES = [
@@ -61,7 +66,7 @@ export default defineConfig({
           navigateFallbackDenylist: [/^\/api\//, /^\/~oauth(?:\/|$)/, /^\/lovable\//],
           additionalManifestEntries: OFFLINE_PUBLIC_ROUTES.map((url) => ({
             url,
-            revision: null,
+            revision: APP_SHELL_REVISION,
           })),
           // Keep the install shell lean. Images are cached on demand by the
           // runtime rule below, avoiding failures from oversized media files.
@@ -71,7 +76,7 @@ export default defineConfig({
               urlPattern: ({ request }) => request.mode === "navigate",
               handler: "NetworkFirst",
               options: {
-                cacheName: "smarty-pages-v1",
+                cacheName: "smarty-pages-v2",
                 networkTimeoutSeconds: 5,
                 cacheableResponse: { statuses: [0, 200] },
                 // Dynamic member URLs (for example /workout/:id) cannot all be
