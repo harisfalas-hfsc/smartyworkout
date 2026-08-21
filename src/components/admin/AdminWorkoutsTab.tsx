@@ -285,22 +285,16 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
       ) : rows.length === 0 ? (
         <p className="py-10 text-center text-sm text-muted-foreground">No workouts found.</p>
       ) : (
-        <div className="grid gap-3 lg:grid-cols-2">
+        <div className="grid min-w-0 gap-3 lg:grid-cols-2">
           {rows.map((w) => (
             <button
               key={w.id}
               type="button"
               onClick={() => setOpenId(w.id)}
-              className="w-full rounded-2xl border-2 border-blue-400 bg-card p-4 text-left transition hover:bg-accent"
+              className="w-full min-w-0 overflow-hidden rounded-2xl border-2 border-blue-400 bg-card p-4 text-left transition hover:bg-accent"
             >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="truncate font-semibold">{w.name}</p>
-                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                    {formatDateTime(w.created_at)} ·{" "}
-                    {w.user_name || w.user_email || "Unknown member"}
-                  </p>
-                </div>
+              <div className="flex min-w-0 items-start justify-between gap-2">
+                <p className="min-w-0 break-words font-semibold">{w.name}</p>
                 <Badge variant={w.is_wod ? "default" : "outline"} className="shrink-0 gap-1">
                   {w.is_wod ? (
                     <>
@@ -313,6 +307,15 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
                   )}
                 </Badge>
               </div>
+
+              <MemberLine
+                name={w.user_name}
+                email={w.user_email}
+                userId={w.user_id}
+                createdAt={w.created_at}
+                wodDate={w.is_wod ? w.wod_date : null}
+              />
+
               <div className="mt-3 flex flex-wrap gap-1.5">
                 <Badge variant="secondary">{w.category}</Badge>
                 {w.focus && <Badge variant="outline">{w.focus}</Badge>}
@@ -324,7 +327,7 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
                 {w.location && <Badge variant="outline">{w.location}</Badge>}
               </div>
               {w.equipment.length > 0 && (
-                <p className="mt-2 truncate text-xs text-muted-foreground">
+                <p className="mt-2 break-words text-xs text-muted-foreground">
                   Equipment: {w.equipment.join(", ")}
                 </p>
               )}
