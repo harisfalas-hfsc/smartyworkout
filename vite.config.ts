@@ -12,31 +12,8 @@ import { VitePWA } from "vite-plugin-pwa";
 // HTML that points at JavaScript or CSS files from an older deployment.
 const APP_SHELL_REVISION = new Date().toISOString();
 
-// Stable pages are installed with the app shell so they open directly without
-// a connection. Member data is warmed separately after authentication.
-const OFFLINE_PUBLIC_ROUTES = [
-  "/",
-  "/about",
-  "/how-it-works",
-  "/pricing",
-  "/faq",
-  "/contact",
-  "/founder-note",
-  "/haris-falas",
-  "/exercise-library",
-  "/tools",
-  "/tools/1rm-calculator",
-  "/tools/rounds-tracker",
-  "/tools/workout-timer",
-  "/glossary",
-  "/privacy",
-  "/terms",
-  "/disclaimer",
-  "/community",
-  "/community/workouts",
-  "/wod",
-  "/auth",
-];
+// Stable pages are warmed into the runtime page cache after load
+// (see src/lib/offline/register-sw.ts), never precached under their real URL.
 
 export default defineConfig({
   vite: {

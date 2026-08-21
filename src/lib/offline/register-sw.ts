@@ -84,11 +84,31 @@ export function registerAppServiceWorker(): Promise<ServiceWorkerRegistration | 
         window.location.reload();
       });
 
-      const registration = await navigator.serviceWorker.register(APP_WORKER_PATH, { scope: "/" });
+      const registration = await navigator.serviceWorker.register(APP_WORKER_PATH, {
+        scope: "/",
+        // Never let the browser HTTP cache answer the worker request, otherwise a
+        // phone can keep re-installing yesterday's worker and never see the update.
+        updateViaCache: "none",
+      });
       await navigator.serviceWorker.ready;
+
+      const checkForUpdate = () => {
+        if (!navigator.onLine) return;
+        registration.update().catch(() => undefined);
+        registration.waiting?.postMessage({ type: "SKIP_WAITING" });
+      };
+
       await registration.update();
       sessionStorage.removeItem(RELOAD_GUARD);
-      window.setInterval(() => registration.update().catch(() => undefined), 60 * 60 * 1000);
+
+      // A published update must land on its own: on every return to the app, on
+      // every reconnection, and on a short timer while the app stays open.
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") checkForUpdate();
+      });
+      window.addEventListener("focus", checkForUpdate);
+      window.addEventListener("online", checkForUpdate);
+      window.setInterval(checkForUpdate, 15 * 60 * 1000);
       return registration;
     } catch {
       return null;
