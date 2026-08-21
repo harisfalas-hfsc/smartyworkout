@@ -163,19 +163,19 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="w-full min-w-0 space-y-4 overflow-x-hidden">
       {title && <h2 className="text-lg font-extrabold">{title}</h2>}
 
-      <div className="rounded-2xl border-2 border-blue-400 bg-card p-3 sm:p-4">
+      <div className="min-w-0 rounded-2xl border-2 border-blue-400 bg-card p-3 sm:p-4">
         <div className="flex flex-col gap-2 sm:flex-row">
-          <div className="relative flex-1">
+          <div className="relative min-w-0 flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && setSearchTerm(search.trim())}
-              placeholder="Search workout name"
-              className="pl-9"
+              placeholder="Search workout, member name or email"
+              className="w-full pl-9 text-base sm:text-sm"
             />
           </div>
           <div className="flex gap-2">
