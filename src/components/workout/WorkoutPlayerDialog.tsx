@@ -423,21 +423,32 @@ export function WorkoutPlayerDialog({
 
   const total = slides.length;
   const progress = total ? ((index + 1) / total) * 100 : 0;
+  const currentSection =
+    slide?.kind === "exercise"
+      ? slide.step.section
+      : slide?.kind === "soft-tissue"
+        ? "Soft Tissue Preparation"
+        : slide?.kind === "break"
+          ? slide.next
+          : "Workout";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="h-[100dvh] max-w-none gap-0 overflow-hidden border-0 bg-neutral-950 p-0 text-neutral-50 [&>div.sticky>button]:hidden sm:h-[92vh] sm:max-w-md sm:rounded-3xl"
+        className="grid h-[100dvh] max-w-none grid-rows-[auto_4px_minmax(0,1fr)_clamp(9.5rem,28dvh,15rem)] gap-0 overflow-hidden border-0 bg-neutral-950 p-0 text-neutral-50 [&>div.sticky>button]:hidden sm:h-[92vh] sm:max-w-2xl sm:rounded-3xl"
       >
         <DialogTitle className="sr-only">{workoutName} player</DialogTitle>
 
-        <div className="flex items-center justify-between px-4 pt-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-primary">
-              {slide?.kind === "exercise" ? slide.step.section : "Transition"}
-            </p>
-            <p className="text-sm text-neutral-400">
-              {index + 1} / {total}
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:px-6">
+          <div className="min-w-0">
+            <p className="truncate text-base font-black sm:text-lg">{workoutName}</p>
+            <div className="flex min-w-0 items-center gap-2 text-xs text-neutral-400">
+              {[category, format].filter(Boolean).map((detail) => (
+                <span key={detail} className="truncate">{detail}</span>
+              ))}
+            </div>
+            <p className="mt-1 truncate text-xs font-bold uppercase text-primary">
+              {currentSection}
             </p>
           </div>
           <Button
@@ -452,23 +463,31 @@ export function WorkoutPlayerDialog({
           </Button>
         </div>
 
-        <div className="mt-3 h-1 w-full bg-neutral-800">
+        <div className="h-1 w-full bg-neutral-800" aria-label={`Workout progress ${Math.round(progress)}%`}>
           <div className="h-1 bg-primary transition-all" style={{ width: `${progress}%` }} />
         </div>
 
-        <div className="relative flex-1 overflow-hidden">
+        <div className="relative min-h-0 overflow-hidden">
           <Carousel setApi={setApi} className="h-full overflow-hidden">
-            <CarouselContent className="ml-0 h-full">
+            <CarouselContent className="ml-0 h-full [&>div]:h-full">
               {slides.map((s, i) => (
-                <CarouselItem key={i} className="pl-0">
+                <CarouselItem key={i} className="h-full pl-0">
                   {s.kind === "soft-tissue" ? (
-                    <SoftTissueSlide lines={s.lines} />
+                    <SoftTissueSlide
+                      lines={s.lines}
+                      canGoPrevious={i > 0}
+                      canGoNext={i < total - 1}
+                      onPrevious={() => api?.scrollPrev()}
+                      onNext={() => api?.scrollNext()}
+                    />
                   ) : s.kind === "break" ? (
-                    <div className="flex h-full flex-col items-center justify-center gap-3 px-8 text-center">
-                      <p className="text-sm uppercase tracking-[0.3em] text-neutral-500">Next up</p>
-                      <h2 className="text-3xl font-black">{s.next}</h2>
-                      <p className="text-neutral-400">Take a breath and reset.</p>
-                    </div>
+                    <TransitionSlide
+                      next={s.next}
+                      canGoPrevious={i > 0}
+                      canGoNext={i < total - 1}
+                      onPrevious={() => api?.scrollPrev()}
+                      onNext={() => api?.scrollNext()}
+                    />
                   ) : (
                     <PlayerSlideView
                       step={s.step}
@@ -488,13 +507,13 @@ export function WorkoutPlayerDialog({
 
 
 
-        <div className="space-y-3 border-t border-neutral-800 px-4 py-4">
+        <div className="h-full space-y-3 overflow-y-auto border-t border-neutral-800 px-4 py-3 sm:px-6">
           {timing.mode !== "manual" ? (
             <div className="text-center">
               <p className="text-xs uppercase tracking-[0.3em] text-neutral-500">
                 {timing.mode === "tabata" ? `${phase} · round ${round}/${timing.rounds}` : phase}
               </p>
-              <p className="font-mono text-5xl font-black tabular-nums">{fmt(remaining)}</p>
+              <p className="font-mono text-4xl font-black tabular-nums">{fmt(remaining)}</p>
             </div>
           ) : (
             <p className="text-center text-sm text-neutral-400">
@@ -661,26 +680,81 @@ export function WorkoutPlayerDialog({
 }
 
 
-function SoftTissueSlide({ lines }: { lines: string[] }) {
+type SlideNavigationProps = {
+  canGoPrevious: boolean;
+  canGoNext: boolean;
+  onPrevious: () => void;
+  onNext: () => void;
+};
+
+function SlideNavigation({
+  canGoPrevious,
+  canGoNext,
+  onPrevious,
+  onNext,
+}: SlideNavigationProps) {
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-4 px-6 text-center">
-      <div className="flex h-40 w-40 items-center justify-center rounded-full bg-neutral-900">
+    <>
+      <Button
+        type="button"
+        variant="secondary"
+        size="icon"
+        aria-label="Previous exercise"
+        disabled={!canGoPrevious}
+        onClick={onPrevious}
+        className="absolute left-2 top-1/2 z-20 h-11 w-11 -translate-y-1/2 rounded-full border-2 border-primary bg-neutral-50 text-neutral-950 shadow-lg hover:bg-neutral-200 disabled:opacity-35"
+      >
+        <ChevronLeft className="h-6 w-6" />
+      </Button>
+      <Button
+        type="button"
+        variant="secondary"
+        size="icon"
+        aria-label="Next exercise"
+        disabled={!canGoNext}
+        onClick={onNext}
+        className="absolute right-2 top-1/2 z-20 h-11 w-11 -translate-y-1/2 rounded-full border-2 border-primary bg-neutral-50 text-neutral-950 shadow-lg hover:bg-neutral-200 disabled:opacity-35"
+      >
+        <ChevronRight className="h-6 w-6" />
+      </Button>
+    </>
+  );
+}
+
+function SoftTissueSlide({
+  lines,
+  ...navigation
+}: { lines: string[] } & SlideNavigationProps) {
+  return (
+    <div className="grid h-full grid-rows-[minmax(0,1fr)_auto] gap-2 px-4 py-3 text-center sm:px-6">
+      <div className="relative flex min-h-0 items-center justify-center overflow-hidden rounded-2xl bg-neutral-50">
         <Cylinder className="h-16 w-16 text-primary" />
+        <SlideNavigation {...navigation} />
       </div>
-      <h2 className="text-2xl font-black">Soft Tissue Preparation</h2>
-      <p className="text-sm text-neutral-400">
-        Foam roller, lacrosse or trigger ball. Take your time before you move.
-      </p>
-      <ul className="w-full space-y-2 text-left">
-        {lines.map((line, i) => (
-          <li
-            key={i}
-            className="rounded-xl border border-neutral-800 bg-neutral-900 px-4 py-2 text-sm text-neutral-200"
-          >
-            {line}
-          </li>
-        ))}
-      </ul>
+      <div className="min-h-[5.5rem]">
+        <h2 className="text-xl font-black">Soft Tissue Preparation</h2>
+        <p className="line-clamp-2 text-sm text-neutral-300">
+          {lines.join(" · ") || "Foam roller, lacrosse or trigger ball. Take your time before you move."}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function TransitionSlide({ next, ...navigation }: { next: string } & SlideNavigationProps) {
+  return (
+    <div className="grid h-full grid-rows-[minmax(0,1fr)_auto] gap-2 px-4 py-3 text-center sm:px-6">
+      <div className="relative flex min-h-0 items-center justify-center overflow-hidden rounded-2xl bg-neutral-50 text-neutral-950">
+        <div>
+          <p className="text-xs font-bold uppercase text-primary">Next phase</p>
+          <h2 className="mt-2 text-3xl font-black">{next}</h2>
+        </div>
+        <SlideNavigation {...navigation} />
+      </div>
+      <div className="min-h-[5.5rem]">
+        <p className="text-sm font-bold uppercase text-primary">Transition</p>
+        <p className="text-sm text-neutral-300">Take a breath, reset, and continue when ready.</p>
+      </div>
     </div>
   );
 }
@@ -701,8 +775,8 @@ function PlayerSlideView({
   onNext: () => void;
 }) {
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-4 px-5 text-center">
-      <div className="relative flex h-56 w-full shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-neutral-50">
+    <div className="grid h-full grid-rows-[minmax(0,1fr)_auto] gap-2 px-4 py-3 text-center sm:px-6">
+      <div className="relative flex min-h-0 w-full items-center justify-center overflow-hidden rounded-2xl bg-neutral-50">
         {gifUrl ? (
           <img
             src={gifUrl}
@@ -712,38 +786,22 @@ function PlayerSlideView({
         ) : (
           <Dumbbell className="h-10 w-10 text-neutral-400" />
         )}
-        <Button
-          type="button"
-          variant="secondary"
-          size="icon"
-          aria-label="Previous exercise"
-          disabled={!canGoPrevious}
-          onClick={onPrevious}
-          className="absolute left-2 top-1/2 z-20 h-11 w-11 -translate-y-1/2 rounded-full border-2 border-primary bg-neutral-50 text-neutral-950 shadow-lg hover:bg-neutral-200 disabled:opacity-35"
-        >
-          <ChevronLeft className="h-6 w-6" />
-        </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          size="icon"
-          aria-label="Next exercise"
-          disabled={!canGoNext}
-          onClick={onNext}
-          className="absolute right-2 top-1/2 z-20 h-11 w-11 -translate-y-1/2 rounded-full border-2 border-primary bg-neutral-50 text-neutral-950 shadow-lg hover:bg-neutral-200 disabled:opacity-35"
-        >
-          <ChevronRight className="h-6 w-6" />
-        </Button>
+        <SlideNavigation
+          canGoPrevious={canGoPrevious}
+          canGoNext={canGoNext}
+          onPrevious={onPrevious}
+          onNext={onNext}
+        />
       </div>
-      {step.subSection ? (
-        <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
-          {step.subSection}
-        </span>
-      ) : null}
-      <h2 className="text-2xl font-black capitalize">{step.name}</h2>
-      {step.prescription ? (
-        <p className="text-lg text-neutral-300">{step.prescription}</p>
-      ) : null}
+      <div className="min-h-[5.5rem]">
+        {step.subSection ? (
+          <p className="truncate text-xs font-bold uppercase text-primary">{step.subSection}</p>
+        ) : null}
+        <h2 className="line-clamp-2 text-xl font-black capitalize sm:text-2xl">{step.name}</h2>
+        {step.prescription ? (
+          <p className="line-clamp-2 text-sm text-neutral-300 sm:text-base">{step.prescription}</p>
+        ) : null}
+      </div>
     </div>
   );
 }
