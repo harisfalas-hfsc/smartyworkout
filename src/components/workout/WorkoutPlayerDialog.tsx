@@ -435,7 +435,7 @@ export function WorkoutPlayerDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="grid h-auto max-h-[100dvh] max-w-none grid-rows-[auto_4px_auto_clamp(12rem,31dvh,15rem)] gap-0 overflow-hidden border-0 bg-neutral-950 p-0 text-neutral-50 [&>div.sticky>button]:hidden sm:max-w-2xl sm:rounded-3xl"
+        className="grid h-auto max-h-[100dvh] max-w-none grid-rows-[auto_4px_auto_clamp(12rem,31dvh,15rem)] gap-0 overflow-hidden border-0 bg-neutral-950 p-0 text-neutral-50 [&>div.sticky]:hidden sm:max-w-2xl sm:rounded-3xl"
       >
         <DialogTitle className="sr-only">{workoutName} player</DialogTitle>
 
