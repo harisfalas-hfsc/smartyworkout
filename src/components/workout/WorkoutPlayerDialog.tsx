@@ -427,7 +427,7 @@ export function WorkoutPlayerDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="h-[100dvh] max-w-none gap-0 overflow-hidden border-0 bg-neutral-950 p-0 text-neutral-50 [&>button]:hidden sm:h-[92vh] sm:max-w-md sm:rounded-3xl"
+        className="h-[100dvh] max-w-none gap-0 overflow-hidden border-0 bg-neutral-950 p-0 text-neutral-50 [&>button]:hidden [&>div>button]:hidden sm:h-[92vh] sm:max-w-md sm:rounded-3xl"
       >
         <DialogTitle className="sr-only">{workoutName} player</DialogTitle>
 
@@ -440,14 +440,14 @@ export function WorkoutPlayerDialog({
               {index + 1} / {total}
             </p>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-neutral-300 hover:text-neutral-50"
+          <button
+            type="button"
+            aria-label="Close player"
             onClick={() => void closePlayer()}
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/25 bg-neutral-900/80 text-neutral-50 shadow-lg backdrop-blur-sm transition active:scale-95 hover:bg-neutral-800"
           >
             <X className="h-5 w-5" />
-          </Button>
+          </button>
         </div>
 
         <div className="mt-3 h-1 w-full bg-neutral-800">

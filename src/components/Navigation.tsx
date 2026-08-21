@@ -255,6 +255,10 @@ function NavDrawer({ onClose, isAuthed, isAdmin }: { onClose: () => void; isAuth
         { to: "/disclaimer", label: "Disclaimer", Icon: AlertTriangle },
       ],
     },
+    {
+      heading: "Discover",
+      items: [{ to: "/glossary", label: "Glossary & training topics", Icon: BookOpen }],
+    },
   ];
 
   return (
@@ -277,7 +281,10 @@ function NavDrawer({ onClose, isAuthed, isAdmin }: { onClose: () => void; isAuth
             <X className="h-4 w-4" />
           </button>
         </div>
-        <nav className="flex-1 overflow-y-auto px-3 pb-6">
+        <nav
+          className="flex-1 overflow-y-auto px-3"
+          style={{ paddingBottom: "calc(5rem + env(safe-area-inset-bottom))" }}
+        >
           {sections.map((s) => (
             <div key={s.heading} className="mt-2">
               <div className="px-2 pb-1.5 pt-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
