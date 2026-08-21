@@ -135,7 +135,7 @@ export function OfflineBootstrap() {
           fetchAllRows("workout_results"),
           fetchAllRows("workout_feedback"),
         ]);
-      if (!active) return;
+      if (!active) return false;
       if (notificationResult.status === "fulfilled")
         await save("inbox:notifications", notificationResult.value);
       if (threadResult.status === "fulfilled") await save("inbox:threads", threadResult.value);
