@@ -19,8 +19,10 @@ describe("workout player layout", () => {
   it("uses one stable footer height and keeps navigation visible on every slide", () => {
     const player = readFileSync("src/components/workout/WorkoutPlayerDialog.tsx", "utf8");
 
-    expect(player).toContain("grid-rows-[auto_4px_auto_clamp(11rem,30dvh,14rem)]");
-    expect(player).toContain("h-[calc(clamp(9rem,26dvh,15rem)+5rem)]");
+    expect(player).toContain("grid-rows-[auto_4px_auto_minmax(0,1fr)_auto]");
+    expect(player).toContain("h-[calc(clamp(9rem,26dvh,15rem)+5rem+0.75rem)]");
+    // primary action bar sits outside the scrollable controls so it is always visible
+    expect(player).toContain('<div className="space-y-2 border-t border-neutral-800 px-4 py-3 sm:px-6">');
     expect(player.match(/<SlideNavigation/g)).toHaveLength(3);
     expect(player).toContain('aria-label="Close player"');
   });
