@@ -163,7 +163,7 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
   }
 
   return (
-    <div className="w-full min-w-0 space-y-4 overflow-x-hidden">
+    <div className="w-full min-w-0 max-w-full space-y-4 overflow-x-clip">
       {title && <h2 className="text-lg font-extrabold">{title}</h2>}
 
       <div className="min-w-0 rounded-2xl border-2 border-blue-400 bg-card p-3 sm:p-4">
@@ -188,7 +188,7 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
           </div>
         </div>
 
-        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="mt-3 grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-2 sm:grid-cols-3 lg:grid-cols-4">
           <FilterSelect
             label="Category"
             value={category}
@@ -237,8 +237,8 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
             onChange={setStatus}
             options={facets.statuses}
           />
-          <div className="col-span-2 grid grid-cols-2 gap-2 sm:col-span-1 lg:col-span-1">
-            <label className="flex flex-col gap-1">
+          <div className="col-span-2 grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-2 sm:col-span-1 lg:col-span-1">
+            <label className="flex min-w-0 flex-col gap-1">
               <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                 From
               </span>
@@ -246,10 +246,10 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
                 type="date"
                 value={from}
                 onChange={(e) => setFrom(e.target.value)}
-                className="h-10 w-full"
+                className="h-10 min-w-0 max-w-full"
               />
             </label>
-            <label className="flex flex-col gap-1">
+            <label className="flex min-w-0 flex-col gap-1">
               <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                 To
               </span>
@@ -257,7 +257,7 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
                 type="date"
                 value={to}
                 onChange={(e) => setTo(e.target.value)}
-                className="h-10 w-full"
+                className="h-10 min-w-0 max-w-full"
               />
             </label>
           </div>
@@ -285,7 +285,7 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
       ) : rows.length === 0 ? (
         <p className="py-10 text-center text-sm text-muted-foreground">No workouts found.</p>
       ) : (
-        <div className="grid min-w-0 gap-3 lg:grid-cols-2">
+        <div className="grid min-w-0 max-w-full grid-cols-1 gap-3 lg:grid-cols-2">
           {rows.map((w) => (
             <button
               key={w.id}
@@ -293,8 +293,8 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
               onClick={() => setOpenId(w.id)}
               className="w-full min-w-0 overflow-hidden rounded-2xl border-2 border-blue-400 bg-card p-4 text-left transition hover:bg-accent"
             >
-              <div className="flex min-w-0 items-start justify-between gap-2">
-                <p className="min-w-0 break-words font-semibold">{w.name}</p>
+              <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
+                <p className="min-w-0 break-words font-semibold leading-snug">{w.name}</p>
                 <Badge variant={w.is_wod ? "default" : "outline"} className="shrink-0 gap-1">
                   {w.is_wod ? (
                     <>
@@ -437,14 +437,21 @@ function MemberLine({
   wodDate: string | null;
 }) {
   return (
-    <div className="mt-1.5 min-w-0 space-y-0.5 text-xs text-muted-foreground">
-      <p className="break-words">
-        <span className="font-semibold text-foreground">{name || "Unnamed member"}</span>
-        {email ? <span className="break-all"> · {email}</span> : null}
+    <div className="mt-2 min-w-0 space-y-1 border-l-2 border-primary pl-2.5 text-xs">
+      <p className="min-w-0 break-words text-foreground">
+        <span className="font-semibold">For: </span>
+        {name || "Unnamed member"}
       </p>
-      <p className="break-all">
-        ID {userId.slice(0, 8)} · Created {formatDateTime(createdAt)}
-        {wodDate ? ` · WOD for ${wodDate}` : ""}
+      <p className="min-w-0 break-all text-muted-foreground">
+        <span className="font-semibold text-foreground">Email: </span>
+        {email || "No email available"}
+      </p>
+      <p className="min-w-0 break-all text-muted-foreground">
+        <span className="font-semibold text-foreground">User ID: </span>
+        {userId}
+      </p>
+      <p className="min-w-0 break-words text-muted-foreground">
+        Created {formatDateTime(createdAt)}{wodDate ? ` · WOD for ${wodDate}` : ""}
       </p>
     </div>
   );
@@ -465,12 +472,12 @@ function FilterSelect({
 }) {
   const normalized = options.map((o) => (typeof o === "string" ? { value: o, label: o } : o));
   return (
-    <label className="flex min-w-0 flex-col gap-1">
+    <label className="flex min-w-0 max-w-full flex-col gap-1 overflow-hidden">
       <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
         {label}
       </span>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="h-10 w-full">
+        <SelectTrigger className="h-10 min-w-0 max-w-full">
           <SelectValue placeholder="All" />
         </SelectTrigger>
         <SelectContent className="max-h-72">

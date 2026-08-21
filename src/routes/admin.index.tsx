@@ -201,7 +201,7 @@ function AdminPage() {
       />
 
       {section ? (
-        <div className="space-y-4">
+        <div className="min-w-0 max-w-full space-y-4 overflow-x-clip">
           <Button variant="ghost" size="sm" onClick={() => setSection(null)}>
             <ArrowLeft className="mr-2 h-4 w-4" /> All sections
           </Button>
@@ -359,7 +359,7 @@ function Stat({ label, value }: { label: string; value?: number }) {
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-[100dvh] w-full flex-col bg-background text-foreground">
-      <main className="mx-auto w-full max-w-[1100px] px-4 pb-24 pt-6 lg:max-w-6xl lg:px-8">{children}</main>
+      <main className="mx-auto w-full min-w-0 max-w-[1100px] overflow-x-clip px-4 pb-24 pt-6 lg:max-w-6xl lg:px-8">{children}</main>
     </div>
   );
 }

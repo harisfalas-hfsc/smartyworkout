@@ -1,5 +1,5 @@
 const APP_WORKER_PATH = "/sw.js";
-const PAGE_CACHE_NAME = "smarty-pages-v2";
+const PAGE_CACHE_NAME = "smarty-pages-v3";
 const RELOAD_GUARD = "smarty:sw-controller-reload";
 let registrationPromise: Promise<ServiceWorkerRegistration | null> | null = null;
 

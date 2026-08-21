@@ -76,7 +76,7 @@ export default defineConfig({
               urlPattern: ({ request }) => request.mode === "navigate",
               handler: "NetworkFirst",
               options: {
-                cacheName: "smarty-pages-v2",
+                cacheName: "smarty-pages-v3",
                 networkTimeoutSeconds: 5,
                 cacheableResponse: { statuses: [0, 200] },
                 // Dynamic member URLs (for example /workout/:id) cannot all be
