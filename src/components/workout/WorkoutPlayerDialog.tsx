@@ -721,41 +721,63 @@ function SlideNavigation({
   );
 }
 
+const MEDIA_FRAME_CLASS =
+  "relative flex h-[clamp(9rem,32dvh,17rem)] w-full shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-neutral-50";
+
+function SlideShell({ media, info }: { media: React.ReactNode; info: React.ReactNode }) {
+  return (
+    <div className="flex h-full min-h-0 flex-col items-center gap-2 px-4 py-3 text-center sm:px-6">
+      <div className={MEDIA_FRAME_CLASS}>{media}</div>
+      <div className="h-[5.5rem] w-full shrink-0 overflow-hidden">{info}</div>
+    </div>
+  );
+}
+
 function SoftTissueSlide({
   lines,
   ...navigation
 }: { lines: string[] } & SlideNavigationProps) {
   return (
-    <div className="grid h-full min-h-0 grid-rows-[minmax(7rem,1fr)_5.5rem] gap-2 px-4 py-3 text-center sm:px-6">
-      <div className="relative flex min-h-0 items-center justify-center overflow-hidden rounded-2xl bg-neutral-50">
-        <Cylinder className="h-16 w-16 text-primary" />
-        <SlideNavigation {...navigation} />
-      </div>
-      <div className="min-h-[5.5rem]">
-        <h2 className="text-xl font-black">Soft Tissue Preparation</h2>
-        <p className="line-clamp-2 text-sm text-neutral-300">
-          {lines.join(" · ") || "Foam roller, lacrosse or trigger ball. Take your time before you move."}
-        </p>
-      </div>
-    </div>
+    <SlideShell
+      media={
+        <>
+          <Cylinder className="h-16 w-16 text-primary" />
+          <SlideNavigation {...navigation} />
+        </>
+      }
+      info={
+        <>
+          <h2 className="line-clamp-2 text-xl font-black">Soft Tissue Preparation</h2>
+          <p className="line-clamp-2 text-sm text-neutral-300">
+            {lines.join(" · ") || "Foam roller, lacrosse or trigger ball. Take your time before you move."}
+          </p>
+        </>
+      }
+    />
   );
 }
 
 function TransitionSlide({ next, ...navigation }: { next: string } & SlideNavigationProps) {
   return (
-    <div className="grid h-full min-h-0 grid-rows-[minmax(7rem,1fr)_5.5rem] gap-2 px-4 py-3 text-center sm:px-6">
-      <div className="relative flex min-h-0 items-center justify-center overflow-hidden rounded-2xl bg-neutral-50 text-neutral-950">
-        <div>
-          <p className="text-xs font-bold uppercase text-primary">Next phase</p>
-          <h2 className="mt-2 text-3xl font-black">{next}</h2>
-        </div>
-        <SlideNavigation {...navigation} />
-      </div>
-      <div className="min-h-[5.5rem]">
-        <p className="text-sm font-bold uppercase text-primary">Transition</p>
-        <p className="text-sm text-neutral-300">Take a breath, reset, and continue when ready.</p>
-      </div>
-    </div>
+    <SlideShell
+      media={
+        <>
+          <div className="px-12 text-neutral-950">
+            <p className="text-xs font-bold uppercase text-primary">Next phase</p>
+            <h2 className="mt-2 line-clamp-2 text-2xl font-black">{next}</h2>
+          </div>
+          <SlideNavigation {...navigation} />
+        </>
+      }
+      info={
+        <>
+          <p className="text-sm font-bold uppercase text-primary">Transition</p>
+          <p className="line-clamp-2 text-sm text-neutral-300">
+            Take a breath, reset, and continue when ready.
+          </p>
+        </>
+      }
+    />
   );
 }
 
@@ -775,36 +797,41 @@ function PlayerSlideView({
   onNext: () => void;
 }) {
   return (
-    <div className="grid h-full min-h-0 grid-rows-[minmax(7rem,1fr)_5.5rem] gap-2 px-4 py-3 text-center sm:px-6">
-      <div className="relative flex min-h-0 w-full items-center justify-center overflow-hidden rounded-2xl bg-neutral-50">
-        {gifUrl ? (
-          <img
-            src={gifUrl}
-            alt={`${step.name} demonstration`}
-            className="h-full w-full object-contain"
+    <SlideShell
+      media={
+        <>
+          {gifUrl ? (
+            <img
+              src={gifUrl}
+              alt={`${step.name} demonstration`}
+              className="h-full w-full object-contain"
+            />
+          ) : (
+            <Dumbbell className="h-10 w-10 text-neutral-400" />
+          )}
+          <SlideNavigation
+            canGoPrevious={canGoPrevious}
+            canGoNext={canGoNext}
+            onPrevious={onPrevious}
+            onNext={onNext}
           />
-        ) : (
-          <Dumbbell className="h-10 w-10 text-neutral-400" />
-        )}
-        <SlideNavigation
-          canGoPrevious={canGoPrevious}
-          canGoNext={canGoNext}
-          onPrevious={onPrevious}
-          onNext={onNext}
-        />
-      </div>
-      <div className="min-h-[5.5rem]">
-        {step.subSection ? (
-          <p className="truncate text-xs font-bold uppercase text-primary">{step.subSection}</p>
-        ) : null}
-        <h2 className="line-clamp-2 text-xl font-black capitalize sm:text-2xl">{step.name}</h2>
-        {step.prescription ? (
-          <p className="line-clamp-2 text-sm text-neutral-300 sm:text-base">{step.prescription}</p>
-        ) : null}
-      </div>
-    </div>
+        </>
+      }
+      info={
+        <>
+          {step.subSection ? (
+            <p className="truncate text-xs font-bold uppercase text-primary">{step.subSection}</p>
+          ) : null}
+          <h2 className="line-clamp-2 text-xl font-black capitalize sm:text-2xl">{step.name}</h2>
+          {step.prescription ? (
+            <p className="line-clamp-2 text-sm text-neutral-300 sm:text-base">{step.prescription}</p>
+          ) : null}
+        </>
+      }
+    />
   );
 }
+
 
 function StepperField({
   label,
