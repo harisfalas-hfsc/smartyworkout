@@ -10,7 +10,8 @@ describe("workout player layout", () => {
     expect(player).toContain('CarouselContent className="ml-0 h-full min-h-0"');
     expect(player).toContain('CarouselItem key={i} className="h-full pl-0"');
     // every slide type renders the exact same fixed-size media frame
-    expect(player).toContain("h-[clamp(9rem,32dvh,17rem)]");
+    expect(player).toContain("h-[clamp(12rem,34dvh,18rem)]");
+    expect(player).toContain("grid-rows-[clamp(12rem,34dvh,18rem)_6rem]");
     expect(player.match(/<SlideShell/g)).toHaveLength(3);
 
   });
@@ -18,7 +19,8 @@ describe("workout player layout", () => {
   it("uses one stable footer height and keeps navigation visible on every slide", () => {
     const player = readFileSync("src/components/workout/WorkoutPlayerDialog.tsx", "utf8");
 
-    expect(player).toContain("grid-rows-[auto_4px_minmax(0,1fr)_15rem]");
+    expect(player).toContain("grid-rows-[auto_4px_auto_clamp(12rem,31dvh,15rem)]");
+    expect(player).toContain("h-[calc(clamp(12rem,34dvh,18rem)+6rem)]");
     expect(player.match(/<SlideNavigation/g)).toHaveLength(3);
     expect(player).toContain('aria-label="Close player"');
   });
