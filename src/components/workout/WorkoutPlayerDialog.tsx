@@ -8,7 +8,7 @@ import {
   CarouselItem,
   type CarouselApi,
 } from "@/components/ui/carousel";
-import { Check, ChevronLeft, ChevronRight, Cylinder, Dumbbell, Minus, Pause, Play, Plus, RotateCcw, X } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Cylinder, Dumbbell, Flag, Minus, Pause, Play, Plus, RotateCcw, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -634,11 +634,23 @@ export function WorkoutPlayerDialog({
               >
                 <RotateCcw className="h-4 w-4" />
               </Button>
+              <Button variant="secondary" onClick={finishWorkout} title="Finish workout and fill in your results">
+                <Flag className="mr-1.5 h-4 w-4" />
+                Finish
+              </Button>
             </div>
           ) : (
-            <Button onClick={() => (index === total - 1 ? finishWorkout() : api?.scrollNext())}>
-              {index === total - 1 ? "Done — finish" : "Done — next"}
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={() => (index === total - 1 ? finishWorkout() : api?.scrollNext())}>
+                {index === total - 1 ? "Done — finish" : "Done — next"}
+              </Button>
+              {index < total - 1 ? (
+                <Button variant="secondary" onClick={finishWorkout} title="Finish workout and fill in your results">
+                  <Flag className="mr-1.5 h-4 w-4" />
+                  Finish
+                </Button>
+              ) : null}
+            </div>
           )}
         </div>
 
