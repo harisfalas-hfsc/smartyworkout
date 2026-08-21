@@ -435,7 +435,7 @@ export function WorkoutPlayerDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="grid h-[100dvh] max-w-none grid-rows-[auto_4px_minmax(0,1fr)_clamp(9.5rem,28dvh,15rem)] gap-0 overflow-hidden border-0 bg-neutral-950 p-0 text-neutral-50 [&>div.sticky>button]:hidden sm:h-[92vh] sm:max-w-2xl sm:rounded-3xl"
+        className="grid h-[100dvh] max-w-none grid-rows-[auto_4px_minmax(0,1fr)_15rem] gap-0 overflow-hidden border-0 bg-neutral-950 p-0 text-neutral-50 [&>div.sticky>button]:hidden sm:h-[92vh] sm:max-w-2xl sm:rounded-3xl"
       >
         <DialogTitle className="sr-only">{workoutName} player</DialogTitle>
 
@@ -468,8 +468,8 @@ export function WorkoutPlayerDialog({
         </div>
 
         <div className="relative min-h-0 overflow-hidden">
-          <Carousel setApi={setApi} className="h-full overflow-hidden">
-            <CarouselContent className="ml-0 h-full [&>div]:h-full">
+          <Carousel setApi={setApi} className="h-full min-h-0 overflow-hidden">
+            <CarouselContent className="ml-0 h-full min-h-0">
               {slides.map((s, i) => (
                 <CarouselItem key={i} className="h-full pl-0">
                   {s.kind === "soft-tissue" ? (
@@ -726,7 +726,7 @@ function SoftTissueSlide({
   ...navigation
 }: { lines: string[] } & SlideNavigationProps) {
   return (
-    <div className="grid h-full grid-rows-[minmax(0,1fr)_auto] gap-2 px-4 py-3 text-center sm:px-6">
+    <div className="grid h-full min-h-0 grid-rows-[minmax(7rem,1fr)_5.5rem] gap-2 px-4 py-3 text-center sm:px-6">
       <div className="relative flex min-h-0 items-center justify-center overflow-hidden rounded-2xl bg-neutral-50">
         <Cylinder className="h-16 w-16 text-primary" />
         <SlideNavigation {...navigation} />
@@ -743,7 +743,7 @@ function SoftTissueSlide({
 
 function TransitionSlide({ next, ...navigation }: { next: string } & SlideNavigationProps) {
   return (
-    <div className="grid h-full grid-rows-[minmax(0,1fr)_auto] gap-2 px-4 py-3 text-center sm:px-6">
+    <div className="grid h-full min-h-0 grid-rows-[minmax(7rem,1fr)_5.5rem] gap-2 px-4 py-3 text-center sm:px-6">
       <div className="relative flex min-h-0 items-center justify-center overflow-hidden rounded-2xl bg-neutral-50 text-neutral-950">
         <div>
           <p className="text-xs font-bold uppercase text-primary">Next phase</p>
@@ -775,7 +775,7 @@ function PlayerSlideView({
   onNext: () => void;
 }) {
   return (
-    <div className="grid h-full grid-rows-[minmax(0,1fr)_auto] gap-2 px-4 py-3 text-center sm:px-6">
+    <div className="grid h-full min-h-0 grid-rows-[minmax(7rem,1fr)_5.5rem] gap-2 px-4 py-3 text-center sm:px-6">
       <div className="relative flex min-h-0 w-full items-center justify-center overflow-hidden rounded-2xl bg-neutral-50">
         {gifUrl ? (
           <img
