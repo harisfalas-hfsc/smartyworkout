@@ -504,18 +504,6 @@ function PeriodSummary({
           <PeriodTrendChart sessions={sessions} start={start} end={end} />
         </div>
       )}
-
-      {debrief ? (
-        <SessionDebriefDialog
-          open
-          onOpenChange={(next) => {
-            if (!next) setDebrief(null);
-          }}
-          workoutId={debrief.workoutId}
-          attempt={debrief.attempt}
-          initial={debrief.initial}
-        />
-      ) : null}
     </div>
   );
 }
