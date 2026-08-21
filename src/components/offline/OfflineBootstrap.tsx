@@ -111,7 +111,7 @@ export function OfflineBootstrap() {
       try {
         const raw = localStorage.getItem(`smarty:profile:${user.id}`);
         const url = raw ? (JSON.parse(raw) as { avatar_url?: string }).avatar_url : null;
-        if (url) void fetch(url, { mode: "no-cors" }).catch(() => undefined);
+        if (url) await cacheMediaUrls([url], { concurrency: 1, isActive: () => active });
       } catch {
         /* best effort */
       }
