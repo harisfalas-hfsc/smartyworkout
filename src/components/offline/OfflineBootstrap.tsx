@@ -172,9 +172,25 @@ export function OfflineBootstrap() {
         });
         preparedPerformance = setsResult.value.length + resultsResult.value.length + feedback.length;
       }
+      let overviewOk = true;
       await loadProgressOverview({ data: {} } as never)
         .then((overview) => save("progress:overview", overview))
-        .catch(() => undefined);
+        .catch(() => {
+          overviewOk = false;
+        });
+
+      // Only a fully downloaded copy counts as done, so a partial run retries.
+      const everyFetchSucceeded = [
+        notificationResult,
+        threadResult,
+        logbookResult,
+        workoutResult,
+        profileResult,
+        setsResult,
+        resultsResult,
+        feedbackResult,
+      ].every((result) => result.status === "fulfilled");
+      return everyFetchSucceeded && overviewOk;
     };
 
     /** Priority 3 — the exercise library, batched so it survives interruption. */
