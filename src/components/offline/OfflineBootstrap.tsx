@@ -72,6 +72,7 @@ export function OfflineBootstrap() {
 
   useEffect(() => {
     let active = true;
+    let retryTimer = 0;
 
     // Public pages are prepared for every visitor, not only signed-in members.
     // This is deliberately independent from member-data synchronization.
