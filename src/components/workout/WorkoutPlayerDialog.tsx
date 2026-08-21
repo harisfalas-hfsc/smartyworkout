@@ -435,7 +435,7 @@ export function WorkoutPlayerDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="grid h-[100dvh] max-w-none grid-rows-[auto_4px_minmax(0,1fr)_clamp(12rem,31dvh,15rem)] gap-0 overflow-hidden border-0 bg-neutral-950 p-0 text-neutral-50 [&>div.sticky>button]:hidden sm:h-[92vh] sm:max-w-2xl sm:rounded-3xl"
+        className="grid h-auto max-h-[100dvh] max-w-none grid-rows-[auto_4px_auto_clamp(12rem,31dvh,15rem)] gap-0 overflow-hidden border-0 bg-neutral-950 p-0 text-neutral-50 [&>div.sticky>button]:hidden sm:max-w-2xl sm:rounded-3xl"
       >
         <DialogTitle className="sr-only">{workoutName} player</DialogTitle>
 
@@ -467,8 +467,8 @@ export function WorkoutPlayerDialog({
           <div className="h-1 bg-primary transition-all" style={{ width: `${progress}%` }} />
         </div>
 
-        <div className="relative min-h-0 overflow-hidden">
-          <Carousel setApi={setApi} className="h-full min-h-0 overflow-hidden">
+        <div className="relative h-[calc(clamp(12rem,34dvh,18rem)+6rem)] overflow-hidden">
+          <Carousel setApi={setApi} className="h-full overflow-hidden">
             <CarouselContent className="ml-0 h-full min-h-0">
               {slides.map((s, i) => (
                 <CarouselItem key={i} className="h-full pl-0">
