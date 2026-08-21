@@ -435,7 +435,7 @@ export function WorkoutPlayerDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="grid h-[100dvh] max-w-none grid-rows-[auto_4px_minmax(0,1fr)_clamp(9.5rem,28dvh,15rem)] gap-0 overflow-hidden border-0 bg-neutral-950 p-0 text-neutral-50 [&>div.sticky>button]:hidden sm:h-[92vh] sm:max-w-2xl sm:rounded-3xl"
+        className="grid h-[100dvh] max-w-none grid-rows-[auto_4px_minmax(0,1fr)_auto] gap-0 overflow-hidden border-0 bg-neutral-950 p-0 text-neutral-50 [&>div.sticky>button]:hidden sm:h-[92vh] sm:max-w-2xl sm:rounded-3xl"
       >
         <DialogTitle className="sr-only">{workoutName} player</DialogTitle>
 
@@ -468,8 +468,8 @@ export function WorkoutPlayerDialog({
         </div>
 
         <div className="relative min-h-0 overflow-hidden">
-          <Carousel setApi={setApi} className="h-full overflow-hidden">
-            <CarouselContent className="ml-0 h-full [&>div]:h-full">
+          <Carousel setApi={setApi} className="h-full min-h-0 overflow-hidden">
+            <CarouselContent className="ml-0 h-full min-h-0">
               {slides.map((s, i) => (
                 <CarouselItem key={i} className="h-full pl-0">
                   {s.kind === "soft-tissue" ? (
@@ -507,7 +507,7 @@ export function WorkoutPlayerDialog({
 
 
 
-        <div className="h-full space-y-3 overflow-y-auto border-t border-neutral-800 px-4 py-3 sm:px-6">
+        <div className="max-h-[42dvh] space-y-3 overflow-y-auto border-t border-neutral-800 px-4 py-3 sm:max-h-[38vh] sm:px-6">
           {timing.mode !== "manual" ? (
             <div className="text-center">
               <p className="text-xs uppercase tracking-[0.3em] text-neutral-500">
@@ -523,7 +523,7 @@ export function WorkoutPlayerDialog({
 
           {slide?.kind === "exercise" && tracking && tracking.primary !== "completion" ? (
             <div className="space-y-2">
-              <div className="flex items-end gap-2">
+              <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-end gap-2 sm:flex">
                 {tracking.primary === "reps" ? (
                   <StepperField
                     label={
@@ -551,7 +551,7 @@ export function WorkoutPlayerDialog({
                 ) : null}
                 <Button
                   variant="secondary"
-                  className="h-11 shrink-0"
+                  className="col-span-2 h-11 w-full shrink-0 sm:col-span-1 sm:w-auto"
                   disabled={savingSet}
                   onClick={logSet}
                 >
@@ -726,7 +726,7 @@ function SoftTissueSlide({
   ...navigation
 }: { lines: string[] } & SlideNavigationProps) {
   return (
-    <div className="grid h-full grid-rows-[minmax(0,1fr)_auto] gap-2 px-4 py-3 text-center sm:px-6">
+    <div className="grid h-full min-h-0 grid-rows-[minmax(7rem,1fr)_5.5rem] gap-2 px-4 py-3 text-center sm:px-6">
       <div className="relative flex min-h-0 items-center justify-center overflow-hidden rounded-2xl bg-neutral-50">
         <Cylinder className="h-16 w-16 text-primary" />
         <SlideNavigation {...navigation} />
@@ -743,7 +743,7 @@ function SoftTissueSlide({
 
 function TransitionSlide({ next, ...navigation }: { next: string } & SlideNavigationProps) {
   return (
-    <div className="grid h-full grid-rows-[minmax(0,1fr)_auto] gap-2 px-4 py-3 text-center sm:px-6">
+    <div className="grid h-full min-h-0 grid-rows-[minmax(7rem,1fr)_5.5rem] gap-2 px-4 py-3 text-center sm:px-6">
       <div className="relative flex min-h-0 items-center justify-center overflow-hidden rounded-2xl bg-neutral-50 text-neutral-950">
         <div>
           <p className="text-xs font-bold uppercase text-primary">Next phase</p>
@@ -775,7 +775,7 @@ function PlayerSlideView({
   onNext: () => void;
 }) {
   return (
-    <div className="grid h-full grid-rows-[minmax(0,1fr)_auto] gap-2 px-4 py-3 text-center sm:px-6">
+    <div className="grid h-full min-h-0 grid-rows-[minmax(7rem,1fr)_5.5rem] gap-2 px-4 py-3 text-center sm:px-6">
       <div className="relative flex min-h-0 w-full items-center justify-center overflow-hidden rounded-2xl bg-neutral-50">
         {gifUrl ? (
           <img
