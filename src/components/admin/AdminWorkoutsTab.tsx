@@ -361,9 +361,9 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
       )}
 
       <Dialog open={Boolean(openId)} onOpenChange={(o) => !o && setOpenId(null)}>
-        <DialogContent className="max-h-[90dvh] max-w-[720px] overflow-y-auto">
+        <DialogContent className="max-h-[90dvh] w-[calc(100vw-1.5rem)] max-w-[720px] overflow-y-auto overflow-x-hidden sm:w-full">
           <DialogHeader>
-            <DialogTitle className="pr-6 text-left text-base">
+            <DialogTitle className="break-words pr-8 text-left text-base">
               {detail?.name ?? "Workout"}
             </DialogTitle>
           </DialogHeader>
@@ -373,7 +373,7 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
             </div>
           ) : (
             <ExerciseMediaProvider ids={detailIds}>
-              <div className="space-y-4 text-sm">
+              <div className="min-w-0 space-y-4 break-words text-sm">
                 <div className="flex flex-wrap gap-1.5">
                   <Badge variant="secondary">{detail.category}</Badge>
                   {detail.focus && <Badge variant="outline">{detail.focus}</Badge>}
@@ -385,10 +385,13 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
                     {detail.is_wod ? "Workout of the Day" : "By request"}
                   </Badge>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {formatDateTime(detail.created_at)} ·{" "}
-                  {detail.user_name || detail.user_email || "Unknown member"}
-                </p>
+                <MemberLine
+                  name={detail.user_name}
+                  email={detail.user_email}
+                  userId={detail.user_id}
+                  createdAt={detail.created_at}
+                  wodDate={detail.is_wod ? detail.wod_date : null}
+                />
                 {detail.description_html && (
                   <Section title="Description" html={detail.description_html} />
                 )}
