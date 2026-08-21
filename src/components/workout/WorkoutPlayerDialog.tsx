@@ -435,7 +435,7 @@ export function WorkoutPlayerDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="grid h-[100dvh] max-w-none grid-rows-[auto_4px_minmax(0,1fr)_auto] gap-0 overflow-hidden border-0 bg-neutral-950 p-0 text-neutral-50 [&>div.sticky>button]:hidden sm:h-[92vh] sm:max-w-2xl sm:rounded-3xl"
+        className="grid h-[100dvh] max-w-none grid-rows-[auto_4px_minmax(0,1fr)_15rem] gap-0 overflow-hidden border-0 bg-neutral-950 p-0 text-neutral-50 [&>div.sticky>button]:hidden sm:h-[92vh] sm:max-w-2xl sm:rounded-3xl"
       >
         <DialogTitle className="sr-only">{workoutName} player</DialogTitle>
 
@@ -507,7 +507,7 @@ export function WorkoutPlayerDialog({
 
 
 
-        <div className="max-h-[42dvh] space-y-3 overflow-y-auto border-t border-neutral-800 px-4 py-3 sm:max-h-[38vh] sm:px-6">
+        <div className="h-full space-y-3 overflow-y-auto border-t border-neutral-800 px-4 py-3 sm:px-6">
           {timing.mode !== "manual" ? (
             <div className="text-center">
               <p className="text-xs uppercase tracking-[0.3em] text-neutral-500">
@@ -523,7 +523,7 @@ export function WorkoutPlayerDialog({
 
           {slide?.kind === "exercise" && tracking && tracking.primary !== "completion" ? (
             <div className="space-y-2">
-              <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-end gap-2 sm:flex">
+              <div className="flex items-end gap-2">
                 {tracking.primary === "reps" ? (
                   <StepperField
                     label={
@@ -551,7 +551,7 @@ export function WorkoutPlayerDialog({
                 ) : null}
                 <Button
                   variant="secondary"
-                  className="col-span-2 h-11 w-full shrink-0 sm:col-span-1 sm:w-auto"
+                  className="h-11 shrink-0"
                   disabled={savingSet}
                   onClick={logSet}
                 >
