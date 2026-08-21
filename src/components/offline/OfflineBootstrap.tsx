@@ -6,7 +6,7 @@ import { getMyAccessState } from "@/lib/access.functions";
 import { getDailyHub } from "@/lib/daily.functions";
 import { listNotifications } from "@/lib/daily.functions";
 import { listMyThreads } from "@/lib/support.functions";
-import { scopedKey, trimCache, writeCache } from "@/lib/offline/store";
+import { readCache, scopedKey, trimCache, writeCache } from "@/lib/offline/store";
 import {
   fetchComments,
   fetchCategories,
@@ -180,6 +180,20 @@ export function OfflineBootstrap() {
           overviewOk = false;
         });
 
+      const workoutsVerified =
+        workoutResult.status === "fulfilled" &&
+        (
+          await Promise.all(
+            workoutResult.value.map((workout) =>
+              readCache(scopedKey(user.id, `workout:${String(workout["id"])}`)),
+            ),
+          )
+        ).every(Boolean);
+      const profileVerified =
+        profileResult.status === "fulfilled" &&
+        !profileResult.value.error &&
+        Boolean(await readCache(scopedKey(user.id, "profile:full")));
+
       // Only a fully downloaded copy counts as done, so a partial run retries.
       const everyFetchSucceeded = [
         notificationResult,
@@ -191,7 +205,7 @@ export function OfflineBootstrap() {
         resultsResult,
         feedbackResult,
       ].every((result) => result.status === "fulfilled");
-      return everyFetchSucceeded && overviewOk;
+      return everyFetchSucceeded && workoutsVerified && profileVerified && overviewOk;
     };
 
     /** Priority 3 — the exercise library, batched so it survives interruption. */
@@ -225,6 +239,12 @@ export function OfflineBootstrap() {
         if (typeof exercise["id"] === "string") await writeCache(`exercise:${exercise["id"]}`, exercise);
       }
 
+      const metadataVerified = (
+        await Promise.all(
+          exercises.map((exercise) => readCache(`exercise:${String(exercise["id"] ?? "")}`)),
+        )
+      ).every(Boolean);
+
       const ids = exercises.map((row) => String(row["id"] ?? "")).filter(Boolean);
       let complete = true;
       for (let i = 0; i < ids.length; i += 40) {
@@ -246,7 +266,7 @@ export function OfflineBootstrap() {
           complete = false;
         }
       }
-      return complete;
+      return complete && metadataVerified;
     };
 
     /** Priority 4 — community reading copy. */

@@ -719,7 +719,7 @@ function PlayerSlideView({
           aria-label="Previous exercise"
           disabled={!canGoPrevious}
           onClick={onPrevious}
-          className="absolute left-2 top-1/2 z-20 h-11 w-11 -translate-y-1/2 rounded-full border-2 border-primary bg-neutral-50 text-neutral-950 shadow-lg hover:bg-neutral-200 disabled:invisible"
+          className="absolute left-2 top-1/2 z-20 h-11 w-11 -translate-y-1/2 rounded-full border-2 border-primary bg-neutral-50 text-neutral-950 shadow-lg hover:bg-neutral-200 disabled:opacity-35"
         >
           <ChevronLeft className="h-6 w-6" />
         </Button>
@@ -730,7 +730,7 @@ function PlayerSlideView({
           aria-label="Next exercise"
           disabled={!canGoNext}
           onClick={onNext}
-          className="absolute right-2 top-1/2 z-20 h-11 w-11 -translate-y-1/2 rounded-full border-2 border-primary bg-neutral-50 text-neutral-950 shadow-lg hover:bg-neutral-200 disabled:invisible"
+          className="absolute right-2 top-1/2 z-20 h-11 w-11 -translate-y-1/2 rounded-full border-2 border-primary bg-neutral-50 text-neutral-950 shadow-lg hover:bg-neutral-200 disabled:opacity-35"
         >
           <ChevronRight className="h-6 w-6" />
         </Button>
