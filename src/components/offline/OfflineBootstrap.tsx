@@ -30,6 +30,7 @@ import {
 } from "@/lib/offline/db";
 import { mergeServerPerformance } from "@/lib/offline/performance-store";
 import { markOfflineReady, readOfflineReadiness } from "@/lib/offline/readiness";
+import { cacheMediaUrls } from "@/lib/offline/media-cache";
 import {
   OFFLINE_MEMBER_ROUTES,
   OFFLINE_PUBLIC_ROUTES,
