@@ -435,7 +435,7 @@ export function WorkoutPlayerDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="grid h-auto max-h-[100dvh] max-w-none grid-rows-[auto_4px_auto_clamp(11rem,30dvh,14rem)] gap-0 overflow-hidden border-0 bg-neutral-950 p-0 text-neutral-50 [&>div.sticky]:hidden sm:max-w-2xl sm:rounded-3xl"
+        className="grid h-[100dvh] max-h-[100dvh] max-w-none grid-rows-[auto_4px_auto_minmax(0,1fr)_auto] sm:h-[90dvh] gap-0 overflow-hidden border-0 bg-neutral-950 p-0 text-neutral-50 [&>div.sticky]:hidden sm:max-w-2xl sm:rounded-3xl"
       >
         <DialogTitle className="sr-only">{workoutName} player</DialogTitle>
 
@@ -467,7 +467,7 @@ export function WorkoutPlayerDialog({
           <div className="h-1 bg-primary transition-all" style={{ width: `${progress}%` }} />
         </div>
 
-        <div className="relative h-[calc(clamp(9rem,26dvh,15rem)+5rem)] overflow-hidden">
+        <div className="relative h-[calc(clamp(9rem,26dvh,15rem)+5rem+0.75rem)] overflow-hidden pt-3">
           <Carousel setApi={setApi} className="h-full overflow-hidden">
             <CarouselContent className="ml-0 h-full min-h-0">
               {slides.map((s, i) => (
@@ -507,7 +507,7 @@ export function WorkoutPlayerDialog({
 
 
 
-        <div className="h-full space-y-2 overflow-y-auto border-t border-neutral-800 px-4 py-2 sm:space-y-3 sm:px-6 sm:py-3">
+        <div className="min-h-0 space-y-2 overflow-y-auto border-t border-neutral-800 px-4 py-2 sm:space-y-3 sm:px-6 sm:py-3">
           {timing.mode !== "manual" ? (
             <div className="text-center">
               <p className="text-xs uppercase tracking-[0.3em] text-neutral-500">
@@ -601,39 +601,42 @@ export function WorkoutPlayerDialog({
 
 
 
+        </div>
+
+        <div className="space-y-2 border-t border-neutral-800 px-4 py-3 sm:px-6">
           <div className="flex min-h-10 items-center justify-center gap-2">
-            {timing.mode !== "manual" ? (
+          {timing.mode !== "manual" ? (
 
-              <div className="flex gap-2">
-                <Button onClick={() => setRunning((r) => !r)} className="min-w-32">
-                  {running ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
-                  {running ? "Pause" : "Start"}
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  onClick={() => {
-                    setRunning(false);
-                    setPhase("work");
-                    setRound(1);
-                    setRemaining(timing.mode === "tabata" ? timing.work : timing.seconds);
-                  }}
-                >
-                  <RotateCcw className="h-4 w-4" />
-                </Button>
-              </div>
-            ) : index === total - 1 ? (
-              <Button onClick={finishWorkout}>Finish workout</Button>
-            ) : (
-              <Button onClick={() => api?.scrollNext()}>Done — next</Button>
-            )}
-          </div>
+            <div className="flex gap-2">
+              <Button onClick={() => setRunning((r) => !r)} className="min-w-32">
+                {running ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
+                {running ? "Pause" : "Start"}
+              </Button>
+              <Button
+                variant="secondary"
+                size="icon"
+                onClick={() => {
+                  setRunning(false);
+                  setPhase("work");
+                  setRound(1);
+                  setRemaining(timing.mode === "tabata" ? timing.work : timing.seconds);
+                }}
+              >
+                <RotateCcw className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : index === total - 1 ? (
+            <Button onClick={finishWorkout}>Finish workout</Button>
+          ) : (
+            <Button onClick={() => api?.scrollNext()}>Done — next</Button>
+          )}
+        </div>
 
-          {index === total - 1 && timing.mode !== "manual" ? (
-            <Button variant="secondary" className="w-full" onClick={finishWorkout}>
-              Finish workout
-            </Button>
-          ) : null}
+        {index === total - 1 && timing.mode !== "manual" ? (
+          <Button variant="secondary" className="w-full" onClick={finishWorkout}>
+            Finish workout
+          </Button>
+        ) : null}
         </div>
 
         <SessionDebriefDialog
