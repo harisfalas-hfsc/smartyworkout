@@ -592,17 +592,9 @@ export function WorkoutPlayerDialog({
 
 
 
-          <div className="flex items-center justify-between gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-neutral-300"
-              onClick={() => api?.scrollPrev()}
-            >
-              <ChevronLeft className="h-6 w-6" />
-            </Button>
-
+          <div className="flex items-center justify-center gap-2">
             {timing.mode !== "manual" ? (
+
               <div className="flex gap-2">
                 <Button onClick={() => setRunning((r) => !r)} className="min-w-32">
                   {running ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
