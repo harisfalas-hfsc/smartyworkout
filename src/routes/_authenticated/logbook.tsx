@@ -1129,6 +1129,18 @@ function Logbook() {
           )}
         </>
       )}
+
+      {debrief ? (
+        <SessionDebriefDialog
+          open
+          onOpenChange={(next) => {
+            if (!next) setDebrief(null);
+          }}
+          workoutId={debrief.workoutId}
+          attempt={debrief.attempt}
+          initial={debrief.initial}
+        />
+      ) : null}
     </div>
   );
 }
