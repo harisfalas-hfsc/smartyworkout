@@ -197,7 +197,7 @@ export function OfflineBootstrap() {
     const phaseLibrary = async () => {
       const exercises: Record<string, unknown>[] = [];
       for (let page = 0; page < 3; page += 1) {
-        if (!active) return;
+        if (!active) return false;
         const { data, error } = await supabase
           .from("exercises")
           .select(
