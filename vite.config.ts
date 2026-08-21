@@ -103,7 +103,9 @@ export default defineConfig({
               options: {
                 cacheName: "smarty-media-v1",
                 cacheableResponse: { statuses: [0, 200] },
-                expiration: { maxEntries: 1500, maxAgeSeconds: 60 * 60 * 24 * 30 },
+                // Room for the whole exercise library plus icons, so prefetched
+                // demonstration images are never evicted before going offline.
+                expiration: { maxEntries: 4000, maxAgeSeconds: 60 * 60 * 24 * 60 },
               },
             },
           ],

@@ -30,6 +30,7 @@ import {
 } from "@/lib/offline/db";
 import { mergeServerPerformance } from "@/lib/offline/performance-store";
 import { markOfflineReady, readOfflineReadiness } from "@/lib/offline/readiness";
+import { cacheMediaUrls } from "@/lib/offline/media-cache";
 import {
   OFFLINE_MEMBER_ROUTES,
   OFFLINE_PUBLIC_ROUTES,
@@ -71,6 +72,7 @@ export function OfflineBootstrap() {
 
   useEffect(() => {
     let active = true;
+    let retryTimer = 0;
 
     // Public pages are prepared for every visitor, not only signed-in members.
     // This is deliberately independent from member-data synchronization.
@@ -110,7 +112,7 @@ export function OfflineBootstrap() {
       try {
         const raw = localStorage.getItem(`smarty:profile:${user.id}`);
         const url = raw ? (JSON.parse(raw) as { avatar_url?: string }).avatar_url : null;
-        if (url) void fetch(url, { mode: "no-cors" }).catch(() => undefined);
+        if (url) await cacheMediaUrls([url], { concurrency: 1, isActive: () => active });
       } catch {
         /* best effort */
       }
@@ -134,7 +136,7 @@ export function OfflineBootstrap() {
           fetchAllRows("workout_results"),
           fetchAllRows("workout_feedback"),
         ]);
-      if (!active) return;
+      if (!active) return false;
       if (notificationResult.status === "fulfilled")
         await save("inbox:notifications", notificationResult.value);
       if (threadResult.status === "fulfilled") await save("inbox:threads", threadResult.value);
@@ -171,16 +173,32 @@ export function OfflineBootstrap() {
         });
         preparedPerformance = setsResult.value.length + resultsResult.value.length + feedback.length;
       }
+      let overviewOk = true;
       await loadProgressOverview({ data: {} } as never)
         .then((overview) => save("progress:overview", overview))
-        .catch(() => undefined);
+        .catch(() => {
+          overviewOk = false;
+        });
+
+      // Only a fully downloaded copy counts as done, so a partial run retries.
+      const everyFetchSucceeded = [
+        notificationResult,
+        threadResult,
+        logbookResult,
+        workoutResult,
+        profileResult,
+        setsResult,
+        resultsResult,
+        feedbackResult,
+      ].every((result) => result.status === "fulfilled");
+      return everyFetchSucceeded && overviewOk;
     };
 
     /** Priority 3 — the exercise library, batched so it survives interruption. */
     const phaseLibrary = async () => {
       const exercises: Record<string, unknown>[] = [];
       for (let page = 0; page < 3; page += 1) {
-        if (!active) return;
+        if (!active) return false;
         const { data, error } = await supabase
           .from("exercises")
           .select(
@@ -192,7 +210,7 @@ export function OfflineBootstrap() {
         exercises.push(...data);
         if (data.length < 1000) break;
       }
-      if (!active || !exercises.length) return;
+      if (!active || !exercises.length) return false;
       preparedExercises = exercises.length;
       await writeCache(scopedKey(null, "library:list:All|All|All|All|"), exercises);
       const unique = (key: string) =>
@@ -208,18 +226,27 @@ export function OfflineBootstrap() {
       }
 
       const ids = exercises.map((row) => String(row["id"] ?? "")).filter(Boolean);
+      let complete = true;
       for (let i = 0; i < ids.length; i += 40) {
+        if (!active) return false;
         const chunk = ids.slice(i, i + 40);
         try {
           const result = await loadExerciseDetails({ data: { ids: chunk } });
+          const mediaUrls: string[] = [];
           for (const exercise of result.exercises as unknown as Array<{ id: string; gif_url?: string | null }>) {
             await writeCache(`exercise:${exercise.id}`, exercise);
-            if (exercise.gif_url) void fetch(exercise.gif_url).catch(() => undefined);
+            if (exercise.gif_url) mediaUrls.push(exercise.gif_url);
           }
+          // Media is downloaded, not fired and forgotten, so the player always
+          // has its pictures offline. Already-stored files are skipped.
+          const media = await cacheMediaUrls(mediaUrls, { isActive: () => active });
+          if (media.failed > 0) complete = false;
         } catch {
           /* metadata remains available even when media cannot be cached */
+          complete = false;
         }
       }
+      return complete;
     };
 
     /** Priority 4 — community reading copy. */
@@ -262,13 +289,27 @@ export function OfflineBootstrap() {
       }
     };
 
-    const step = async (phase: string, maxAgeMs: number, work: () => Promise<void>) => {
-      if (await isPhaseDone(phase, maxAgeMs)) return;
-      await work();
-      if (active) await markPhaseDone(phase);
+    /**
+     * A phase is only remembered as done when it finished completely, so an
+     * interrupted first start resumes on the next open instead of leaving gaps.
+     */
+    const step = async (
+      phase: string,
+      maxAgeMs: number,
+      work: () => Promise<boolean | void>,
+    ): Promise<boolean> => {
+      if (await isPhaseDone(phase, maxAgeMs)) return true;
+      const outcome = await work();
+      const complete = outcome !== false;
+      if (active && complete) await markPhaseDone(phase);
+      return complete;
     };
 
     const prefetch = async () => {
+      if (retryTimer) {
+        window.clearTimeout(retryTimer);
+        retryTimer = 0;
+      }
       if (!isOnline() || running.current) return;
       running.current = true;
       setSyncState("syncing");
@@ -279,12 +320,15 @@ export function OfflineBootstrap() {
         await bindUser(user.id);
 
         let access: unknown = null;
-        await step("identity", 60_000, async () => {
+        const identityDone = await step("identity", 60_000, async () => {
           access = await phaseIdentity();
         });
-        await step("personal", 60_000, () => phasePersonal(access));
-        await step("library", 24 * 60 * 60_000, phaseLibrary);
-        await step("community", 15 * 60_000, () => phaseCommunity().catch(() => undefined));
+        const personalDone = await step("personal", 60_000, () => phasePersonal(access));
+        const libraryDone = await step("library", 24 * 60 * 60_000, phaseLibrary);
+        const communityDone = await step("community", 15 * 60_000, () =>
+          phaseCommunity().catch(() => false),
+        );
+        const fullySynced = identityDone && personalDone && libraryDone && communityDone;
 
         // The shell is already installed, but warm every stable and member URL
         // with the signed-in session so direct offline navigation is reliable.
@@ -298,12 +342,20 @@ export function OfflineBootstrap() {
           performanceRows: preparedPerformance || (previous.userId === user.id ? previous.performanceRows : 0),
         });
 
-        await trimCache(800);
+        // Large enough to keep the whole exercise library, whose entries are
+        // expendable and were previously evicted on every start.
+        await trimCache(6000);
         await markSyncFinished();
         setSyncState("idle");
+
+        // Finish what an interrupted or partly failed start left behind.
+        if (!fullySynced && active && isOnline()) {
+          retryTimer = window.setTimeout(() => void prefetch(), 20_000);
+        }
       } catch (error) {
         await markSyncFinished(error);
         setSyncState("error");
+        if (active && isOnline()) retryTimer = window.setTimeout(() => void prefetch(), 30_000);
       } finally {
         running.current = false;
       }
@@ -318,6 +370,7 @@ export function OfflineBootstrap() {
     window.addEventListener("focus", onFocus);
     return () => {
       active = false;
+      if (retryTimer) window.clearTimeout(retryTimer);
       stopConnectivity();
       stopManual();
       window.removeEventListener("focus", onFocus);
