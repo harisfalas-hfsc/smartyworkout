@@ -288,10 +288,20 @@ export function OfflineBootstrap() {
       }
     };
 
-    const step = async (phase: string, maxAgeMs: number, work: () => Promise<void>) => {
-      if (await isPhaseDone(phase, maxAgeMs)) return;
-      await work();
-      if (active) await markPhaseDone(phase);
+    /**
+     * A phase is only remembered as done when it finished completely, so an
+     * interrupted first start resumes on the next open instead of leaving gaps.
+     */
+    const step = async (
+      phase: string,
+      maxAgeMs: number,
+      work: () => Promise<boolean | void>,
+    ): Promise<boolean> => {
+      if (await isPhaseDone(phase, maxAgeMs)) return true;
+      const outcome = await work();
+      const complete = outcome !== false;
+      if (active && complete) await markPhaseDone(phase);
+      return complete;
     };
 
     const prefetch = async () => {
