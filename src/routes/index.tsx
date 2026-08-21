@@ -3,7 +3,7 @@ import { CalendarCheck, Dumbbell, PenLine } from "lucide-react";
 import heroTraining from "@/assets/hero-training.jpg";
 import { PageHeader } from "@/components/PageHeader";
 import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
-import { TRAINING_TOPICS } from "@/lib/seo/training-topics";
+
 
 
 export const Route = createFileRoute("/")({
@@ -182,33 +182,6 @@ function Home() {
             </Link>
           </div>
         </div>
-      </section>
-
-      {/* Internal linking: public training topics */}
-      <section aria-labelledby="explore-training" className="pb-2 pt-2 sm:pt-4">
-        <h2
-          id="explore-training"
-          className="text-center text-xs font-semibold uppercase tracking-wider text-primary"
-        >
-          Explore training on SmartyWorkout
-        </h2>
-        <nav aria-label="Training topics" className="mt-3 flex flex-wrap justify-center gap-2">
-          {TRAINING_TOPICS.map((topic) => (
-            <Link
-              key={topic.slug}
-              to="/training/$slug"
-              params={{ slug: topic.slug }}
-              className="rounded-full border-2 border-primary px-3.5 py-1.5 text-xs font-bold text-primary hover:bg-primary/10 sm:text-[13px]"
-            >
-              {topic.eyebrow === "Online fitness" ? "Online fitness & training" : topic.h1}
-            </Link>
-          ))}
-        </nav>
-        <p className="mt-3 text-center text-[13px] text-muted-foreground">
-          <Link to="/training" className="font-semibold text-primary hover:underline">
-            See every training topic
-          </Link>
-        </p>
       </section>
     </div>
   );

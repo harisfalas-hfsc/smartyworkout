@@ -1,5 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowRight } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { TRAINING_TOPICS } from "@/lib/seo/training-topics";
 
 const URL = "https://smartyworkout.com/glossary";
 const TITLE = "Training Glossary — 25+ terms defined | SmartyWorkout";
@@ -147,14 +155,44 @@ export const Route = createFileRoute("/glossary")({
 
 function GlossaryPage() {
   return (
-    <article className="mx-auto max-w-3xl px-5 py-12 sm:py-16">
+    <article className="mx-auto max-w-3xl px-5 py-12 pb-16 sm:py-16">
       <PageHeader
         eyebrow="Glossary"
         title="Training Glossary"
         subtitle="Every metric, training pattern and concept SmartyWorkout uses, defined in plain language."
       />
 
-      <dl className="mt-8 divide-y divide-border">
+      <section aria-labelledby="training-topics" className="mt-8">
+        <h2 id="training-topics" className="text-xs font-semibold uppercase tracking-wider text-primary">
+          Training topics
+        </h2>
+        <Accordion type="single" collapsible className="mt-3 rounded-2xl border-2 border-primary px-4">
+          {TRAINING_TOPICS.map((topic) => (
+            <AccordionItem key={topic.slug} value={topic.slug}>
+              <AccordionTrigger className="text-left text-sm font-bold">{topic.h1}</AccordionTrigger>
+              <AccordionContent>
+                <p className="text-muted-foreground">{topic.metaDescription}</p>
+                <Link
+                  to="/training/$slug"
+                  params={{ slug: topic.slug }}
+                  className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+                >
+                  Read more
+                  <ArrowRight className="h-4 w-4 shrink-0" />
+                </Link>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+        <p className="mt-3 text-[13px] text-muted-foreground">
+          <Link to="/training" className="font-semibold text-primary hover:underline">
+            See every training topic
+          </Link>
+        </p>
+      </section>
+
+      <h2 className="mt-10 text-xs font-semibold uppercase tracking-wider text-primary">Terms</h2>
+      <dl className="mt-3 divide-y divide-border">
         {TERMS.map((t) => (
           <div key={t.term} className="py-4">
             <dt className="text-lg font-semibold text-foreground">{t.term}</dt>
