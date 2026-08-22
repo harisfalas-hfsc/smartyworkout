@@ -144,7 +144,7 @@ function Account() {
     try {
       const result = await deleteMyAccount({ data: { confirm: confirmText.trim() } });
       if ("error" in result) throw new Error(result.error);
-      await signOutAndClearDevice(user?.id);
+      await signOutAndClearDevice(user?.id, user?.email);
       window.location.href = "/";
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not delete your account");
@@ -308,7 +308,7 @@ function Account() {
         variant="ghost"
         className="mt-6 h-12 w-full rounded-2xl text-destructive"
         onClick={async () => {
-          await signOutAndClearDevice(user?.id);
+          await signOutAndClearDevice(user?.id, user?.email);
           window.location.href = "/";
         }}
       >

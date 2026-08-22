@@ -59,7 +59,11 @@ const PROTECTED = [
 
 function isProtected(key: string) {
   const bare = key.includes("::") ? key.slice(key.indexOf("::") + 2) : key;
-  return PROTECTED.some((p) => bare.startsWith(p)) || bare.startsWith("workout:");
+  return (
+    PROTECTED.some((p) => bare.startsWith(p)) ||
+    bare.startsWith("workout:") ||
+    bare.startsWith("exercise:")
+  );
 }
 
 /**
@@ -68,7 +72,7 @@ function isProtected(key: string) {
  * member's saved workouts, logbook and inbox survive no matter how much of the
  * exercise library was cached.
  */
-export async function trimCache(max = 800): Promise<void> {
+export async function trimCache(max = 6000): Promise<void> {
   if (!store) return;
   try {
     const all = (await keys(store)).filter((k) => typeof k === "string") as string[];

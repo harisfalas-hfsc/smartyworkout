@@ -308,6 +308,16 @@ export function OfflineBootstrap() {
         ),
       ]);
 
+      // Store community workout covers and member avatars as bytes, not only
+      // URL strings, so the last synchronized community view is complete.
+      const communityMedia = [...workoutGroups.flat(), ...rankGroups.flat(), ...memberGroups.flat()]
+        .flatMap((row) => {
+          const record = row as unknown as Record<string, unknown>;
+          return [record["image_url"], record["avatar_url"], record["creator_avatar"]];
+        })
+        .filter((value): value is string => typeof value === "string" && value.length > 0);
+      await cacheMediaUrls(communityMedia, { concurrency: 6, isActive: () => active });
+
       const ids = [...new Set(workoutGroups.flat().map((w) => w.id))];
       for (const id of ids) {
         await Promise.allSettled([

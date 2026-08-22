@@ -20,7 +20,6 @@ import { ThemeProvider, THEME_INIT_SCRIPT } from "../lib/theme";
 import { OfflineStatus } from "../components/offline/OfflineStatus";
 import { OfflineSync } from "../components/offline/OfflineSync";
 import { OfflineBootstrap } from "../components/offline/OfflineBootstrap";
-import { bootNativeShell } from "../lib/offline/native-boot";
 import { registerAppServiceWorker, watchForAppUpdates } from "../lib/offline/register-sw";
 
 
@@ -340,7 +339,6 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   useEffect(() => {
-    bootNativeShell();
     void registerAppServiceWorker();
     // A published release must reach browsers, installed apps and the phone
     // apps on its own, without anyone clearing anything by hand.
