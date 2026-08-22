@@ -36,7 +36,7 @@ export type OutboxRow = {
   retries: number;
   status: "pending" | "failed" | "dead";
   last_error?: string;
-  next_attempt_at?: number;
+  last_tried_at?: number;
 };
 
 export type MediaProgressRow = {
@@ -101,7 +101,7 @@ class SmartyOfflineDatabase extends Dexie {
     this.version(1).stores({
       cache: "key, user_id, saved_at",
       sync_meta: "key, user_id, table_name, last_synced_at",
-      outbox: "id, user_id, status, queued_at, next_attempt_at",
+      outbox: "id, user_id, status, queued_at, last_tried_at",
       media_progress: "key, updated_at",
       profiles: "local_key, user_id, id, updated_at",
       questionnaires: "local_key, user_id, id, updated_at, created_at",

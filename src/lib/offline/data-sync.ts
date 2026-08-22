@@ -13,6 +13,22 @@ type SyncSpec = {
   mode?: "incremental" | "snapshot";
 };
 
+type DynamicQueryResult = { data: unknown[] | null; error: { message: string } | null };
+type DynamicRange = PromiseLike<DynamicQueryResult> & {
+  gt: (column: string, value: string) => PromiseLike<DynamicQueryResult>;
+};
+type DynamicClient = {
+  from: (table: string) => {
+    select: (columns: string) => {
+      eq: (column: string, value: string) => {
+        order: (column: string, options: { ascending: boolean }) => {
+          range: (from: number, to: number) => DynamicRange;
+        };
+      };
+    };
+  };
+};
+
 const SYNC_SPECS: SyncSpec[] = [
   { name: "profiles", cursor: "updated_at" },
   { name: "questionnaires", cursor: "updated_at" },
@@ -62,8 +78,8 @@ async function pullDirectTable(userId: string, spec: SyncSpec): Promise<number> 
   if (spec.mode === "snapshot") await table.where("user_id").equals(userId).delete();
 
   for (;;) {
-    const source = supabase.from(spec.name as never) as never;
-    let query = source
+    const dynamicClient = supabase as unknown as DynamicClient;
+    let query = dynamicClient.from(spec.name)
       .select("*")
       .eq("user_id", userId)
       .order(spec.cursor, { ascending: true })

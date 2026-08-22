@@ -90,7 +90,7 @@ function toOutboxRow(item: QueuedAction): OutboxRow {
     retries: item.retries ?? 0,
     status: item.status ?? "pending",
     last_error: item.lastError,
-    next_attempt_at: item.nextAttemptAt,
+    last_tried_at: item.lastTriedAt,
   };
 }
 
@@ -105,7 +105,7 @@ function fromOutboxRow(item: OutboxRow): QueuedAction {
     retries: item.retries,
     status: item.status,
     lastError: item.last_error,
-    nextAttemptAt: item.next_attempt_at,
+    lastTriedAt: item.last_tried_at,
   };
 }
 
