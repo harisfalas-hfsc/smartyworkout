@@ -1,10 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { isAdminEmail } from "@/lib/admin";
 import type { Category } from "@/lib/workout/spec";
 import type { WorkoutRules } from "@/lib/settings.server";
 
 async function assertAdmin(ctx: { supabase: any; userId: string; claims: any }) {
+  const { isAdminEmail } = await import("@/lib/admin.server");
   const email = ctx.claims?.email as string | undefined;
   if (isAdminEmail(email)) return;
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
