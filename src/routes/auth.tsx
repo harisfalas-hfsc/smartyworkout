@@ -140,6 +140,9 @@ function Auth() {
     if (offline || /failed to fetch|network/i.test(message)) {
       return "You're offline. Signing in for the first time on this device needs internet — once signed in, your saved data stays available offline.";
     }
+    if (/invalid login credentials/i.test(message)) {
+      return "Wrong email or password. Sign in with your email address (not a username). If you forgot it, use “Forgot password?”.";
+    }
     return message || fallback;
   }
 
