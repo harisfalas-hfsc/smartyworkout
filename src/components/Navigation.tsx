@@ -32,7 +32,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/lib/theme";
 import { supabase } from "@/integrations/supabase/client";
-import { isAdminEmail } from "@/lib/admin";
+import { adminCheckAccess } from "@/lib/admin.functions";
 import { NotificationBell } from "@/components/NotificationBell";
 import {
   DropdownMenu,
@@ -78,7 +78,25 @@ export function Navigation() {
 
   const accountName = displayName || user?.email || "Account";
   const initial = accountName.slice(0, 1).toUpperCase();
-  const isAdmin = isAdminEmail(user?.email);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    if (!user) {
+      setIsAdmin(false);
+      return;
+    }
+    void adminCheckAccess()
+      .then((r) => {
+        if (active) setIsAdmin(Boolean(r?.isAdmin));
+      })
+      .catch(() => {
+        if (active) setIsAdmin(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [user?.id]);
 
   return (
     <header

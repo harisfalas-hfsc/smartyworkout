@@ -1,4 +1,8 @@
-/** Emails that always get admin access in the app. */
+/**
+ * Server-only admin allow-list.
+ * Kept in a *.server.ts module so these addresses are never shipped in the
+ * client bundle. Client code must resolve admin status through a server call.
+ */
 export const ADMIN_EMAILS = [
   "harisfalas@gmail.com",
 ];

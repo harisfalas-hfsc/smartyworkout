@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import DOMPurify from "dompurify";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -92,6 +93,16 @@ export function WorkoutDisplay({
   const [fontSize, setFontSize] = useState(16);
   const [player, setPlayer] = useState(false);
   const [favorite, setFavorite] = useState(Boolean(workout.is_favorite));
+
+  // AI-generated HTML is sanitized before rendering, matching ExerciseHTMLContent.
+  const sanitize = (value: string | null | undefined) => {
+    const raw = value ?? "";
+    if (typeof window === "undefined") return raw;
+    return DOMPurify.sanitize(raw, { ADD_ATTR: ["data-exercise-id", "target"] });
+  };
+  const descriptionHtml = useMemo(() => sanitize(workout.description_html), [workout.description_html]);
+  const instructionsHtml = useMemo(() => sanitize(workout.instructions_html), [workout.instructions_html]);
+  const tipsHtml = useMemo(() => sanitize(workout.tips_html), [workout.tips_html]);
 
   async function toggleFavorite() {
     const next = !favorite;
@@ -227,7 +238,7 @@ export function WorkoutDisplay({
           {workout.description_html ? (
             <div
               className="workout-html mt-5 text-sm"
-              dangerouslySetInnerHTML={{ __html: workout.description_html }}
+              dangerouslySetInnerHTML={{ __html: descriptionHtml }}
             />
           ) : null}
 
@@ -270,14 +281,14 @@ export function WorkoutDisplay({
         {workout.instructions_html ? (
           <section className="workout-html mt-5 rounded-2xl border-2 border-blue-400 bg-card p-5">
             <h2 className="mb-2 text-lg font-bold">How to perform this workout</h2>
-            <div dangerouslySetInnerHTML={{ __html: workout.instructions_html }} />
+            <div dangerouslySetInnerHTML={{ __html: instructionsHtml }} />
           </section>
         ) : null}
 
         {workout.tips_html ? (
           <section className="workout-html mt-5 rounded-2xl border-2 border-blue-400 bg-card p-5">
             <h2 className="mb-2 text-lg font-bold">Coach tips</h2>
-            <div dangerouslySetInnerHTML={{ __html: workout.tips_html }} />
+            <div dangerouslySetInnerHTML={{ __html: tipsHtml }} />
           </section>
         ) : null}
 

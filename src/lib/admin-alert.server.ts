@@ -1,4 +1,4 @@
-import { ADMIN_EMAILS } from "@/lib/admin";
+import { ADMIN_EMAILS } from "@/lib/admin.server";
 
 /**
  * Single fan-out for anything that lands in the Admin panel (reports, contact

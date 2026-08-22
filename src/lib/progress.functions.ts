@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { isAdminEmail } from "@/lib/admin";
 import type { BadgeDef, EarnedBadge, ProgressStats } from "@/lib/progress.server";
 
 export type { BadgeDef, EarnedBadge, ProgressStats };
@@ -40,6 +39,7 @@ export const getProgressOverview = createServerFn({ method: "POST" })
   });
 
 async function assertAdmin(ctx: { userId: string; claims: any }) {
+  const { isAdminEmail } = await import("@/lib/admin.server");
   if (isAdminEmail(ctx.claims?.email as string | undefined)) return;
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data } = await supabaseAdmin

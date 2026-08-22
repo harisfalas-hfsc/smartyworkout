@@ -1,10 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { isAdminEmail } from "@/lib/admin";
 import type { Category } from "@/lib/workout/spec";
 import type { WorkoutRules } from "@/lib/settings.server";
 
 async function assertAdmin(ctx: { supabase: any; userId: string; claims: any }) {
+  const { isAdminEmail } = await import("@/lib/admin.server");
   const email = ctx.claims?.email as string | undefined;
   if (isAdminEmail(email)) return;
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -41,6 +41,7 @@ export const adminListUsers = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<{ users: AdminUserRow[] } | { error: string }> => {
     try {
       await assertAdmin(context as any);
+      const { isAdminEmail } = await import("@/lib/admin.server");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
       // Fetch auth users to get email + created_at (paginated up to 1000)
@@ -894,5 +895,17 @@ export const adminGetSectionBadges = createServerFn({ method: "POST" })
       };
     } catch {
       return { badges: {} };
+    }
+  });
+
+/** Server-side admin check for client route gating (no emails in the bundle). */
+export const adminCheckAccess = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ isAdmin: boolean }> => {
+    try {
+      await assertAdmin(context as any);
+      return { isAdmin: true };
+    } catch {
+      return { isAdmin: false };
     }
   });
