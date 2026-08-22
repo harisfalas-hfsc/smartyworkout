@@ -32,6 +32,7 @@ import { mergeServerPerformance } from "@/lib/offline/performance-store";
 import { markOfflineReady, readOfflineReadiness } from "@/lib/offline/readiness";
 import { cacheMediaUrls, storedMediaCount, warmExerciseMedia } from "@/lib/offline/media-cache";
 import { syncUserTables } from "@/lib/offline/data-sync";
+import { resolveSyncOutcome } from "@/lib/offline/sync-result";
 import { getMembershipSummary } from "@/utils/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 import {
@@ -365,11 +366,16 @@ export function OfflineBootstrap() {
         });
         const personalDone = await step("personal", 60_000, () => phasePersonal(access));
         const structuredSync = await syncUserTables(user.id);
-        const libraryDone = await step("library-media-v3", 24 * 60 * 60_000, phaseLibrary);
+        const libraryDone = await step("library-media-v4", 24 * 60 * 60_000, phaseLibrary);
         await step("community", 15 * 60_000, () =>
           phaseCommunity().catch(() => false),
         );
-        const coreSynced = identityDone && personalDone && structuredSync.failed.length === 0;
+        const outcome = resolveSyncOutcome({
+          identityDone,
+          personalDone,
+          failedTables: structuredSync.failed.length,
+        });
+        const coreSynced = outcome === "success";
 
         // The shell is already installed, but warm every stable and member URL
         // with the signed-in session so direct offline navigation is reliable.

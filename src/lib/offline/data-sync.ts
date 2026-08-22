@@ -6,6 +6,7 @@ import {
   type OfflineRow,
   type UserTableName,
 } from "./database";
+import { newestCursor as latestCursor } from "./sync-result";
 
 type SyncSpec = {
   name: UserTableName;
@@ -94,8 +95,7 @@ async function pullDirectTable(userId: string, spec: SyncSpec): Promise<number> 
     if (spec.mode === "snapshot") snapshotRows.push(...localRows);
     else if (localRows.length) await table.bulkPut(localRows);
     pulled += localRows.length;
-    const last = rows.at(-1)?.[spec.cursor];
-    if (typeof last === "string") newestCursor = last;
+    newestCursor = latestCursor(newestCursor, rows, spec.cursor);
     if (rows.length < PAGE_SIZE) break;
     offset += PAGE_SIZE;
   }

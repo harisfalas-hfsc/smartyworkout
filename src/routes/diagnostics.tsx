@@ -178,9 +178,9 @@ function DiagnosticsPage() {
           <dl className="grid gap-2 text-sm">
             {report &&
               Object.entries(report).map(([key, value]) => (
-                <div key={key} className="flex items-center justify-between gap-4 border-b border-border/50 pb-1">
+                <div key={key} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] gap-4 border-b border-border/50 pb-1">
                   <dt className="text-muted-foreground">{key}</dt>
-                  <dd className="text-right font-medium">{String(value)}</dd>
+                  <dd className="break-words text-right font-medium">{String(value)}</dd>
                 </div>
               ))}
           </dl>
