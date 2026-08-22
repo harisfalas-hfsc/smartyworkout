@@ -13,6 +13,8 @@ import { readMeta } from "@/lib/offline/db";
 import { queueDiagnostics } from "@/lib/offline/queue";
 import { readOfflineReadiness } from "@/lib/offline/readiness";
 import { readCache, scopedKey } from "@/lib/offline/store";
+import { offlineDatabaseDiagnostics, offlineDb } from "@/lib/offline/database";
+import { storedMediaBytes, storedMediaCount } from "@/lib/offline/media-cache";
 
 export const Route = createFileRoute("/diagnostics")({
   component: DiagnosticsPage,
@@ -53,19 +55,31 @@ function DiagnosticsPage() {
     let swRegistered = false;
     let swActive = false;
     let swControlling = false;
+    let swScope = "none";
     if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
       const regs = await navigator.serviceWorker.getRegistrations().catch(() => []);
       swRegistered = regs.length > 0;
       swActive = regs.some((r) => Boolean(r.active));
       swControlling = Boolean(navigator.serviceWorker.controller);
+      swScope = regs[0]?.scope ?? "none";
     }
 
     let shellCached = 0;
+    let cacheBytes = 0;
+    let cacheNames = "none";
     if (typeof caches !== "undefined") {
       const names = await caches.keys().catch(() => [] as string[]);
+      cacheNames = names.join(", ") || "none";
       for (const name of names) {
         const cache = await caches.open(name);
-        shellCached += (await cache.keys()).length;
+        const requests = await cache.keys();
+        shellCached += requests.length;
+        for (const request of requests) {
+          const response = await cache.match(request);
+          if (!response) continue;
+          const stated = Number(response.headers.get("content-length"));
+          cacheBytes += Number.isFinite(stated) && stated > 0 ? stated : (await response.clone().blob()).size;
+        }
       }
     }
 
@@ -75,6 +89,14 @@ function DiagnosticsPage() {
       typeof navigator !== "undefined" && navigator.storage?.estimate
         ? await navigator.storage.estimate().catch(() => null)
         : null;
+    const modern = await offlineDatabaseDiagnostics(user?.id);
+    const media = await offlineDb.media_progress.get("exercise-library");
+    const mediaCount = await storedMediaCount();
+    const mediaBytes = await storedMediaBytes();
+    const tableCounts = modern.tables.map((table) => `${table.name}:${table.rows}`).join(", ");
+    const syncTimes = modern.sync
+      .map((row) => `${row.table_name}:${time(row.last_synced_at)}${row.last_error ? " (error)" : ""}`)
+      .join(", ");
 
     setReport({
       platform: isNativeApp() ? `native (${nativePlatform()})` : "web / PWA",
@@ -85,11 +107,22 @@ function DiagnosticsPage() {
       serviceWorkerRegistered: swRegistered,
       serviceWorkerActive: swActive,
       serviceWorkerControllingPage: swControlling,
+      serviceWorkerScope: swScope,
+      cacheNames,
       cachedFiles: shellCached,
+      cacheBytes,
+      exerciseMediaStored: mediaCount,
+      exerciseMediaBytes: mediaBytes,
+      exerciseMediaRequested: media?.requested ?? 0,
+      exerciseMediaFailed: media?.failed ?? 0,
       browserStorageUsedBytes: storageEstimate?.usage ?? "unavailable",
       browserStorageQuotaBytes: storageEstimate?.quota ?? "unavailable",
       localDatabase: typeof indexedDB !== "undefined",
       localDatabaseVersion: meta.dbVersion,
+      structuredDatabase: modern.name,
+      structuredTableCounts: tableCounts || "none",
+      structuredSyncTimes: syncTimes || "never",
+      structuredOutboxRows: modern.outbox,
       signedInUser: user ? user.id : "none",
       displayNameAvailable: Boolean(displayName),
       avatarAvailable: Boolean(profile?.avatar_url),

@@ -11,6 +11,7 @@ type SyncSpec = {
   name: UserTableName;
   cursor: "updated_at" | "created_at" | "completed_at" | "achieved_at" | "earned_at" | "last_message_at";
   mode?: "incremental" | "snapshot";
+  ownerColumn?: "id" | "user_id";
 };
 
 type DynamicQueryResult = { data: unknown[] | null; error: { message: string } | null };
@@ -30,7 +31,7 @@ type DynamicClient = {
 };
 
 const SYNC_SPECS: SyncSpec[] = [
-  { name: "profiles", cursor: "updated_at" },
+  { name: "profiles", cursor: "updated_at", ownerColumn: "id" },
   { name: "questionnaires", cursor: "updated_at" },
   { name: "generation_sessions", cursor: "updated_at" },
   { name: "workout_plans", cursor: "created_at" },
@@ -74,14 +75,13 @@ async function pullDirectTable(userId: string, spec: SyncSpec): Promise<number> 
   let offset = 0;
   let pulled = 0;
   let newestCursor = previous?.cursor ?? null;
-
-  if (spec.mode === "snapshot") await table.where("user_id").equals(userId).delete();
+  const snapshotRows: OfflineRow[] = [];
 
   for (;;) {
     const dynamicClient = supabase as unknown as DynamicClient;
     const range = dynamicClient.from(spec.name)
       .select("*")
-      .eq("user_id", userId)
+      .eq(spec.ownerColumn ?? "user_id", userId)
       .order(spec.cursor, { ascending: true })
       .range(offset, offset + PAGE_SIZE - 1);
     const query = spec.mode !== "snapshot" && previous?.cursor
@@ -91,12 +91,20 @@ async function pullDirectTable(userId: string, spec: SyncSpec): Promise<number> 
     if (result.error) throw new Error(result.error.message);
     const rows = (result.data ?? []) as Record<string, unknown>[];
     const localRows = rows.map((row) => localRow(userId, row)).filter((row): row is OfflineRow => Boolean(row));
-    if (localRows.length) await table.bulkPut(localRows);
+    if (spec.mode === "snapshot") snapshotRows.push(...localRows);
+    else if (localRows.length) await table.bulkPut(localRows);
     pulled += localRows.length;
     const last = rows.at(-1)?.[spec.cursor];
     if (typeof last === "string") newestCursor = last;
     if (rows.length < PAGE_SIZE) break;
     offset += PAGE_SIZE;
+  }
+
+  if (spec.mode === "snapshot") {
+    await offlineDb.transaction("rw", table, async () => {
+      await table.where("user_id").equals(userId).delete();
+      if (snapshotRows.length) await table.bulkPut(snapshotRows);
+    });
   }
 
   const rowCount = await table.where("user_id").equals(userId).count();
