@@ -14,7 +14,7 @@ import { queueDiagnostics } from "@/lib/offline/queue";
 import { readOfflineReadiness } from "@/lib/offline/readiness";
 import { readCache, scopedKey } from "@/lib/offline/store";
 import { offlineDatabaseDiagnostics, offlineDb } from "@/lib/offline/database";
-import { storedMediaBytes, storedMediaCount } from "@/lib/offline/media-cache";
+import { storedMediaCount } from "@/lib/offline/media-cache";
 
 export const Route = createFileRoute("/diagnostics")({
   component: DiagnosticsPage,
@@ -78,7 +78,7 @@ function DiagnosticsPage() {
           const response = await cache.match(request);
           if (!response) continue;
           const stated = Number(response.headers.get("content-length"));
-          cacheBytes += Number.isFinite(stated) && stated > 0 ? stated : (await response.clone().blob()).size;
+          if (Number.isFinite(stated) && stated > 0) cacheBytes += stated;
         }
       }
     }
@@ -92,7 +92,6 @@ function DiagnosticsPage() {
     const modern = await offlineDatabaseDiagnostics(user?.id);
     const media = await offlineDb.media_progress.get("exercise-library");
     const mediaCount = await storedMediaCount();
-    const mediaBytes = await storedMediaBytes();
     const tableCounts = modern.tables.map((table) => `${table.name}:${table.rows}`).join(", ");
     const syncTimes = modern.sync
       .map((row) => `${row.table_name}:${time(row.last_synced_at)}${row.last_error ? " (error)" : ""}`)
@@ -112,7 +111,7 @@ function DiagnosticsPage() {
       cachedFiles: shellCached,
       cacheBytes,
       exerciseMediaStored: mediaCount,
-      exerciseMediaBytes: mediaBytes,
+      exerciseMediaBytes: media?.bytes ?? 0,
       exerciseMediaRequested: media?.requested ?? 0,
       exerciseMediaFailed: media?.failed ?? 0,
       browserStorageUsedBytes: storageEstimate?.usage ?? "unavailable",
