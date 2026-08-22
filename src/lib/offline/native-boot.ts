@@ -31,13 +31,22 @@ export function rememberNativeSession(): void {
   }
 }
 
-function restoreNativeSession(): void {
+export function restoreNativeSession(): void {
   try {
     if (findSupabaseAuthEntry()) return;
     const raw = localStorage.getItem(LAST_SESSION_KEY);
     if (!raw) return;
     const entry = JSON.parse(raw) as { storageKey?: string; value?: string };
     if (entry?.storageKey && entry?.value) localStorage.setItem(entry.storageKey, entry.value);
+  } catch {
+    /* best effort */
+  }
+}
+
+/** Removes the native cold-start identity snapshot after an explicit sign-out. */
+export function forgetNativeSession(): void {
+  try {
+    localStorage.removeItem(LAST_SESSION_KEY);
   } catch {
     /* best effort */
   }

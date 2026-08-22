@@ -1,5 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { clearCacheForUser } from "./store";
+import { forgetDevice } from "./device-auth";
+import { forgetNativeSession } from "./native-boot";
 
 /**
  * One sign-out path for the whole app.
@@ -9,10 +11,15 @@ import { clearCacheForUser } from "./store";
  * device before the session is cleared, so the next person to sign in on the
  * same phone or laptop can never see it. Public/static assets stay cached.
  */
-export async function signOutAndClearDevice(userId?: string | null): Promise<void> {
+export async function signOutAndClearDevice(
+  userId?: string | null,
+  email?: string | null,
+): Promise<void> {
   try {
     await clearCacheForUser(userId);
     if (userId) localStorage.removeItem(`smarty:profile:${userId}`);
+    forgetDevice(email);
+    forgetNativeSession();
   } catch {
     /* clearing is best-effort, signing out is not */
   }

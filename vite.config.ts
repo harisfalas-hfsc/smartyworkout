@@ -51,7 +51,6 @@ export default defineConfig({
           cleanupOutdatedCaches: true,
           clientsClaim: true,
           skipWaiting: true,
-          importScripts: ["/sw-extra.js"],
           // No page URL is precached under its real address: a precached page is
           // served cache-first, which is exactly what made phones keep showing an
           // old published version. Only a hidden shell copy is stored, used as a
@@ -67,6 +66,12 @@ export default defineConfig({
               options: {
                 cacheName: "smarty-pages-v3",
                 cacheableResponse: { statuses: [0, 200] },
+                // NetworkFirst throws when both the network and the exact page
+                // cache miss. Workbox then serves the precached app shell, so a
+                // first offline visit to a dynamic URL (for example
+                // /workout/:id) boots SmartyWorkout instead of Chrome's generic
+                // "You're offline" page.
+                precacheFallback: { fallbackURL: "/?shell=1" },
               },
             },
             {

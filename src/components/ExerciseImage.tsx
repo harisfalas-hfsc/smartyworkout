@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Dumbbell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { readStoredMedia, storeMedia } from "@/lib/offline/media-cache";
+import { isOnline } from "@/lib/offline/connectivity";
 
 const signedUrlMemory = new Map<string, string>();
 
@@ -37,9 +38,8 @@ export function useExerciseImageSrc(path?: string | null, signedUrl?: string | n
       }
 
       let link = signedUrl ?? signedUrlMemory.get(path) ?? null;
-      if (!link && navigator.onLine) {
-        const { data } = await supabase.storage.from("exercise-library").createSignedUrl(path, 60 * 60 * 4);
-        link = data?.signedUrl ?? null;
+      if (!link && isOnline()) {
+        link = supabase.storage.from("exercise-library").getPublicUrl(path).data.publicUrl;
         if (link) signedUrlMemory.set(path, link);
       }
       if (!active) return;

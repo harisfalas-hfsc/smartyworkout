@@ -68,18 +68,24 @@ function Account() {
 
   const refresh = useCallback(async () => {
     try {
-      const access = await offlineFirst("account:access", () => getMyAccessState());
+      const access = await offlineFirst("account:access", () => getMyAccessState(), user?.id);
       setPremium(access.premium);
       setQuota({ used: access.generationsUsedToday, limit: access.generationsLimit });
     } catch {
       setPremium(false);
     }
     try {
-      setMembership(await getMembershipSummary({ data: { environment: getStripeEnvironment() } }));
+      setMembership(
+        await offlineFirst(
+          "account:membership",
+          () => getMembershipSummary({ data: { environment: getStripeEnvironment() } }),
+          user?.id,
+        ),
+      );
     } catch {
       setMembership(null);
     }
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
     void refresh();
@@ -93,10 +99,10 @@ function Account() {
           .select("id", { count: "exact", head: true });
         if (error) throw new Error(error.message);
         return count ?? 0;
-      }).catch(() => 0);
+      }, user?.id).catch(() => 0);
       setCount(c);
     })();
-  }, []);
+  }, [user?.id]);
 
   async function openPortal() {
     setPortalBusy(true);
@@ -138,7 +144,7 @@ function Account() {
     try {
       const result = await deleteMyAccount({ data: { confirm: confirmText.trim() } });
       if ("error" in result) throw new Error(result.error);
-      await signOutAndClearDevice(user?.id);
+      await signOutAndClearDevice(user?.id, user?.email);
       window.location.href = "/";
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not delete your account");
@@ -302,7 +308,7 @@ function Account() {
         variant="ghost"
         className="mt-6 h-12 w-full rounded-2xl text-destructive"
         onClick={async () => {
-          await signOutAndClearDevice(user?.id);
+          await signOutAndClearDevice(user?.id, user?.email);
           window.location.href = "/";
         }}
       >

@@ -30,7 +30,10 @@ export async function markOfflineReady(
   const { complete, ...counts } = value;
   await writeCache(KEY, {
     ...counts,
-    ready: complete && value.workouts > 0 && value.exercises > 0,
-    preparedAt: complete && value.workouts > 0 && value.exercises > 0 ? Date.now() : null,
+    // A new member may legitimately have no workouts yet. Offline readiness
+    // means the complete sync pass and app/library succeeded, not that the
+    // account happened to contain at least one workout.
+    ready: complete && value.exercises > 0,
+    preparedAt: complete && value.exercises > 0 ? Date.now() : null,
   });
 }

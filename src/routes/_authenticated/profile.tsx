@@ -186,15 +186,18 @@ function ProfilePage() {
 
   useEffect(() => {
     (async () => {
-      const { data: auth } = await supabase.auth.getUser();
-      if (!auth.user) return;
-      const cacheKey = scopedKey(auth.user.id, "profile:full");
+      // getUser() requires the auth server. The local session is the identity
+      // source here so the already-downloaded profile can open in airplane mode.
+      const { data: auth } = await supabase.auth.getSession();
+      const authUser = auth.session?.user;
+      if (!authUser) return;
+      const cacheKey = scopedKey(authUser.id, "profile:full");
       let data: unknown = (await readCache<Record<string, unknown>>(cacheKey))?.data ?? null;
       if (isOnline()) {
         const fresh = await supabase
           .from("profiles")
           .select("*")
-          .eq("id", auth.user.id)
+          .eq("id", authUser.id)
           .maybeSingle();
         if (!fresh.error && fresh.data) {
           data = fresh.data;

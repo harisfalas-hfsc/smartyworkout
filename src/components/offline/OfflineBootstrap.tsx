@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { getMyAccessState } from "@/lib/access.functions";
 import { getDailyHub } from "@/lib/daily.functions";
+import { getPublicWodDays } from "@/lib/daily.functions";
 import { listNotifications } from "@/lib/daily.functions";
 import { listMyThreads } from "@/lib/support.functions";
 import { readCache, scopedKey, trimCache, writeCache } from "@/lib/offline/store";
@@ -17,7 +18,6 @@ import {
 } from "@/lib/community-queries";
 import { getSharedWorkout } from "@/lib/community.functions";
 import { getProgressOverview } from "@/lib/progress.functions";
-import { getExerciseDetails } from "@/lib/coach.functions";
 import { isOnline, subscribeConnectivity } from "@/lib/offline/connectivity";
 import { onSyncRequested, setSyncState } from "@/lib/offline/sync-bus";
 import {
@@ -31,6 +31,8 @@ import {
 import { mergeServerPerformance } from "@/lib/offline/performance-store";
 import { markOfflineReady, readOfflineReadiness } from "@/lib/offline/readiness";
 import { cacheExerciseMedia, cacheMediaUrls, storedMediaCount } from "@/lib/offline/media-cache";
+import { getMembershipSummary } from "@/utils/payments.functions";
+import { getStripeEnvironment } from "@/lib/stripe";
 import {
   OFFLINE_MEMBER_ROUTES,
   OFFLINE_PUBLIC_ROUTES,
@@ -63,11 +65,12 @@ export function OfflineBootstrap() {
   const { user } = useAuth();
   const loadAccess = useServerFn(getMyAccessState);
   const loadHub = useServerFn(getDailyHub);
+  const loadPublicWod = useServerFn(getPublicWodDays);
   const loadNotifications = useServerFn(listNotifications);
   const loadThreads = useServerFn(listMyThreads);
   const loadSharedWorkout = useServerFn(getSharedWorkout);
   const loadProgressOverview = useServerFn(getProgressOverview);
-  const loadExerciseDetails = useServerFn(getExerciseDetails);
+  const loadMembership = useServerFn(getMembershipSummary);
   const running = useRef(false);
 
   useEffect(() => {
@@ -99,13 +102,23 @@ export function OfflineBootstrap() {
     }
 
     const save = (key: string, value: unknown) => writeCache(scopedKey(user.id, key), value);
+    const savePublic = (key: string, value: unknown) => writeCache(scopedKey(null, key), value);
 
     /** Priority 1 — identity, entitlements, today's hub, avatar image. */
     const phaseIdentity = async () => {
-      const [accessResult, hubResult] = await Promise.allSettled([loadAccess({}), loadHub({})]);
+      const [accessResult, hubResult, publicWodResult, membershipResult] = await Promise.allSettled([
+        loadAccess({}),
+        loadHub({}),
+        loadPublicWod({}),
+        loadMembership({ data: { environment: getStripeEnvironment() } }),
+      ]);
       if (!active) return null;
       if (accessResult.status === "fulfilled") await save("account:access", accessResult.value);
       if (hubResult.status === "fulfilled") await save("wod:hub", hubResult.value);
+      if (publicWodResult.status === "fulfilled")
+        await savePublic("wod:public-cycle", publicWodResult.value);
+      if (membershipResult.status === "fulfilled")
+        await save("account:membership", membershipResult.value);
 
       // Warm the avatar into the media cache so it paints instantly offline,
       // even if the member never opened a page that renders it this session.
@@ -142,6 +155,8 @@ export function OfflineBootstrap() {
       if (threadResult.status === "fulfilled") await save("inbox:threads", threadResult.value);
       if (logbookResult.status === "fulfilled")
         await save("logbook:list", logbookResult.value ?? []);
+      if (workoutResult.status === "fulfilled")
+        await save("account:workout-count", workoutResult.value.length);
       if (workoutResult.status === "fulfilled") {
         preparedWorkouts = workoutResult.value.length;
         for (const workout of workoutResult.value) {
@@ -245,32 +260,20 @@ export function OfflineBootstrap() {
         )
       ).every(Boolean);
 
-      const ids = exercises.map((row) => String(row["id"] ?? "")).filter(Boolean);
-      let complete = true;
-      for (let i = 0; i < ids.length; i += 40) {
-        if (!active) return false;
-        const chunk = ids.slice(i, i + 40);
-        try {
-          const result = await loadExerciseDetails({ data: { ids: chunk } });
-          const media_items: { path: string; url: string }[] = [];
-          for (const exercise of result.exercises as unknown as Array<{
-            id: string;
-            gif_url?: string | null;
-            gif_path?: string | null;
-          }>) {
-            await writeCache(`exercise:${exercise.id}`, exercise);
-            if (exercise.gif_url && exercise.gif_path)
-              media_items.push({ path: exercise.gif_path, url: exercise.gif_url });
-          }
-          // Pictures are stored under their permanent address, never under the
-          // temporary download link, so a file downloaded once is kept for good.
-          const media = await cacheExerciseMedia(media_items, { isActive: () => active });
-          if (media.failed > 0) complete = false;
-        } catch {
-          /* metadata remains available even when media cannot be cached */
-          complete = false;
-        }
-      }
+       // The bucket is public, so use permanent URLs directly. The previous
+       // four-hour signed links expired and made a downloaded library appear
+       // empty on the next start.
+       const mediaItems = exercises.flatMap((exercise) => {
+         const path = typeof exercise["gif_path"] === "string" ? exercise["gif_path"] : "";
+         if (!path) return [];
+         const url = supabase.storage.from("exercise-library").getPublicUrl(path).data.publicUrl;
+         return url ? [{ path, url }] : [];
+       });
+       const media = await cacheExerciseMedia(mediaItems, {
+         concurrency: 8,
+         isActive: () => active,
+       });
+       const complete = media.requested > 0 && media.failed === 0 && media.stored === media.requested;
       return complete && metadataVerified;
     };
 
@@ -293,23 +296,33 @@ export function OfflineBootstrap() {
       const categories = await fetchCategories().catch(() => []);
       if (!active) return;
       await Promise.all([
-        ...workoutSorts.map((sort, index) => save(`community:workouts:${sort}`, workoutGroups[index])),
-        ...rankSorts.map((sort, index) => save(`community:ranked:${sort}`, rankGroups[index])),
-        ...memberSorts.map((sort, index) => save(`community:members:${sort}`, memberGroups[index])),
-        save("community:comments:newest", newestTalk),
-        save("community:comments:oldest", oldestTalk),
-        save("community:comments:discussed", newestTalk),
-        save("community:categories", categories),
+         ...workoutSorts.map((sort, index) => savePublic(`community:workouts:${sort}`, workoutGroups[index])),
+         ...rankSorts.map((sort, index) => savePublic(`community:ranked:${sort}`, rankGroups[index])),
+         ...memberSorts.map((sort, index) => savePublic(`community:members:${sort}`, memberGroups[index])),
+         savePublic("community:comments:newest", newestTalk),
+         savePublic("community:comments:oldest", oldestTalk),
+         savePublic("community:comments:discussed", newestTalk),
+         savePublic("community:categories", categories),
         ...workoutSorts.map((sort, index) =>
-          save(`community:browse:${sort}:0:all:all:0`, workoutGroups[index]?.slice(0, 12) ?? []),
+           savePublic(`community:browse:${sort}:0:all:all:0`, workoutGroups[index]?.slice(0, 12) ?? []),
         ),
       ]);
+
+      // Store community workout covers and member avatars as bytes, not only
+      // URL strings, so the last synchronized community view is complete.
+      const communityMedia = [...workoutGroups.flat(), ...rankGroups.flat(), ...memberGroups.flat()]
+        .flatMap((row) => {
+          const record = row as unknown as Record<string, unknown>;
+          return [record["image_url"], record["avatar_url"], record["creator_avatar"]];
+        })
+        .filter((value): value is string => typeof value === "string" && value.length > 0);
+      await cacheMediaUrls(communityMedia, { concurrency: 6, isActive: () => active });
 
       const ids = [...new Set(workoutGroups.flat().map((w) => w.id))];
       for (const id of ids) {
         await Promise.allSettled([
-          loadSharedWorkout({ data: { workoutId: id } }).then((detail) => save(`community:workout:${id}`, detail)),
-          fetchComments(id).then((rows) => save(`community:workout-comments:${id}`, rows)),
+           loadSharedWorkout({ data: { workoutId: id } }).then((detail) => savePublic(`community:workout:${id}`, detail)),
+           fetchComments(id).then((rows) => savePublic(`community:workout-comments:${id}`, rows)),
         ]);
       }
     };
@@ -343,6 +356,9 @@ export function OfflineBootstrap() {
         await registerAppServiceWorker();
         await migrateLocalDatabase();
         await bindUser(user.id);
+        // Ask the browser not to evict the member's downloaded copy under
+        // storage pressure. Browsers may decline; synchronization still works.
+        await navigator.storage?.persist?.().catch(() => false);
 
         let access: unknown = null;
         const identityDone = await step("identity", 60_000, async () => {
@@ -350,7 +366,7 @@ export function OfflineBootstrap() {
           return access !== null;
         });
         const personalDone = await step("personal", 60_000, () => phasePersonal(access));
-        const libraryDone = await step("library-media-v2", 24 * 60 * 60_000, phaseLibrary);
+        const libraryDone = await step("library-media-v3", 24 * 60 * 60_000, phaseLibrary);
         const communityDone = await step("community", 15 * 60_000, () =>
           phaseCommunity().catch(() => false),
         );
@@ -367,7 +383,7 @@ export function OfflineBootstrap() {
         await markOfflineReady({
           userId: user.id,
           workouts: preparedWorkouts || (previous.userId === user.id ? previous.workouts : 0),
-          exercises: storedPictures || preparedExercises || previous.exercises,
+          exercises: storedPictures || (previous.userId === user.id ? previous.exercises : 0),
           performanceRows: preparedPerformance || (previous.userId === user.id ? previous.performanceRows : 0),
           complete: fullySynced,
         });
@@ -411,11 +427,12 @@ export function OfflineBootstrap() {
     user?.id,
     loadAccess,
     loadHub,
+    loadPublicWod,
     loadNotifications,
     loadThreads,
     loadSharedWorkout,
     loadProgressOverview,
-    loadExerciseDetails,
+    loadMembership,
   ]);
 
 
