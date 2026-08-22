@@ -1,4 +1,8 @@
 const MEDIA_CACHE_NAME = "smarty-media-v1";
+import { offlineDb } from "./database";
+
+const MEDIA_REQUEST_TIMEOUT_MS = 20_000;
+let exerciseWarmPromise: Promise<{ requested: number; stored: number; failed: number }> | null = null;
 
 /**
  * Exercise pictures live in a private bucket, so every download link is a
@@ -49,7 +53,13 @@ export async function storeMedia(item: MediaItem): Promise<boolean> {
     const cache = await caches.open(MEDIA_CACHE_NAME);
     const key = offlineMediaKey(item.path);
     if (await cache.match(key)) return true;
-    const response = await fetch(item.url, { mode: "cors", credentials: "omit" });
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), MEDIA_REQUEST_TIMEOUT_MS);
+    const response = await fetch(item.url, {
+      mode: "cors",
+      credentials: "omit",
+      signal: controller.signal,
+    }).finally(() => window.clearTimeout(timer));
     if (!response.ok) return false;
     const blob = await response.blob();
     if (!blob.size) return false;
@@ -101,7 +111,29 @@ export async function cacheExerciseMedia(
   };
 
   await Promise.all(Array.from({ length: Math.min(concurrency, list.length) }, worker));
+  const bytes = await storedMediaBytes();
+  await offlineDb.media_progress.put({
+    key: "exercise-library",
+    requested: list.length,
+    stored,
+    failed,
+    bytes,
+    updated_at: Date.now(),
+  });
   return { requested: list.length, stored, failed };
+}
+
+/** Starts or joins one resumable media pass without blocking member-data sync. */
+export function warmExerciseMedia(
+  items: MediaItem[],
+  options: { concurrency?: number; isActive?: () => boolean } = {},
+) {
+  if (!exerciseWarmPromise) {
+    exerciseWarmPromise = cacheExerciseMedia(items, options).finally(() => {
+      exerciseWarmPromise = null;
+    });
+  }
+  return exerciseWarmPromise;
 }
 
 /**
@@ -149,6 +181,23 @@ export async function storedMediaCount(): Promise<number> {
   try {
     const cache = await caches.open(MEDIA_CACHE_NAME);
     return (await cache.keys()).length;
+  } catch {
+    return 0;
+  }
+}
+
+export async function storedMediaBytes(): Promise<number> {
+  if (typeof window === "undefined" || !("caches" in window)) return 0;
+  try {
+    const cache = await caches.open(MEDIA_CACHE_NAME);
+    const responses = await Promise.all((await cache.keys()).map((request) => cache.match(request)));
+    let bytes = 0;
+    for (const response of responses) {
+      if (!response) continue;
+      const stated = Number(response.headers.get("content-length"));
+      bytes += Number.isFinite(stated) && stated > 0 ? stated : (await response.clone().blob()).size;
+    }
+    return bytes;
   } catch {
     return 0;
   }

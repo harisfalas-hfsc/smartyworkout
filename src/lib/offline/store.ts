@@ -1,4 +1,5 @@
 import { createStore, get, set, del, keys } from "idb-keyval";
+import { offlineDb } from "./database";
 
 type Envelope<T> = { data: T; savedAt: number };
 
@@ -13,7 +14,18 @@ export function scopedKey(userId: string | null | undefined, key: string) {
 export async function readCache<T>(key: string): Promise<Envelope<T> | null> {
   if (!store) return null;
   try {
+    const modern = await offlineDb.cache.get(key);
+    if (modern) return { data: modern.data as T, savedAt: modern.saved_at };
     const value = await get<Envelope<T>>(key, store);
+    if (value) {
+      const separator = key.indexOf("::");
+      await offlineDb.cache.put({
+        key,
+        user_id: separator >= 0 ? key.slice(0, separator) : "anon",
+        data: value.data,
+        saved_at: value.savedAt,
+      });
+    }
     return value ?? null;
   } catch {
     return null;
@@ -23,7 +35,17 @@ export async function readCache<T>(key: string): Promise<Envelope<T> | null> {
 export async function writeCache<T>(key: string, data: T): Promise<void> {
   if (!store) return;
   try {
-    await set(key, { data, savedAt: Date.now() } satisfies Envelope<T>, store);
+    const savedAt = Date.now();
+    const separator = key.indexOf("::");
+    await Promise.all([
+      offlineDb.cache.put({
+        key,
+        user_id: separator >= 0 ? key.slice(0, separator) : "anon",
+        data,
+        saved_at: savedAt,
+      }),
+      set(key, { data, savedAt } satisfies Envelope<T>, store),
+    ]);
   } catch {
     /* quota or private mode — offline copy is best-effort */
   }
@@ -33,6 +55,7 @@ export async function clearCacheForUser(userId: string | null | undefined): Prom
   if (!store) return;
   try {
     const prefix = `${userId ?? "anon"}::`;
+    await offlineDb.cache.where("user_id").equals(userId ?? "anon").delete();
     const all = await keys(store);
     await Promise.allSettled(
       all
@@ -88,6 +111,13 @@ export async function trimCache(max = 6000): Promise<void> {
     await Promise.allSettled(
       entries.slice(0, entries.length - max).map((e) => del(e.k, store)),
     );
+    const modern = await offlineDb.cache.orderBy("saved_at").toArray();
+    const modernExpendable = modern.filter((row) => !isProtected(row.key));
+    if (modernExpendable.length > max) {
+      await offlineDb.cache.bulkDelete(
+        modernExpendable.slice(0, modernExpendable.length - max).map((row) => row.key),
+      );
+    }
   } catch {
     /* ignore */
   }

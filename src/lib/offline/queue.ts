@@ -1,4 +1,5 @@
 import { createStore, get, set } from "idb-keyval";
+import { offlineDb, type OutboxRow } from "./database";
 
 import {
   afterFailure,
@@ -49,7 +50,10 @@ const store =
 export async function readQueue(): Promise<QueuedAction[]> {
   if (!store) return [];
   try {
-    const rows = (await get<QueuedAction[]>(QUEUE_KEY, store)) ?? [];
+    const modern = await offlineDb.outbox.toArray();
+    const legacy = (await get<QueuedAction[]>(QUEUE_KEY, store)) ?? [];
+    if (!modern.length && legacy.length) await offlineDb.outbox.bulkPut(legacy.map(toOutboxRow));
+    const rows = modern.length ? modern.map(fromOutboxRow) : legacy;
     // Tolerate rows written by the previous queue shape.
     return rows.map((r) => ({
       ...r,
@@ -65,10 +69,44 @@ export async function readQueue(): Promise<QueuedAction[]> {
 async function writeQueue(items: QueuedAction[]) {
   if (!store) return;
   try {
+    await offlineDb.transaction("rw", offlineDb.outbox, async () => {
+      await offlineDb.outbox.clear();
+      if (items.length) await offlineDb.outbox.bulkPut(items.map(toOutboxRow));
+    });
     await set(QUEUE_KEY, items, store);
   } catch {
     /* ignore */
   }
+}
+
+function toOutboxRow(item: QueuedAction): OutboxRow {
+  return {
+    id: item.id,
+    user_id: item.userId ?? "anon",
+    kind: item.kind,
+    payload: item.payload,
+    queued_at: item.queuedAt,
+    priority: item.priority ?? 1,
+    retries: item.retries ?? 0,
+    status: item.status ?? "pending",
+    last_error: item.lastError,
+    last_tried_at: item.lastTriedAt,
+  };
+}
+
+function fromOutboxRow(item: OutboxRow): QueuedAction {
+  return {
+    id: item.id,
+    userId: item.user_id === "anon" ? undefined : item.user_id,
+    kind: item.kind as QueuedAction["kind"],
+    payload: item.payload,
+    queuedAt: item.queued_at,
+    priority: item.priority,
+    retries: item.retries,
+    status: item.status,
+    lastError: item.last_error,
+    lastTriedAt: item.last_tried_at,
+  };
 }
 
 /**

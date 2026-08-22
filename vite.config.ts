@@ -56,12 +56,41 @@ export default defineConfig({
           // old published version. Only a hidden shell copy is stored, used as a
           // last resort when the device is offline.
           additionalManifestEntries: [{ url: "/?shell=1", revision: APP_SHELL_REVISION }],
+          navigateFallback: "/?shell=1",
+          navigateFallbackDenylist: [/^\/api\//, /^\/~oauth/],
           // Keep the install shell lean. Images are cached on demand by the
           // runtime rule below, avoiding failures from oversized media files.
           globPatterns: ["**/*.{js,css,svg,ico,woff,woff2}"],
           runtimeCaching: [
             {
-              urlPattern: ({ request }) => request.mode === "navigate",
+              urlPattern: ({ request, url }) =>
+                request.mode === "navigate" &&
+                [
+                  "/",
+                  "/about",
+                  "/how-it-works",
+                  "/pricing",
+                  "/faq",
+                  "/founder-note",
+                  "/exercise-library",
+                  "/tools",
+                  "/glossary",
+                  "/privacy",
+                  "/terms",
+                  "/disclaimer",
+                  "/training",
+                ].includes(url.pathname),
+              handler: "StaleWhileRevalidate",
+              options: {
+                cacheName: "smarty-public-pages-v1",
+                cacheableResponse: { statuses: [0, 200] },
+              },
+            },
+            {
+              urlPattern: ({ request, url }) =>
+                request.mode === "navigate" &&
+                !url.pathname.startsWith("/api/") &&
+                !url.pathname.startsWith("/~oauth"),
               handler: "NetworkFirst",
               options: {
                 cacheName: "smarty-pages-v3",
