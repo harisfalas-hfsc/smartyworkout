@@ -1,4 +1,4 @@
-import { ADMIN_EMAILS } from "@/lib/admin";
+import { ADMIN_EMAILS } from "@/lib/admin.server";
 
 /**
  * Fan-out for every inbound support message:
