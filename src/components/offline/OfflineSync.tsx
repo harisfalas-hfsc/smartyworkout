@@ -8,7 +8,7 @@ import { deleteNotifications, setNotificationsRead } from "@/lib/daily.functions
 import { deleteMyThreads, setThreadsRead } from "@/lib/support.functions";
 import { saveSessionFeedback } from "@/lib/feedback.functions";
 import { flushQueue, type QueuedAction } from "@/lib/offline/queue";
-import { onSyncRequested } from "@/lib/offline/sync-bus";
+import { onSyncRequested, requestSync } from "@/lib/offline/sync-bus";
 import { useOnlineStatus } from "@/lib/offline/useOnlineStatus";
 import { announceInboxChanged } from "@/lib/inbox-sync";
 
@@ -126,6 +126,9 @@ export function OfflineSync() {
           toast.success(
             done === 1 ? "Your offline update synced." : `${done} offline updates synced.`,
           );
+          // Pull the confirmed server state immediately so this device and any
+          // other device converge after queued writes are accepted.
+          requestSync();
         }
       } finally {
         busy.current = false;
