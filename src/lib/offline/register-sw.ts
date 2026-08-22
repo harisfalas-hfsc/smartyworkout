@@ -1,4 +1,7 @@
 const APP_WORKER_PATH = "/sw.js";
+import { isOnline } from "./connectivity";
+import { TRAINING_TOPIC_SLUGS } from "@/lib/seo/training-topics";
+
 const PAGE_CACHE_NAME = "smarty-pages-v3";
 const RELOAD_GUARD = "smarty:sw-controller-reload";
 declare const __APP_BUILD_ID__: string;
@@ -26,6 +29,7 @@ export const OFFLINE_PUBLIC_ROUTES = [
   "/community/workouts",
   "/wod",
   "/training",
+  ...TRAINING_TOPIC_SLUGS.map((slug) => `/training/${slug}`),
   "/auth",
 ];
 
@@ -94,7 +98,7 @@ export function registerAppServiceWorker(): Promise<ServiceWorkerRegistration | 
       await navigator.serviceWorker.ready;
 
       const checkForUpdate = () => {
-        if (!navigator.onLine) return;
+        if (!isOnline()) return;
         registration.update().catch(() => undefined);
         registration.waiting?.postMessage({ type: "SKIP_WAITING" });
       };
@@ -160,7 +164,7 @@ let updateCheckRunning = false;
  * since they display exactly this web app inside their own window.
  */
 export async function checkForAppUpdate(): Promise<boolean> {
-  if (typeof window === "undefined" || !navigator.onLine || updateCheckRunning) return false;
+  if (typeof window === "undefined" || !isOnline() || updateCheckRunning) return false;
   updateCheckRunning = true;
   try {
     const versionResponse = await fetch(`/build-version.json?_=${Date.now()}`, {
