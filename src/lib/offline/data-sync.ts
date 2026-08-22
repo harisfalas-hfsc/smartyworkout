@@ -62,8 +62,8 @@ async function pullDirectTable(userId: string, spec: SyncSpec): Promise<number> 
   if (spec.mode === "snapshot") await table.where("user_id").equals(userId).delete();
 
   for (;;) {
-    let query = supabase
-      .from(spec.name)
+    const source = supabase.from(spec.name as never) as never;
+    let query = source
       .select("*")
       .eq("user_id", userId)
       .order(spec.cursor, { ascending: true })

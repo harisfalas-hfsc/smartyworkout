@@ -141,7 +141,9 @@ export async function offlineDatabaseDiagnostics(userId?: string | null) {
   const tables = await Promise.all(
     USER_TABLE_NAMES.map(async (name) => ({
       name,
-      rows: userId ? await offlineDb.table(name).where("user_id").equals(userId).count() : await offlineDb.table(name).count(),
+      rows: userId
+        ? await offlineDb.table<OfflineRow, string>(name).where("user_id").equals(userId).count()
+        : await offlineDb.table(name).count(),
     })),
   );
   const sync = userId
