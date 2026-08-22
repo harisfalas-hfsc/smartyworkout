@@ -17,7 +17,6 @@ import {
 } from "@/lib/community-queries";
 import { getSharedWorkout } from "@/lib/community.functions";
 import { getProgressOverview } from "@/lib/progress.functions";
-import { getExerciseDetails } from "@/lib/coach.functions";
 import { isOnline, subscribeConnectivity } from "@/lib/offline/connectivity";
 import { onSyncRequested, setSyncState } from "@/lib/offline/sync-bus";
 import {
@@ -67,7 +66,6 @@ export function OfflineBootstrap() {
   const loadThreads = useServerFn(listMyThreads);
   const loadSharedWorkout = useServerFn(getSharedWorkout);
   const loadProgressOverview = useServerFn(getProgressOverview);
-  const loadExerciseDetails = useServerFn(getExerciseDetails);
   const running = useRef(false);
 
   useEffect(() => {
@@ -142,6 +140,8 @@ export function OfflineBootstrap() {
       if (threadResult.status === "fulfilled") await save("inbox:threads", threadResult.value);
       if (logbookResult.status === "fulfilled")
         await save("logbook:list", logbookResult.value ?? []);
+      if (workoutResult.status === "fulfilled")
+        await save("account:workout-count", workoutResult.value.length);
       if (workoutResult.status === "fulfilled") {
         preparedWorkouts = workoutResult.value.length;
         for (const workout of workoutResult.value) {
@@ -245,32 +245,20 @@ export function OfflineBootstrap() {
         )
       ).every(Boolean);
 
-      const ids = exercises.map((row) => String(row["id"] ?? "")).filter(Boolean);
-      let complete = true;
-      for (let i = 0; i < ids.length; i += 40) {
-        if (!active) return false;
-        const chunk = ids.slice(i, i + 40);
-        try {
-          const result = await loadExerciseDetails({ data: { ids: chunk } });
-          const media_items: { path: string; url: string }[] = [];
-          for (const exercise of result.exercises as unknown as Array<{
-            id: string;
-            gif_url?: string | null;
-            gif_path?: string | null;
-          }>) {
-            await writeCache(`exercise:${exercise.id}`, exercise);
-            if (exercise.gif_url && exercise.gif_path)
-              media_items.push({ path: exercise.gif_path, url: exercise.gif_url });
-          }
-          // Pictures are stored under their permanent address, never under the
-          // temporary download link, so a file downloaded once is kept for good.
-          const media = await cacheExerciseMedia(media_items, { isActive: () => active });
-          if (media.failed > 0) complete = false;
-        } catch {
-          /* metadata remains available even when media cannot be cached */
-          complete = false;
-        }
-      }
+       // The bucket is public, so use permanent URLs directly. The previous
+       // four-hour signed links expired and made a downloaded library appear
+       // empty on the next start.
+       const mediaItems = exercises.flatMap((exercise) => {
+         const path = typeof exercise["gif_path"] === "string" ? exercise["gif_path"] : "";
+         if (!path) return [];
+         const url = supabase.storage.from("exercise-library").getPublicUrl(path).data.publicUrl;
+         return url ? [{ path, url }] : [];
+       });
+       const media = await cacheExerciseMedia(mediaItems, {
+         concurrency: 8,
+         isActive: () => active,
+       });
+       const complete = media.requested > 0 && media.failed === 0 && media.stored === media.requested;
       return complete && metadataVerified;
     };
 
@@ -343,6 +331,9 @@ export function OfflineBootstrap() {
         await registerAppServiceWorker();
         await migrateLocalDatabase();
         await bindUser(user.id);
+        // Ask the browser not to evict the member's downloaded copy under
+        // storage pressure. Browsers may decline; synchronization still works.
+        await navigator.storage?.persist?.().catch(() => false);
 
         let access: unknown = null;
         const identityDone = await step("identity", 60_000, async () => {
@@ -367,7 +358,7 @@ export function OfflineBootstrap() {
         await markOfflineReady({
           userId: user.id,
           workouts: preparedWorkouts || (previous.userId === user.id ? previous.workouts : 0),
-          exercises: storedPictures || preparedExercises || previous.exercises,
+          exercises: storedPictures || (previous.userId === user.id ? previous.exercises : 0),
           performanceRows: preparedPerformance || (previous.userId === user.id ? previous.performanceRows : 0),
           complete: fullySynced,
         });
@@ -415,7 +406,6 @@ export function OfflineBootstrap() {
     loadThreads,
     loadSharedWorkout,
     loadProgressOverview,
-    loadExerciseDetails,
   ]);
 
 

@@ -68,7 +68,7 @@ function Account() {
 
   const refresh = useCallback(async () => {
     try {
-      const access = await offlineFirst("account:access", () => getMyAccessState());
+      const access = await offlineFirst("account:access", () => getMyAccessState(), user?.id);
       setPremium(access.premium);
       setQuota({ used: access.generationsUsedToday, limit: access.generationsLimit });
     } catch {
@@ -79,7 +79,7 @@ function Account() {
     } catch {
       setMembership(null);
     }
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
     void refresh();
@@ -93,10 +93,10 @@ function Account() {
           .select("id", { count: "exact", head: true });
         if (error) throw new Error(error.message);
         return count ?? 0;
-      }).catch(() => 0);
+      }, user?.id).catch(() => 0);
       setCount(c);
     })();
-  }, []);
+  }, [user?.id]);
 
   async function openPortal() {
     setPortalBusy(true);
