@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/PageHeader";
-import { isAdminEmail } from "@/lib/admin";
+import { adminCheckAccess } from "@/lib/admin.functions";
 import {
   adminGetStats,
   adminGetSectionBadges,
