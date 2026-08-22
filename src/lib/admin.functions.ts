@@ -41,6 +41,7 @@ export const adminListUsers = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<{ users: AdminUserRow[] } | { error: string }> => {
     try {
       await assertAdmin(context as any);
+      const { isAdminEmail } = await import("@/lib/admin.server");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
       // Fetch auth users to get email + created_at (paginated up to 1000)
