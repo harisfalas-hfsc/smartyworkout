@@ -30,7 +30,8 @@ import {
 } from "@/lib/offline/db";
 import { mergeServerPerformance } from "@/lib/offline/performance-store";
 import { markOfflineReady, readOfflineReadiness } from "@/lib/offline/readiness";
-import { cacheExerciseMedia, cacheMediaUrls, storedMediaCount } from "@/lib/offline/media-cache";
+import { cacheMediaUrls, storedMediaCount, warmExerciseMedia } from "@/lib/offline/media-cache";
+import { syncUserTables } from "@/lib/offline/data-sync";
 import { getMembershipSummary } from "@/utils/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 import {
@@ -75,7 +76,7 @@ export function OfflineBootstrap() {
 
   useEffect(() => {
     let active = true;
-    let retryTimer = 0;
+    let periodicTimer = 0;
 
     // Public pages are prepared for every visitor, not only signed-in members.
     // This is deliberately independent from member-data synchronization.
@@ -269,12 +270,13 @@ export function OfflineBootstrap() {
          const url = supabase.storage.from("exercise-library").getPublicUrl(path).data.publicUrl;
          return url ? [{ path, url }] : [];
        });
-       const media = await cacheExerciseMedia(mediaItems, {
-         concurrency: 8,
+       // Media is deliberately best-effort and resumable. It must never hold
+       // the global sync indicator open because one remote file is unavailable.
+       void warmExerciseMedia(mediaItems, {
+         concurrency: 6,
          isActive: () => active,
        });
-       const complete = media.requested > 0 && media.failed === 0 && media.stored === media.requested;
-      return complete && metadataVerified;
+      return metadataVerified;
     };
 
     /** Priority 4 — community reading copy. */
@@ -344,10 +346,6 @@ export function OfflineBootstrap() {
     };
 
     const prefetch = async () => {
-      if (retryTimer) {
-        window.clearTimeout(retryTimer);
-        retryTimer = 0;
-      }
       if (!isOnline() || running.current) return;
       running.current = true;
       setSyncState("syncing");
@@ -366,11 +364,12 @@ export function OfflineBootstrap() {
           return access !== null;
         });
         const personalDone = await step("personal", 60_000, () => phasePersonal(access));
+        const structuredSync = await syncUserTables(user.id);
         const libraryDone = await step("library-media-v3", 24 * 60 * 60_000, phaseLibrary);
-        const communityDone = await step("community", 15 * 60_000, () =>
+        await step("community", 15 * 60_000, () =>
           phaseCommunity().catch(() => false),
         );
-        const fullySynced = identityDone && personalDone && libraryDone && communityDone;
+        const coreSynced = identityDone && personalDone && structuredSync.failed.length === 0;
 
         // The shell is already installed, but warm every stable and member URL
         // with the signed-in session so direct offline navigation is reliable.
@@ -385,25 +384,21 @@ export function OfflineBootstrap() {
           workouts: preparedWorkouts || (previous.userId === user.id ? previous.workouts : 0),
           exercises: storedPictures || (previous.userId === user.id ? previous.exercises : 0),
           performanceRows: preparedPerformance || (previous.userId === user.id ? previous.performanceRows : 0),
-          complete: fullySynced,
+          complete: coreSynced && libraryDone,
         });
 
         // Large enough to keep the whole exercise library, whose entries are
         // expendable and were previously evicted on every start.
         await trimCache(6000);
-        if (fullySynced) {
-          await markSyncFinished();
-          setSyncState("idle");
-        } else if (active && isOnline()) {
-          // Stay visibly in the syncing state while an incomplete pass retries.
-          // The app must never claim completion while local records are missing.
-          setSyncState("syncing");
-          retryTimer = window.setTimeout(() => void prefetch(), 20_000);
-        }
+        // Every pass terminates. Partial table/media failures remain visible in
+        // diagnostics and retry on the next restrained trigger.
+        await markSyncFinished(
+          coreSynced ? undefined : new Error(`Partial sync: ${structuredSync.failed.length} table(s)`),
+        );
+        setSyncState(coreSynced ? "idle" : "error");
       } catch (error) {
         await markSyncFinished(error);
         setSyncState("error");
-        if (active && isOnline()) retryTimer = window.setTimeout(() => void prefetch(), 30_000);
       } finally {
         running.current = false;
       }
@@ -416,9 +411,10 @@ export function OfflineBootstrap() {
     const stopManual = onSyncRequested(() => void prefetch());
     const onFocus = () => void prefetch();
     window.addEventListener("focus", onFocus);
+    periodicTimer = window.setInterval(() => void prefetch(), 15 * 60_000);
     return () => {
       active = false;
-      if (retryTimer) window.clearTimeout(retryTimer);
+      if (periodicTimer) window.clearInterval(periodicTimer);
       stopConnectivity();
       stopManual();
       window.removeEventListener("focus", onFocus);
