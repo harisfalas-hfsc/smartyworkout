@@ -79,12 +79,14 @@ async function pullDirectTable(userId: string, spec: SyncSpec): Promise<number> 
 
   for (;;) {
     const dynamicClient = supabase as unknown as DynamicClient;
-    let query = dynamicClient.from(spec.name)
+    const range = dynamicClient.from(spec.name)
       .select("*")
       .eq("user_id", userId)
       .order(spec.cursor, { ascending: true })
       .range(offset, offset + PAGE_SIZE - 1);
-    if (spec.mode !== "snapshot" && previous?.cursor) query = query.gt(spec.cursor, previous.cursor);
+    const query = spec.mode !== "snapshot" && previous?.cursor
+      ? range.gt(spec.cursor, previous.cursor)
+      : range;
     const result = await withTimeout(query, spec.name);
     if (result.error) throw new Error(result.error.message);
     const rows = (result.data ?? []) as Record<string, unknown>[];
