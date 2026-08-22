@@ -142,10 +142,9 @@ function AdminPage() {
 
   useEffect(() => {
     let active = true;
-    void supabase.auth
-      .getUser()
-      .then(({ data }) => {
-        if (active) setAuthed(isAdminEmail(data.user?.email ?? null));
+    void adminCheckAccess()
+      .then((r) => {
+        if (active) setAuthed(Boolean(r?.isAdmin));
       })
       .catch(() => {
         if (active) setAuthed(false);
