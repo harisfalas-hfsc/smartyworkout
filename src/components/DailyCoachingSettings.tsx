@@ -18,6 +18,8 @@ import {
   setWodSubscription,
   type DailySettings,
 } from "@/lib/daily.functions";
+import { offlineFirst } from "@/lib/offline/offline-first";
+import { useAuth } from "@/hooks/useAuth";
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const ZONES = [
@@ -37,6 +39,7 @@ function hourLabel(h: number) {
 }
 
 export function DailyCoachingSettings({ premium = false }: { premium?: boolean }) {
+  const { user } = useAuth();
   const load = useServerFn(getDailyHub);
   const save = useServerFn(saveDailySettings);
   const setSub = useServerFn(setWodSubscription);
@@ -45,10 +48,11 @@ export function DailyCoachingSettings({ premium = false }: { premium?: boolean }
   const [wodBusy, setWodBusy] = useState(false);
 
   useEffect(() => {
-    void load({})
+    if (!user?.id) return;
+    void offlineFirst("wod:hub", () => load({}), user.id)
       .then((hub) => setSettings(hub.settings))
       .catch(() => undefined);
-  }, [load]);
+  }, [load, user?.id]);
 
   async function toggleWod(subscribe: boolean) {
     if (wodBusy) return;

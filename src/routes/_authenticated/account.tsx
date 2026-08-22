@@ -75,7 +75,13 @@ function Account() {
       setPremium(false);
     }
     try {
-      setMembership(await getMembershipSummary({ data: { environment: getStripeEnvironment() } }));
+      setMembership(
+        await offlineFirst(
+          "account:membership",
+          () => getMembershipSummary({ data: { environment: getStripeEnvironment() } }),
+          user?.id,
+        ),
+      );
     } catch {
       setMembership(null);
     }
