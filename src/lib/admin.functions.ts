@@ -897,3 +897,15 @@ export const adminGetSectionBadges = createServerFn({ method: "POST" })
       return { badges: {} };
     }
   });
+
+/** Server-side admin check for client route gating (no emails in the bundle). */
+export const adminCheckAccess = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ isAdmin: boolean }> => {
+    try {
+      await assertAdmin(context as any);
+      return { isAdmin: true };
+    } catch {
+      return { isAdmin: false };
+    }
+  });
