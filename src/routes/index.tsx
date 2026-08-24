@@ -69,6 +69,7 @@ function Home() {
       {/* MOBILE — consistent with every other page: centered header + CTAs */}
       <section className="py-6 sm:hidden">
         <PageHeader
+          as="p"
           title={
             <>
               Your personal workout
@@ -78,6 +79,7 @@ function Home() {
           }
           subtitle="Answer a smart questionnaire. Get a full tailor-made workout built around your body, goals, equipment and constraints."
         />
+
         <div className="mx-auto flex max-w-xs flex-col gap-3">
           <Link
             to="/coach"
