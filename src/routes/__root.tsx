@@ -27,7 +27,8 @@ const SITE_URL = "https://smartyworkout.com";
 const OG_IMAGE = "https://smartyworkout.com/og-social.jpg";
 
 const SITE_DESCRIPTION =
-  "SmartyWorkout creates personalized workouts from your goals, experience, equipment, limitations and feedback, guided by Smarty Coach and sports scientist Haris Falas.";
+  "Personalized workouts built from your goals, experience, equipment and limitations, guided by Smarty Coach and sports scientist Haris Falas.";
+
 
 const KEYWORDS = [
   "AI workout generator",
