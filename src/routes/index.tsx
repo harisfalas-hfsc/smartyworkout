@@ -137,11 +137,12 @@ function Home() {
         <div className="relative mx-auto w-full max-w-6xl px-5 py-12 lg:px-6 lg:py-20">
 
           <div className="max-w-xl lg:max-w-3xl">
-            <p className="text-[34px] font-extrabold uppercase leading-[1.05] tracking-tight text-white sm:text-[44px] lg:text-[60px]">
+            <h1 className="text-[34px] font-extrabold uppercase leading-[1.05] tracking-tight text-white sm:text-[44px] lg:text-[60px]">
               Your personal workout
               <br />
               <span className="whitespace-nowrap text-primary">anytime anywhere</span>
-            </p>
+            </h1>
+
             <p className="mt-5 text-base leading-relaxed text-white/80 lg:mt-6 lg:text-lg">
               Answer a smart questionnaire. Get a full tailor-made workout built
               around your body, goals, equipment and constraints.
