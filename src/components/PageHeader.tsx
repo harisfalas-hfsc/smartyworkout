@@ -8,6 +8,12 @@ interface PageHeaderProps {
   title: ReactNode;
   subtitle?: ReactNode;
   className?: string;
+  /**
+   * Heading element used for the title. Defaults to "h1".
+   * Pass "p" when the page already renders its own <h1> elsewhere,
+   * so the document keeps exactly one h1. Styling is identical.
+   */
+  as?: "h1" | "h2" | "p";
 }
 
 /**
@@ -21,6 +27,7 @@ export function PageHeader({
   title,
   subtitle,
   className,
+  as: Heading = "h1",
 }: PageHeaderProps) {
   const Icon = typeof icon === "function" ? icon : null;
   return (
@@ -30,7 +37,7 @@ export function PageHeader({
           {eyebrow}
         </p>
       )}
-      <h1
+      <Heading
         className={cn(
           "flex flex-wrap items-center justify-center gap-x-2 text-balance text-3xl font-extrabold uppercase tracking-tight sm:text-4xl",
           eyebrow ? "mt-2" : "mt-0",
@@ -41,7 +48,8 @@ export function PageHeader({
           <span className="text-2xl leading-none sm:text-3xl">{icon}</span>
         )}
         <span className="min-w-0">{title}</span>
-      </h1>
+      </Heading>
+
       {subtitle && (
         <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">
           {subtitle}
