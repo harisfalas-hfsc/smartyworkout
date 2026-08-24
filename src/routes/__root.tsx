@@ -290,6 +290,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "SmartyWorkout — Personalized Workouts with Smarty Coach",
       },
       { name: "twitter:description", content: SITE_DESCRIPTION },
+      { property: "og:url", content: "https://smartyworkout.com/" },
+      { property: "og:image", content: OG_IMAGE },
+      { name: "twitter:image", content: OG_IMAGE },
+
     ],
     links: [
       { rel: "stylesheet", href: appCss },
