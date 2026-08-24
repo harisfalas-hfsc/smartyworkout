@@ -14,8 +14,34 @@ export const deleteMyAccount = createServerFn({ method: "POST" })
   .handler(async ({ context }): Promise<{ ok: true } | { error: string }> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const email = (context.claims?.email as string | undefined) ?? context.userId;
+
+    // Stop billing before the account (and its access) disappears.
+    let billing: { canceled: string[]; failures: string[] } = { canceled: [], failures: [] };
+    try {
+      const { cancelSubscriptionsImmediately } = await import("@/lib/subscription-cancel.server");
+      billing = await cancelSubscriptionsImmediately(context.supabase as never, context.userId);
+    } catch {
+      billing = { canceled: [], failures: ["Subscription cancellation step failed"] };
+    }
+
+    if (billing.failures.length) {
+      try {
+        const { notifyAdmins } = await import("@/lib/admin-alert.server");
+        await notifyAdmins({
+          kind: "Member",
+          title: "Subscription cancellation failed on account deletion",
+          details: `${email} deleted their account, but their subscription could not be canceled automatically: ${billing.failures.join("; ")}. Cancel it manually in Stripe.`,
+          link: "https://smartyworkout.com/admin",
+          dedupeKey: `sub-cancel-failed-${context.userId}`,
+        });
+      } catch {
+        /* alerts never block the action */
+      }
+    }
+
     const { error } = await supabaseAdmin.auth.admin.deleteUser(context.userId);
     if (error) return { error: error.message };
+
     try {
       const { notifyAdmins } = await import("@/lib/admin-alert.server");
       await notifyAdmins({
