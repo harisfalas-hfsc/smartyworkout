@@ -369,8 +369,10 @@ function ExerciseLibraryPage() {
               value={nameSearch}
               onChange={(e) => setNameSearch(e.target.value)}
               placeholder="Search exercises…"
+              aria-label="Search exercises"
               className="pl-9"
             />
+
           </div>
 
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
