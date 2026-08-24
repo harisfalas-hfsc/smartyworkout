@@ -33,7 +33,7 @@ import {
 
 
 const URL = "https://smartyworkout.com/exercise-library";
-const TITLE = "Exercise Library — 1,300+ exercise demonstrations | SmartyWorkout";
+const TITLE = "Exercise Library — 1,300+ demos | SmartyWorkout";
 const DESCRIPTION =
   "Browse the SmartyWorkout exercise library: 1,300+ movements with animated demonstrations, filtered by body part, equipment, target muscle and difficulty.";
 
@@ -369,8 +369,10 @@ function ExerciseLibraryPage() {
               value={nameSearch}
               onChange={(e) => setNameSearch(e.target.value)}
               placeholder="Search exercises…"
+              aria-label="Search exercises"
               className="pl-9"
             />
+
           </div>
 
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
