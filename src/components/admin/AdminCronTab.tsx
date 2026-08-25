@@ -42,6 +42,8 @@ export function AdminCronTab() {
   const getJobs = useServerFn(adminGetCronJobs);
   const saveJob = useServerFn(adminSaveCronJob);
   const runJob = useServerFn(adminRunCronJob);
+  const listErrors = useServerFn(adminListErrors);
+  const resolveError = useServerFn(adminResolveError);
 
   const [definitions, setDefinitions] = useState<CronJobDefinition[] | null>(null);
   const [configs, setConfigs] = useState<Record<string, CronJobConfig>>({});
@@ -55,6 +57,7 @@ export function AdminCronTab() {
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [problems, setProblems] = useState<ErrorEventRow[]>([]);
 
   async function load() {
     const r = await getJobs({ data: {} } as never);
@@ -78,6 +81,7 @@ export function AdminCronTab() {
 
   useEffect(() => {
     void load();
+    void loadProblems();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
