@@ -202,6 +202,21 @@ export const Route = createFileRoute("/api/public/hooks/daily-run")({
           }
         }
 
+        // Any failure inside an automated job is a real problem — alert the admin.
+        if (failures.length) {
+          const { reportError } = await import("@/lib/errors/report.server");
+          for (const f of failures.slice(0, 10)) {
+            const [source, maybeUser, ...rest] = f.split(":");
+            const looksLikeUser = /^[0-9a-f-]{36}$/i.test(maybeUser ?? "");
+            await reportError({
+              source: `job-${source}`,
+              message: (looksLikeUser ? rest.join(":") : [maybeUser, ...rest].join(":")) || f,
+              route: "/api/public/hooks/daily-run",
+              userId: looksLikeUser ? (maybeUser as string) : null,
+            });
+          }
+        }
+
         // One history row per hourly tick for the member-facing jobs.
         if (motivations || workouts || renewalReminders || scheduleReminders || failures.length) {
           await recordRun(db, {
