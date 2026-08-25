@@ -248,6 +248,97 @@ export function AdminCronTab() {
               </ul>
             </div>
 
+            {def.settings?.length ? (
+              <div className="space-y-3 rounded-xl border border-border/60 bg-muted/30 p-3 text-sm">
+                <div className="font-semibold">Settings</div>
+
+                {def.settings.includes("recipient") ? (
+                  <div className="space-y-1">
+                    <Label htmlFor={`${def.key}-to`}>Send to</Label>
+                    <Input
+                      id={`${def.key}-to`}
+                      type="email"
+                      value={config?.content?.recipient ?? ""}
+                      placeholder={DEFAULT_HEALTH_RECIPIENT}
+                      onChange={(e) => setContent(def.key, { recipient: e.target.value })}
+                    />
+                  </div>
+                ) : null}
+
+                {def.settings.includes("severity") ? (
+                  <div className="space-y-1">
+                    <Label htmlFor={`${def.key}-sev`}>Email me about</Label>
+                    <select
+                      id={`${def.key}-sev`}
+                      className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                      value={config?.content?.minSeverity ?? "error"}
+                      onChange={(e) => setContent(def.key, { minSeverity: e.target.value })}
+                    >
+                      <option value="error">Real failures only (recommended)</option>
+                      <option value="all">Everything, including warnings</option>
+                    </select>
+                  </div>
+                ) : null}
+
+                {def.settings.includes("groupWindow") ? (
+                  <div className="space-y-1">
+                    <Label htmlFor={`${def.key}-gw`}>
+                      Group repeats of the same problem for (minutes)
+                    </Label>
+                    <Input
+                      id={`${def.key}-gw`}
+                      type="number"
+                      min={1}
+                      max={1440}
+                      className="w-28"
+                      value={config?.content?.groupWindowMin ?? 60}
+                      onChange={(e) =>
+                        setContent(def.key, { groupWindowMin: Number(e.target.value) })
+                      }
+                    />
+                  </div>
+                ) : null}
+
+                {def.settings.includes("checks") ? (
+                  <div className="space-y-2">
+                    <Label>Checks included in the report</Label>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {HEALTH_CHECKS.map((c) => {
+                        const selected = config?.content?.checks;
+                        const on = !selected?.length || selected.includes(c.key);
+                        return (
+                          <label key={c.key} className="flex items-center gap-2 text-sm">
+                            <Switch
+                              checked={on}
+                              onCheckedChange={(v) => {
+                                const base = selected?.length
+                                  ? selected
+                                  : HEALTH_CHECKS.map((x) => x.key);
+                                const next = v
+                                  ? Array.from(new Set([...base, c.key]))
+                                  : base.filter((k) => k !== c.key);
+                                setContent(def.key, { checks: next });
+                              }}
+                              aria-label={c.label}
+                            />
+                            <span>{c.label}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+
+                <Button
+                  size="sm"
+                  disabled={busy === def.key}
+                  onClick={() => void patch(def.key, { content: config?.content ?? {} })}
+                >
+                  <Save className="mr-2 h-4 w-4" /> Save settings
+                </Button>
+              </div>
+            ) : null}
+
             {def.contentEditable ? (
               <div className="space-y-2">
                 <Label htmlFor={`${def.key}-c`}>{def.contentLabel}</Label>
