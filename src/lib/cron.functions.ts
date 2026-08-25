@@ -99,8 +99,28 @@ export const adminRunCronJob = createServerFn({ method: "POST" })
         const db = supabaseAdmin as never as import("@supabase/supabase-js").SupabaseClient;
         const { getCronConfig, recordRun, markJobRan } = await import("@/lib/cron/jobs.server");
 
+        if (data.key === "health-check") {
+          const config = await getCronConfig(db, "health-check");
+          const { runHealthCheck } = await import("@/lib/cron/health-check.server");
+          const report = await runHealthCheck(db, { config, trigger: "manual" });
+          await recordRun(db, {
+            jobKey: "health-check",
+            status: report.status === "ok" ? "ok" : "failed",
+            changed: report.failed > 0,
+            summary: report.summary,
+            details: {
+              failures: report.items
+                .filter((i) => i.status !== "pass")
+                .map((i) => `${i.label}: ${i.detail}`)
+                .slice(0, 50),
+            },
+            trigger: "manual",
+          });
+          return { status: report.status, summary: report.summary, emailed: report.emailed };
+        }
+
         if (data.key !== "seo-refresh") {
-          return { error: "Only the SEO update can be run on demand from here." };
+          return { error: "This job cannot be run on demand." };
         }
         const config = await getCronConfig(db, "seo-refresh");
         const { runSeoRefresh } = await import("@/lib/cron/seo-refresh.server");
