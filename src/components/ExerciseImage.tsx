@@ -1,11 +1,8 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Dumbbell } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { readStoredMedia, storeMedia } from "@/lib/offline/media-cache";
+import { getExerciseMediaUrl, readStoredMedia, storeMedia } from "@/lib/offline/media-cache";
 import { isOnline } from "@/lib/offline/connectivity";
-
-const signedUrlMemory = new Map<string, string>();
 
 /**
  * Resolves the best address for an exercise picture.
@@ -37,11 +34,7 @@ export function useExerciseImageSrc(path?: string | null, signedUrl?: string | n
         return;
       }
 
-      let link = signedUrl ?? signedUrlMemory.get(path) ?? null;
-      if (!link && isOnline()) {
-        link = supabase.storage.from("exercise-library").getPublicUrl(path).data.publicUrl;
-        if (link) signedUrlMemory.set(path, link);
-      }
+      const link = signedUrl ?? (isOnline() ? await getExerciseMediaUrl(path) : null);
       if (!active) return;
       setSrc(link);
       if (link) void storeMedia({ path, url: link });
