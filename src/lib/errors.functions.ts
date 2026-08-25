@@ -24,7 +24,7 @@ export const reportClientProblem = createServerFn({ method: "POST" })
       kind: "client",
       source: (data.source || "app").slice(0, 60),
       message: (data.message || "Unknown app error").slice(0, 300),
-      route: data.route?.slice(0, 200) ?? null,
+      ...(data.route ? { route: data.route.slice(0, 200) } : {}),
       userId: data.userId ?? null,
       userEmail: data.userEmail ?? null,
       details: data.details ?? {},
