@@ -28,7 +28,7 @@ import {
 } from "@/lib/cron.functions";
 import type { CronJobDefinition } from "@/lib/cron/registry";
 import type { CronJobConfig, CronRunRow } from "@/lib/cron/jobs.server";
-import { HEALTH_CHECKS } from "@/lib/cron/health-check.server";
+import { HEALTH_CHECKS, DEFAULT_HEALTH_RECIPIENT } from "@/lib/cron/health-checks";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
