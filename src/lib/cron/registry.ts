@@ -33,6 +33,10 @@ export interface CronJobDefinition {
   contentEditable: boolean;
   contentLabel?: string;
   contentHelp?: string;
+  /** Extra settings the admin panel renders for this job. */
+  settings?: ("recipient" | "checks" | "severity" | "groupWindow")[];
+  /** Whether the job can be triggered on demand from the admin panel. */
+  runnable?: boolean;
   defaults: {
     enabled: boolean;
     hour: number;
