@@ -34,12 +34,21 @@ export const getExerciseDetails = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     const list = (rows ?? []) as Array<Record<string, unknown> & { gif_path: string | null }>;
+    const paths = list.map((row) => row.gif_path).filter((path): path is string => Boolean(path));
+    const signedUrls = new Map<string, string>();
+    if (paths.length) {
+      const { data: signed, error: signedError } = await supabase.storage
+        .from("exercise-library")
+        .createSignedUrls(paths, 60 * 60 * 24);
+      if (signedError) throw new Error(signedError.message);
+      for (const item of signed ?? []) {
+        if (item.path && item.signedUrl) signedUrls.set(item.path, item.signedUrl);
+      }
+    }
     return {
       exercises: list.map((r) => ({
         ...r,
-        gif_url: r.gif_path
-          ? supabase.storage.from("exercise-library").getPublicUrl(r.gif_path).data.publicUrl
-          : null,
+        gif_url: r.gif_path ? (signedUrls.get(r.gif_path) ?? null) : null,
       })),
     };
   });
