@@ -96,6 +96,16 @@ export function AdminCronTab() {
     }
   }
 
+  async function loadProblems() {
+    const r = await listErrors({ data: {} } as never);
+    if (!("error" in r)) setProblems(r.errors);
+  }
+
+  async function resolveProblem(id: string) {
+    await resolveError({ data: { id } });
+    void loadProblems();
+  }
+
   function setContent(key: string, patchContent: Record<string, unknown>) {
     setConfigs((prev) => {
       const current = prev[key] as CronJobConfig | undefined;
