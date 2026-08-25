@@ -165,6 +165,44 @@ export function AdminCronTab() {
         <div className="rounded-2xl border-2 border-blue-400 bg-card p-3 text-sm">{message}</div>
       ) : null}
 
+      <div className="space-y-3 rounded-2xl border-2 border-blue-400 bg-card p-4">
+        <div className="flex items-center gap-2 text-sm font-bold">
+          <AlertTriangle className="h-4 w-4 text-primary" /> Latest problems
+        </div>
+        {problems.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No problems recorded. Every problem here was also emailed to you.
+          </p>
+        ) : (
+          <ul className="space-y-2 text-sm">
+            {problems.map((p) => (
+              <li
+                key={p.id}
+                className="flex items-start justify-between gap-3 border-l-2 border-primary pl-3"
+              >
+                <div>
+                  <p className="font-semibold">
+                    {p.source ?? p.kind} — {p.message}
+                  </p>
+                  <p className="text-muted-foreground">
+                    {formatDateTime(p.created_at)}
+                    {p.occurrences > 1 ? ` · ${p.occurrences}×` : ""}
+                    {p.user_email ? ` · ${p.user_email}` : ""}
+                    {p.route ? ` · ${p.route}` : ""}
+                    {p.resolved_at ? " · handled" : ""}
+                  </p>
+                </div>
+                {p.resolved_at ? null : (
+                  <Button size="sm" variant="ghost" onClick={() => void resolveProblem(p.id)}>
+                    Mark handled
+                  </Button>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
       {definitions.map((def) => {
         const config = configs[def.key];
         const enabled = config?.enabled ?? def.defaults.enabled;
