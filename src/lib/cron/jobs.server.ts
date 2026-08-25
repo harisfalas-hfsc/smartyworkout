@@ -9,6 +9,14 @@ export interface CronContent {
   lines?: string[];
   /** Extra keywords always merged into the SEO index. */
   keywords?: string[];
+  /** Where reports / alerts are emailed. */
+  recipient?: string;
+  /** Health-check keys to include in the nightly report. */
+  checks?: string[];
+  /** Instant error alerts: minimum severity that triggers an email. */
+  minSeverity?: "all" | "important";
+  /** Instant error alerts: minutes before the same problem can email again. */
+  groupWindowMin?: number;
 }
 
 export interface CronJobConfig {
