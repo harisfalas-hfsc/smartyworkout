@@ -96,6 +96,17 @@ export function AdminCronTab() {
     }
   }
 
+  function setContent(key: string, patchContent: Record<string, unknown>) {
+    setConfigs((prev) => {
+      const current = prev[key] as CronJobConfig | undefined;
+      if (!current) return prev;
+      return {
+        ...prev,
+        [key]: { ...current, content: { ...current.content, ...patchContent } },
+      };
+    });
+  }
+
   async function saveContent(def: CronJobDefinition) {
     const lines = (drafts[def.key] ?? "")
       .split("\n")
