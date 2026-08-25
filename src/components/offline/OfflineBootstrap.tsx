@@ -30,7 +30,7 @@ import {
 } from "@/lib/offline/db";
 import { mergeServerPerformance } from "@/lib/offline/performance-store";
 import { markOfflineReady, readOfflineReadiness } from "@/lib/offline/readiness";
-import { cacheMediaUrls, storedMediaCount, warmExerciseMedia } from "@/lib/offline/media-cache";
+import { cacheMediaUrls, getExerciseMediaItems, storedMediaCount, warmExerciseMedia } from "@/lib/offline/media-cache";
 import { syncUserTables } from "@/lib/offline/data-sync";
 import { resolveSyncOutcome } from "@/lib/offline/sync-result";
 import { getMembershipSummary } from "@/utils/payments.functions";
@@ -262,15 +262,11 @@ export function OfflineBootstrap() {
         )
       ).every(Boolean);
 
-       // The bucket is public, so use permanent URLs directly. The previous
-       // four-hour signed links expired and made a downloaded library appear
-       // empty on the next start.
-       const mediaItems = exercises.flatMap((exercise) => {
-         const path = typeof exercise["gif_path"] === "string" ? exercise["gif_path"] : "";
-         if (!path) return [];
-         const url = supabase.storage.from("exercise-library").getPublicUrl(path).data.publicUrl;
-         return url ? [{ path, url }] : [];
-       });
+       const mediaItems = await getExerciseMediaItems(
+         exercises.flatMap((exercise) =>
+           typeof exercise["gif_path"] === "string" ? [exercise["gif_path"]] : [],
+         ),
+       );
        // Media is deliberately best-effort and resumable. It must never hold
        // the global sync indicator open because one remote file is unavailable.
        void warmExerciseMedia(mediaItems, {
