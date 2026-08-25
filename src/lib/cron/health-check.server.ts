@@ -316,7 +316,7 @@ export async function runHealthCheck(
 
   await run("memberdata", async () => {
     const bad: string[] = [];
-    const checks: [string, () => Promise<{ error: { message: string } | null }>][] = [
+    const checks: [string, () => PromiseLike<{ error: { message: string } | null }>][] = [
       ["logbook", () => db.from("workouts").select("id,scheduled_at,completed_at").limit(1)],
       ["progress", () => db.from("user_progress").select("user_id,score").limit(1)],
       ["player", () => db.from("set_logs").select("id,workout_id,metric").limit(1)],
