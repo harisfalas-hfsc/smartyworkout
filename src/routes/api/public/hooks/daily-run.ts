@@ -165,6 +165,43 @@ export const Route = createFileRoute("/api/public/hooks/daily-run")({
           }
         }
 
+        // Nightly system health check — fixed time, once a day, always emailed.
+        let health: { status: string; summary: string } | null = null;
+        const healthConfig = jobs["health-check"];
+        if (healthConfig && isDueNow(healthConfig)) {
+          try {
+            const { runHealthCheck } = await import("@/lib/cron/health-check.server");
+            const report = await runHealthCheck(db, {
+              config: healthConfig,
+              trigger: "schedule",
+            });
+            health = { status: report.status, summary: report.summary };
+            await recordRun(db, {
+              jobKey: "health-check",
+              status: report.status === "ok" ? "ok" : "failed",
+              changed: report.failed > 0,
+              summary: report.summary,
+              details: {
+                failures: report.items
+                  .filter((i) => i.status !== "pass")
+                  .map((i) => `${i.label}: ${i.detail}`)
+                  .slice(0, 50),
+              },
+              trigger: "schedule",
+            });
+            await markJobRan(db, "health-check", healthConfig);
+          } catch (e) {
+            const message = e instanceof Error ? e.message : "error";
+            failures.push(`health:${message}`);
+            await recordRun(db, {
+              jobKey: "health-check",
+              status: "failed",
+              summary: `Health check crashed: ${message}`,
+              trigger: "schedule",
+            });
+          }
+        }
+
         // One history row per hourly tick for the member-facing jobs.
         if (motivations || workouts || renewalReminders || scheduleReminders || failures.length) {
           await recordRun(db, {
