@@ -11,7 +11,9 @@ export type CronJobKey =
   | "wod-auto-delivery"
   | "schedule-reminders"
   | "renewal-reminders"
-  | "seo-refresh";
+  | "seo-refresh"
+  | "health-check"
+  | "error-alerts";
 
 export type CronTiming = "per-member" | "fixed" | "continuous";
 
