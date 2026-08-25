@@ -150,6 +150,50 @@ export const CRON_JOBS: CronJobDefinition[] = [
     contentHelp:
       "One keyword or phrase per line. These are merged into the index on every run and never removed.",
     defaults: { enabled: true, hour: 0, minute: 0 },
+    runnable: true,
+  },
+  {
+    key: "health-check",
+    label: "Nightly system health check",
+    description:
+      "Checks the whole system once every night — database, exercise library, player media, AI credits and workout generation, Workout of the Day, email, payments, every other scheduled job, all public pages, share links, logbook / progress / player data, the support inbox, errors from the last 24 hours and the day's activity. A numbered report is emailed every night, pass or fail.",
+    timing: "fixed",
+    timingNote:
+      "Runs once a day at the time set below (Cyprus time). Default 00:00. The report is always emailed, so silence means the check itself did not run.",
+    sends: [
+      {
+        title: "[Health] All 15 checks passed",
+        body: "Numbered report with PASS / WARNING / FAILED and one line of detail per check.",
+      },
+      {
+        title: "[Health] 1 FAILURE(S) — 14/15 checks passed",
+        body: "Same report, headline naming the failures — for example “OUT OF AI CREDITS — members cannot generate workouts”.",
+      },
+    ],
+    timeEditable: true,
+    contentEditable: false,
+    settings: ["recipient", "checks"],
+    runnable: true,
+    defaults: { enabled: true, hour: 0, minute: 0 },
+  },
+  {
+    key: "error-alerts",
+    label: "Instant problem alerts",
+    description:
+      "Emails you the moment something actually breaks for a member — a workout that will not generate, a Workout of the Day that fails, a logbook, progress, player, sharing, payment or messaging error, or an app crash on a member's device. Every alert names the problem, the exact time and the member affected. Repeats of the same problem are counted instead of re-sent.",
+    timing: "continuous",
+    timingNote:
+      "Not scheduled — sent immediately when a problem is recorded. The switch below turns the emails on or off; problems are always logged either way.",
+    sends: [
+      {
+        title: "[Problem] workout-generation — out of AI credits",
+        body: "What broke, where, the exact Cyprus time, the member affected and the technical details.",
+      },
+    ],
+    timeEditable: false,
+    contentEditable: false,
+    settings: ["recipient", "severity", "groupWindow"],
+    defaults: { enabled: true, hour: 0, minute: 0 },
   },
 ];
 
