@@ -366,6 +366,24 @@ export function AdminCronTab() {
               </div>
             ) : null}
 
+            {def.key === "health-check" ? (
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={busy === def.key}
+                  onClick={() => void runNow(def.key, false)}
+                >
+                  {busy === def.key ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Play className="mr-2 h-4 w-4" />
+                  )}
+                  Run the check now and email me
+                </Button>
+              </div>
+            ) : null}
+
             {def.key === "seo-refresh" ? (
               <div className="flex flex-wrap gap-2">
                 <Button
