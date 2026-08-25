@@ -1,8 +1,13 @@
-const MEDIA_CACHE_NAME = "smarty-media-v1";
+import { supabase } from "@/integrations/supabase/client";
 import { offlineDb } from "./database";
 
+const MEDIA_CACHE_NAME = "smarty-media-v1";
 const MEDIA_REQUEST_TIMEOUT_MS = 20_000;
+const SIGNED_URL_TTL_SECONDS = 60 * 60 * 24;
+const SIGNED_URL_MEMORY_TTL_MS = (SIGNED_URL_TTL_SECONDS - 60) * 1000;
+const SIGNED_URL_BATCH_SIZE = 100;
 let exerciseWarmPromise: Promise<{ requested: number; stored: number; failed: number }> | null = null;
+const exerciseSignedUrlMemory = new Map<string, { url: string; expiresAt: number }>();
 
 /**
  * Exercise pictures live in a private bucket, so every download link is a
@@ -19,6 +24,59 @@ export function offlineMediaKey(path: string): string {
 }
 
 export type MediaItem = { path: string; url: string };
+
+function readRememberedExerciseUrl(path: string): string | null {
+  const remembered = exerciseSignedUrlMemory.get(path);
+  if (!remembered) return null;
+  if (remembered.expiresAt <= Date.now()) {
+    exerciseSignedUrlMemory.delete(path);
+    return null;
+  }
+  return remembered.url;
+}
+
+function rememberExerciseUrl(path: string, url: string) {
+  exerciseSignedUrlMemory.set(path, { url, expiresAt: Date.now() + SIGNED_URL_MEMORY_TTL_MS });
+}
+
+/** Returns a temporary, private-bucket-safe URL for one exercise picture. */
+export async function getExerciseMediaUrl(path: string): Promise<string | null> {
+  if (!path) return null;
+  const cached = readRememberedExerciseUrl(path);
+  if (cached) return cached;
+  const { data, error } = await supabase.storage
+    .from("exercise-library")
+    .createSignedUrl(path, SIGNED_URL_TTL_SECONDS);
+  if (error || !data?.signedUrl) return null;
+  rememberExerciseUrl(path, data.signedUrl);
+  return data.signedUrl;
+}
+
+/** Returns temporary URLs for many exercise pictures, batching provider calls. */
+export async function getExerciseMediaItems(paths: string[]): Promise<MediaItem[]> {
+  const unique = [...new Set(paths.filter(Boolean))];
+  const items: MediaItem[] = [];
+  const missing: string[] = [];
+  for (const path of unique) {
+    const cached = readRememberedExerciseUrl(path);
+    if (cached) items.push({ path, url: cached });
+    else missing.push(path);
+  }
+
+  for (let i = 0; i < missing.length; i += SIGNED_URL_BATCH_SIZE) {
+    const chunk = missing.slice(i, i + SIGNED_URL_BATCH_SIZE);
+    const { data, error } = await supabase.storage
+      .from("exercise-library")
+      .createSignedUrls(chunk, SIGNED_URL_TTL_SECONDS);
+    if (error) continue;
+    for (const signed of data ?? []) {
+      if (!signed.path || !signed.signedUrl) continue;
+      rememberExerciseUrl(signed.path, signed.signedUrl);
+      items.push({ path: signed.path, url: signed.signedUrl });
+    }
+  }
+  return items;
+}
 
 /** True when this device already has a stored copy of the picture. */
 export async function hasStoredMedia(path: string): Promise<boolean> {
