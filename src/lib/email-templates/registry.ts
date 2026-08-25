@@ -23,6 +23,8 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'admin-alert': adminAlert,
   'contact-confirmation': contactConfirmation,
   'cron-report': cronReport,
+  'health-report': healthReport,
+  'error-alert': errorAlert,
   'contact-notification': contactNotification,
   'support-reply': supportReply,
 }
