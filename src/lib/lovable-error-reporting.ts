@@ -55,4 +55,21 @@ export function reportLovableError(error: unknown, context: Record<string, unkno
     ...(stack !== undefined && { stack }),
     filename: window.location.pathname,
   });
+
+  // Also tell the admin: this is a real member-facing crash.
+  void (async () => {
+    try {
+      const { reportClientProblem } = await import("@/lib/errors.functions");
+      await reportClientProblem({
+        data: {
+          message,
+          source: String(context["source"] ?? "app-crash"),
+          route: window.location.pathname,
+          details: { stack: stack?.slice(0, 1200), ...context },
+        },
+      } as never);
+    } catch {
+      /* reporting must never break the app */
+    }
+  })();
 }
