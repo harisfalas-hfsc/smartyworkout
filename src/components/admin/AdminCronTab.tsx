@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
+  AlertTriangle,
   CalendarClock,
   CheckCircle2,
   Clock,
@@ -17,9 +18,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { adminGetCronJobs, adminRunCronJob, adminSaveCronJob } from "@/lib/cron.functions";
+import {
+  adminGetCronJobs,
+  adminListErrors,
+  adminResolveError,
+  adminRunCronJob,
+  adminSaveCronJob,
+  type ErrorEventRow,
+} from "@/lib/cron.functions";
 import type { CronJobDefinition } from "@/lib/cron/registry";
 import type { CronJobConfig, CronRunRow } from "@/lib/cron/jobs.server";
+import { HEALTH_CHECKS } from "@/lib/cron/health-check.server";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
