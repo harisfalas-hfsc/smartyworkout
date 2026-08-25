@@ -133,3 +133,46 @@ export async function reportError(input: ReportErrorInput): Promise<void> {
     console.error("[errors] failed to record error", e);
   }
 }
+
+const EXPECTED_PATTERNS = [
+  "training profile",
+  "health and safety",
+  "membership",
+  "daily limit",
+  "not found",
+  "unauthorized",
+  "forbidden",
+  "already",
+  "premium",
+];
+
+/** Normal, expected refusals — these are not system problems, so no alert. */
+export function isExpectedUserError(message: string): boolean {
+  const m = message.toLowerCase();
+  return EXPECTED_PATTERNS.some((p) => m.includes(p));
+}
+
+/**
+ * Wraps a member-facing server action: real failures are logged and alerted,
+ * then rethrown unchanged so nothing about the app's behaviour changes.
+ */
+export async function withProblemReport<T>(
+  meta: { source: string; route?: string; userId?: string | null },
+  fn: () => Promise<T>,
+): Promise<T> {
+  try {
+    return await fn();
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    if (!isExpectedUserError(message)) {
+      await reportError({
+        source: meta.source,
+        message,
+        ...(meta.route ? { route: meta.route } : {}),
+        userId: meta.userId ?? null,
+        details: { stack: e instanceof Error ? e.stack?.slice(0, 1200) : undefined },
+      });
+    }
+    throw e;
+  }
+}
