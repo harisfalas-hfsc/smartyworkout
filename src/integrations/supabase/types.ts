@@ -355,6 +355,63 @@ export type Database = {
         }
         Relationships: []
       }
+      error_events: {
+        Row: {
+          alerted_at: string | null
+          created_at: string
+          details: Json
+          group_key: string
+          id: string
+          kind: string
+          last_seen_at: string
+          message: string
+          occurrences: number
+          resolved_at: string | null
+          route: string | null
+          severity: string
+          source: string | null
+          updated_at: string
+          user_email: string | null
+          user_id: string | null
+        }
+        Insert: {
+          alerted_at?: string | null
+          created_at?: string
+          details?: Json
+          group_key: string
+          id?: string
+          kind?: string
+          last_seen_at?: string
+          message: string
+          occurrences?: number
+          resolved_at?: string | null
+          route?: string | null
+          severity?: string
+          source?: string | null
+          updated_at?: string
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          alerted_at?: string | null
+          created_at?: string
+          details?: Json
+          group_key?: string
+          id?: string
+          kind?: string
+          last_seen_at?: string
+          message?: string
+          occurrences?: number
+          resolved_at?: string | null
+          route?: string | null
+          severity?: string
+          source?: string | null
+          updated_at?: string
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       exercises: {
         Row: {
           body_part: string | null

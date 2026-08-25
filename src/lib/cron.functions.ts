@@ -99,8 +99,28 @@ export const adminRunCronJob = createServerFn({ method: "POST" })
         const db = supabaseAdmin as never as import("@supabase/supabase-js").SupabaseClient;
         const { getCronConfig, recordRun, markJobRan } = await import("@/lib/cron/jobs.server");
 
+        if (data.key === "health-check") {
+          const config = await getCronConfig(db, "health-check");
+          const { runHealthCheck } = await import("@/lib/cron/health-check.server");
+          const report = await runHealthCheck(db, { config, trigger: "manual" });
+          await recordRun(db, {
+            jobKey: "health-check",
+            status: report.status === "ok" ? "ok" : "failed",
+            changed: report.failed > 0,
+            summary: report.summary,
+            details: {
+              failures: report.items
+                .filter((i) => i.status !== "pass")
+                .map((i) => `${i.label}: ${i.detail}`)
+                .slice(0, 50),
+            },
+            trigger: "manual",
+          });
+          return { status: report.status, summary: report.summary, emailed: report.emailed };
+        }
+
         if (data.key !== "seo-refresh") {
-          return { error: "Only the SEO update can be run on demand from here." };
+          return { error: "This job cannot be run on demand." };
         }
         const config = await getCronConfig(db, "seo-refresh");
         const { runSeoRefresh } = await import("@/lib/cron/seo-refresh.server");
@@ -124,3 +144,52 @@ export const adminRunCronJob = createServerFn({ method: "POST" })
       }
     },
   );
+
+export interface ErrorEventRow {
+  id: string;
+  kind: string;
+  severity: string;
+  message: string;
+  source: string | null;
+  route: string | null;
+  user_email: string | null;
+  occurrences: number;
+  created_at: string;
+  resolved_at: string | null;
+}
+
+export const adminListErrors = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ errors: ErrorEventRow[] } | { error: string }> => {
+    try {
+      await assertAdmin(context as any);
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data, error } = await supabaseAdmin
+        .from("error_events")
+        .select("id,kind,severity,message,source,route,user_email,occurrences,created_at,resolved_at")
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (error) return { error: error.message };
+      return { errors: (data as ErrorEventRow[] | null) ?? [] };
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : "Failed to load problems" };
+    }
+  });
+
+export const adminResolveError = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { id: string }) => data)
+  .handler(async ({ context, data }): Promise<{ ok: true } | { error: string }> => {
+    try {
+      await assertAdmin(context as any);
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { error } = await supabaseAdmin
+        .from("error_events")
+        .update({ resolved_at: new Date().toISOString() } as never)
+        .eq("id", data.id);
+      if (error) return { error: error.message };
+      return { ok: true };
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : "Failed to update" };
+    }
+  });

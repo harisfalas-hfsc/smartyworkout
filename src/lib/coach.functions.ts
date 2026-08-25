@@ -8,13 +8,19 @@ export const generateWorkout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: CoachRequest) => input)
   .handler(async ({ data, context }) => {
-    const { requireWorkoutAccess } = await import("@/lib/eligibility.server");
-    await requireWorkoutAccess(context.supabase as never, context.userId, {
-      countsAgainstDailyQuota: true,
-    });
-    const { createWorkoutForUser } = await import("@/lib/workout/create.server");
-    const built = await createWorkoutForUser(context.supabase as never, context.userId, data);
-    return { id: built.id };
+    const { withProblemReport } = await import("@/lib/errors/report.server");
+    return withProblemReport(
+      { source: "workout-generation", route: "/coach", userId: context.userId },
+      async () => {
+        const { requireWorkoutAccess } = await import("@/lib/eligibility.server");
+        await requireWorkoutAccess(context.supabase as never, context.userId, {
+          countsAgainstDailyQuota: true,
+        });
+        const { createWorkoutForUser } = await import("@/lib/workout/create.server");
+        const built = await createWorkoutForUser(context.supabase as never, context.userId, data);
+        return { id: built.id };
+      },
+    );
   });
 
 export const getExerciseDetails = createServerFn({ method: "POST" })

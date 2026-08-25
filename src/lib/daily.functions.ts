@@ -176,8 +176,11 @@ export const generateTodayWod = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
-    const { runWodForUser } = await import("@/lib/daily.server");
-    return runWodForUser(supabase as never, userId);
+    const { withProblemReport } = await import("@/lib/errors/report.server");
+    return withProblemReport({ source: "workout-of-the-day", route: "/wod", userId }, async () => {
+      const { runWodForUser } = await import("@/lib/daily.server");
+      return runWodForUser(supabase as never, userId);
+    });
   });
 
 export const listNotifications = createServerFn({ method: "GET" })
