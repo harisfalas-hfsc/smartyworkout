@@ -221,6 +221,7 @@ export const Route = createFileRoute("/api/public/hooks/daily-run")({
           renewalReminders,
           scheduleReminders,
           seo,
+          health,
           failures,
         });
       },
