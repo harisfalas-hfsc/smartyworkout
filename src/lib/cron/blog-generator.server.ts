@@ -317,18 +317,45 @@ RESPOND WITH EXACTLY THIS JSON FORMAT (no markdown, no code blocks, just raw JSO
 
   const readTime = estimateReadTime(content);
   const publishedAt = new Date().toISOString();
+
+  // A cover image is part of publishing, never an optional extra: every other
+  // article on /blog has one, and the cards, the hero and the social preview
+  // all depend on it. No image -> nothing is published.
+  let imageUrl: string;
+  try {
+    const { createBlogCoverImage } = await import("@/lib/cron/blog-image.server");
+    imageUrl = await createBlogCoverImage(db, {
+      title: parsed.title,
+      excerpt: parsed.excerpt,
+      slug,
+    });
+  } catch (e) {
+    const reason = e instanceof Error ? e.message : "cover image failed";
+    failures.push(`cover image: ${reason}`);
+    return {
+      status: "failed",
+      changed: false,
+      summary: `Article “${parsed.title}” was written but not published: its cover image could not be created (${reason}). Nothing goes live without a picture.`,
+      title: parsed.title,
+      slug,
+      failures,
+    };
+  }
+
   const { error } = await db.from("blog_articles").insert({
     title: parsed.title,
     slug,
     category: "Fitness",
     excerpt: parsed.excerpt.slice(0, 300),
     content,
+    image_url: imageUrl,
     author_name: "Haris Falas",
     author_credentials: "Sports Scientist | CSCS Certified | 20+ Years Experience",
     read_time: readTime,
     is_published: true,
     published_at: publishedAt,
   } as never);
+
 
   if (error) {
     failures.push(error.message);
