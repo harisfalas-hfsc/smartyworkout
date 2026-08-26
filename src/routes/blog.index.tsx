@@ -35,11 +35,13 @@ export interface BlogListItem {
 }
 
 export type BlogSort = "newest" | "oldest";
+export type BlogReadFilter = "all" | "unread" | "read";
 
 const searchSchema = z.object({
   sort: z.enum(["newest", "oldest"]).optional(),
-  category: z.string().optional(),
+  status: z.enum(["all", "unread", "read"]).optional(),
 });
+
 
 export async function fetchPublishedArticles(): Promise<BlogListItem[]> {
   const { data, error } = await supabase
