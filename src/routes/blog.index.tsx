@@ -235,53 +235,71 @@ function BlogIndex() {
       )}
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((article) => (
-          <Link
-            key={article.id}
-            to="/blog/$slug"
-            params={{ slug: article.slug }}
-            className="block focus:outline-none"
-          >
-            <Card className="h-full overflow-hidden border-2 border-primary transition-all duration-300 hover:shadow-lg md:hover:scale-[1.02]">
-              {article.image_url && (
-                <div className="relative aspect-video overflow-hidden">
-                  <img
-                    src={article.image_url}
-                    alt={`${article.title} — SmartyWorkout fitness blog`}
-                    width={1280}
-                    height={720}
-                    loading="lazy"
-                    decoding="async"
-                    className="h-full w-full object-cover"
-                  />
-                  <span className="absolute right-3 top-3 rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
-                    {article.category}
-                  </span>
-                </div>
-              )}
-
-              <div className="p-5">
-                <h2 className="mb-2 line-clamp-2 text-xl font-bold">{article.title}</h2>
-                {article.excerpt && (
-                  <p className="mb-4 line-clamp-2 text-sm text-muted-foreground">
-                    {article.excerpt}
-                  </p>
+        {filtered.map((article) => {
+          const read = isRead(article.slug);
+          return (
+            <Card
+              key={article.id}
+              className="flex h-full flex-col overflow-hidden border-2 border-primary transition-all duration-300 hover:shadow-lg md:hover:scale-[1.02]"
+            >
+              <Link
+                to="/blog/$slug"
+                params={{ slug: article.slug }}
+                className="block flex-1 focus:outline-none"
+              >
+                {article.image_url && (
+                  <div className="relative aspect-video overflow-hidden">
+                    <img
+                      src={article.image_url}
+                      alt={`${article.title} — SmartyWorkout fitness blog`}
+                      width={1280}
+                      height={720}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover"
+                    />
+                    {read && (
+                      <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
+                        <Check className="h-3 w-3" />
+                        Read
+                      </span>
+                    )}
+                  </div>
                 )}
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    {article.read_time ?? "5 min read"}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    {formatDate(article.published_at ?? article.created_at)}
-                  </span>
+
+                <div className="p-5">
+                  <h2 className="mb-2 line-clamp-2 text-xl font-bold">{article.title}</h2>
+                  {article.excerpt && (
+                    <p className="mb-4 line-clamp-2 text-sm text-muted-foreground">
+                      {article.excerpt}
+                    </p>
+                  )}
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {article.read_time ?? "5 min read"}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      {formatDate(article.published_at ?? article.created_at)}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              </Link>
+
+              <button
+                type="button"
+                onClick={() => toggleRead(article.slug)}
+                aria-pressed={read}
+                className="mt-auto border-t-2 border-primary px-5 py-3 text-xs font-semibold text-primary hover:bg-primary/10"
+              >
+                {read ? "Mark as unread" : "Mark as read"}
+              </button>
             </Card>
-          </Link>
-        ))}
+          );
+        })}
       </div>
+
     </div>
   );
 }
