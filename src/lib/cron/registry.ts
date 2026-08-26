@@ -211,12 +211,21 @@ export const CRON_JOBS: CronJobDefinition[] = [
         title: "New Fitness article published on /blog",
         body: "The article goes live immediately, bylined Haris Falas, Sports Scientist, CSCS certified.",
       },
+      {
+        title: "Admin report email",
+        body: "Every published article is emailed to the admin address below with its title, what it is about, read time and how many members were notified.",
+      },
+      {
+        title: "Inbox notification for every member",
+        body: "“New article: <title>” lands in each member's inbox with a Read article link straight to the new post.",
+      },
     ],
     timeEditable: true,
     contentEditable: true,
     contentLabel: "Extra topics to write about",
     contentHelp:
       "One topic per line. These are added to the built-in topic rotation. Leave empty to use the built-in list only.",
+    settings: ["recipient"],
     runnable: true,
     weekday: 0,
     defaults: { enabled: false, hour: 0, minute: 0 },

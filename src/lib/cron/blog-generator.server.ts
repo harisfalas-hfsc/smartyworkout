@@ -5,6 +5,17 @@ import { TRAINING_TOPIC_SLUGS } from "@/lib/seo/training-topics";
 type DB = SupabaseClient;
 
 const MODEL = "google/gemini-2.5-pro";
+const SITE_BASE_URL = "https://smartyworkout.com";
+const DEFAULT_BLOG_RECIPIENT = "smartyworkout@outlook.com";
+const NOTIFY_BATCH = 200;
+const MAX_NOTIFY_MEMBERS = 5000;
+
+/** Admin recipient for the "article published" report (editable in the Admin panel). */
+export function blogRecipient(config?: CronJobConfig): string {
+  const raw = config?.content?.recipient;
+  const email = typeof raw === "string" ? raw.trim() : "";
+  return email || DEFAULT_BLOG_RECIPIENT;
+}
 const AI_TIMEOUT_MS = 90_000;
 
 export interface BlogGenerationResult {
@@ -13,6 +24,8 @@ export interface BlogGenerationResult {
   summary: string;
   title?: string;
   slug?: string;
+  notified?: number;
+  emailed?: boolean;
   failures: string[];
 }
 
@@ -302,6 +315,8 @@ RESPOND WITH EXACTLY THIS JSON FORMAT (no markdown, no code blocks, just raw JSO
     };
   }
 
+  const readTime = estimateReadTime(content);
+  const publishedAt = new Date().toISOString();
   const { error } = await db.from("blog_articles").insert({
     title: parsed.title,
     slug,
@@ -310,9 +325,9 @@ RESPOND WITH EXACTLY THIS JSON FORMAT (no markdown, no code blocks, just raw JSO
     content,
     author_name: "Haris Falas",
     author_credentials: "Sports Scientist | CSCS Certified | 20+ Years Experience",
-    read_time: estimateReadTime(content),
+    read_time: readTime,
     is_published: true,
-    published_at: new Date().toISOString(),
+    published_at: publishedAt,
   } as never);
 
   if (error) {
@@ -327,12 +342,107 @@ RESPOND WITH EXACTLY THIS JSON FORMAT (no markdown, no code blocks, just raw JSO
     };
   }
 
+  // Tell every member, in their inbox, with a link to the article.
+  const notified = await notifyMembers(db, {
+    title: parsed.title,
+    excerpt: parsed.excerpt,
+    slug,
+    failures,
+  });
+
+  // Tell the administrator what was published.
+  const emailed = await emailAdmin({
+    recipient: blogRecipient(options.config),
+    title: parsed.title,
+    excerpt: parsed.excerpt,
+    slug,
+    readTime,
+    publishedAt,
+    trigger: options.trigger,
+    notified,
+    failures,
+  });
+
   return {
     status: "ok",
     changed: true,
-    summary: `Published “${parsed.title}” (/blog/${slug}).`,
+    summary: `Published “${parsed.title}” (/blog/${slug}). ${notified} member${
+      notified === 1 ? "" : "s"
+    } notified in their inbox; admin report ${emailed ? "emailed" : "not emailed"}.`,
     title: parsed.title,
     slug,
+    notified,
+    emailed,
     failures,
   };
 }
+
+/** Inserts one inbox notification per member, in bounded batches. */
+async function notifyMembers(
+  db: DB,
+  args: { title: string; excerpt: string; slug: string; failures: string[] },
+): Promise<number> {
+  try {
+    const { data } = await db.from("profiles").select("id").limit(MAX_NOTIFY_MEMBERS);
+    const ids = ((data as { id: string }[] | null) ?? []).map((r) => r.id);
+    if (!ids.length) return 0;
+
+    const body = `${args.excerpt.slice(0, 240)} — tap “Read article” to open it.`;
+    let inserted = 0;
+    for (let i = 0; i < ids.length; i += NOTIFY_BATCH) {
+      const rows = ids.slice(i, i + NOTIFY_BATCH).map((id) => ({
+        user_id: id,
+        kind: "blog",
+        title: `New article: ${args.title}`,
+        body,
+        dedupe_key: `blog:${args.slug}`,
+      }));
+      // dedupe_key is uniquely indexed per user, so a re-run of the same slug
+      // simply fails the insert instead of double-notifying anyone.
+      const { error } = await db.from("notifications").insert(rows as never);
+      if (error) {
+        args.failures.push(`notify: ${error.message}`);
+        break;
+      }
+      inserted += rows.length;
+    }
+    return inserted;
+  } catch (e) {
+    args.failures.push(`notify: ${e instanceof Error ? e.message : "failed"}`);
+    return 0;
+  }
+}
+
+async function emailAdmin(args: {
+  recipient: string;
+  title: string;
+  excerpt: string;
+  slug: string;
+  readTime: string;
+  publishedAt: string;
+  trigger: "schedule" | "manual";
+  notified: number;
+  failures: string[];
+}): Promise<boolean> {
+  try {
+    const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
+    await sendTemplateEmail("blog-published", args.recipient, {
+      templateData: {
+        title: args.title,
+        excerpt: args.excerpt,
+        slug: args.slug,
+        url: `${SITE_BASE_URL}/blog/${args.slug}`,
+        readTime: args.readTime,
+        publishedAt: args.publishedAt,
+        trigger: args.trigger,
+        notified: args.notified,
+      },
+      idempotencyKey: `blog-published:${args.slug}`,
+    });
+    return true;
+  } catch (e) {
+    args.failures.push(`admin email: ${e instanceof Error ? e.message : "failed"}`);
+    return false;
+  }
+}
+

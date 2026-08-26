@@ -274,6 +274,15 @@ export function UpdatesPanel({ onUnread }: { onUnread?: (n: number) => void }) {
 
                 {isOpen && (
                   <div className="mt-3 flex flex-wrap items-center gap-2 pl-12">
+                    {n.kind === "blog" && n.dedupe_key?.startsWith("blog:") && (
+                      <Link
+                        to="/blog/$slug"
+                        params={{ slug: n.dedupe_key.slice("blog:".length) }}
+                        className="flex h-10 items-center rounded-xl bg-primary px-4 text-xs font-bold text-primary-foreground"
+                      >
+                        Read article
+                      </Link>
+                    )}
                     {n.workout_id && (
                       <Link
                         to="/workout/$workoutId"
