@@ -77,6 +77,60 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_articles: {
+        Row: {
+          author_credentials: string
+          author_id: string | null
+          author_name: string
+          category: string
+          content: string
+          created_at: string
+          excerpt: string | null
+          id: string
+          image_url: string | null
+          is_published: boolean
+          published_at: string | null
+          read_time: string | null
+          slug: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_credentials?: string
+          author_id?: string | null
+          author_name?: string
+          category?: string
+          content: string
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          image_url?: string | null
+          is_published?: boolean
+          published_at?: string | null
+          read_time?: string | null
+          slug: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_credentials?: string
+          author_id?: string | null
+          author_name?: string
+          category?: string
+          content?: string
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          image_url?: string | null
+          is_published?: boolean
+          published_at?: string | null
+          read_time?: string | null
+          slug?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       community_comments: {
         Row: {
           body: string
