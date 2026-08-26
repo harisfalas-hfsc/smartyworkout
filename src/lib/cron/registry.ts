@@ -209,7 +209,7 @@ export const CRON_JOBS: CronJobDefinition[] = [
     sends: [
       {
         title: "New Fitness article published on /blog",
-        body: "The article goes live immediately, bylined Haris Falas, Sports Scientist, CSCS certified.",
+        body: "The article goes live immediately with an AI-generated cover image, bylined Haris Falas, Sports Scientist, CSCS certified. If the cover image cannot be created, nothing is published — no article ever goes live without a picture.",
       },
       {
         title: "Admin report email",
