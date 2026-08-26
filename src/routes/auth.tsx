@@ -166,6 +166,10 @@ function Auth() {
     if (/invalid login credentials/i.test(message)) {
       return "Wrong email or password. Sign in with your email address (not a username). If you forgot it, use “Forgot password?”.";
     }
+    if (/email not confirmed/i.test(message)) {
+      return "Your email isn't confirmed yet. Open the confirmation link we emailed you (check spam), then sign in.";
+    }
+
     return message || fallback;
   }
 
