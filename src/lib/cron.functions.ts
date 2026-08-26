@@ -119,9 +119,31 @@ export const adminRunCronJob = createServerFn({ method: "POST" })
           return { status: report.status, summary: report.summary, emailed: report.emailed };
         }
 
+        if (data.key === "generate-weekly-blog-article") {
+          const config = await getCronConfig(db, "generate-weekly-blog-article");
+          const { runWeeklyBlogArticle } = await import("@/lib/cron/blog-generator.server");
+          const result = await runWeeklyBlogArticle(db, {
+            config,
+            trigger: "manual",
+            force: data.force ?? false,
+          });
+          await recordRun(db, {
+            jobKey: "generate-weekly-blog-article",
+            status: result.status,
+            changed: result.changed,
+            summary: result.summary,
+            details: { failures: result.failures },
+            trigger: "manual",
+          });
+          if (result.status === "ok")
+            await markJobRan(db, "generate-weekly-blog-article", config);
+          return { status: result.status, summary: result.summary };
+        }
+
         if (data.key !== "seo-refresh") {
           return { error: "This job cannot be run on demand." };
         }
+
         const config = await getCronConfig(db, "seo-refresh");
         const { runSeoRefresh } = await import("@/lib/cron/seo-refresh.server");
         const result = await runSeoRefresh(db, {
