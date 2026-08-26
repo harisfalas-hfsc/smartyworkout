@@ -163,7 +163,7 @@ function BlogIndex() {
       <div className="mb-6 flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <span className="hidden sm:inline">Sort:</span>
-          <Select value={search.sort} onValueChange={(v) => update({ sort: v as BlogSort })}>
+          <Select value={sort} onValueChange={(v) => update({ sort: v as BlogSort })}>
             <SelectTrigger
               aria-label="Sort articles"
               className="h-10 w-[150px] rounded-xl border-2 border-primary text-sm font-semibold"
