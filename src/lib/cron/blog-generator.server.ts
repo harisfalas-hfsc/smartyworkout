@@ -5,6 +5,17 @@ import { TRAINING_TOPIC_SLUGS } from "@/lib/seo/training-topics";
 type DB = SupabaseClient;
 
 const MODEL = "google/gemini-2.5-pro";
+const SITE_BASE_URL = "https://smartyworkout.com";
+const DEFAULT_BLOG_RECIPIENT = "smartyworkout@outlook.com";
+const NOTIFY_BATCH = 200;
+const MAX_NOTIFY_MEMBERS = 5000;
+
+/** Admin recipient for the "article published" report (editable in the Admin panel). */
+export function blogRecipient(config?: CronJobConfig): string {
+  const raw = config?.content?.recipient;
+  const email = typeof raw === "string" ? raw.trim() : "";
+  return email || DEFAULT_BLOG_RECIPIENT;
+}
 const AI_TIMEOUT_MS = 90_000;
 
 export interface BlogGenerationResult {
@@ -13,6 +24,8 @@ export interface BlogGenerationResult {
   summary: string;
   title?: string;
   slug?: string;
+  notified?: number;
+  emailed?: boolean;
   failures: string[];
 }
 
