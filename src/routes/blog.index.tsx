@@ -182,7 +182,7 @@ function BlogIndex() {
             <span className="hidden sm:inline">Filter:</span>
             <Select
               value={selectedCategory || "all"}
-              onValueChange={(v) => update({ category: v === "all" ? "" : v })}
+              onValueChange={(v) => update({ category: v === "all" ? undefined : v })}
             >
               <SelectTrigger
                 aria-label="Filter by category"
