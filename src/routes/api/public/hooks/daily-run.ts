@@ -272,8 +272,10 @@ export const Route = createFileRoute("/api/public/hooks/daily-run")({
           scheduleReminders,
           seo,
           health,
+          blog,
           failures,
         });
+
       },
     },
   },
