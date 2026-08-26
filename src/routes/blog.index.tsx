@@ -37,8 +37,8 @@ export interface BlogListItem {
 export type BlogSort = "newest" | "oldest";
 
 const searchSchema = z.object({
-  sort: fallback(z.enum(["newest", "oldest"]), "newest" as const).default("newest"),
-  category: fallback(z.string(), "").default(""),
+  sort: z.enum(["newest", "oldest"]).optional(),
+  category: z.string().optional(),
 });
 
 export async function fetchPublishedArticles(): Promise<BlogListItem[]> {
