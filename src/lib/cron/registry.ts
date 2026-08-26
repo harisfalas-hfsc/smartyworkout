@@ -13,9 +13,10 @@ export type CronJobKey =
   | "renewal-reminders"
   | "seo-refresh"
   | "health-check"
-  | "error-alerts";
+  | "error-alerts"
+  | "generate-weekly-blog-article";
 
-export type CronTiming = "per-member" | "fixed" | "continuous";
+export type CronTiming = "per-member" | "fixed" | "weekly" | "continuous";
 
 export interface CronJobDefinition {
   key: CronJobKey;
@@ -37,12 +38,15 @@ export interface CronJobDefinition {
   settings?: ("recipient" | "checks" | "severity" | "groupWindow")[];
   /** Whether the job can be triggered on demand from the admin panel. */
   runnable?: boolean;
+  /** Weekly jobs only: day of week, 0 = Sunday. */
+  weekday?: number;
   defaults: {
     enabled: boolean;
     hour: number;
     minute: number;
   };
 }
+
 
 export const CRON_JOBS: CronJobDefinition[] = [
   {
