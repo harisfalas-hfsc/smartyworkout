@@ -188,7 +188,7 @@ export const listNotifications = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data } = await context.supabase
       .from("notifications")
-      .select("id,kind,title,body,workout_id,read_at,created_at")
+      .select("id,kind,title,body,workout_id,dedupe_key,read_at,created_at")
       .eq("user_id", context.userId)
       // Admin-only alerts (reports, inbound support) belong in the Admin panel,
       // never in the member's personal inbox — even when the member is an admin.
@@ -202,6 +202,7 @@ export const listNotifications = createServerFn({ method: "GET" })
         title: string;
         body: string | null;
         workout_id: string | null;
+        dedupe_key: string | null;
         read_at: string | null;
         created_at: string;
       }> | null) ?? [];
