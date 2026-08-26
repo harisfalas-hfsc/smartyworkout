@@ -12,11 +12,13 @@ import {
   Save,
   Search,
   XCircle,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Textarea } from "@/components/ui/textarea";
 import {
   adminGetCronJobs,
@@ -222,7 +224,7 @@ export function AdminCronTab() {
         const enabled = config?.enabled ?? def.defaults.enabled;
         const hour = config?.hour ?? def.defaults.hour;
         const minute = config?.minute ?? def.defaults.minute;
-        const jobRuns = runs.filter((r) => r.job_key === def.key).slice(0, 5);
+        const jobRuns = runs.filter((r) => r.job_key === def.key).slice(0, 10);
 
         return (
           <div key={def.key} className="space-y-4 rounded-2xl border-2 border-blue-400 bg-card p-4">
@@ -297,6 +299,14 @@ export function AdminCronTab() {
               ) : null}
             </div>
 
+            <Collapsible>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between px-2">
+                  Message and settings
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-2 space-y-3">
             <div className="rounded-xl border border-border/60 bg-muted/30 p-3 text-sm">
               <div className="flex items-center gap-2 font-semibold">
                 <Mail className="h-4 w-4 text-primary" /> Exactly what is sent
@@ -417,6 +427,8 @@ export function AdminCronTab() {
                 </Button>
               </div>
             ) : null}
+              </CollapsibleContent>
+            </Collapsible>
 
             {def.key === "health-check" ? (
               <div className="flex flex-wrap gap-2">
@@ -463,11 +475,11 @@ export function AdminCronTab() {
             ) : null}
 
             <div className="text-sm">
-              <p className="font-semibold">Recent runs</p>
+              <p className="font-semibold">Latest activity</p>
               {jobRuns.length === 0 ? (
-                <p className="text-muted-foreground">No runs recorded yet.</p>
+                <p className="text-muted-foreground">No activity has been logged for this job yet. Existing workouts do not count as scheduler history.</p>
               ) : (
-                <ul className="mt-1 space-y-1">
+                <ul className="mt-2 max-h-40 space-y-2 overflow-y-auto pr-2">
                   {jobRuns.map((r) => (
                     <li key={r.id} className="flex items-start gap-2 text-muted-foreground">
                       {r.status === "ok" ? (

@@ -19,7 +19,7 @@ export const Route = createFileRoute("/api/public/blog-cover/$file")({
         const { data, error } = await supabaseAdmin.storage.from("blog-images").download(file);
         if (error || !data) return new Response("Not found", { status: 404 });
 
-        const ext = file.split(".").pop()!.toLowerCase();
+        const ext = file.split(".").pop()?.toLowerCase() ?? "";
         const type =
           ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : "image/jpeg";
         return new Response(await data.arrayBuffer(), {

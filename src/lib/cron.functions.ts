@@ -35,7 +35,7 @@ export const adminGetCronJobs = createServerFn({ method: "POST" })
       const { readKeywordIndex } = await import("@/lib/seo/keyword-index.server");
       const [configs, runs, index] = await Promise.all([
         getCronConfigs(db),
-        listRuns(db, 40),
+        listRuns(db, 200),
         readKeywordIndex(),
       ]);
       return {

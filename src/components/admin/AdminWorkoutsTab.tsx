@@ -12,9 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ExerciseHTMLContent } from "@/components/workout/ExerciseHTMLContent";
-import { ExerciseMediaProvider } from "@/components/workout/ExerciseMediaProvider";
-import { uniqueTokenIds } from "@/lib/workout/tokens";
+import { WorkoutDisplay } from "@/components/workout/WorkoutDisplay";
 import {
   adminListWorkouts,
   adminGetWorkout,
@@ -119,23 +117,6 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openId]);
-
-  const detailIds = useMemo(
-    () =>
-      detail
-        ? uniqueTokenIds(
-            [
-              detail.description_html,
-              detail.main_workout,
-              detail.instructions_html,
-              detail.tips_html,
-            ]
-              .filter(Boolean)
-              .join(" "),
-          )
-        : [],
-    [detail],
-  );
 
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const activeFilters = useMemo(
@@ -361,8 +342,8 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
       )}
 
       <Dialog open={Boolean(openId)} onOpenChange={(o) => !o && setOpenId(null)}>
-        <DialogContent className="max-h-[90dvh] w-[calc(100vw-1.5rem)] max-w-[720px] overflow-y-auto overflow-x-hidden sm:w-full">
-          <DialogHeader>
+        <DialogContent className="max-h-[95dvh] w-[calc(100vw-1rem)] max-w-6xl overflow-y-auto overflow-x-hidden p-0 sm:w-full">
+          <DialogHeader className="px-4 pt-4">
             <DialogTitle className="break-words pr-8 text-left text-base">
               {detail?.name ?? "Workout"}
             </DialogTitle>
@@ -372,19 +353,10 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
             </div>
           ) : (
-            <ExerciseMediaProvider ids={detailIds}>
-              <div className="min-w-0 space-y-4 break-words text-sm">
-                <div className="flex flex-wrap gap-1.5">
-                  <Badge variant="secondary">{detail.category}</Badge>
-                  {detail.focus && <Badge variant="outline">{detail.focus}</Badge>}
-                  <Badge variant="outline">{detail.duration_min} min</Badge>
-                  <Badge variant="outline">
-                    {detail.difficulty_label ?? `${detail.difficulty_stars}★`}
-                  </Badge>
-                  <Badge variant={detail.is_wod ? "default" : "outline"}>
-                    {detail.is_wod ? "Workout of the Day" : "By request"}
-                  </Badge>
-                </div>
+            <div className="min-w-0">
+              <div className="mx-4 rounded-xl border border-border bg-muted/30 p-3 text-sm">
+                <p className="font-semibold">Administrator preview</p>
+                <p className="text-muted-foreground">This is the same workout page and player the member sees. Preview actions never change the member’s workout or performance history.</p>
                 <MemberLine
                   name={detail.user_name}
                   email={detail.user_email}
@@ -392,32 +364,12 @@ export function AdminWorkoutsTab({ userId, title }: Props) {
                   createdAt={detail.created_at}
                   wodDate={detail.is_wod ? detail.wod_date : null}
                 />
-                {detail.description_html && (
-                  <Section title="Description" html={detail.description_html} />
-                )}
-                {detail.main_workout && <Section title="Workout" html={detail.main_workout} />}
-                {detail.instructions_html && (
-                  <Section title="Instructions" html={detail.instructions_html} />
-                )}
-                {detail.tips_html && <Section title="Tips" html={detail.tips_html} />}
               </div>
-            </ExerciseMediaProvider>
+              <WorkoutDisplay workout={detail} previewMode onComplete={() => {}} />
+            </div>
           )}
         </DialogContent>
       </Dialog>
-    </div>
-  );
-}
-
-function Section({ title, html }: { title: string; html: string }) {
-  return (
-    <div className="min-w-0 overflow-hidden rounded-2xl border-2 border-blue-400 bg-card p-3">
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        {title}
-      </p>
-      <div className="min-w-0 break-words [&_*]:max-w-full [&_img]:h-auto [&_pre]:overflow-x-auto [&_table]:block [&_table]:overflow-x-auto">
-        <ExerciseHTMLContent html={html} onOpenExercise={() => {}} />
-      </div>
     </div>
   );
 }

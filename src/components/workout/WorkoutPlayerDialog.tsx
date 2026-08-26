@@ -55,6 +55,7 @@ export function WorkoutPlayerDialog({
   category = null,
   format = null,
   html = null,
+  previewMode = false,
   onFinish,
 }: {
   open: boolean;
@@ -66,6 +67,7 @@ export function WorkoutPlayerDialog({
   category?: string | null;
   format?: string | null;
   html?: string | null;
+  previewMode?: boolean;
   onFinish: () => void;
 }) {
   const slides = useMemo(() => buildSlides(steps, softTissue), [steps, softTissue]);
@@ -119,7 +121,7 @@ export function WorkoutPlayerDialog({
 
   // Each run of a workout is its own attempt, so repeats never overwrite history.
   useEffect(() => {
-    if (!open) return;
+    if (!open || previewMode) return;
     let active = true;
     if (!user) return;
     createLocalAttempt(user.id, workoutId)
@@ -133,7 +135,7 @@ export function WorkoutPlayerDialog({
     return () => {
       active = false;
     };
-  }, [open, workoutId, user?.id]);
+  }, [open, workoutId, user?.id, previewMode]);
 
   // The phone back button steps back one slide instead of quitting the session.
   useEffect(() => {
@@ -236,6 +238,12 @@ export function WorkoutPlayerDialog({
       toast.error("Nothing to log yet — add a value first.");
       return;
     }
+    if (previewMode) {
+      const setNumber = (logged[index] ?? 0) + 1;
+      setLogged((prev) => ({ ...prev, [index]: setNumber }));
+      toast.success(`Previewed set ${setNumber} — no member data was changed.`);
+      return;
+    }
     setSavingSet(true);
     if (!user) {
       setSavingSet(false);
@@ -299,6 +307,7 @@ export function WorkoutPlayerDialog({
    */
   async function closePlayer() {
     onOpenChange(false);
+    if (previewMode) return;
     if (!loggedAnythingRef.current) return;
     loggedAnythingRef.current = false;
     if (user) {
@@ -320,6 +329,10 @@ export function WorkoutPlayerDialog({
   }
 
   function finishWorkout() {
+    if (previewMode) {
+      onOpenChange(false);
+      return;
+    }
     setRecapOpen(true);
   }
 

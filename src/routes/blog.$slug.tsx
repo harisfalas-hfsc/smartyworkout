@@ -10,6 +10,12 @@ import { supabase } from "@/integrations/supabase/client";
 
 const SITE = "https://smartyworkout.com";
 
+function displayImageUrl(url: string): string {
+  return url.startsWith(`${SITE}/api/public/blog-cover/`)
+    ? url.slice(SITE.length)
+    : url;
+}
+
 interface Article {
   id: string;
   title: string;
@@ -235,7 +241,7 @@ function ArticleDetail() {
             {article.image_url && (
               <div className="relative aspect-[16/9] w-full overflow-hidden rounded-lg shadow-lg md:h-full md:min-h-0">
                 <img
-                  src={article.image_url}
+                  src={displayImageUrl(article.image_url)}
                   alt={article.title}
                   width={1280}
                   height={720}

@@ -277,14 +277,14 @@ function AdminHub({
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="Members" value={stats?.totalUsers} />
-        <Stat label="Premium" value={stats?.activeSubscribers} />
-        <Stat label="MRR (EUR)" value={stats?.mrrEur} />
-        <Stat label="New (30d)" value={stats?.newUsers30d} />
-        <Stat label="Workouts" value={stats?.workoutsTotal} />
-        <Stat label="Today" value={stats?.workoutsToday} />
-        <Stat label="Completed" value={stats?.workoutsCompleted} />
-        <Stat label="WOD members" value={stats?.wodSubscribers} />
+        <Stat label="All members" value={stats?.totalUsers} help="Every registered member account." />
+        <Stat label="Paying members" value={stats?.activeSubscribers} help="Members with an active or trial membership." />
+        <Stat label="Est. monthly revenue" value={stats?.mrrEur} suffix=" EUR" help="Active paying members × the current monthly price. This is an estimate, not settled payments." />
+        <Stat label="New members · 30 days" value={stats?.newUsers30d} help="Accounts created during the last 30 days." />
+        <Stat label="All workouts" value={stats?.workoutsTotal} help="Every workout generated for every member." />
+        <Stat label="Workouts created today" value={stats?.workoutsToday} help="Workouts generated since midnight today." />
+        <Stat label="Completed workouts" value={stats?.workoutsCompleted} help="Workouts members have marked completed." />
+        <Stat label="WOD auto-delivery members" value={stats?.wodSubscribers} help="Members who currently have Workout of the Day auto-delivery switched on." />
       </div>
 
       {unreadMessages > 0 && (
@@ -344,13 +344,24 @@ function AdminHub({
   );
 }
 
-function Stat({ label, value }: { label: string; value?: number }) {
+function Stat({
+  label,
+  value,
+  suffix = "",
+  help,
+}: {
+  label: string;
+  value?: number;
+  suffix?: string;
+  help: string;
+}) {
   return (
-    <div className="rounded-2xl border-2 border-blue-400 bg-card p-4">
-      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+    <div className="rounded-2xl border-2 border-blue-400 bg-card p-4" title={help}>
+      <p className="text-sm font-semibold leading-tight">{label}</p>
       <p className="mt-1 text-2xl font-extrabold">
-        {value === undefined ? "—" : value.toLocaleString()}
+        {value === undefined ? "—" : `${value.toLocaleString()}${suffix}`}
       </p>
+      <p className="mt-1 text-xs leading-snug text-muted-foreground">{help}</p>
     </div>
   );
 }

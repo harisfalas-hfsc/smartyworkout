@@ -20,6 +20,12 @@ import { supabase } from "@/integrations/supabase/client";
 const SITE = "https://smartyworkout.com";
 const URL = `${SITE}/blog`;
 
+function displayImageUrl(url: string): string {
+  return url.startsWith(`${SITE}/api/public/blog-cover/`)
+    ? url.slice(SITE.length)
+    : url;
+}
+
 const TITLE = "Fitness Blog — Evidence-Based Training Articles | SmartyWorkout";
 const DESCRIPTION =
   "Practical, evidence-based fitness articles from Haris Falas, Sports Scientist and CSCS: strength, conditioning, mobility, recovery and smarter training at home or in the gym.";
@@ -250,7 +256,7 @@ function BlogIndex() {
                 {article.image_url && (
                   <div className="relative aspect-video overflow-hidden">
                     <img
-                      src={article.image_url}
+                      src={displayImageUrl(article.image_url)}
                       alt={`${article.title} — SmartyWorkout fitness blog`}
                       width={1280}
                       height={720}

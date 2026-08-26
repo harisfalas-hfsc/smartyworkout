@@ -158,12 +158,18 @@ export async function recordRun(
       details: row.details ?? {},
       trigger: row.trigger ?? "schedule",
     } as never);
+    // Keep operational history useful and bounded instead of allowing this
+    // table to grow forever. The admin only needs recent diagnostics.
+    await db
+      .from("cron_runs")
+      .delete()
+      .lt("ran_at", new Date(Date.now() - 90 * 86_400_000).toISOString());
   } catch (e) {
     console.error("[cron] failed to record run", e);
   }
 }
 
-export async function listRuns(db: DB, limit = 40): Promise<CronRunRow[]> {
+export async function listRuns(db: DB, limit = 200): Promise<CronRunRow[]> {
   const { data } = await db
     .from("cron_runs")
     .select("*")
