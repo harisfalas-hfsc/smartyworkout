@@ -40,6 +40,7 @@ import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedProgressRouteImport } from './routes/_authenticated/progress'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminExerciseLibraryRouteImport } from './routes/admin.exercise-library'
+import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as CommunityIndexRouteImport } from './routes/community.index'
 import { Route as CommunityWorkoutsRouteImport } from './routes/community.workouts'
 import { Route as ToolsIndexRouteImport } from './routes/tools.index'
@@ -214,6 +215,11 @@ const AdminExerciseLibraryRoute = AdminExerciseLibraryRouteImport.update({
   path: '/admin/exercise-library',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CommunityIndexRoute = CommunityIndexRouteImport.update({
   id: '/community/',
   path: '/community/',
@@ -347,6 +353,7 @@ export interface FileRoutesByFullPath {
   '/training/$slug': typeof TrainingSlugRoute
   '/w/$workoutId': typeof WWorkoutIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/blog/': typeof BlogIndexRoute
   '/community/': typeof CommunityIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/training/': typeof TrainingIndexRoute
@@ -397,6 +404,7 @@ export interface FileRoutesByTo {
   '/training/$slug': typeof TrainingSlugRoute
   '/w/$workoutId': typeof WWorkoutIdRoute
   '/admin': typeof AdminIndexRoute
+  '/blog': typeof BlogIndexRoute
   '/community': typeof CommunityIndexRoute
   '/tools': typeof ToolsIndexRoute
   '/training': typeof TrainingIndexRoute
@@ -449,6 +457,7 @@ export interface FileRoutesById {
   '/training/$slug': typeof TrainingSlugRoute
   '/w/$workoutId': typeof WWorkoutIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/blog/': typeof BlogIndexRoute
   '/community/': typeof CommunityIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/training/': typeof TrainingIndexRoute
@@ -501,6 +510,7 @@ export interface FileRouteTypes {
     | '/training/$slug'
     | '/w/$workoutId'
     | '/admin/'
+    | '/blog/'
     | '/community/'
     | '/tools/'
     | '/training/'
@@ -551,6 +561,7 @@ export interface FileRouteTypes {
     | '/training/$slug'
     | '/w/$workoutId'
     | '/admin'
+    | '/blog'
     | '/community'
     | '/tools'
     | '/training'
@@ -602,6 +613,7 @@ export interface FileRouteTypes {
     | '/training/$slug'
     | '/w/$workoutId'
     | '/admin/'
+    | '/blog/'
     | '/community/'
     | '/tools/'
     | '/training/'
@@ -645,6 +657,7 @@ export interface RootRouteChildren {
   TrainingSlugRoute: typeof TrainingSlugRoute
   WWorkoutIdRoute: typeof WWorkoutIdRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  BlogIndexRoute: typeof BlogIndexRoute
   CommunityIndexRoute: typeof CommunityIndexRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
   TrainingIndexRoute: typeof TrainingIndexRoute
@@ -876,6 +889,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminExerciseLibraryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/community/': {
       id: '/community/'
       path: '/community'
@@ -1076,6 +1096,7 @@ const rootRouteChildren: RootRouteChildren = {
   TrainingSlugRoute: TrainingSlugRoute,
   WWorkoutIdRoute: WWorkoutIdRoute,
   AdminIndexRoute: AdminIndexRoute,
+  BlogIndexRoute: BlogIndexRoute,
   CommunityIndexRoute: CommunityIndexRoute,
   ToolsIndexRoute: ToolsIndexRoute,
   TrainingIndexRoute: TrainingIndexRoute,
