@@ -13,9 +13,10 @@ export type CronJobKey =
   | "renewal-reminders"
   | "seo-refresh"
   | "health-check"
-  | "error-alerts";
+  | "error-alerts"
+  | "generate-weekly-blog-article";
 
-export type CronTiming = "per-member" | "fixed" | "continuous";
+export type CronTiming = "per-member" | "fixed" | "weekly" | "continuous";
 
 export interface CronJobDefinition {
   key: CronJobKey;
@@ -37,12 +38,15 @@ export interface CronJobDefinition {
   settings?: ("recipient" | "checks" | "severity" | "groupWindow")[];
   /** Whether the job can be triggered on demand from the admin panel. */
   runnable?: boolean;
+  /** Weekly jobs only: day of week, 0 = Sunday. */
+  weekday?: number;
   defaults: {
     enabled: boolean;
     hour: number;
     minute: number;
   };
 }
+
 
 export const CRON_JOBS: CronJobDefinition[] = [
   {
@@ -195,7 +199,30 @@ export const CRON_JOBS: CronJobDefinition[] = [
     settings: ["recipient", "severity", "groupWindow"],
     defaults: { enabled: true, hour: 0, minute: 0 },
   },
+  {
+    key: "generate-weekly-blog-article",
+    label: "Weekly blog article",
+    description:
+      "Writes and publishes one brand-new Fitness article on the Blog every week, in the SmartyWorkout voice, with an SEO title, summary and internal links to real pages only. Titles used in the last 90 days are never repeated, and if an article was already published this week the job stops without posting a second one.",
+    timing: "weekly",
+    timingNote: "Runs once a week, on Sunday at the time set below (site timezone).",
+    sends: [
+      {
+        title: "New Fitness article published on /blog",
+        body: "The article goes live immediately, bylined Haris Falas, Sports Scientist, CSCS certified.",
+      },
+    ],
+    timeEditable: true,
+    contentEditable: true,
+    contentLabel: "Extra topics to write about",
+    contentHelp:
+      "One topic per line. These are added to the built-in topic rotation. Leave empty to use the built-in list only.",
+    runnable: true,
+    weekday: 0,
+    defaults: { enabled: false, hour: 0, minute: 0 },
+  },
 ];
+
 
 export const CRON_JOB_BY_KEY: Record<string, CronJobDefinition> = Object.fromEntries(
   CRON_JOBS.map((j) => [j.key, j]),

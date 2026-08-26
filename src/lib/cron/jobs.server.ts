@@ -88,13 +88,26 @@ export async function saveCronConfig(
   return getCronConfig(db, key as CronJobKey);
 }
 
-/** True when a fixed-time job should run now and has not already run today. */
+/** Day of week (0 = Sunday) in the given timezone. */
+function localWeekday(now: Date, timeZone: string): number {
+  const name = new Intl.DateTimeFormat("en-US", { timeZone, weekday: "short" }).format(now);
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  return Math.max(0, days.indexOf(name));
+}
+
+/**
+ * True when a scheduled job should run now and has not already run today.
+ * Weekly jobs additionally only run on their registry weekday (Sunday by default).
+ */
 export function isDueNow(config: CronJobConfig, now = new Date()): boolean {
   if (!config.enabled) return false;
   const tz = config.timezone || SITE_TIMEZONE;
   if (localHour(now, tz) !== config.hour) return false;
+  const def = CRON_JOB_BY_KEY[config.key];
+  if (def?.timing === "weekly" && localWeekday(now, tz) !== (def.weekday ?? 0)) return false;
   return config.last_run_on !== localDateISO(now, tz);
 }
+
 
 export async function markJobRan(db: DB, key: string, config: CronJobConfig, now = new Date()) {
   await db

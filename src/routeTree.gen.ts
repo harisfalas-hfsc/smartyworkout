@@ -40,6 +40,8 @@ import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedProgressRouteImport } from './routes/_authenticated/progress'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminExerciseLibraryRouteImport } from './routes/admin.exercise-library'
+import { Route as BlogIndexRouteImport } from './routes/blog.index'
+import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as CommunityIndexRouteImport } from './routes/community.index'
 import { Route as CommunityWorkoutsRouteImport } from './routes/community.workouts'
 import { Route as ToolsIndexRouteImport } from './routes/tools.index'
@@ -214,6 +216,16 @@ const AdminExerciseLibraryRoute = AdminExerciseLibraryRouteImport.update({
   path: '/admin/exercise-library',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/blog/$slug',
+  path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CommunityIndexRoute = CommunityIndexRouteImport.update({
   id: '/community/',
   path: '/community/',
@@ -340,6 +352,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRoute
   '/progress': typeof AuthenticatedProgressRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/community/workouts': typeof CommunityWorkoutsRoute
   '/tools/1rm-calculator': typeof Tools1rmCalculatorRoute
   '/tools/rounds-tracker': typeof ToolsRoundsTrackerRoute
@@ -347,6 +360,7 @@ export interface FileRoutesByFullPath {
   '/training/$slug': typeof TrainingSlugRoute
   '/w/$workoutId': typeof WWorkoutIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/blog/': typeof BlogIndexRoute
   '/community/': typeof CommunityIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/training/': typeof TrainingIndexRoute
@@ -390,6 +404,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileRoute
   '/progress': typeof AuthenticatedProgressRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/community/workouts': typeof CommunityWorkoutsRoute
   '/tools/1rm-calculator': typeof Tools1rmCalculatorRoute
   '/tools/rounds-tracker': typeof ToolsRoundsTrackerRoute
@@ -397,6 +412,7 @@ export interface FileRoutesByTo {
   '/training/$slug': typeof TrainingSlugRoute
   '/w/$workoutId': typeof WWorkoutIdRoute
   '/admin': typeof AdminIndexRoute
+  '/blog': typeof BlogIndexRoute
   '/community': typeof CommunityIndexRoute
   '/tools': typeof ToolsIndexRoute
   '/training': typeof TrainingIndexRoute
@@ -442,6 +458,7 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/progress': typeof AuthenticatedProgressRoute
   '/admin/exercise-library': typeof AdminExerciseLibraryRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/community/workouts': typeof CommunityWorkoutsRoute
   '/tools/1rm-calculator': typeof Tools1rmCalculatorRoute
   '/tools/rounds-tracker': typeof ToolsRoundsTrackerRoute
@@ -449,6 +466,7 @@ export interface FileRoutesById {
   '/training/$slug': typeof TrainingSlugRoute
   '/w/$workoutId': typeof WWorkoutIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/blog/': typeof BlogIndexRoute
   '/community/': typeof CommunityIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/training/': typeof TrainingIndexRoute
@@ -494,6 +512,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/progress'
     | '/admin/exercise-library'
+    | '/blog/$slug'
     | '/community/workouts'
     | '/tools/1rm-calculator'
     | '/tools/rounds-tracker'
@@ -501,6 +520,7 @@ export interface FileRouteTypes {
     | '/training/$slug'
     | '/w/$workoutId'
     | '/admin/'
+    | '/blog/'
     | '/community/'
     | '/tools/'
     | '/training/'
@@ -544,6 +564,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/progress'
     | '/admin/exercise-library'
+    | '/blog/$slug'
     | '/community/workouts'
     | '/tools/1rm-calculator'
     | '/tools/rounds-tracker'
@@ -551,6 +572,7 @@ export interface FileRouteTypes {
     | '/training/$slug'
     | '/w/$workoutId'
     | '/admin'
+    | '/blog'
     | '/community'
     | '/tools'
     | '/training'
@@ -595,6 +617,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/_authenticated/progress'
     | '/admin/exercise-library'
+    | '/blog/$slug'
     | '/community/workouts'
     | '/tools/1rm-calculator'
     | '/tools/rounds-tracker'
@@ -602,6 +625,7 @@ export interface FileRouteTypes {
     | '/training/$slug'
     | '/w/$workoutId'
     | '/admin/'
+    | '/blog/'
     | '/community/'
     | '/tools/'
     | '/training/'
@@ -638,6 +662,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   WodRoute: typeof WodRoute
   AdminExerciseLibraryRoute: typeof AdminExerciseLibraryRoute
+  BlogSlugRoute: typeof BlogSlugRoute
   CommunityWorkoutsRoute: typeof CommunityWorkoutsRoute
   Tools1rmCalculatorRoute: typeof Tools1rmCalculatorRoute
   ToolsRoundsTrackerRoute: typeof ToolsRoundsTrackerRoute
@@ -645,6 +670,7 @@ export interface RootRouteChildren {
   TrainingSlugRoute: typeof TrainingSlugRoute
   WWorkoutIdRoute: typeof WWorkoutIdRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  BlogIndexRoute: typeof BlogIndexRoute
   CommunityIndexRoute: typeof CommunityIndexRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
   TrainingIndexRoute: typeof TrainingIndexRoute
@@ -876,6 +902,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminExerciseLibraryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/blog/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/community/': {
       id: '/community/'
       path: '/community'
@@ -1069,6 +1109,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   WodRoute: WodRoute,
   AdminExerciseLibraryRoute: AdminExerciseLibraryRoute,
+  BlogSlugRoute: BlogSlugRoute,
   CommunityWorkoutsRoute: CommunityWorkoutsRoute,
   Tools1rmCalculatorRoute: Tools1rmCalculatorRoute,
   ToolsRoundsTrackerRoute: ToolsRoundsTrackerRoute,
@@ -1076,6 +1117,7 @@ const rootRouteChildren: RootRouteChildren = {
   TrainingSlugRoute: TrainingSlugRoute,
   WWorkoutIdRoute: WWorkoutIdRoute,
   AdminIndexRoute: AdminIndexRoute,
+  BlogIndexRoute: BlogIndexRoute,
   CommunityIndexRoute: CommunityIndexRoute,
   ToolsIndexRoute: ToolsIndexRoute,
   TrainingIndexRoute: TrainingIndexRoute,

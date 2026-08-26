@@ -165,6 +165,41 @@ export const Route = createFileRoute("/api/public/hooks/daily-run")({
           }
         }
 
+        // Weekly blog article — Sunday at the fixed time set in the Admin panel.
+        let blog: { status: string; summary: string } | null = null;
+        const blogConfig = jobs["generate-weekly-blog-article"];
+        if (blogConfig && isDueNow(blogConfig)) {
+          try {
+            const { runWeeklyBlogArticle } = await import("@/lib/cron/blog-generator.server");
+            const result = await runWeeklyBlogArticle(db, {
+              config: blogConfig,
+              trigger: "schedule",
+            });
+            blog = { status: result.status, summary: result.summary };
+            await recordRun(db, {
+              jobKey: "generate-weekly-blog-article",
+              status: result.status,
+              changed: result.changed,
+              summary: result.summary,
+              details: { failures: result.failures },
+              trigger: "schedule",
+            });
+            if (result.status !== "failed")
+              await markJobRan(db, "generate-weekly-blog-article", blogConfig);
+          } catch (e) {
+            const message = e instanceof Error ? e.message : "error";
+            failures.push(`blog:${message}`);
+            await recordRun(db, {
+              jobKey: "generate-weekly-blog-article",
+              status: "failed",
+              summary: `Weekly blog article crashed: ${message}`,
+              trigger: "schedule",
+            });
+          }
+        }
+
+
+
         // Nightly system health check — fixed time, once a day, always emailed.
         let health: { status: string; summary: string } | null = null;
         const healthConfig = jobs["health-check"];
@@ -237,8 +272,10 @@ export const Route = createFileRoute("/api/public/hooks/daily-run")({
           scheduleReminders,
           seo,
           health,
+          blog,
           failures,
         });
+
       },
     },
   },

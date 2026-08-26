@@ -40,7 +40,9 @@ const ENTRIES: SitemapEntry[] = [
 
 
 
+  { path: "/blog", changefreq: "weekly", priority: "0.85" },
   { path: "/tools", changefreq: "monthly", priority: "0.8" },
+
   { path: "/tools/workout-timer", changefreq: "monthly", priority: "0.8" },
   { path: "/tools/rounds-tracker", changefreq: "monthly", priority: "0.8" },
   { path: "/tools/1rm-calculator", changefreq: "monthly", priority: "0.8" },
