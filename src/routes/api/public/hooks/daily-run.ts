@@ -253,14 +253,29 @@ export const Route = createFileRoute("/api/public/hooks/daily-run")({
         }
 
         // One history row per hourly tick for the member-facing jobs.
-        if (motivations || workouts || renewalReminders || scheduleReminders || failures.length) {
+        if (motivations || failures.some((f) => f.startsWith("motivation:"))) {
           await recordRun(db, {
             jobKey: "daily-motivation",
-            status: failures.length ? "failed" : "ok",
+            status: failures.some((f) => f.startsWith("motivation:")) ? "failed" : "ok",
             changed: motivations > 0,
-            summary: `${motivations} motivation message(s), ${workouts} workout(s) built, ${scheduleReminders} schedule reminder(s), ${renewalReminders} renewal reminder(s).`,
-            details: { failures: failures.slice(0, 50) },
+            summary: `${motivations} motivation message(s) sent.`,
+            details: { failures: failures.filter((f) => f.startsWith("motivation:")).slice(0, 50) },
           });
+        }
+        if (workouts || failures.some((f) => f.startsWith("wod:"))) {
+          await recordRun(db, {
+            jobKey: "wod-auto-delivery",
+            status: failures.some((f) => f.startsWith("wod:")) ? "failed" : "ok",
+            changed: workouts > 0,
+            summary: `${workouts} Workout of the Day session(s) delivered.`,
+            details: { failures: failures.filter((f) => f.startsWith("wod:")).slice(0, 50) },
+          });
+        }
+        if (scheduleReminders) {
+          await recordRun(db, { jobKey: "schedule-reminders", status: "ok", changed: true, summary: `${scheduleReminders} scheduled workout reminder(s) sent.` });
+        }
+        if (renewalReminders) {
+          await recordRun(db, { jobKey: "renewal-reminders", status: "ok", changed: true, summary: `${renewalReminders} membership renewal reminder(s) sent.` });
         }
 
         return Response.json({

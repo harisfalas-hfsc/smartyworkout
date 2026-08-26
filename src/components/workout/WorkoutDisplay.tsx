@@ -74,11 +74,13 @@ export function WorkoutDisplay({
   workout,
   onComplete,
   onPlayerClosed,
+  previewMode = false,
   children,
 }: {
   workout: WorkoutRow;
   onComplete: () => void;
   onPlayerClosed?: () => void;
+  previewMode?: boolean;
   children?: React.ReactNode;
 }) {
   const html = workout.main_workout ?? "";
@@ -243,7 +245,7 @@ export function WorkoutDisplay({
           ) : null}
 
           <Button size="lg" className="mt-6 w-full" onClick={() => setPlayer(true)}>
-            Start Your Workout
+            {previewMode ? "Open Player Preview" : "Start Your Workout"}
           </Button>
         </header>
 
@@ -259,11 +261,13 @@ export function WorkoutDisplay({
             variant="secondary"
             className="h-11 w-full rounded-xl px-2 text-sm font-semibold"
             onClick={toggleFavorite}
+            disabled={previewMode}
+            title={previewMode ? "Disabled in administrator preview" : undefined}
           >
             <Heart
               className={`mr-1.5 h-4 w-4 shrink-0 ${favorite ? "fill-primary text-primary" : ""}`}
             />
-            {favorite ? "Saved" : "Save"}
+            {previewMode ? "Preview" : favorite ? "Saved" : "Save"}
           </Button>
           <Button
             variant="secondary"
@@ -369,6 +373,7 @@ export function WorkoutDisplay({
         category={workout.category}
         format={workout.format}
         html={html}
+        previewMode={previewMode}
         onFinish={() => {
           setPlayer(false);
           onComplete();

@@ -740,6 +740,12 @@ export const adminListWorkouts = createServerFn({ method: "POST" })
   );
 
 export type AdminWorkoutDetail = AdminWorkoutRow & {
+  image_url: string | null;
+  duration_label: string | null;
+  created_by: string | null;
+  coach_rationale: string[];
+  is_favorite: boolean;
+  rating: number | null;
   description_html: string | null;
   instructions_html: string | null;
   tips_html: string | null;
