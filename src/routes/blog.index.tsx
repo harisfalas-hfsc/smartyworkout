@@ -1,0 +1,177 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { Calendar, Clock, Newspaper } from "lucide-react";
+import { PageHeader } from "@/components/PageHeader";
+import { Card } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+
+const SITE = "https://smartyworkout.com";
+const URL = `${SITE}/blog`;
+
+const TITLE = "Fitness Blog — Evidence-Based Training Articles | SmartyWorkout";
+const DESCRIPTION =
+  "Practical, evidence-based fitness articles from Haris Falas, Sports Scientist and CSCS: strength, conditioning, mobility, recovery and smarter training at home or in the gym.";
+
+export interface BlogListItem {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  image_url: string | null;
+  read_time: string | null;
+  category: string;
+  published_at: string | null;
+  created_at: string;
+}
+
+export async function fetchPublishedArticles(): Promise<BlogListItem[]> {
+  const { data, error } = await supabase
+    .from("blog_articles")
+    .select("id,title,slug,excerpt,image_url,read_time,category,published_at,created_at")
+    .eq("is_published", true)
+    .order("published_at", { ascending: false });
+  if (error) throw error;
+  return (data as BlogListItem[] | null) ?? [];
+}
+
+export const Route = createFileRoute("/blog/")({
+  head: () => ({
+    meta: [
+      { title: TITLE },
+      { name: "description", content: DESCRIPTION },
+      { property: "og:title", content: TITLE },
+      { property: "og:description", content: DESCRIPTION },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: URL },
+      { property: "og:image", content: `${SITE}/og-social.jpg` },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: `${SITE}/og-social.jpg` },
+    ],
+    links: [{ rel: "canonical", href: URL }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Blog",
+          "@id": `${URL}#blog`,
+          url: URL,
+          name: "SmartyWorkout Fitness Blog",
+          description: DESCRIPTION,
+          inLanguage: "en",
+          publisher: { "@type": "Organization", name: "SmartyWorkout", url: SITE },
+        }),
+      },
+    ],
+  }),
+  component: BlogIndex,
+});
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function BlogIndex() {
+  const { data: articles, isLoading } = useQuery({
+    queryKey: ["blog-articles"],
+    queryFn: fetchPublishedArticles,
+  });
+
+  return (
+    <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">
+      <nav aria-label="Breadcrumb" className="mb-6 text-xs text-muted-foreground">
+        <ol className="flex flex-wrap items-center gap-1.5">
+          <li>
+            <Link to="/" className="hover:text-primary">
+              Home
+            </Link>
+          </li>
+          <li aria-hidden="true">/</li>
+          <li className="text-foreground">Blog</li>
+        </ol>
+      </nav>
+
+      <PageHeader
+        eyebrow="Blog"
+        icon={Newspaper}
+        title="Fitness Articles"
+        subtitle="Evidence-based training articles by Haris Falas — Sports Scientist, CSCS certified."
+      />
+
+      {isLoading && (
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <Card key={i} className="overflow-hidden border-2 border-primary">
+              <div className="aspect-video animate-pulse bg-muted" />
+              <div className="space-y-3 p-5">
+                <div className="h-5 w-3/4 animate-pulse rounded bg-muted" />
+                <div className="h-4 w-full animate-pulse rounded bg-muted" />
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {!isLoading && (articles?.length ?? 0) === 0 && (
+        <Card className="border-2 border-primary p-10 text-center">
+          <p className="text-sm text-muted-foreground">
+            No articles published yet. Check back soon.
+          </p>
+        </Card>
+      )}
+
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {(articles ?? []).map((article) => (
+          <Link
+            key={article.id}
+            to="/blog/$slug"
+            params={{ slug: article.slug }}
+            className="block focus:outline-none"
+          >
+            <Card className="h-full overflow-hidden border-2 border-primary transition-all duration-300 hover:shadow-lg md:hover:scale-[1.02]">
+              {article.image_url && (
+                <div className="relative aspect-video overflow-hidden">
+                  <img
+                    src={article.image_url}
+                    alt={`${article.title} — SmartyWorkout fitness blog`}
+                    width={1280}
+                    height={720}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover"
+                  />
+                  <span className="absolute right-3 top-3 rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
+                    {article.category}
+                  </span>
+                </div>
+              )}
+
+              <div className="p-5">
+                <h2 className="mb-2 line-clamp-2 text-xl font-bold">{article.title}</h2>
+                {article.excerpt && (
+                  <p className="mb-4 line-clamp-2 text-sm text-muted-foreground">
+                    {article.excerpt}
+                  </p>
+                )}
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    {article.read_time ?? "5 min read"}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    {formatDate(article.published_at ?? article.created_at)}
+                  </span>
+                </div>
+              </div>
+            </Card>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
