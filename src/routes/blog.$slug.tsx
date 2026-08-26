@@ -1,5 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
+import { markArticleRead } from "@/lib/blog-read";
+
 import DOMPurify from "dompurify";
 import { Calendar, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
