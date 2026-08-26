@@ -241,9 +241,10 @@ function ArticleDetail() {
           </div>
 
           <div
-            className="blog-article-content prose prose-neutral max-w-none dark:prose-invert prose-headings:font-bold prose-a:text-primary"
+            className="max-w-none text-[15px] leading-7 text-foreground [&_a]:font-medium [&_a]:text-primary [&_a]:underline [&_h2]:mb-3 [&_h2]:mt-8 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:sm:text-2xl [&_h3]:mb-2 [&_h3]:mt-6 [&_h3]:text-lg [&_h3]:font-semibold [&_li]:mb-1.5 [&_ol]:mb-4 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-4 [&_strong]:font-semibold [&_ul]:mb-4 [&_ul]:list-disc [&_ul]:pl-5"
             dangerouslySetInnerHTML={{ __html: safeHtml }}
           />
+
         </Card>
       </article>
     </div>
