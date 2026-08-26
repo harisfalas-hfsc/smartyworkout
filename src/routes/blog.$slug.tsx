@@ -1,5 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
+import { markArticleRead } from "@/lib/blog-read";
+
 import DOMPurify from "dompurify";
 import { Calendar, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -162,7 +164,12 @@ function ArticleDetail() {
     return DOMPurify.sanitize(article.content, { ADD_ATTR: ["target", "rel"] });
   }, [article.content]);
 
+  useEffect(() => {
+    markArticleRead(article.slug, true);
+  }, [article.slug]);
+
   const dateISO = article.published_at ?? article.created_at;
+
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12 lg:max-w-5xl lg:px-8">

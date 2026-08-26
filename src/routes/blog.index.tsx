@@ -3,7 +3,9 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { Calendar, Clock, Newspaper, X } from "lucide-react";
+import { Calendar, Check, Clock, Newspaper, X } from "lucide-react";
+import { useBlogReadState } from "@/lib/blog-read";
+
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/ui/card";
 import {
@@ -35,11 +37,13 @@ export interface BlogListItem {
 }
 
 export type BlogSort = "newest" | "oldest";
+export type BlogReadFilter = "all" | "unread" | "read";
 
 const searchSchema = z.object({
   sort: z.enum(["newest", "oldest"]).optional(),
-  category: z.string().optional(),
+  status: z.enum(["all", "unread", "read"]).optional(),
 });
+
 
 export async function fetchPublishedArticles(): Promise<BlogListItem[]> {
   const { data, error } = await supabase
@@ -96,36 +100,30 @@ function formatDate(iso: string) {
 function BlogIndex() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/blog/" });
+  const { isRead, toggleRead } = useBlogReadState();
   const { data: articles, isLoading } = useQuery({
     queryKey: ["blog-articles"],
     queryFn: fetchPublishedArticles,
   });
 
-  const categories = useMemo(
-    () => Array.from(new Set((articles ?? []).map((a) => a.category).filter(Boolean))).sort(),
-    [articles],
-  );
-  const selectedCategory = categories.includes(search.category ?? "")
-    ? (search.category ?? "")
-    : "";
   const sort = search.sort ?? "newest";
+  const status = search.status ?? "all";
 
   const filtered = useMemo(() => {
     let list = [...(articles ?? [])];
-    if (selectedCategory) {
-      list = list.filter((a) => a.category === selectedCategory);
-    }
+    if (status === "unread") list = list.filter((a) => !isRead(a.slug));
+    if (status === "read") list = list.filter((a) => isRead(a.slug));
     list.sort((a, b) => {
       const ta = new Date(a.published_at ?? a.created_at).getTime();
       const tb = new Date(b.published_at ?? b.created_at).getTime();
       return sort === "oldest" ? ta - tb : tb - ta;
     });
     return list;
-  }, [articles, selectedCategory, sort]);
+  }, [articles, status, sort, isRead]);
 
-  const filtersActive = sort !== "newest" || Boolean(selectedCategory);
+  const filtersActive = sort !== "newest" || status !== "all";
 
-  function update(patch: { sort?: BlogSort; category?: string }) {
+  function update(patch: { sort?: BlogSort; status?: BlogReadFilter }) {
     void navigate({
       to: "/blog",
       search: (prev) => ({ ...prev, ...patch }),
@@ -177,30 +175,27 @@ function BlogIndex() {
           </Select>
         </div>
 
-        {categories.length > 0 && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span className="hidden sm:inline">Filter:</span>
-            <Select
-              value={selectedCategory || "all"}
-              onValueChange={(v) => update({ category: v === "all" ? undefined : v })}
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span className="hidden sm:inline">Show:</span>
+          <Select
+            value={status}
+            onValueChange={(v) =>
+              update({ status: v === "all" ? undefined : (v as BlogReadFilter) })
+            }
+          >
+            <SelectTrigger
+              aria-label="Filter by read status"
+              className="h-10 w-[150px] rounded-xl border-2 border-primary text-sm font-semibold"
             >
-              <SelectTrigger
-                aria-label="Filter by category"
-                className="h-10 w-[170px] rounded-xl border-2 border-primary text-sm font-semibold"
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All categories</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All articles</SelectItem>
+              <SelectItem value="unread">Unread only</SelectItem>
+              <SelectItem value="read">Read only</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
         {filtersActive && (
           <button
@@ -213,6 +208,7 @@ function BlogIndex() {
           </button>
         )}
       </div>
+
 
       {isLoading && (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -239,53 +235,71 @@ function BlogIndex() {
       )}
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((article) => (
-          <Link
-            key={article.id}
-            to="/blog/$slug"
-            params={{ slug: article.slug }}
-            className="block focus:outline-none"
-          >
-            <Card className="h-full overflow-hidden border-2 border-primary transition-all duration-300 hover:shadow-lg md:hover:scale-[1.02]">
-              {article.image_url && (
-                <div className="relative aspect-video overflow-hidden">
-                  <img
-                    src={article.image_url}
-                    alt={`${article.title} — SmartyWorkout fitness blog`}
-                    width={1280}
-                    height={720}
-                    loading="lazy"
-                    decoding="async"
-                    className="h-full w-full object-cover"
-                  />
-                  <span className="absolute right-3 top-3 rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
-                    {article.category}
-                  </span>
-                </div>
-              )}
-
-              <div className="p-5">
-                <h2 className="mb-2 line-clamp-2 text-xl font-bold">{article.title}</h2>
-                {article.excerpt && (
-                  <p className="mb-4 line-clamp-2 text-sm text-muted-foreground">
-                    {article.excerpt}
-                  </p>
+        {filtered.map((article) => {
+          const read = isRead(article.slug);
+          return (
+            <Card
+              key={article.id}
+              className="flex h-full flex-col overflow-hidden border-2 border-primary transition-all duration-300 hover:shadow-lg md:hover:scale-[1.02]"
+            >
+              <Link
+                to="/blog/$slug"
+                params={{ slug: article.slug }}
+                className="block flex-1 focus:outline-none"
+              >
+                {article.image_url && (
+                  <div className="relative aspect-video overflow-hidden">
+                    <img
+                      src={article.image_url}
+                      alt={`${article.title} — SmartyWorkout fitness blog`}
+                      width={1280}
+                      height={720}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover"
+                    />
+                    {read && (
+                      <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
+                        <Check className="h-3 w-3" />
+                        Read
+                      </span>
+                    )}
+                  </div>
                 )}
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    {article.read_time ?? "5 min read"}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    {formatDate(article.published_at ?? article.created_at)}
-                  </span>
+
+                <div className="p-5">
+                  <h2 className="mb-2 line-clamp-2 text-xl font-bold">{article.title}</h2>
+                  {article.excerpt && (
+                    <p className="mb-4 line-clamp-2 text-sm text-muted-foreground">
+                      {article.excerpt}
+                    </p>
+                  )}
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {article.read_time ?? "5 min read"}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      {formatDate(article.published_at ?? article.created_at)}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              </Link>
+
+              <button
+                type="button"
+                onClick={() => toggleRead(article.slug)}
+                aria-pressed={read}
+                className="mt-auto border-t-2 border-primary px-5 py-3 text-xs font-semibold text-primary hover:bg-primary/10"
+              >
+                {read ? "Mark as unread" : "Mark as read"}
+              </button>
             </Card>
-          </Link>
-        ))}
+          );
+        })}
       </div>
+
     </div>
   );
 }
