@@ -1,8 +1,18 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Calendar, Clock, Newspaper } from "lucide-react";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
+import { Calendar, Clock, Newspaper, X } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 
 const SITE = "https://smartyworkout.com";
@@ -24,6 +34,13 @@ export interface BlogListItem {
   created_at: string;
 }
 
+export type BlogSort = "newest" | "oldest";
+
+const searchSchema = z.object({
+  sort: z.enum(["newest", "oldest"]).optional(),
+  category: z.string().optional(),
+});
+
 export async function fetchPublishedArticles(): Promise<BlogListItem[]> {
   const { data, error } = await supabase
     .from("blog_articles")
@@ -35,6 +52,7 @@ export async function fetchPublishedArticles(): Promise<BlogListItem[]> {
 }
 
 export const Route = createFileRoute("/blog/")({
+  validateSearch: zodValidator(searchSchema),
   head: () => ({
     meta: [
       { title: TITLE },
@@ -76,10 +94,50 @@ function formatDate(iso: string) {
 }
 
 function BlogIndex() {
+  const search = Route.useSearch();
+  const navigate = useNavigate({ from: "/blog/" });
   const { data: articles, isLoading } = useQuery({
     queryKey: ["blog-articles"],
     queryFn: fetchPublishedArticles,
   });
+
+  const categories = useMemo(
+    () => Array.from(new Set((articles ?? []).map((a) => a.category).filter(Boolean))).sort(),
+    [articles],
+  );
+  const selectedCategory = categories.includes(search.category ?? "")
+    ? (search.category ?? "")
+    : "";
+  const sort = search.sort ?? "newest";
+
+  const filtered = useMemo(() => {
+    let list = [...(articles ?? [])];
+    if (selectedCategory) {
+      list = list.filter((a) => a.category === selectedCategory);
+    }
+    list.sort((a, b) => {
+      const ta = new Date(a.published_at ?? a.created_at).getTime();
+      const tb = new Date(b.published_at ?? b.created_at).getTime();
+      return sort === "oldest" ? ta - tb : tb - ta;
+    });
+    return list;
+  }, [articles, selectedCategory, sort]);
+
+  const filtersActive = sort !== "newest" || Boolean(selectedCategory);
+
+  function update(patch: { sort?: BlogSort; category?: string }) {
+    void navigate({
+      to: "/blog",
+      search: (prev) => ({ ...prev, ...patch }),
+    });
+  }
+
+  function resetFilters() {
+    void navigate({
+      to: "/blog",
+      search: {},
+    });
+  }
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">
@@ -102,6 +160,60 @@ function BlogIndex() {
         subtitle="Evidence-based training articles by Haris Falas — Sports Scientist, CSCS certified."
       />
 
+      <div className="mb-6 flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span className="hidden sm:inline">Sort:</span>
+          <Select value={sort} onValueChange={(v) => update({ sort: v as BlogSort })}>
+            <SelectTrigger
+              aria-label="Sort articles"
+              className="h-10 w-[150px] rounded-xl border-2 border-primary text-sm font-semibold"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Newest first</SelectItem>
+              <SelectItem value="oldest">Oldest first</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {categories.length > 0 && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span className="hidden sm:inline">Filter:</span>
+            <Select
+              value={selectedCategory || "all"}
+              onValueChange={(v) => update({ category: v === "all" ? undefined : v })}
+            >
+              <SelectTrigger
+                aria-label="Filter by category"
+                className="h-10 w-[170px] rounded-xl border-2 border-primary text-sm font-semibold"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All categories</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {filtersActive && (
+          <button
+            type="button"
+            onClick={resetFilters}
+            className="inline-flex h-10 items-center gap-1.5 rounded-xl border-2 border-primary px-3 text-sm font-semibold text-primary hover:bg-primary/10"
+          >
+            <X className="h-4 w-4" />
+            Reset
+          </button>
+        )}
+      </div>
+
       {isLoading && (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {[0, 1, 2, 3, 4, 5].map((i) => (
@@ -116,16 +228,18 @@ function BlogIndex() {
         </div>
       )}
 
-      {!isLoading && (articles?.length ?? 0) === 0 && (
+      {!isLoading && filtered.length === 0 && (
         <Card className="border-2 border-primary p-10 text-center">
           <p className="text-sm text-muted-foreground">
-            No articles published yet. Check back soon.
+            {articles && articles.length > 0
+              ? "No articles match the selected filter."
+              : "No articles published yet. Check back soon."}
           </p>
         </Card>
       )}
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {(articles ?? []).map((article) => (
+        {filtered.map((article) => (
           <Link
             key={article.id}
             to="/blog/$slug"
