@@ -250,23 +250,25 @@ export function WorkoutDisplay({
         </header>
 
         <div className="sticky top-2 z-20 mt-5 grid grid-cols-3 gap-2 rounded-2xl border-2 border-blue-400 bg-card/95 p-2 backdrop-blur">
-          {!previewMode ? <Button
+          <Button
             variant="secondary"
             className="h-11 w-full rounded-xl px-2 text-sm font-semibold"
             onClick={() => setReader(true)}
           >
             <BookOpen className="mr-1.5 h-4 w-4 shrink-0" /> Reader
-          </Button> : <div />}
-          {!previewMode ? <Button
+          </Button>
+          <Button
             variant="secondary"
             className="h-11 w-full rounded-xl px-2 text-sm font-semibold"
             onClick={toggleFavorite}
+            disabled={previewMode}
+            title={previewMode ? "Disabled in administrator preview" : undefined}
           >
             <Heart
               className={`mr-1.5 h-4 w-4 shrink-0 ${favorite ? "fill-primary text-primary" : ""}`}
             />
-            {favorite ? "Saved" : "Save"}
-          </Button> : <div />}
+            {previewMode ? "Preview" : favorite ? "Saved" : "Save"}
+          </Button>
           <Button
             variant="secondary"
             className="h-11 w-full rounded-xl px-2 text-sm font-semibold"

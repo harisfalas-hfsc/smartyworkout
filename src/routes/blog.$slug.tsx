@@ -245,7 +245,8 @@ function ArticleDetail() {
                   alt={article.title}
                   width={1280}
                   height={720}
-                  loading="lazy"
+                  loading="eager"
+                  fetchPriority="high"
                   decoding="async"
                   className="absolute inset-0 h-full w-full object-cover"
                 />
