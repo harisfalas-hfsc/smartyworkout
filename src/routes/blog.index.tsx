@@ -105,7 +105,10 @@ function BlogIndex() {
     () => Array.from(new Set((articles ?? []).map((a) => a.category).filter(Boolean))).sort(),
     [articles],
   );
-  const selectedCategory = categories.includes(search.category) ? search.category : "";
+  const selectedCategory = categories.includes(search.category ?? "")
+    ? (search.category ?? "")
+    : "";
+  const sort = search.sort ?? "newest";
 
   const filtered = useMemo(() => {
     let list = [...(articles ?? [])];
@@ -115,12 +118,12 @@ function BlogIndex() {
     list.sort((a, b) => {
       const ta = new Date(a.published_at ?? a.created_at).getTime();
       const tb = new Date(b.published_at ?? b.created_at).getTime();
-      return search.sort === "oldest" ? ta - tb : tb - ta;
+      return sort === "oldest" ? ta - tb : tb - ta;
     });
     return list;
-  }, [articles, selectedCategory, search.sort]);
+  }, [articles, selectedCategory, sort]);
 
-  const filtersActive = search.sort !== "newest" || Boolean(selectedCategory);
+  const filtersActive = sort !== "newest" || Boolean(selectedCategory);
 
   function update(patch: { sort?: BlogSort; category?: string }) {
     void navigate({
@@ -132,7 +135,7 @@ function BlogIndex() {
   function resetFilters() {
     void navigate({
       to: "/blog",
-      search: { sort: "newest", category: "" },
+      search: {},
     });
   }
 
