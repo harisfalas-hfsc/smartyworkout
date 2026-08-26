@@ -397,9 +397,9 @@ async function notifyMembers(
         body,
         dedupe_key: `blog:${args.slug}`,
       }));
-      const { error } = await db
-        .from("notifications")
-        .upsert(rows as never, { onConflict: "user_id,dedupe_key", ignoreDuplicates: true });
+      // dedupe_key is uniquely indexed per user, so a re-run of the same slug
+      // simply fails the insert instead of double-notifying anyone.
+      const { error } = await db.from("notifications").insert(rows as never);
       if (error) {
         args.failures.push(`notify: ${error.message}`);
         break;
