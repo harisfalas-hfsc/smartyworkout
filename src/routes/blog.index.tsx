@@ -98,36 +98,30 @@ function formatDate(iso: string) {
 function BlogIndex() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/blog/" });
+  const { isRead, toggleRead } = useBlogReadState();
   const { data: articles, isLoading } = useQuery({
     queryKey: ["blog-articles"],
     queryFn: fetchPublishedArticles,
   });
 
-  const categories = useMemo(
-    () => Array.from(new Set((articles ?? []).map((a) => a.category).filter(Boolean))).sort(),
-    [articles],
-  );
-  const selectedCategory = categories.includes(search.category ?? "")
-    ? (search.category ?? "")
-    : "";
   const sort = search.sort ?? "newest";
+  const status = search.status ?? "all";
 
   const filtered = useMemo(() => {
     let list = [...(articles ?? [])];
-    if (selectedCategory) {
-      list = list.filter((a) => a.category === selectedCategory);
-    }
+    if (status === "unread") list = list.filter((a) => !isRead(a.slug));
+    if (status === "read") list = list.filter((a) => isRead(a.slug));
     list.sort((a, b) => {
       const ta = new Date(a.published_at ?? a.created_at).getTime();
       const tb = new Date(b.published_at ?? b.created_at).getTime();
       return sort === "oldest" ? ta - tb : tb - ta;
     });
     return list;
-  }, [articles, selectedCategory, sort]);
+  }, [articles, status, sort, isRead]);
 
-  const filtersActive = sort !== "newest" || Boolean(selectedCategory);
+  const filtersActive = sort !== "newest" || status !== "all";
 
-  function update(patch: { sort?: BlogSort; category?: string }) {
+  function update(patch: { sort?: BlogSort; status?: BlogReadFilter }) {
     void navigate({
       to: "/blog",
       search: (prev) => ({ ...prev, ...patch }),
@@ -179,30 +173,27 @@ function BlogIndex() {
           </Select>
         </div>
 
-        {categories.length > 0 && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span className="hidden sm:inline">Filter:</span>
-            <Select
-              value={selectedCategory || "all"}
-              onValueChange={(v) => update({ category: v === "all" ? undefined : v })}
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span className="hidden sm:inline">Show:</span>
+          <Select
+            value={status}
+            onValueChange={(v) =>
+              update({ status: v === "all" ? undefined : (v as BlogReadFilter) })
+            }
+          >
+            <SelectTrigger
+              aria-label="Filter by read status"
+              className="h-10 w-[150px] rounded-xl border-2 border-primary text-sm font-semibold"
             >
-              <SelectTrigger
-                aria-label="Filter by category"
-                className="h-10 w-[170px] rounded-xl border-2 border-primary text-sm font-semibold"
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All categories</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All articles</SelectItem>
+              <SelectItem value="unread">Unread only</SelectItem>
+              <SelectItem value="read">Read only</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
         {filtersActive && (
           <button
@@ -215,6 +206,7 @@ function BlogIndex() {
           </button>
         )}
       </div>
+
 
       {isLoading && (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
