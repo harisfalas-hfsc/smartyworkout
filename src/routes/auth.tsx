@@ -119,17 +119,40 @@ function Auth() {
         },
       });
       if (error) throw error;
+      // Supabase hides "user already exists" for privacy: it returns a user with
+      // no identities instead of an error. Tell the member plainly.
+      const alreadyRegistered =
+        !data.session && Array.isArray(data.user?.identities) && data.user.identities.length === 0;
+      if (alreadyRegistered) {
+        setPassword("");
+        setAuthError(
+          "This email is already registered. Sign in instead, or use “Forgot password?” to set a new password.",
+        );
+        return;
+      }
       if (data.session) {
         await ensureProfile(data.user, cleanName);
         await rememberDevice(normalizedEmail, password);
         goNext();
       } else {
         setPassword("");
-        setAuthNotice("Check your email to confirm your account, then sign in.");
+        setAuthNotice(
+          "Almost there — we've emailed a confirmation link to " +
+            normalizedEmail +
+            ". Open it (check spam too), then sign in.",
+        );
       }
     } catch (error) {
-      setAuthError(error instanceof Error ? error.message : "Account creation failed. Try again.");
+      const message = error instanceof Error ? error.message : "";
+      if (/already registered|already exists|user_already_exists/i.test(message)) {
+        setAuthError(
+          "This email is already registered. Sign in instead, or use “Forgot password?” to set a new password.",
+        );
+      } else {
+        setAuthError(message || "Account creation failed. Try again.");
+      }
     } finally {
+
       setSubmitting(false);
     }
   }
