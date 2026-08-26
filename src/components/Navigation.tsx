@@ -258,9 +258,9 @@ function NavDrawer({ onClose, isAuthed, isAdmin }: { onClose: () => void; isAuth
         ...(isAuthed ? [] : [{ to: "/wod", label: "Workout of the Day", Icon: CalendarCheck }]),
         ...(isAuthed ? [] : [{ to: "/community", label: "Smarty Community", Icon: Users }]),
         { to: "/exercise-library", label: "Exercise Library", Icon: Dumbbell },
-        ...(freeAccessMode ? [] : [{ to: "/pricing", label: "Pricing", Icon: Crown }]),
         { to: "/tools", label: "Tools", Icon: Wrench },
         { to: "/blog", label: "Blog", Icon: BookOpen },
+        ...(freeAccessMode ? [] : [{ to: "/pricing", label: "Pricing", Icon: Crown }]),
         { to: "/faq", label: "Frequently Asked Questions", Icon: HelpCircle },
         { to: "/contact", label: "Contact", Icon: Mail },
 
