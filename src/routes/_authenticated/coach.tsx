@@ -27,6 +27,7 @@ import {
 } from "@/lib/preferences.functions";
 import { Link } from "@tanstack/react-router";
 import { ParqWaiverDialog } from "@/components/ParqWaiverDialog";
+import { hasParqAck, setParqAck } from "@/lib/parq-ack";
 import { MembershipRequiredDialog } from "@/components/MembershipRequiredDialog";
 import { CoachRecommendationCard } from "@/components/coach/CoachRecommendationCard";
 import { levelToStars, starsToLevel } from "@/lib/workout/spec";
@@ -257,7 +258,7 @@ function CoachPage() {
       setMembershipOpen(true);
       return;
     }
-    if (parqFlags.length > 0) {
+    if (parqFlags.length > 0 && !hasParqAck()) {
       setPendingSurprise(surprise);
       setParqOpen(true);
       return;
@@ -329,6 +330,7 @@ function CoachPage() {
         flags={parqFlags}
         confirmLabel="I confirm — build my workout"
         onConfirm={() => {
+          setParqAck();
           setParqOpen(false);
           const surprise = pendingSurprise;
           setPendingSurprise(null);
