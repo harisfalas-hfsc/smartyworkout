@@ -24,6 +24,7 @@ import {
 } from "@/lib/daily.functions";
 
 import { ParqWaiverDialog } from "@/components/ParqWaiverDialog";
+import { hasParqAck, setParqAck } from "@/lib/parq-ack";
 import { MembershipRequiredDialog } from "@/components/MembershipRequiredDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { PageHeader } from "@/components/PageHeader";
@@ -218,7 +219,7 @@ function WodPage() {
       setMembershipOpen(true);
       return;
     }
-    if (!subscribed && access.readinessFlagged && access.readinessFlags.length > 0) {
+    if (!subscribed && access.readinessFlagged && access.readinessFlags.length > 0 && !hasParqAck()) {
       setParqOpen(true);
       return;
     }
@@ -359,6 +360,7 @@ function WodPage() {
         flags={access?.readinessFlags ?? []}
         confirmLabel="I confirm — subscribe to the WOD"
         onConfirm={() => {
+          setParqAck();
           setParqOpen(false);
           void toggleSub(true);
         }}

@@ -22,6 +22,7 @@ import { SessionDebriefDialog } from "@/components/workout/SessionDebriefDialog"
 import { getSessionFeedback, type SessionFeedback } from "@/lib/feedback.functions";
 
 import { ParqWaiverDialog } from "@/components/ParqWaiverDialog";
+import { hasParqAck, setParqAck } from "@/lib/parq-ack";
 
 export const Route = createFileRoute("/_authenticated/workout/$workoutId")({
   head: () => ({
@@ -80,8 +81,10 @@ function WorkoutPage() {
     if ((row as { is_wod?: boolean } | null)?.is_wod) setLocked(!access?.premium);
     if (row && access?.readinessFlagged && access.readinessFlags.length > 0) {
       setParqFlags(access.readinessFlags);
-      setParqBlocked(true);
-      setParqOpen(true);
+      if (!hasParqAck()) {
+        setParqBlocked(true);
+        setParqOpen(true);
+      }
     }
     setShared(Boolean((row as { is_shared?: boolean } | null)?.is_shared));
     if (row?.status === "completed") setDone(true);
@@ -193,6 +196,7 @@ function WorkoutPage() {
           flags={parqFlags}
           confirmLabel="I confirm — open my workout"
           onConfirm={() => {
+            setParqAck();
             setParqOpen(false);
             setParqBlocked(false);
           }}
