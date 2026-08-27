@@ -21,9 +21,10 @@ export interface SeoKeywordIndex {
     focuses: string[];
     exercises: string[];
     workouts: string[];
+    blog: string[];
     custom: string[];
   };
-  counts: { exercises: number; workouts: number };
+  counts: { exercises: number; workouts: number; articles: number };
 }
 
 export const SEO_INDEX_KEY = "seo_keyword_index";
@@ -49,6 +50,40 @@ function collect(values: unknown[], max = 4000): string[] {
     if (k && k.length <= 70) set.add(k);
   }
   return Array.from(set).sort().slice(0, max);
+}
+
+const STOP_WORDS = new Set([
+  "the","a","an","and","or","of","to","in","on","for","with","your","you","is","are","it",
+  "that","this","how","why","what","from","by","at","as","be","can","do","does","not","but",
+  "we","our","their","them","its","into","about","after","before","more","most","best",
+]);
+
+/**
+ * Extracts search phrases from a title or excerpt: the full string plus every
+ * meaningful 1–3 word run between stop words / punctuation.
+ */
+function titlePhrases(text: string): string[] {
+  const base = clean(text).replace(/[^a-z0-9\s]/g, " ");
+  const words = base.split(/\s+/).filter(Boolean);
+  const out = new Set<string>();
+  if (base.trim()) out.add(base.trim());
+
+  let run: string[] = [];
+  const flush = () => {
+    for (let size = 1; size <= 3; size++) {
+      for (let i = 0; i + size <= run.length; i++) {
+        const phrase = run.slice(i, i + size).join(" ");
+        if (phrase.length >= 4) out.add(phrase);
+      }
+    }
+    run = [];
+  };
+  for (const w of words) {
+    if (STOP_WORDS.has(w) || w.length < 2) flush();
+    else run.push(w);
+  }
+  flush();
+  return Array.from(out);
 }
 
 async function hashOf(input: string): Promise<string> {
@@ -134,6 +169,25 @@ export async function buildKeywordIndex(
   const workoutNames = collect(workouts.map((w) => w.name), 6000);
   const custom = collect(extraKeywords);
 
+  const articles = await fetchAll<{
+    title: string;
+    slug: string;
+    excerpt: string | null;
+    category: string | null;
+  }>(db, "blog_articles", "title,slug,excerpt,category", (q) => q.eq("is_published", true));
+
+  // Full titles first, then the meaningful phrases/terms inside titles and excerpts.
+  const blog = collect(
+    [
+      ...articles.map((a) => a.title),
+      ...articles.map((a) => a.slug),
+      ...articles.map((a) => a.category),
+      ...articles.flatMap((a) => titlePhrases(a.title)),
+      ...articles.flatMap((a) => titlePhrases(a.excerpt ?? "")),
+    ],
+    6000,
+  );
+
   const groups = {
     pages,
     topics,
@@ -145,6 +199,7 @@ export async function buildKeywordIndex(
     focuses,
     exercises: exerciseNames,
     workouts: workoutNames,
+    blog,
     custom,
   };
 
@@ -158,7 +213,11 @@ export async function buildKeywordIndex(
     total: keywords.length,
     keywords,
     groups,
-    counts: { exercises: exercises.length, workouts: workouts.length },
+    counts: {
+      exercises: exercises.length,
+      workouts: workouts.length,
+      articles: articles.length,
+    },
   };
 }
 

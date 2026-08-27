@@ -16,7 +16,7 @@ export interface SeoRefreshResult {
   total: number;
   added: string[];
   failures: string[];
-  counts: { exercises: number; workouts: number };
+  counts: { exercises: number; workouts: number; articles: number };
   emailed: boolean;
 }
 
@@ -53,7 +53,7 @@ export async function runSeoRefresh(
       total: 0,
       added: [],
       failures,
-      counts: { exercises: 0, workouts: 0 },
+      counts: { exercises: 0, workouts: 0, articles: 0 },
       emailed: false,
     };
     result.emailed = await emailReport(result, startedAt, options.trigger);
@@ -91,7 +91,7 @@ export async function runSeoRefresh(
     status: failures.length ? "failed" : "ok",
     summary: failures.length
       ? `SEO update finished with errors: ${failures.join("; ")}`
-      : `SEO index updated — ${added.length} new keyword${added.length === 1 ? "" : "s"}, ${merged.total} indexed in total (${built.counts.exercises} exercises, ${built.counts.workouts} workouts).`,
+      : `SEO index updated — ${added.length} new keyword${added.length === 1 ? "" : "s"}, ${merged.total} indexed in total (${built.counts.exercises} exercises, ${built.counts.workouts} workouts, ${built.counts.articles} blog articles).`,
     total: merged.total,
     added,
     failures,
@@ -125,6 +125,7 @@ async function emailReport(
         total: result.total,
         exercises: result.counts.exercises,
         workouts: result.counts.workouts,
+        articles: result.counts.articles,
         failures: result.failures,
       },
       idempotencyKey: `seo-report:${startedAt.toISOString().slice(0, 13)}:${trigger}`,

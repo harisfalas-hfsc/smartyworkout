@@ -7,6 +7,7 @@ const BASE_URL = "https://smartyworkout.com";
 
 interface SitemapEntry {
   path: string;
+  lastmod?: string;
   changefreq?:
     | "always"
     | "hourly"
@@ -57,13 +58,37 @@ export const Route = createFileRoute("/sitemap.xml")({
       GET: async () => {
         const { isFreeAccessMode } = await import("@/lib/free-access.server");
         const freeAccessMode = await isFreeAccessMode();
-        const entries = freeAccessMode
+        const base = freeAccessMode
           ? ENTRIES.filter((e) => e.path !== "/pricing")
           : ENTRIES;
+
+        let articles: SitemapEntry[] = [];
+        try {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { data } = await (supabaseAdmin as any)
+            .from("blog_articles")
+            .select("slug,published_at,updated_at,created_at")
+            .eq("is_published", true)
+            .order("published_at", { ascending: false })
+            .limit(1000);
+          articles = ((data as any[]) ?? []).map((a) => ({
+            path: `/blog/${a.slug}`,
+            changefreq: "monthly" as const,
+            priority: "0.7",
+            lastmod: new Date(a.updated_at ?? a.published_at ?? a.created_at)
+              .toISOString()
+              .slice(0, 10),
+          }));
+        } catch {
+          articles = [];
+        }
+
+        const entries = [...base, ...articles];
         const urls = entries.map((e) =>
           [
             "  <url>",
             `    <loc>${BASE_URL}${e.path}</loc>`,
+            e.lastmod ? `    <lastmod>${e.lastmod}</lastmod>` : null,
             e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
             e.priority ? `    <priority>${e.priority}</priority>` : null,
             "  </url>",

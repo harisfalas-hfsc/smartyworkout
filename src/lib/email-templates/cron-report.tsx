@@ -24,6 +24,7 @@ interface Props {
   total?: number
   exercises?: number
   workouts?: number
+  articles?: number
   failures?: string[]
 }
 
@@ -56,6 +57,7 @@ const Email = ({
   total = 0,
   exercises = 0,
   workouts = 0,
+  articles = 0,
   failures = [],
 }: Props) => (
   <Html lang="en" dir="ltr">
@@ -82,7 +84,7 @@ const Email = ({
 
         <Text style={label}>Index</Text>
         <Text style={text}>
-          {total} keywords indexed · {addedCount} new this run · {exercises} exercises · {workouts} workouts
+          {total} keywords indexed · {addedCount} new this run · {exercises} exercises · {workouts} workouts · {articles} blog articles
         </Text>
 
         {added.length ? (
@@ -138,6 +140,7 @@ export const template = {
     total: 1840,
     exercises: 1312,
     workouts: 428,
+    articles: 14,
     failures: [],
   },
 } satisfies TemplateEntry
