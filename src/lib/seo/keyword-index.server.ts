@@ -21,9 +21,10 @@ export interface SeoKeywordIndex {
     focuses: string[];
     exercises: string[];
     workouts: string[];
+    blog: string[];
     custom: string[];
   };
-  counts: { exercises: number; workouts: number };
+  counts: { exercises: number; workouts: number; articles: number };
 }
 
 export const SEO_INDEX_KEY = "seo_keyword_index";
