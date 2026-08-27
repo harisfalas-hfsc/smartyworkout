@@ -179,7 +179,11 @@ export async function buildKeywordIndex(
     total: keywords.length,
     keywords,
     groups,
-    counts: { exercises: exercises.length, workouts: workouts.length },
+    counts: {
+      exercises: exercises.length,
+      workouts: workouts.length,
+      articles: articles.length,
+    },
   };
 }
 
