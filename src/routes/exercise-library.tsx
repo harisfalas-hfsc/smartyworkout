@@ -36,7 +36,8 @@ import type { ExerciseSchemaItem } from "@/lib/seo/exercise-schema.functions";
 const URL = "https://smartyworkout.com/exercise-library";
 const TITLE = "Exercise Library — 1,300+ demos | SmartyWorkout";
 const DESCRIPTION =
-  "Browse the SmartyWorkout exercise library: 1,300+ movements with animated demonstrations, filtered by body part, equipment, target muscle and difficulty.";
+  "Browse the SmartyWorkout exercise library: 1,300+ barbell, dumbbell, kettlebell, band, machine and bodyweight movements with animated demonstrations, filtered by body part, equipment, target muscle and difficulty, curated by sports scientist Haris Falas (CSCS).";
+
 
 export const Route = createFileRoute("/exercise-library")({
   loader: async () => {
