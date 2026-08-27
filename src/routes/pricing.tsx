@@ -14,8 +14,9 @@ export const Route = createFileRoute("/pricing")({
       {
         name: "description",
         content:
-          "One SmartyWorkout subscription: €9.99 per month for 2 AI workouts a day, the full exercise library, all training tools, your logbook and every past workout.",
+          "One SmartyWorkout subscription: €9.99 per month for 2 AI workouts a day programmed on the sports science of Haris Falas (CSCS), the full 1,300+ exercise library, all training tools, your logbook and every past workout.",
       },
+
       { property: "og:title", content: "SmartyWorkout Pricing — €9.99/month" },
       {
         property: "og:description",

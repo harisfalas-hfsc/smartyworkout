@@ -15,7 +15,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Answer a smart questionnaire and get a full tailor-made workout built around your body, goals, equipment and constraints.",
+          "AI workout generator by sports scientist Haris Falas (CSCS): answer a smart questionnaire and get a tailor-made strength, hypertrophy, conditioning or mobility session built around your body, goals and equipment.",
       },
       {
         property: "og:title",
@@ -24,8 +24,9 @@ export const Route = createFileRoute("/")({
       {
         property: "og:description",
         content:
-          "Personalized AI workouts built around your body, goals and equipment. Two workouts every day with Smarty Coach.",
+          "Personalized AI workouts built around your body, goals and equipment, programmed on the sports science of Haris Falas. Two workouts every day with Smarty Coach.",
       },
+
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:url", content: "https://smartyworkout.com/" },
