@@ -3,7 +3,7 @@ import type { ExerciseSchemaItem } from "./exercise-schema.functions";
 let cache: { at: number; rows: ExerciseSchemaItem[] } | null = null;
 const TTL_MS = 60 * 60 * 1000;
 
-function short(text: string | null, max = 160): string | null {
+function short(text: string | null, max = 110): string | null {
   if (!text) return null;
   const t = text.replace(/\s+/g, " ").trim();
   if (!t) return null;

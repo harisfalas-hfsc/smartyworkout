@@ -113,7 +113,6 @@ export const Route = createFileRoute("/exercise-library")({
                     ...(ex.e
                       ? {
                           tool: [{ "@type": "HowToTool", name: ex.e }],
-                          supply: [{ "@type": "HowToSupply", name: ex.e }],
                         }
                       : {}),
                     ...(ex.t
