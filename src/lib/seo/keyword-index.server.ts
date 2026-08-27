@@ -52,6 +52,40 @@ function collect(values: unknown[], max = 4000): string[] {
   return Array.from(set).sort().slice(0, max);
 }
 
+const STOP_WORDS = new Set([
+  "the","a","an","and","or","of","to","in","on","for","with","your","you","is","are","it",
+  "that","this","how","why","what","from","by","at","as","be","can","do","does","not","but",
+  "we","our","their","them","its","into","about","after","before","more","most","best",
+]);
+
+/**
+ * Extracts search phrases from a title or excerpt: the full string plus every
+ * meaningful 1–3 word run between stop words / punctuation.
+ */
+function titlePhrases(text: string): string[] {
+  const base = clean(text).replace(/[^a-z0-9\s]/g, " ");
+  const words = base.split(/\s+/).filter(Boolean);
+  const out = new Set<string>();
+  if (base.trim()) out.add(base.trim());
+
+  let run: string[] = [];
+  const flush = () => {
+    for (let size = 1; size <= 3; size++) {
+      for (let i = 0; i + size <= run.length; i++) {
+        const phrase = run.slice(i, i + size).join(" ");
+        if (phrase.length >= 4) out.add(phrase);
+      }
+    }
+    run = [];
+  };
+  for (const w of words) {
+    if (STOP_WORDS.has(w) || w.length < 2) flush();
+    else run.push(w);
+  }
+  flush();
+  return Array.from(out);
+}
+
 async function hashOf(input: string): Promise<string> {
   const bytes = new TextEncoder().encode(input);
   const digest = await crypto.subtle.digest("SHA-256", bytes);
