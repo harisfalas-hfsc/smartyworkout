@@ -160,7 +160,7 @@ export async function runWeeklyBlogArticle(
   const briefTopic = options.brief?.topicKeywords?.trim() ?? "";
   const hasBrief = Boolean(briefTitle || briefTopic);
 
-  if (!options.force) {
+  if (!options.force && !hasBrief) {
     const sinceIso = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString();
     const { data: recent } = await db
       .from("blog_articles")
