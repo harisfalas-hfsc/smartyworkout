@@ -7,6 +7,7 @@ const BASE_URL = "https://smartyworkout.com";
 
 interface SitemapEntry {
   path: string;
+  lastmod?: string;
   changefreq?:
     | "always"
     | "hourly"
