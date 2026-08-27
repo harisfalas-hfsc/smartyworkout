@@ -206,9 +206,14 @@ export async function runWeeklyBlogArticle(
   const pool = [...TOPICS, ...extraTopics];
   const hints = [...pool].sort(() => Math.random() - 0.5).slice(0, 5).join(", ");
 
+  const briefBlock = hasBrief
+    ? `EDITORIAL BRIEF — this is a commissioned article. Follow it exactly; ignore the generic topic inspiration.
+${briefTitle ? `- Title keywords / angle: ${briefTitle}\n` : ""}${briefTopic ? `- Subject keywords and scope: ${briefTopic}\n` : ""}Build the title from the title keywords and cover precisely the subject described above. Stay evidence-based, and where the subject touches injury, surgery or rehabilitation, include a clear note that readers must follow their doctor's or physiotherapist's clearance before training.`
+    : `TOPIC INSPIRATION (pick one or combine): ${hints}`;
+
   const prompt = `You are a professional fitness content writer for SmartyWorkout, an AI-powered training platform that builds personalized workouts from a vetted exercise library. Write a comprehensive, SEO-optimized blog article for the "Fitness" category.
 
-TOPIC INSPIRATION (pick one or combine): ${hints}
+${briefBlock}
 ${
   recentTitles.length
     ? `\nDo NOT repeat or closely paraphrase any of these recent titles:\n${recentTitles.map((t) => `- ${t}`).join("\n")}`
