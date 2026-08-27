@@ -164,15 +164,13 @@ function BlogIndex() {
         title="Fitness Articles"
         subtitle={
           <>
-            <span>Evidence-based training articles by</span>
-            <br className="hidden sm:block" />
+            <span className="block">Evidence-based training articles</span>
             <Link
               to="/haris-falas"
-              className="font-semibold text-primary underline underline-offset-2"
+              className="mt-1 block font-semibold text-primary underline underline-offset-2"
             >
-              Haris Falas
+              Haris Falas, Sports Scientist, CSCS certified
             </Link>
-            <span>, Sports Scientist, CSCS certified</span>
           </>
         }
       />

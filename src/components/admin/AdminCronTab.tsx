@@ -21,6 +21,14 @@ import { Switch } from "@/components/ui/switch";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   adminGetCronJobs,
   adminListErrors,
   adminResolveError,
@@ -60,6 +68,9 @@ export function AdminCronTab() {
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [problems, setProblems] = useState<ErrorEventRow[]>([]);
+  const [briefOpen, setBriefOpen] = useState(false);
+  const [briefTitle, setBriefTitle] = useState("");
+  const [briefTopic, setBriefTopic] = useState("");
 
   async function load() {
     const r = await getJobs({ data: {} } as never);
@@ -133,6 +144,28 @@ export function AdminCronTab() {
     });
   }
 
+  async function writeArticleNow() {
+    const key = "generate-weekly-blog-article";
+    setBusy(key);
+    setMessage(null);
+    const r = await runJob({
+      data: {
+        key,
+        force: true,
+        brief: { titleKeywords: briefTitle.trim(), topicKeywords: briefTopic.trim() },
+      },
+    });
+    setBusy(null);
+    if ("error" in r) setMessage(r.error);
+    else {
+      setMessage(r.summary);
+      setBriefOpen(false);
+      setBriefTitle("");
+      setBriefTopic("");
+      void load();
+    }
+  }
+
   async function runNow(key: string, force: boolean) {
     setBusy(key);
     setMessage(null);
@@ -153,8 +186,57 @@ export function AdminCronTab() {
     );
   }
 
+  const briefBusy = busy === "generate-weekly-blog-article";
+
   return (
     <div className="space-y-4">
+      <Dialog open={briefOpen} onOpenChange={(o) => (briefBusy ? null : setBriefOpen(o))}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Write a blog article now</DialogTitle>
+            <DialogDescription>
+              Give the keywords. The article is written, illustrated with a cover image, published
+              on /blog, sent to every member's inbox and reported to you by email — exactly like the
+              weekly one.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label htmlFor="brief-title">Title keywords</Label>
+              <Input
+                id="brief-title"
+                value={briefTitle}
+                onChange={(e) => setBriefTitle(e.target.value)}
+                placeholder="e.g. rehab after surgery"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="brief-topic">Subject keywords</Label>
+              <Textarea
+                id="brief-topic"
+                rows={4}
+                value={briefTopic}
+                onChange={(e) => setBriefTopic(e.target.value)}
+                placeholder="e.g. ACL injury, surgery, ligament replacement, return-to-training phases"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              disabled={briefBusy || (!briefTitle.trim() && !briefTopic.trim())}
+              onClick={() => void writeArticleNow()}
+            >
+              {briefBusy ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Play className="mr-2 h-4 w-4" />
+              )}
+              {briefBusy ? "Writing…" : "Write and publish"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="rounded-2xl border-2 border-blue-400 bg-card p-4">
         <div className="flex items-center gap-2 text-sm font-bold">
           <CalendarClock className="h-4 w-4 text-primary" /> How the scheduler works
@@ -444,6 +526,24 @@ export function AdminCronTab() {
                     <Play className="mr-2 h-4 w-4" />
                   )}
                   Run the check now and email me
+                </Button>
+              </div>
+            ) : null}
+
+            {def.key === "generate-weekly-blog-article" ? (
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={busy === def.key}
+                  onClick={() => setBriefOpen(true)}
+                >
+                  {busy === def.key ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Play className="mr-2 h-4 w-4" />
+                  )}
+                  Write an article now
                 </Button>
               </div>
             ) : null}

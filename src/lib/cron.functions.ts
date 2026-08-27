@@ -87,7 +87,13 @@ export const adminSaveCronJob = createServerFn({ method: "POST" })
 
 export const adminRunCronJob = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { key: string; force?: boolean }) => data)
+  .inputValidator(
+    (data: {
+      key: string;
+      force?: boolean;
+      brief?: { titleKeywords?: string; topicKeywords?: string };
+    }) => data,
+  )
   .handler(
     async ({
       context,
@@ -126,6 +132,7 @@ export const adminRunCronJob = createServerFn({ method: "POST" })
             config,
             trigger: "manual",
             force: data.force ?? false,
+            ...(data.brief ? { brief: data.brief } : {}),
           });
           await recordRun(db, {
             jobKey: "generate-weekly-blog-article",
