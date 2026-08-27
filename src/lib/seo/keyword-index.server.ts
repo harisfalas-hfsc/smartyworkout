@@ -135,6 +135,25 @@ export async function buildKeywordIndex(
   const workoutNames = collect(workouts.map((w) => w.name), 6000);
   const custom = collect(extraKeywords);
 
+  const articles = await fetchAll<{
+    title: string;
+    slug: string;
+    excerpt: string | null;
+    category: string | null;
+  }>(db, "blog_articles", "title,slug,excerpt,category", (q) => q.eq("is_published", true));
+
+  // Full titles first, then the meaningful phrases/terms inside titles and excerpts.
+  const blog = collect(
+    [
+      ...articles.map((a) => a.title),
+      ...articles.map((a) => a.slug),
+      ...articles.map((a) => a.category),
+      ...articles.flatMap((a) => titlePhrases(a.title)),
+      ...articles.flatMap((a) => titlePhrases(a.excerpt ?? "")),
+    ],
+    6000,
+  );
+
   const groups = {
     pages,
     topics,
@@ -146,6 +165,7 @@ export async function buildKeywordIndex(
     focuses,
     exercises: exerciseNames,
     workouts: workoutNames,
+    blog,
     custom,
   };
 
