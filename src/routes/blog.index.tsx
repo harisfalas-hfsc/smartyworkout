@@ -6,6 +6,7 @@ import { z } from "zod";
 import { Calendar, Check, Clock, Newspaper, X } from "lucide-react";
 import { useBlogReadState } from "@/lib/blog-read";
 
+
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/ui/card";
 import {
@@ -161,8 +162,25 @@ function BlogIndex() {
         eyebrow="Blog"
         icon={Newspaper}
         title="Fitness Articles"
-        subtitle="Evidence-based training articles by Haris Falas — Sports Scientist, CSCS certified."
+        subtitle={
+          <>
+            <span>Evidence-based training articles by</span>
+            <br className="hidden sm:block" />
+            <Link
+              to="/haris-falas"
+              className="font-semibold text-primary underline underline-offset-2"
+            >
+              Haris Falas
+            </Link>
+            <span>, Sports Scientist, CSCS certified</span>
+          </>
+        }
       />
+
+      <p className="mb-8 text-center text-sm font-semibold text-primary">
+        Currently {articles?.length ?? 0} article{articles?.length === 1 ? "" : "s"}
+      </p>
+
 
       <div className="mb-6 flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
