@@ -29,13 +29,15 @@ export const Route = createFileRoute("/about")({
       {
         name: "description",
         content:
-          "Smarty Workout is not another workout app. Smarty Coach is a fitness coach built around the sports science of Haris Falas.",
+          "Smarty Workout is not another workout app. Smarty Coach is a fitness coach built on the sports science of Haris Falas (BSc Sport Science, NSCA CSCS): strength, hypertrophy, conditioning and mobility programming with periodization and progressive overload.",
       },
       { property: "og:title", content: "About Smarty Workout — Your Fitness Coach" },
       {
         property: "og:description",
-        content: "A smart, personalized, science-informed, adaptive fitness coach.",
+        content:
+          "A smart, personalized, science-informed, adaptive fitness coach built on the training philosophy of sports scientist Haris Falas.",
       },
+
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:url", content: "https://smartyworkout.com/about" },
