@@ -21,6 +21,14 @@ import { Switch } from "@/components/ui/switch";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   adminGetCronJobs,
   adminListErrors,
   adminResolveError,
@@ -131,6 +139,28 @@ export function AdminCronTab() {
     await patch(def.key, {
       content: def.key === "seo-refresh" ? { keywords: lines } : { lines },
     });
+  }
+
+  async function writeArticleNow() {
+    const key = "generate-weekly-blog-article";
+    setBusy(key);
+    setMessage(null);
+    const r = await runJob({
+      data: {
+        key,
+        force: true,
+        brief: { titleKeywords: briefTitle.trim(), topicKeywords: briefTopic.trim() },
+      },
+    });
+    setBusy(null);
+    if ("error" in r) setMessage(r.error);
+    else {
+      setMessage(r.summary);
+      setBriefOpen(false);
+      setBriefTitle("");
+      setBriefTopic("");
+      void load();
+    }
   }
 
   async function runNow(key: string, force: boolean) {
@@ -444,6 +474,24 @@ export function AdminCronTab() {
                     <Play className="mr-2 h-4 w-4" />
                   )}
                   Run the check now and email me
+                </Button>
+              </div>
+            ) : null}
+
+            {def.key === "generate-weekly-blog-article" ? (
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={busy === def.key}
+                  onClick={() => setBriefOpen(true)}
+                >
+                  {busy === def.key ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Play className="mr-2 h-4 w-4" />
+                  )}
+                  Write an article now
                 </Button>
               </div>
             ) : null}
