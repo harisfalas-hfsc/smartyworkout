@@ -145,11 +145,20 @@ async function fetchWithTimeout(url: string, init: RequestInit, ms: number): Pro
  */
 export async function runWeeklyBlogArticle(
   db: DB,
-  options: { config?: CronJobConfig; trigger: "schedule" | "manual"; force?: boolean } = {
+  options: {
+    config?: CronJobConfig;
+    trigger: "schedule" | "manual";
+    force?: boolean;
+    /** Optional editorial brief for an on-demand article. */
+    brief?: { titleKeywords?: string; topicKeywords?: string };
+  } = {
     trigger: "schedule",
   },
 ): Promise<BlogGenerationResult> {
   const failures: string[] = [];
+  const briefTitle = options.brief?.titleKeywords?.trim() ?? "";
+  const briefTopic = options.brief?.topicKeywords?.trim() ?? "";
+  const hasBrief = Boolean(briefTitle || briefTopic);
 
   if (!options.force) {
     const sinceIso = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString();
