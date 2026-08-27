@@ -30,6 +30,7 @@ import {
   setExercisePreference,
   type ExercisePreferences,
 } from "@/lib/preferences.functions";
+import type { ExerciseSchemaItem } from "@/lib/seo/exercise-schema.functions";
 
 
 const URL = "https://smartyworkout.com/exercise-library";
