@@ -338,9 +338,54 @@ export function activationRelevanceViolation(
   return null;
 }
 
+// --- 12. Equipment family doctrine ------------------------------------------
+
+/** Canonical equipment family for the transition / family rules. */
+export function equipmentFamilyOf(equipment: string | null | undefined): string {
+  const e = (equipment ?? "").toLowerCase();
+  if (!e || e.includes("body weight")) return "bodyweight";
+  if (e.includes("dumbbell")) return "dumbbell";
+  if (e.includes("kettlebell")) return "kettlebell";
+  if (e.includes("barbell") || e.includes("trap bar") || e.includes("olympic")) return "barbell";
+  if (e.includes("band")) return "band";
+  if (e.includes("cable")) return "cable";
+  if (e.includes("machine") || e.includes("leverage") || e.includes("smith")) return "machine";
+  if (e.includes("bike") || e.includes("erg") || e.includes("rower") || e.includes("ski"))
+    return "ergometer";
+  if (e.includes("ball")) return "ball";
+  if (e.includes("assisted")) return "suspension";
+  return e.split(" ")[0] ?? "other";
+}
+
+/**
+ * §12 — a dynamic session must be runnable without assembling a gym. Bodyweight
+ * never counts against the budget; two implement families are the hard ceiling
+ * for a conditioning format, three for anything else.
+ */
+export function equipmentFamilyLimit(category: Category, format: Format): number {
+  if (isDynamicCategory(category) && isDynamicFormat(format)) return 2;
+  if (category === "MICRO-WORKOUTS") return 0;
+  return 3;
+}
+
+export function equipmentFamilyViolation(
+  exercises: ExerciseLike[],
+  category: Category,
+  format: Format,
+): string | null {
+  if (!exercises.length) return null;
+  const limit = equipmentFamilyLimit(category, format);
+  const families = new Set(
+    exercises.map((e) => equipmentFamilyOf(e.equipment)).filter((f) => f !== "bodyweight"),
+  );
+  if (families.size > limit)
+    return `The session spans ${families.size} equipment families (${[...families].join(", ")}) — a ${format} ${category} session may use at most ${limit} beyond bodyweight.`;
+  return null;
+}
+
 // --- 19. Time math ----------------------------------------------------------
 
-/** Hard ceiling: a session may never materially exceed its advertised time. */
+/** Hard ceiling: work (Main + Finisher) may never balloon past the request. */
 export function durationOverflowViolation(
   estimatedMinutes: number,
   targetMinutes: number,
@@ -350,6 +395,22 @@ export function durationOverflowViolation(
     return `Prescribed work (~${estimatedMinutes} min) materially exceeds the advertised ${targetMinutes} min session.`;
   return null;
 }
+
+/**
+ * §19 — the WHOLE session (activation + main + rest + transitions + finisher +
+ * cool down) must fit the requested duration. A 30-minute request may not ship
+ * as 30 minutes of main work plus 30 minutes of everything else.
+ */
+export function sessionOverflowViolation(
+  sessionMinutes: number,
+  targetMinutes: number,
+): string | null {
+  const ceiling = Math.round(targetMinutes * 1.25) + 6;
+  if (sessionMinutes > ceiling)
+    return `The complete session (~${sessionMinutes} min including activation, main work, rest, finisher and cool down) does not fit the requested ${targetMinutes} min.`;
+  return null;
+}
+
 
 /** Prompt text so the model sees the same doctrine the validator enforces. */
 export function doctrinePrompt(category: Category, format: Format): string {
