@@ -6,6 +6,7 @@ import { validateWorkout } from "./validate.server";
 import { buildPackWorkout, packCopy } from "./pack.server";
 import { buildSessionPlan, scoreWorkout } from "./programming";
 import { parseWorkoutSteps } from "./parse-steps";
+import { dominantRegion } from "./doctrine";
 
 import {
   buildActivationPool,
