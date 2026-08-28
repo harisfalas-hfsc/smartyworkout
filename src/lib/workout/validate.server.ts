@@ -140,10 +140,11 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
   const activation = steps.filter((s) => s.section === "Activation" || s.section === "Warm-up");
   const cooldown = steps.filter((s) => s.section === "Cool-down");
   const requiresFinisher =
-    opts.requireFinisher ??
-    (opts.category !== "RECOVERY" &&
-      opts.category !== "MICRO-WORKOUTS" &&
-      opts.category !== "PILATES");
+    categoryAllowsFinisher(opts.category) && (opts.requireFinisher ?? true);
+  if (!categoryAllowsFinisher(opts.category) && finisher.length) {
+    errors.push(`${opts.category} sessions never carry a Finisher.`);
+  }
+
   const wantsActivation = opts.requireActivation ?? opts.category !== "MICRO-WORKOUTS";
   const wantsCooldown = opts.requireCooldown ?? opts.category !== "MICRO-WORKOUTS";
   const mainMin = opts.mainMin ?? 4;
