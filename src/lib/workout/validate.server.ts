@@ -113,7 +113,20 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
       ) {
         errors.push(`"${row.name}" is not a bodyweight exercise.`);
       }
+      // 2b. Format legality — no setup-heavy apparatus in a dynamic format.
+      const dyn = dynamicExerciseViolation(row, opts.category, opts.format);
+      if (dyn) errors.push(dyn);
+      // 2c. Micro-workouts are equipment-free everyday movement only.
+      if (opts.category === "MICRO-WORKOUTS" && microExerciseViolation(row)) {
+        errors.push(`"${row.name}" needs equipment or a special setup, which a micro-workout never uses.`);
+      }
+      // 2d. Focus legality — a focus is a hard gate, not a preference.
+      if (opts.focus) {
+        const fv = focusViolation(row, opts.focus);
+        if (fv) errors.push(`"${row.name}" does not train the ${opts.focus} focus.`);
+      }
     }
+
     // 3. Disliked exercises and their close variations.
     if (banned.has(row.id) || bannedStems.has(nameStem(row.name))) {
       errors.push(`"${row.name}" is on the athlete's excluded list.`);
