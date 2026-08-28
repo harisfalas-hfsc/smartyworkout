@@ -313,12 +313,13 @@ export function resolveDifficulty(
   mood: string | null | undefined,
 ): DifficultyResolution {
   const requested = Math.max(1, Math.min(3, Math.round(requestedStars || 1)));
-  if (!isLowEnergyState(mood))
-    return { requestedStars: requested, effectiveStars: requested, softenedBy: null };
+  // §27 — mood changes DOSE (volume, complexity, rest, impact) through the
+  // mood directive. It never changes the difficulty tier the pool is filtered
+  // with, so "tired" can no longer swap the athlete into an easier library.
   return {
     requestedStars: requested,
-    effectiveStars: Math.max(1, requested - 1),
-    softenedBy: (mood ?? "").toLowerCase(),
+    effectiveStars: requested,
+    softenedBy: isLowEnergyState(mood) ? (mood ?? "").toLowerCase() : null,
   };
 }
 
@@ -370,20 +371,8 @@ function intensityDirective(stars: number, category: Category): string {
 // Equipment families and transition efficiency
 // ---------------------------------------------------------------------------
 
-export function equipmentFamily(equipment: string | null | undefined): string {
-  const e = (equipment ?? "").toLowerCase();
-  if (!e || e.includes("body weight")) return "bodyweight";
-  if (e.includes("dumbbell")) return "dumbbell";
-  if (e.includes("kettlebell")) return "kettlebell";
-  if (e.includes("barbell") || e.includes("trap bar") || e.includes("olympic")) return "barbell";
-  if (e.includes("band")) return "band";
-  if (e.includes("cable")) return "cable";
-  if (e.includes("machine") || e.includes("leverage") || e.includes("smith")) return "machine";
-  if (e.includes("bike") || e.includes("erg") || e.includes("rower") || e.includes("ski"))
-    return "ergometer";
-  if (e.includes("ball")) return "ball";
-  return e.split(" ")[0] ?? "other";
-}
+/** §12/§32 — one authoritative family definition, owned by the doctrine. */
+export { equipmentFamilyOf as equipmentFamily } from "./doctrine";
 
 /** Number of station changes across an ordered list of exercises. */
 export function countTransitions(families: string[]): number {
@@ -427,7 +416,7 @@ export function transitionCost(
   for (let i = 1; i < exercises.length; i++) {
     const prev = exercises[i - 1] ?? null;
     const cur = exercises[i] ?? null;
-    if (equipmentFamily(prev?.equipment ?? null) !== equipmentFamily(cur?.equipment ?? null))
+    if (equipmentFamilyOf(prev?.equipment ?? null) !== equipmentFamilyOf(cur?.equipment ?? null))
       cost += 2;
     if (positionOf(prev) !== positionOf(cur)) cost += 1;
   }
@@ -759,7 +748,7 @@ export function scoreWorkout(
     penalise(6, "Rest is missing from most working lines.");
 
   // 3. Transition efficiency — measured with an explicit transition cost.
-  const familyOf = (id: string) => equipmentFamily(opts.library.get(id)?.equipment ?? null);
+  const familyOf = (id: string) => equipmentFamilyOf(opts.library.get(id)?.equipment ?? null);
   const mainFamilies = main.map((s) => familyOf(s.exerciseId));
   const transitions = countTransitions(mainFamilies);
   if (transitions > plan.maxTransitions)
