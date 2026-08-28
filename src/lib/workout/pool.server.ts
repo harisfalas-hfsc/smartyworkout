@@ -77,6 +77,9 @@ const RECOVERY_BAN_RE =
 export type PoolFilter = {
   category: Category;
   equipmentMode: EquipmentMode;
+  /** Today's format — needed for the dynamic-format equipment doctrine. */
+  format?: Format | null;
+
 
   selectedEquipment: string[];
   customEquipment?: string[];
