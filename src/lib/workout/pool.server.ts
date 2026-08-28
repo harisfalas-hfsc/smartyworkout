@@ -1,5 +1,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Category, DifficultyLevel, EquipmentMode, StrengthFocus } from "./spec";
+import type { Category, DifficultyLevel, EquipmentMode, Format, StrengthFocus } from "./spec";
+import {
+  dynamicExerciseViolation,
+  focusRegion,
+  focusViolation,
+  microExerciseViolation,
+  regionOf,
+  type BodyRegion,
+} from "./doctrine";
+
 
 export type PoolExercise = {
   id: string;
