@@ -205,7 +205,15 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
     if (relevance) errors.push(relevance);
   }
 
-  // 7. Duration integrity — short sessions warn, material overflow is fatal.
+  // 6c. Equipment families — the athlete must never assemble a gym mid-session.
+  const workRows = rowsOf([...main, ...finisher].map((s) => s.exerciseId));
+  if (workRows.length) {
+    const fam = equipmentFamilyViolation(workRows, opts.category, opts.format);
+    if (fam) errors.push(fam);
+  }
+
+  // 7. Duration integrity — short sessions warn, material overflow is fatal,
+  //    and the COMPLETE session (warm-up → cool down) must fit the request.
   const workMinutes = estimateWorkMinutes(html);
   const floor = minimumWorkMinutes(opts.level, opts.category, opts.format);
   if (opts.targetMinutes >= floor && workMinutes + 8 < opts.targetMinutes) {
@@ -215,6 +223,12 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
   }
   const overflow = durationOverflowViolation(workMinutes, opts.targetMinutes);
   if (overflow) errors.push(overflow);
+  const sessionOverflow = sessionOverflowViolation(
+    estimateSessionMinutes(html),
+    opts.targetMinutes,
+  );
+  if (sessionOverflow) errors.push(sessionOverflow);
+
 
 
   return { errors, warnings };
