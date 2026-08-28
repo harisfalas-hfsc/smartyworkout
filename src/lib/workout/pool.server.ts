@@ -1,13 +1,21 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Category, DifficultyLevel, EquipmentMode, Format, StrengthFocus } from "./spec";
 import {
+  categoryExerciseViolation,
   dynamicExerciseViolation,
   focusRegion,
   focusViolation,
   microExerciseViolation,
   regionOf,
+  HOME_APPARATUS_RE,
+  STATIC_HOLD_RE,
+  STRETCH_RE,
   type BodyRegion,
 } from "./doctrine";
+
+// STRETCH_RE stays exported from here for existing importers (enforcement).
+export { STRETCH_RE };
+
 
 
 export type PoolExercise = {
