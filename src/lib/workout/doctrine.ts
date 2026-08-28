@@ -17,6 +17,10 @@ export type ExerciseLike = {
   target_muscle?: string | null;
 };
 
+const textOf = (e: ExerciseLike) =>
+  `${e.name} ${e.target_muscle ?? ""} ${e.body_part ?? ""} ${e.equipment ?? ""}`.toLowerCase();
+
+
 // --- 2. Category doctrine ---------------------------------------------------
 
 /** Quality / controlled categories — REPS & SETS only. */
