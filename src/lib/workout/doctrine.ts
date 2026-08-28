@@ -64,14 +64,86 @@ export function categoryAllowsFinisher(category: Category): boolean {
   );
 }
 
+/**
+ * §4 — the authoritative legal-format table. Nothing else in the engine may
+ * decide which formats a category can wear. Controlled categories are REPS &
+ * SETS only; dynamic categories carry the conditioning formats; Micro Workout
+ * is a movement break, never a shortened conditioning session.
+ */
+export const LEGAL_FORMATS: Record<Category, Format[]> = {
+  STRENGTH: ["REPS & SETS"],
+  "MUSCLE BUILDING": ["REPS & SETS"],
+  PILATES: ["REPS & SETS"],
+  "MOBILITY & STABILITY": ["REPS & SETS"],
+  RECOVERY: ["MIX"],
+  "MICRO-WORKOUTS": ["REPS & SETS"],
+  CARDIO: ["CIRCUIT", "EMOM", "FOR TIME", "AMRAP", "TABATA"],
+  METABOLIC: ["CIRCUIT", "AMRAP", "EMOM", "FOR TIME", "TABATA"],
+  "CALORIE BURNING": ["CIRCUIT", "TABATA", "AMRAP", "FOR TIME", "EMOM"],
+  CHALLENGE: ["CIRCUIT", "TABATA", "AMRAP", "EMOM", "FOR TIME", "MIX"],
+};
+
+export function legalFormats(category: Category): Format[] {
+  return LEGAL_FORMATS[category];
+}
+
 /** STRENGTH + EMOM, PILATES + AMRAP, MUSCLE BUILDING + TABATA … are invalid. */
 export function categoryFormatViolation(category: Category, format: Format): string | null {
   if (isRepsAndSetsOnly(category) && format !== "REPS & SETS")
     return `${category} must be programmed as REPS & SETS — ${format} is not a legal format for this category.`;
-  if (isDynamicCategory(category) && format === "MIX" && category !== "CHALLENGE")
-    return `${category} cannot use the MIX format.`;
+  if (!LEGAL_FORMATS[category].includes(format))
+    return `${format} is not a legal format for ${category}.`;
   return null;
 }
+
+// --- 3 / 7 / 8 / 14. Category vocabulary doctrine ---------------------------
+// One definition of what each category may never contain. The pool filter, the
+// enforcement pass and the validator all read these — no parallel regex lists.
+
+/** Stretching / mobility / yoga vocabulary — banned in CHALLENGE main work. */
+export const STRETCH_RE =
+  /\b(stretch|stretching|cat-?cow|cobra|sphinx|upward facing dog|downward dog|child'?s pose|pigeon|butterfly|world'?s greatest|skin the cat|inchworm|yoga|mobility|foam roll|myofascial|release)\b/i;
+
+/** Apparatus that does not exist in a home / bodyweight setting. */
+export const HOME_APPARATUS_RE =
+  /\b(bar|barbell|cage|rack|machine|ring|rings|sled|parallel bars|pull-?up bar|dip bar|gymnastic|lever|smith|cable|bench press|captain'?s chair|roman chair|treadmill|elliptical|ergometer|stationary bike|skierg|stepmill|rope climb)\b/i;
+
+/** Static holds break momentum categories. */
+export const STATIC_HOLD_RE =
+  /\b(hold|plank|isometric|wall sit|hollow|l-?sit|bridge hold|static)\b/i;
+
+const PILATES_BAN_RE =
+  /\b(kettlebell|barbell|machine|cable|smith|sled|jump|jumping|plyo|burpee|sprint|box jump|snatch|clean|jerk|thruster)\b/i;
+
+/** §8 — Mobility & Stability is light: no heavy loading, no conditioning. */
+const MOBILITY_BAN_RE =
+  /\b(jump|jumping|plyo|burpee|sprint|snatch|clean|jerk|thruster|push-?up|pushup|crunch|sit-?up|leg raise|kettlebell|barbell|smith|leverage|sled|machine|cable|box jump|deadlift|bench press|squat rack|heavy)\b/i;
+
+const RECOVERY_BAN_RE =
+  /\b(jump|jumping|plyo|burpee|sprint|snatch|clean|jerk|thruster|crunch|sit-?up|deadlift|bench press|heavy)\b/i;
+
+const MICRO_BAN_RE =
+  /\b(dumbbell|kettlebell|barbell|band|machine|bike|rower|rope|treadmill|sled|cable|smith|ez|olympic|medicine ball|bosu|stability ball|pull-?up|chin-?up|hang(ing)?|dip bar|parallette|bench press|box jump|stair|stairs|step-?up|doorway|door frame)\b/i;
+
+/**
+ * Category-level legality for a single exercise, independent of format.
+ * Returns a concrete violation string, never a soft preference.
+ */
+export function categoryExerciseViolation(e: ExerciseLike, category: Category): string | null {
+  const t = textOf(e);
+  if (category === "CHALLENGE" && STRETCH_RE.test(t))
+    return `"${e.name}" is stretching or mobility work, which is not Challenge main work.`;
+  if (category === "PILATES" && PILATES_BAN_RE.test(t))
+    return `"${e.name}" is loaded or conditioning work, which Pilates never uses.`;
+  if (category === "MOBILITY & STABILITY" && MOBILITY_BAN_RE.test(t))
+    return `"${e.name}" is heavy or conditioning work, which Mobility & Stability never uses.`;
+  if (category === "RECOVERY" && RECOVERY_BAN_RE.test(t))
+    return `"${e.name}" is too intense for a Recovery session.`;
+  if (category === "MICRO-WORKOUTS" && (MICRO_BAN_RE.test(t) || HOME_APPARATUS_RE.test(t)))
+    return `"${e.name}" needs equipment or a special setup, which a Micro Workout never uses.`;
+  return null;
+}
+
 
 // --- 11 / 12 / 13. Dynamic-format equipment legality ------------------------
 
