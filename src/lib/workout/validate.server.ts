@@ -192,8 +192,8 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
     const relevance = activationRelevanceViolation(
       rowsOf(activation.map((s) => s.exerciseId)),
       rowsOf(main.map((s) => s.exerciseId)),
-      opts.focus ?? null,
     );
+
     if (relevance) errors.push(relevance);
   }
 
