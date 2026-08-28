@@ -2,6 +2,8 @@ import { canonicalSection, minimumWorkMinutes, SECTION_ORDER, type Category, typ
 import { EXERCISE_TOKEN_RE, findTokens, isLibraryId, stripHtml } from "./tokens";
 import { pickPrep, STRETCH_RE, type PoolExercise } from "./pool.server";
 import { parseStepTiming, parseWorkoutSteps } from "./parse-steps";
+import { categoryAllowsFinisher } from "./doctrine";
+
 
 export type EnforceResult = {
   html: string;
