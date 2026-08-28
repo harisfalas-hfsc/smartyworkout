@@ -544,15 +544,14 @@ export function buildSessionPlan(input: {
   const shape = durationShape(input.minutes, input.category);
   const { main, finisher } = doseFor(input.category, input.level);
 
-  // HARD RULE: Strength and Muscle Building are always REPS & SETS.
-  const format: Format = isLiftingCategory(input.category) ? "REPS & SETS" : input.format;
+  // HARD RULE: Strength, Muscle Building, Pilates and Mobility & Stability are
+  // always REPS & SETS — no dynamic conditioning format is ever legal there.
+  const format: Format = isRepsAndSetsOnly(input.category) ? "REPS & SETS" : input.format;
 
-  // HARD RULE: Recovery, Micro Workout and Pilates never carry a finisher.
-  const noFinisher =
-    input.category === "RECOVERY" ||
-    input.category === "MICRO-WORKOUTS" ||
-    input.category === "PILATES" ||
-    shape.finisherCount[1] === 0;
+  // HARD RULE (doctrine 20): Recovery, Micro Workout, Pilates and
+  // Mobility & Stability never carry a finisher.
+  const noFinisher = !categoryAllowsFinisher(input.category) || shape.finisherCount[1] === 0 || !finisher;
+
 
   let finisherCount: [number, number] = noFinisher ? [0, 0] : shape.finisherCount;
   let finisherDose: Dose | null = noFinisher ? null : finisher;
