@@ -203,26 +203,15 @@ export function resolveCustomEquipment(all: PoolExercise[], raw: string): string
 export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
   let pool = all.slice();
 
-  // 1. Category bans applied before generation.
-  if (f.category === "CHALLENGE") pool = pool.filter((e) => !STRETCH_RE.test(text(e)));
-  if (f.category === "PILATES") pool = pool.filter((e) => !PILATES_BAN_RE.test(text(e)));
-  if (f.category === "MOBILITY & STABILITY")
-    pool = pool.filter((e) => !MOBILITY_BAN_RE.test(text(e)));
-  if (f.category === "RECOVERY") pool = pool.filter((e) => !RECOVERY_BAN_RE.test(text(e)));
+  // 1. Category vocabulary legality (doctrine §3/§7/§8/§14) — one definition,
+  //    applied before anything else.
+  pool = pool.filter((e) => !categoryExerciseViolation(e, f.category));
+
   // MICRO WORKOUT: hard equipment-free rule. Bodyweight and everyday indoor
   // environment only (floor, wall, chair, desk, sofa) — never training
-  // apparatus, and never location-dependent setups such as stairs, doorways or
-  // pull-up bars. The athlete's normal equipment preferences do not apply here.
-
+  // apparatus. The athlete's normal equipment preferences do not apply here.
   const isMicro = f.category === "MICRO-WORKOUTS";
-  if (isMicro)
-    pool = pool.filter(
-      (e) =>
-        isBodyweight(e) &&
-        !MICRO_BAN_RE.test(text(e)) &&
-        !HOME_APPARATUS_RE.test(text(e)) &&
-        !microExerciseViolation(e),
-    );
+  if (isMicro) pool = pool.filter((e) => isBodyweight(e) && !microExerciseViolation(e));
 
   // 2. Exact equipment allowlist. Never widen a user's choices to all equipment.
   if (!isMicro) {
@@ -233,15 +222,15 @@ export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
       pool = pool.filter((e) => isBodyweight(e) && !HOME_APPARATUS_RE.test(text(e)));
   }
 
-  // 2b. CATEGORY + FORMAT equipment legality (doctrine 11-13). Selected
+  // 2b. CATEGORY + FORMAT equipment legality (doctrine §10-§13, §24). Selected
   //     equipment is not enough: a dynamic conditioning format may never carry
   //     barbell, rack, bench, cable, Smith or selectorized machine work.
   if (f.format)
     pool = pool.filter((e) => !dynamicExerciseViolation(e, f.category, f.format!));
 
-  // 3. Difficulty. Start strict; when the level is genuinely thin, widen to the
-  //    ADJACENT level only (never to the whole library, never by an arbitrary
-  //    exercise count). Beginner never inherits advanced movements.
+  // 3. Difficulty (§16). Start strict; when the level is genuinely thin, widen
+  //    to the ADJACENT level only. Beginner never inherits advanced movements
+  //    and advanced never drops to beginner vocabulary.
   if (f.level !== "all") {
     const at = (lvl: string) => pool.filter((e) => (e.difficulty ?? "").toLowerCase() === lvl);
     const strict = at(f.level);
@@ -263,11 +252,12 @@ export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
   const momentum: Category[] = ["CARDIO", "CALORIE BURNING", "METABOLIC", "CHALLENGE"];
   if (momentum.includes(f.category)) pool = pool.filter((e) => !STATIC_HOLD_RE.test(e.name));
 
-  // 5. Body-part / split focus — HARD filter for both strength categories.
+  // 5. Body focus (§15) — a HARD filter for EVERY category that carries one.
   //    A focus is never widened because fewer than N exercises survive.
-  if ((f.category === "STRENGTH" || f.category === "MUSCLE BUILDING") && f.focus) {
+  if (f.focus) {
     pool = pool.filter((e) => !focusViolation(e, f.focus!));
   }
+
 
 
   // 6. Hard ban: exercises the athlete picked as dislikes, plus their variations.
