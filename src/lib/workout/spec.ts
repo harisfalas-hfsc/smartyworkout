@@ -48,18 +48,13 @@ export type StrengthFocus = (typeof STRENGTH_FOCUS)[number];
 /** Categories where a body-part focus is meaningful and offered to the athlete. */
 export const FOCUS_CATEGORIES: Category[] = ["STRENGTH", "MUSCLE BUILDING"];
 
-export const CATEGORY_FORMATS: Record<Category, Format[]> = {
-  STRENGTH: ["REPS & SETS"],
-  "MUSCLE BUILDING": ["REPS & SETS"],
-  "MOBILITY & STABILITY": ["REPS & SETS"],
-  PILATES: ["REPS & SETS"],
-  RECOVERY: ["MIX"],
-  CARDIO: ["CIRCUIT", "EMOM", "FOR TIME", "AMRAP", "TABATA"],
-  METABOLIC: ["CIRCUIT", "AMRAP", "EMOM", "FOR TIME", "TABATA"],
-  "CALORIE BURNING": ["CIRCUIT", "TABATA", "AMRAP", "FOR TIME", "EMOM"],
-  CHALLENGE: ["CIRCUIT", "TABATA", "AMRAP", "EMOM", "FOR TIME", "MIX"],
-  "MICRO-WORKOUTS": ["CIRCUIT", "REPS & SETS", "AMRAP", "FOR TIME", "EMOM"],
-};
+/**
+ * Legal formats per category. Re-exported from the doctrine module so there is
+ * exactly ONE authoritative table (doctrine imports only types from here, so
+ * this is not a runtime cycle).
+ */
+export { LEGAL_FORMATS as CATEGORY_FORMATS } from "./doctrine";
+
 
 
 export type DifficultyLevel = "all" | "beginner" | "intermediate" | "advanced";
