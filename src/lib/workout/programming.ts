@@ -10,7 +10,13 @@
 
 import type { PoolExercise } from "./pool.server";
 import type { WorkoutStep } from "./parse-steps";
+import {
+  categoryAllowsFinisher,
+  doctrinePrompt,
+  isRepsAndSetsOnly,
+} from "./doctrine";
 import type { Category, DifficultyLevel, Format, StrengthFocus } from "./spec";
+
 
 export type Dose = {
   sets: [number, number];
