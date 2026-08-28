@@ -229,7 +229,11 @@ export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
   const isMicro = f.category === "MICRO-WORKOUTS";
   if (isMicro)
     pool = pool.filter(
-      (e) => isBodyweight(e) && !MICRO_BAN_RE.test(text(e)) && !HOME_APPARATUS_RE.test(text(e)),
+      (e) =>
+        isBodyweight(e) &&
+        !MICRO_BAN_RE.test(text(e)) &&
+        !HOME_APPARATUS_RE.test(text(e)) &&
+        !microExerciseViolation(e),
     );
 
   // 2. Exact equipment allowlist. Never widen a user's choices to all equipment.
@@ -240,6 +244,12 @@ export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
     if (f.equipmentMode === "BODYWEIGHT")
       pool = pool.filter((e) => isBodyweight(e) && !HOME_APPARATUS_RE.test(text(e)));
   }
+
+  // 2b. CATEGORY + FORMAT equipment legality (doctrine 11-13). Selected
+  //     equipment is not enough: a dynamic conditioning format may never carry
+  //     barbell, rack, bench, cable, Smith or selectorized machine work.
+  if (f.format)
+    pool = pool.filter((e) => !dynamicExerciseViolation(e, f.category, f.format!));
 
   // 3. Difficulty. Start strict; when the level is genuinely thin, widen to the
   //    ADJACENT level only (never to the whole library, never by an arbitrary
@@ -265,23 +275,10 @@ export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
   const momentum: Category[] = ["CARDIO", "CALORIE BURNING", "METABOLIC", "CHALLENGE"];
   if (momentum.includes(f.category)) pool = pool.filter((e) => !STATIC_HOLD_RE.test(e.name));
 
-  // 5. Body-part / split focus — applies to both strength categories.
+  // 5. Body-part / split focus — HARD filter for both strength categories.
+  //    A focus is never widened because fewer than N exercises survive.
   if ((f.category === "STRENGTH" || f.category === "MUSCLE BUILDING") && f.focus) {
-    const rule = FOCUS_RULES[f.focus];
-    if (rule.parts?.length) {
-      const parts = new Set(rule.parts);
-      const kept = pool.filter((e) => parts.has((e.body_part ?? "").toLowerCase().trim()));
-      if (kept.length >= 12) pool = kept;
-    }
-    if (rule.targets) {
-      const kept = pool.filter((e) => rule.targets!.test(e.target_muscle ?? ""));
-      if (kept.length >= 12) pool = kept;
-    }
-    if (rule.deny) pool = pool.filter((e) => !rule.deny!.test(text(e)));
-    if (rule.allow) {
-      const kept = pool.filter((e) => rule.allow!.test(text(e)));
-      if (kept.length >= 15) pool = kept;
-    }
+    pool = pool.filter((e) => !focusViolation(e, f.focus!));
   }
 
 
@@ -299,9 +296,9 @@ export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
 
   // 7. Hard ban from today's note ("no burpees", "avoid bicep curls").
   if (f.bannedTerms?.length) {
-    const kept = pool.filter((e) => !f.bannedTerms!.some((t) => text(e).includes(t)));
-    if (kept.length >= 12) pool = kept;
+    pool = pool.filter((e) => !f.bannedTerms!.some((t) => text(e).includes(t)));
   }
+
 
 
 
