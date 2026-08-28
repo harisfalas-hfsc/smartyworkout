@@ -168,7 +168,9 @@ export async function generateWorkoutContent(
   const activationPool = buildActivationPool(all, {
     selectedEquipment: input.selectedEquipment,
     dislikedIds,
+    focus: input.focus ?? null,
   });
+
   const cooldownPool = buildCooldownPool(all, {
     selectedEquipment: input.selectedEquipment,
     dislikedIds,
