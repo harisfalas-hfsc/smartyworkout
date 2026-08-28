@@ -135,25 +135,20 @@ const HOTEL_BAN_RE =
 const OUTDOOR_BAN_RE =
   /\b(machine|cable|smith|leverage|treadmill|elliptical|stepmill|ergometer|rowing machine|skierg|stationary bike|lat pulldown|pec deck|leg press|leg extension|leg curl machine)\b/i;
 
-/** Keeps only what the athlete can realistically do at today's location. */
+/**
+ * Keeps only what the athlete can realistically do at today's location.
+ * HARD filter: forbidden apparatus is never restored to reach an exercise
+ * count — a smaller legal pool is always preferred to an illegal one.
+ */
 export function filterByLocation(pool: PoolExercise[], location?: string | null): PoolExercise[] {
   const l = (location ?? "").toLowerCase();
-  if (l === "home") {
-    const kept = pool.filter((e) => !SMALL_SPACE_BAN_RE.test(text(e)));
-    return kept.length >= 12 ? kept : pool;
-  }
-  if (l === "hotel") {
-    const kept = pool.filter(
-      (e) => !SMALL_SPACE_BAN_RE.test(text(e)) && !HOTEL_BAN_RE.test(text(e)),
-    );
-    return kept.length >= 12 ? kept : pool;
-  }
-  if (l === "outdoors") {
-    const kept = pool.filter((e) => !OUTDOOR_BAN_RE.test(text(e)));
-    return kept.length >= 12 ? kept : pool;
-  }
+  if (l === "home") return pool.filter((e) => !SMALL_SPACE_BAN_RE.test(text(e)));
+  if (l === "hotel")
+    return pool.filter((e) => !SMALL_SPACE_BAN_RE.test(text(e)) && !HOTEL_BAN_RE.test(text(e)));
+  if (l === "outdoors") return pool.filter((e) => !OUTDOOR_BAN_RE.test(text(e)));
   return pool;
 }
+
 
 const isBodyweight = (e: PoolExercise) => (e.equipment ?? "").toLowerCase().includes("body weight");
 
