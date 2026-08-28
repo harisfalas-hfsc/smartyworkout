@@ -13,6 +13,7 @@ import type { WorkoutStep } from "./parse-steps";
 import {
   categoryAllowsFinisher,
   doctrinePrompt,
+  equipmentFamilyOf,
   isRepsAndSetsOnly,
 } from "./doctrine";
 import type { Category, DifficultyLevel, Format, StrengthFocus } from "./spec";

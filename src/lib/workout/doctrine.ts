@@ -405,7 +405,7 @@ export function sessionOverflowViolation(
   sessionMinutes: number,
   targetMinutes: number,
 ): string | null {
-  const ceiling = Math.round(targetMinutes * 1.25) + 6;
+  const ceiling = Math.round(targetMinutes * 1.1) + 4;
   if (sessionMinutes > ceiling)
     return `The complete session (~${sessionMinutes} min including activation, main work, rest, finisher and cool down) does not fit the requested ${targetMinutes} min.`;
   return null;
