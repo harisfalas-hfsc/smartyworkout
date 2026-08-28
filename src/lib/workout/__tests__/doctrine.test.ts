@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   activationRelevanceViolation,
   categoryAllowsFinisher,
+  categoryExerciseViolation,
   categoryFormatViolation,
+  equipmentFamilyViolation,
+  sessionOverflowViolation,
+
   durationOverflowViolation,
   dynamicExerciseViolation,
   focusViolation,
