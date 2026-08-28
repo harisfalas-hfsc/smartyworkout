@@ -185,7 +185,19 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
     warnings.push("Soft Tissue Preparation contained exercise links.");
   }
 
-  // 7. Duration integrity.
+  // 6b. Activation must prepare the actual demand of the Main Workout.
+  const rowsOf = (ids: string[]) =>
+    ids.map((id) => libraryById.get(id)).filter(Boolean) as PoolExercise[];
+  if (activation.length && main.length) {
+    const relevance = activationRelevanceViolation(
+      rowsOf(activation.map((s) => s.exerciseId)),
+      rowsOf(main.map((s) => s.exerciseId)),
+      opts.focus ?? null,
+    );
+    if (relevance) errors.push(relevance);
+  }
+
+  // 7. Duration integrity — short sessions warn, material overflow is fatal.
   const workMinutes = estimateWorkMinutes(html);
   const floor = minimumWorkMinutes(opts.level, opts.category, opts.format);
   if (opts.targetMinutes >= floor && workMinutes + 8 < opts.targetMinutes) {
@@ -193,6 +205,9 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
       `Prescribed work (~${workMinutes} min) is short of the advertised ${opts.targetMinutes} min.`,
     );
   }
+  const overflow = durationOverflowViolation(workMinutes, opts.targetMinutes);
+  if (overflow) errors.push(overflow);
+
 
   return { errors, warnings };
 }
