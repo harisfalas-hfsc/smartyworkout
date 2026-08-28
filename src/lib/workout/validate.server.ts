@@ -5,16 +5,20 @@
 import { matchesSelectedEquipment, nameStem, type PoolExercise } from "./pool.server";
 import { findTokens, isLibraryId, stripHtml } from "./tokens";
 import { parseWorkoutSteps } from "./parse-steps";
-import { estimateWorkMinutes } from "./enforce.server";
+import { estimateSessionMinutes, estimateWorkMinutes } from "./enforce.server";
 import {
   activationRelevanceViolation,
   categoryAllowsFinisher,
+  categoryExerciseViolation,
   categoryFormatViolation,
   durationOverflowViolation,
   dynamicExerciseViolation,
+  equipmentFamilyViolation,
   focusViolation,
   microExerciseViolation,
+  sessionOverflowViolation,
 } from "./doctrine";
+
 import {
   minimumWorkMinutes,
   type Category,
@@ -116,7 +120,10 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
       // 2b. Format legality — no setup-heavy apparatus in a dynamic format.
       const dyn = dynamicExerciseViolation(row, opts.category, opts.format);
       if (dyn) errors.push(dyn);
-      // 2c. Micro-workouts are equipment-free everyday movement only.
+      // 2c. Category vocabulary legality (Pilates, Mobility, Recovery, Micro,
+      //     Challenge) — one shared definition with the pool filter.
+      const cat = categoryExerciseViolation(row, opts.category);
+      if (cat) errors.push(cat);
       if (opts.category === "MICRO-WORKOUTS" && microExerciseViolation(row)) {
         errors.push(`"${row.name}" needs equipment or a special setup, which a micro-workout never uses.`);
       }
@@ -125,6 +132,7 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
         const fv = focusViolation(row, opts.focus);
         if (fv) errors.push(`"${row.name}" does not train the ${opts.focus} focus.`);
       }
+
     }
 
     // 3. Disliked exercises and their close variations.
@@ -197,7 +205,15 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
     if (relevance) errors.push(relevance);
   }
 
-  // 7. Duration integrity — short sessions warn, material overflow is fatal.
+  // 6c. Equipment families — the athlete must never assemble a gym mid-session.
+  const workRows = rowsOf([...main, ...finisher].map((s) => s.exerciseId));
+  if (workRows.length) {
+    const fam = equipmentFamilyViolation(workRows, opts.category, opts.format);
+    if (fam) errors.push(fam);
+  }
+
+  // 7. Duration integrity — short sessions warn, material overflow is fatal,
+  //    and the COMPLETE session (warm-up → cool down) must fit the request.
   const workMinutes = estimateWorkMinutes(html);
   const floor = minimumWorkMinutes(opts.level, opts.category, opts.format);
   if (opts.targetMinutes >= floor && workMinutes + 8 < opts.targetMinutes) {
@@ -207,6 +223,12 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
   }
   const overflow = durationOverflowViolation(workMinutes, opts.targetMinutes);
   if (overflow) errors.push(overflow);
+  const sessionOverflow = sessionOverflowViolation(
+    estimateSessionMinutes(html),
+    opts.targetMinutes,
+  );
+  if (sessionOverflow) errors.push(sessionOverflow);
+
 
 
   return { errors, warnings };

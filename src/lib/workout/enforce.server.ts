@@ -338,9 +338,25 @@ export function enforceWorkout(
 
 /** Rough work-volume estimate for Main Workout + Finisher only. */
 export function estimateWorkMinutes(html: string): number {
-  const steps = parseWorkoutSteps(html).filter(
-    (s) => s.section === "Main Workout" || s.section === "Finisher",
+  return estimateMinutes(html, ["Main Workout", "Finisher"], 0);
+}
+
+/**
+ * §19 — the honest cost of the COMPLETE session: soft tissue, activation, main
+ * work, prescribed rest, station transitions, finisher and cool down. This is
+ * the number the duration gate validates against the requested duration.
+ */
+export function estimateSessionMinutes(html: string): number {
+  const all = estimateMinutes(
+    html,
+    ["Soft Tissue Preparation", "Activation", "Warm-up", "Main Workout", "Finisher", "Cool-down"],
+    15,
   );
+  return all;
+}
+
+function estimateMinutes(html: string, sections: string[], transitionSec: number): number {
+  const steps = parseWorkoutSteps(html).filter((s) => sections.includes(s.section));
   let seconds = 0;
   for (const step of steps) {
     const timing = parseStepTiming(step);
@@ -351,8 +367,8 @@ export function estimateWorkMinutes(html: string): number {
       const reps = Number(step.prescription.match(/(\d+)\s*reps?/i)?.[1] ?? 12);
       seconds += sets * (reps * 4 + 60);
     }
+    seconds += transitionSec;
   }
-  const rounds = Number(html.match(/(\d+)\s*rounds?/i)?.[1] ?? 0);
-  if (rounds > 1) seconds *= Math.min(rounds, 6) / Math.max(1, Math.min(rounds, 6)) || 1;
   return Math.round(seconds / 60);
 }
+

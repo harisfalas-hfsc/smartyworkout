@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   activationRelevanceViolation,
   categoryAllowsFinisher,
+  categoryExerciseViolation,
   categoryFormatViolation,
+  equipmentFamilyViolation,
+  sessionOverflowViolation,
+
   durationOverflowViolation,
   dynamicExerciseViolation,
   focusViolation,
@@ -101,5 +105,50 @@ describe("duration ceiling", () => {
   it("rejects material overflow only", () => {
     expect(durationOverflowViolation(46, 45)).toBeNull();
     expect(durationOverflowViolation(90, 45)).toBeTruthy();
+  });
+});
+
+describe("category format lock (§4)", () => {
+  it("locks controlled categories to Reps & Sets and rejects conditioning formats", () => {
+    expect(categoryFormatViolation("STRENGTH", "EMOM")).toBeTruthy();
+    expect(categoryFormatViolation("PILATES", "AMRAP")).toBeTruthy();
+    expect(categoryFormatViolation("MUSCLE BUILDING", "TABATA")).toBeTruthy();
+    expect(categoryFormatViolation("MICRO-WORKOUTS", "CIRCUIT")).toBeTruthy();
+    expect(categoryFormatViolation("MICRO-WORKOUTS", "REPS & SETS")).toBeNull();
+    expect(categoryFormatViolation("METABOLIC", "AMRAP")).toBeNull();
+  });
+});
+
+describe("category vocabulary (§3/§7/§8/§14)", () => {
+  const e = (name: string, equipment: string | null = "body weight") => ({ name, equipment });
+  it("keeps stretching out of Challenge and load out of Pilates/Mobility/Recovery", () => {
+    expect(categoryExerciseViolation(e("Cat Cow Stretch"), "CHALLENGE")).toBeTruthy();
+    expect(categoryExerciseViolation(e("Burpee"), "CHALLENGE")).toBeNull();
+    expect(categoryExerciseViolation(e("Kettlebell Swing", "kettlebell"), "PILATES")).toBeTruthy();
+    expect(categoryExerciseViolation(e("Box Jump"), "MOBILITY & STABILITY")).toBeTruthy();
+    expect(categoryExerciseViolation(e("Sprint"), "RECOVERY")).toBeTruthy();
+    expect(categoryExerciseViolation(e("Dumbbell Curl", "dumbbell"), "MICRO-WORKOUTS")).toBeTruthy();
+    expect(categoryExerciseViolation(e("Chair Squat"), "MICRO-WORKOUTS")).toBeNull();
+  });
+});
+
+describe("equipment families (§12)", () => {
+  it("caps a dynamic session at two implement families", () => {
+    const rows = [
+      { name: "Air Squat", equipment: "body weight" },
+      { name: "DB Snatch", equipment: "dumbbell" },
+      { name: "KB Swing", equipment: "kettlebell" },
+      { name: "Band Row", equipment: "band" },
+    ];
+    expect(equipmentFamilyViolation(rows, "METABOLIC", "AMRAP")).toBeTruthy();
+    expect(equipmentFamilyViolation(rows.slice(0, 3), "METABOLIC", "AMRAP")).toBeNull();
+    expect(equipmentFamilyViolation(rows, "STRENGTH", "REPS & SETS")).toBeNull();
+  });
+});
+
+describe("full session duration (§19)", () => {
+  it("rejects a session whose total cost blows past the request", () => {
+    expect(sessionOverflowViolation(34, 30)).toBeNull();
+    expect(sessionOverflowViolation(62, 30)).toBeTruthy();
   });
 });

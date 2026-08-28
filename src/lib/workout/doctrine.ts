@@ -17,6 +17,10 @@ export type ExerciseLike = {
   target_muscle?: string | null;
 };
 
+const textOf = (e: ExerciseLike) =>
+  `${e.name} ${e.target_muscle ?? ""} ${e.body_part ?? ""} ${e.equipment ?? ""}`.toLowerCase();
+
+
 // --- 2. Category doctrine ---------------------------------------------------
 
 /** Quality / controlled categories — REPS & SETS only. */
@@ -60,14 +64,86 @@ export function categoryAllowsFinisher(category: Category): boolean {
   );
 }
 
+/**
+ * §4 — the authoritative legal-format table. Nothing else in the engine may
+ * decide which formats a category can wear. Controlled categories are REPS &
+ * SETS only; dynamic categories carry the conditioning formats; Micro Workout
+ * is a movement break, never a shortened conditioning session.
+ */
+export const LEGAL_FORMATS: Record<Category, Format[]> = {
+  STRENGTH: ["REPS & SETS"],
+  "MUSCLE BUILDING": ["REPS & SETS"],
+  PILATES: ["REPS & SETS"],
+  "MOBILITY & STABILITY": ["REPS & SETS"],
+  RECOVERY: ["MIX"],
+  "MICRO-WORKOUTS": ["REPS & SETS"],
+  CARDIO: ["CIRCUIT", "EMOM", "FOR TIME", "AMRAP", "TABATA"],
+  METABOLIC: ["CIRCUIT", "AMRAP", "EMOM", "FOR TIME", "TABATA"],
+  "CALORIE BURNING": ["CIRCUIT", "TABATA", "AMRAP", "FOR TIME", "EMOM"],
+  CHALLENGE: ["CIRCUIT", "TABATA", "AMRAP", "EMOM", "FOR TIME", "MIX"],
+};
+
+export function legalFormats(category: Category): Format[] {
+  return LEGAL_FORMATS[category];
+}
+
 /** STRENGTH + EMOM, PILATES + AMRAP, MUSCLE BUILDING + TABATA … are invalid. */
 export function categoryFormatViolation(category: Category, format: Format): string | null {
   if (isRepsAndSetsOnly(category) && format !== "REPS & SETS")
     return `${category} must be programmed as REPS & SETS — ${format} is not a legal format for this category.`;
-  if (isDynamicCategory(category) && format === "MIX" && category !== "CHALLENGE")
-    return `${category} cannot use the MIX format.`;
+  if (!LEGAL_FORMATS[category].includes(format))
+    return `${format} is not a legal format for ${category}.`;
   return null;
 }
+
+// --- 3 / 7 / 8 / 14. Category vocabulary doctrine ---------------------------
+// One definition of what each category may never contain. The pool filter, the
+// enforcement pass and the validator all read these — no parallel regex lists.
+
+/** Stretching / mobility / yoga vocabulary — banned in CHALLENGE main work. */
+export const STRETCH_RE =
+  /\b(stretch|stretching|cat-?cow|cobra|sphinx|upward facing dog|downward dog|child'?s pose|pigeon|butterfly|world'?s greatest|skin the cat|inchworm|yoga|mobility|foam roll|myofascial|release)\b/i;
+
+/** Apparatus that does not exist in a home / bodyweight setting. */
+export const HOME_APPARATUS_RE =
+  /\b(bar|barbell|cage|rack|machine|ring|rings|sled|parallel bars|pull-?up bar|dip bar|gymnastic|lever|smith|cable|bench press|captain'?s chair|roman chair|treadmill|elliptical|ergometer|stationary bike|skierg|stepmill|rope climb)\b/i;
+
+/** Static holds break momentum categories. */
+export const STATIC_HOLD_RE =
+  /\b(hold|plank|isometric|wall sit|hollow|l-?sit|bridge hold|static)\b/i;
+
+const PILATES_BAN_RE =
+  /\b(kettlebell|barbell|machine|cable|smith|sled|jump|jumping|plyo|burpee|sprint|box jump|snatch|clean|jerk|thruster)\b/i;
+
+/** §8 — Mobility & Stability is light: no heavy loading, no conditioning. */
+const MOBILITY_BAN_RE =
+  /\b(jump|jumping|plyo|burpee|sprint|snatch|clean|jerk|thruster|push-?up|pushup|crunch|sit-?up|leg raise|kettlebell|barbell|smith|leverage|sled|machine|cable|box jump|deadlift|bench press|squat rack|heavy)\b/i;
+
+const RECOVERY_BAN_RE =
+  /\b(jump|jumping|plyo|burpee|sprint|snatch|clean|jerk|thruster|crunch|sit-?up|deadlift|bench press|heavy)\b/i;
+
+const MICRO_BAN_RE =
+  /\b(dumbbell|kettlebell|barbell|band|machine|bike|rower|rope|treadmill|sled|cable|smith|ez|olympic|medicine ball|bosu|stability ball|pull-?up|chin-?up|hang(ing)?|dip bar|parallette|bench press|box jump|stair|stairs|step-?up|doorway|door frame)\b/i;
+
+/**
+ * Category-level legality for a single exercise, independent of format.
+ * Returns a concrete violation string, never a soft preference.
+ */
+export function categoryExerciseViolation(e: ExerciseLike, category: Category): string | null {
+  const t = textOf(e);
+  if (category === "CHALLENGE" && STRETCH_RE.test(t))
+    return `"${e.name}" is stretching or mobility work, which is not Challenge main work.`;
+  if (category === "PILATES" && PILATES_BAN_RE.test(t))
+    return `"${e.name}" is loaded or conditioning work, which Pilates never uses.`;
+  if (category === "MOBILITY & STABILITY" && MOBILITY_BAN_RE.test(t))
+    return `"${e.name}" is heavy or conditioning work, which Mobility & Stability never uses.`;
+  if (category === "RECOVERY" && RECOVERY_BAN_RE.test(t))
+    return `"${e.name}" is too intense for a Recovery session.`;
+  if (category === "MICRO-WORKOUTS" && (MICRO_BAN_RE.test(t) || HOME_APPARATUS_RE.test(t)))
+    return `"${e.name}" needs equipment or a special setup, which a Micro Workout never uses.`;
+  return null;
+}
+
 
 // --- 11 / 12 / 13. Dynamic-format equipment legality ------------------------
 
@@ -262,9 +338,54 @@ export function activationRelevanceViolation(
   return null;
 }
 
+// --- 12. Equipment family doctrine ------------------------------------------
+
+/** Canonical equipment family for the transition / family rules. */
+export function equipmentFamilyOf(equipment: string | null | undefined): string {
+  const e = (equipment ?? "").toLowerCase();
+  if (!e || e.includes("body weight")) return "bodyweight";
+  if (e.includes("dumbbell")) return "dumbbell";
+  if (e.includes("kettlebell")) return "kettlebell";
+  if (e.includes("barbell") || e.includes("trap bar") || e.includes("olympic")) return "barbell";
+  if (e.includes("band")) return "band";
+  if (e.includes("cable")) return "cable";
+  if (e.includes("machine") || e.includes("leverage") || e.includes("smith")) return "machine";
+  if (e.includes("bike") || e.includes("erg") || e.includes("rower") || e.includes("ski"))
+    return "ergometer";
+  if (e.includes("ball")) return "ball";
+  if (e.includes("assisted")) return "suspension";
+  return e.split(" ")[0] ?? "other";
+}
+
+/**
+ * §12 — a dynamic session must be runnable without assembling a gym. Bodyweight
+ * never counts against the budget; two implement families are the hard ceiling
+ * for a conditioning format, three for anything else.
+ */
+export function equipmentFamilyLimit(category: Category, format: Format): number {
+  if (isDynamicCategory(category) && isDynamicFormat(format)) return 2;
+  if (category === "MICRO-WORKOUTS") return 0;
+  return 3;
+}
+
+export function equipmentFamilyViolation(
+  exercises: ExerciseLike[],
+  category: Category,
+  format: Format,
+): string | null {
+  if (!exercises.length) return null;
+  const limit = equipmentFamilyLimit(category, format);
+  const families = new Set(
+    exercises.map((e) => equipmentFamilyOf(e.equipment)).filter((f) => f !== "bodyweight"),
+  );
+  if (families.size > limit)
+    return `The session spans ${families.size} equipment families (${[...families].join(", ")}) — a ${format} ${category} session may use at most ${limit} beyond bodyweight.`;
+  return null;
+}
+
 // --- 19. Time math ----------------------------------------------------------
 
-/** Hard ceiling: a session may never materially exceed its advertised time. */
+/** Hard ceiling: work (Main + Finisher) may never balloon past the request. */
 export function durationOverflowViolation(
   estimatedMinutes: number,
   targetMinutes: number,
@@ -274,6 +395,22 @@ export function durationOverflowViolation(
     return `Prescribed work (~${estimatedMinutes} min) materially exceeds the advertised ${targetMinutes} min session.`;
   return null;
 }
+
+/**
+ * §19 — the WHOLE session (activation + main + rest + transitions + finisher +
+ * cool down) must fit the requested duration. A 30-minute request may not ship
+ * as 30 minutes of main work plus 30 minutes of everything else.
+ */
+export function sessionOverflowViolation(
+  sessionMinutes: number,
+  targetMinutes: number,
+): string | null {
+  const ceiling = Math.round(targetMinutes * 1.25) + 6;
+  if (sessionMinutes > ceiling)
+    return `The complete session (~${sessionMinutes} min including activation, main work, rest, finisher and cool down) does not fit the requested ${targetMinutes} min.`;
+  return null;
+}
+
 
 /** Prompt text so the model sees the same doctrine the validator enforces. */
 export function doctrinePrompt(category: Category, format: Format): string {
