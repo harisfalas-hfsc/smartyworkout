@@ -57,30 +57,10 @@ export async function loadAllExercises(supabase: SupabaseClient): Promise<PoolEx
 const text = (e: PoolExercise) =>
   `${e.name} ${e.target_muscle ?? ""} ${e.body_part ?? ""} ${e.category ?? ""} ${e.equipment ?? ""}`.toLowerCase();
 
-/** Stretching / mobility / yoga vocabulary — banned in CHALLENGE main work. */
-export const STRETCH_RE =
-  /\b(stretch|stretching|cat-?cow|cobra|sphinx|upward facing dog|downward dog|child'?s pose|pigeon|butterfly|world'?s greatest|skin the cat|inchworm|yoga|mobility|foam roll|myofascial|release)\b/i;
+// All category vocabulary bans, focus legality, static-hold and home-apparatus
+// rules live in ./doctrine so the pool filter, the enforcement pass, the
+// validator and the tests read one definition. Nothing is duplicated here.
 
-/** Apparatus that is not available in a home-bodyweight setting. */
-const HOME_APPARATUS_RE =
-  /\b(bar|barbell|cage|rack|machine|ring|rings|sled|parallel bars|pull-?up bar|dip bar|gymnastic|lever|smith|cable|bench press|captain'?s chair|roman chair|treadmill|elliptical|ergometer|stationary bike|skierg|stepmill|rope climb)\b/i;
-
-const STATIC_HOLD_RE = /\b(hold|plank|isometric|wall sit|hollow|l-?sit|bridge hold|static)\b/i;
-
-const PILATES_BAN_RE =
-  /\b(kettlebell|barbell|machine|cable|smith|sled|jump|jumping|plyo|burpee|sprint|box jump|snatch|clean|jerk|thruster)\b/i;
-
-const MOBILITY_BAN_RE =
-  /\b(jump|jumping|plyo|burpee|sprint|snatch|clean|jerk|thruster|push-?up|pushup|crunch|sit-?up|leg raise|kettlebell swing|box jump|deadlift|bench press|row machine|sled)\b/i;
-
-const MICRO_BAN_RE =
-  /\b(dumbbell|kettlebell|barbell|band|machine|bike|rower|rope|treadmill|sled|cable|smith|ez|olympic|medicine ball|bosu|stability ball|pull-?up|chin-?up|hang(ing)?|dip bar|parallette|bench press|box jump|stair|stairs|step-?up|doorway|door frame)\b/i;
-
-const RECOVERY_BAN_RE =
-  /\b(jump|jumping|plyo|burpee|sprint|snatch|clean|jerk|thruster|crunch|sit-?up|deadlift|bench press|heavy)\b/i;
-
-// Focus legality lives in ./doctrine (FOCUS_RULES / focusViolation) so the
-// pool filter, the validator and the tests all use one definition.
 
 export type PoolFilter = {
   category: Category;
