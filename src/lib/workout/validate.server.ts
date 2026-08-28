@@ -7,12 +7,23 @@ import { findTokens, isLibraryId, stripHtml } from "./tokens";
 import { parseWorkoutSteps } from "./parse-steps";
 import { estimateWorkMinutes } from "./enforce.server";
 import {
+  activationRelevanceViolation,
+  categoryAllowsFinisher,
+  categoryFormatViolation,
+  durationOverflowViolation,
+  dynamicExerciseViolation,
+  focusViolation,
+  microExerciseViolation,
+} from "./doctrine";
+import {
   minimumWorkMinutes,
   type Category,
   type DifficultyLevel,
   type EquipmentMode,
   type Format,
+  type StrengthFocus,
 } from "./spec";
+
 
 export type ValidationResult = { errors: string[]; warnings: string[] };
 
