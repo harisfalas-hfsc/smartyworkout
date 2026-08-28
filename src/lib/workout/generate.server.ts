@@ -6,6 +6,7 @@ import { validateWorkout } from "./validate.server";
 import { buildPackWorkout, packCopy } from "./pack.server";
 import { buildSessionPlan, scoreWorkout } from "./programming";
 import { parseWorkoutSteps } from "./parse-steps";
+import { dominantRegion } from "./doctrine";
 
 import {
   buildActivationPool,
@@ -165,10 +166,14 @@ export async function generateWorkoutContent(
 
   // Activation and Cool Down get their own library-backed vocabulary so both
   // sections always carry real exercise links and show up in the player.
+  // §21 — activation vocabulary is narrowed to the demand of the work that is
+  // about to be programmed: the focus when one was chosen, otherwise the
+  // dominant region of the approved session pool.
   const activationPool = buildActivationPool(all, {
     selectedEquipment: input.selectedEquipment,
     dislikedIds,
     focus: input.focus ?? null,
+    region: input.focus ? undefined : dominantRegion(pool),
   });
 
   const cooldownPool = buildCooldownPool(all, {

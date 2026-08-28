@@ -152,3 +152,69 @@ describe("full session duration (§19)", () => {
     expect(sessionOverflowViolation(62, 30)).toBeTruthy();
   });
 });
+
+
+describe("§33 required scenarios", () => {
+  const row = (name: string, equipment: string, body_part = "upper arms") => ({
+    id: name.slice(0, 4),
+    name,
+    equipment,
+    body_part,
+    target_muscle: body_part,
+  });
+
+  it("rejects the invalid barbell EMOM sequence outright", () => {
+    const seq = [
+      row("Barbell Bench Press", "Barbell", "chest"),
+      row("Barbell Back Squat", "Barbell", "upper legs"),
+      row("Lat Pulldown", "Cable", "back"),
+      row("Leg Press", "Leverage Machine", "upper legs"),
+    ];
+    for (const e of seq) {
+      expect(dynamicExerciseViolation(e, "METABOLIC", "EMOM")).toBeTruthy();
+    }
+  });
+
+  it("keeps machines, barbells and cables legal for strength and muscle building", () => {
+    for (const c of ["STRENGTH", "MUSCLE BUILDING"] as const) {
+      for (const e of [
+        row("Barbell Back Squat", "Barbell", "upper legs"),
+        row("Leverage Chest Press", "Leverage Machine", "chest"),
+        row("Cable Triceps Pushdown", "Cable", "upper arms"),
+      ]) {
+        expect(dynamicExerciseViolation(e, c, "REPS & SETS")).toBeNull();
+        expect(categoryExerciseViolation(e, c)).toBeNull();
+      }
+    }
+  });
+
+  it("keeps repeatable portable work legal in cardio EMOM, metabolic For Time and calorie Tabata", () => {
+    const portable = [
+      row("Kettlebell Swing", "Kettlebell", "upper legs"),
+      row("Jump Rope", "Rope", "cardio"),
+      row("Burpee", "Body Weight", "cardio"),
+      row("Dumbbell Thruster", "Dumbbell", "upper legs"),
+    ];
+    const cases = [
+      ["CARDIO", "EMOM"],
+      ["METABOLIC", "FOR TIME"],
+      ["CALORIE BURNING", "TABATA"],
+    ] as const;
+    for (const [c, f] of cases) {
+      expect(categoryFormatViolation(c, f)).toBeNull();
+      for (const e of portable) expect(dynamicExerciseViolation(e, c, f)).toBeNull();
+    }
+  });
+
+  it("keeps upper and lower body focus pure", () => {
+    expect(focusViolation(row("Barbell Back Squat", "Barbell", "upper legs"), "UPPER BODY")).toBeTruthy();
+    expect(focusViolation(row("Dumbbell Bench Press", "Dumbbell", "chest"), "LOWER BODY")).toBeTruthy();
+    expect(focusViolation(row("Dumbbell Bench Press", "Dumbbell", "chest"), "UPPER BODY")).toBeNull();
+    expect(focusViolation(row("Goblet Squat", "Kettlebell", "upper legs"), "LOWER BODY")).toBeNull();
+  });
+
+  it("rejects a 30-minute request that balloons across all four blocks", () => {
+    expect(sessionOverflowViolation(34, 30)).toBeNull();
+    expect(sessionOverflowViolation(48, 30)).toBeTruthy();
+  });
+});

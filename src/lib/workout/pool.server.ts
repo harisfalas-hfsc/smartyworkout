@@ -228,25 +228,24 @@ export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
   if (f.format)
     pool = pool.filter((e) => !dynamicExerciseViolation(e, f.category, f.format!));
 
-  // 3. Difficulty (§16). Start strict; when the level is genuinely thin, widen
-  //    to the ADJACENT level only. Beginner never inherits advanced movements
-  //    and advanced never drops to beginner vocabulary.
+  // 3. Difficulty (§16). The requested tier is programmed as-is. A thin tier is
+  //    only ever filled from EASIER material: Beginner never inherits Advanced
+  //    or Intermediate movements, Intermediate may borrow Beginner variations
+  //    and Advanced may borrow Intermediate ones. Difficulty is expressed as
+  //    variation complexity, volume and loading — never as harder vocabulary
+  //    handed to an athlete who did not ask for it.
   if (f.level !== "all") {
     const at = (lvl: string) => pool.filter((e) => (e.difficulty ?? "").toLowerCase() === lvl);
     const strict = at(f.level);
-    if (strict.length >= 12) pool = strict;
-    else {
-      const adjacent =
-        f.level === "beginner"
-          ? ["intermediate"]
-          : f.level === "advanced"
-            ? ["intermediate"]
-            : ["beginner", "advanced"];
-      const widened = [...strict, ...adjacent.flatMap(at)];
+    const easier: string[] =
+      f.level === "advanced" ? ["intermediate", "beginner"] : f.level === "intermediate" ? ["beginner"] : [];
+    if (strict.length >= 12 || !easier.length) {
+      if (strict.length) pool = strict;
+    } else {
+      const widened = [...strict, ...easier.flatMap(at)];
       if (widened.length) pool = widened;
     }
   }
-
 
   // 4. Static-hold guardrail for momentum / conditioning categories.
   const momentum: Category[] = ["CARDIO", "CALORIE BURNING", "METABOLIC", "CHALLENGE"];

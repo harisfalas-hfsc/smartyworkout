@@ -103,10 +103,12 @@ describe("difficulty, micro scaling, cardio and transition cost", () => {
     expect(plan.mainCount).toEqual([4, 5]);
   });
 
-  it("softens effective difficulty for low-energy states but keeps the request", () => {
-    expect(resolveDifficulty(3, "tired")).toMatchObject({ requestedStars: 3, effectiveStars: 2 });
+  it("never lets mood change the requested difficulty tier (§27)", () => {
+    expect(resolveDifficulty(3, "tired")).toMatchObject({ requestedStars: 3, effectiveStars: 3 });
+    expect(resolveDifficulty(3, "tired").softenedBy).toBe("tired");
     expect(resolveDifficulty(1, "sore").effectiveStars).toBe(1);
     expect(resolveDifficulty(3, "energized").effectiveStars).toBe(3);
+    expect(resolveDifficulty(3, "energized").softenedBy).toBeNull();
   });
 
   it("keeps the standard strength finisher driven only by duration shape", () => {

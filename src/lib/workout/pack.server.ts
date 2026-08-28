@@ -4,6 +4,7 @@
 // workout that passes enforcement + validation.
 import type { PoolExercise } from "./pool.server";
 import { pickPrep, STRETCH_RE } from "./pool.server";
+import { dominantRegion, regionOf } from "./doctrine";
 import type { Category, DifficultyLevel, Format, StrengthFocus } from "./spec";
 
 export type PackInput = {
@@ -208,8 +209,25 @@ export function buildPackWorkout(
 
   const seed = input.seed ?? (mainPicks[0]?.id.length ?? 5) * 31 + input.minutes;
 
-  const activationPicks = (input.activationPool?.length
-    ? pickPrep(input.activationPool, 4, seed)
+  // §21 — activation is DERIVED from the main block that was just built: the
+  // prep vocabulary is narrowed to the dominant region of the chosen main
+  // exercises before anything is picked, so irrelevant prep is never offered.
+  const mainRegion = dominantRegion(mainPicks);
+  const derivedActivationPool = (input.activationPool ?? []).filter((e) => {
+    if (mainRegion === "full") return true;
+    const r = regionOf(e);
+    return (
+      r === mainRegion ||
+      r === "full" ||
+      (mainRegion === "lower" && r === "core") ||
+      (mainRegion === "core" && r === "lower")
+    );
+  });
+  const relevantActivationPool =
+    derivedActivationPool.length >= 4 ? derivedActivationPool : (input.activationPool ?? []);
+
+  const activationPicks = (relevantActivationPool.length
+    ? pickPrep(relevantActivationPool, 4, seed)
     : pickBalanced(library, 4, {
         filter: (e) =>
           isBodyweight(e) &&
