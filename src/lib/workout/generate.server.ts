@@ -130,6 +130,7 @@ export async function generateWorkoutContent(
   const bannedTerms = input.note ? parseNoteExclusions(input.note) : [];
   const pool = filterPool(all, {
     category: input.category,
+    format,
     equipmentMode: input.equipmentMode,
     selectedEquipment: input.selectedEquipment,
     customEquipment,
@@ -140,6 +141,7 @@ export async function generateWorkoutContent(
     bannedTerms,
     location: input.location ?? null,
   });
+
 
   if (pool.length < 12) {
     throw new Error("Not enough exercises match those settings. Try different equipment.");
@@ -166,7 +168,9 @@ export async function generateWorkoutContent(
   const activationPool = buildActivationPool(all, {
     selectedEquipment: input.selectedEquipment,
     dislikedIds,
+    focus: input.focus ?? null,
   });
+
   const cooldownPool = buildCooldownPool(all, {
     selectedEquipment: input.selectedEquipment,
     dislikedIds,
@@ -203,7 +207,9 @@ export async function generateWorkoutContent(
     equipmentMode: input.equipmentMode,
     selectedEquipment: input.selectedEquipment,
     customEquipment,
+    focus: input.focus ?? null,
     dislikedIds,
+
     prepIds,
     requireFinisher: Boolean(plan.finisher),
     finisherMin: Math.max(1, plan.finisherCount[0]),

@@ -7,12 +7,23 @@ import { findTokens, isLibraryId, stripHtml } from "./tokens";
 import { parseWorkoutSteps } from "./parse-steps";
 import { estimateWorkMinutes } from "./enforce.server";
 import {
+  activationRelevanceViolation,
+  categoryAllowsFinisher,
+  categoryFormatViolation,
+  durationOverflowViolation,
+  dynamicExerciseViolation,
+  focusViolation,
+  microExerciseViolation,
+} from "./doctrine";
+import {
   minimumWorkMinutes,
   type Category,
   type DifficultyLevel,
   type EquipmentMode,
   type Format,
+  type StrengthFocus,
 } from "./spec";
+
 
 export type ValidationResult = { errors: string[]; warnings: string[] };
 
@@ -27,7 +38,10 @@ export type ValidateOptions = {
   equipmentMode: EquipmentMode;
   selectedEquipment: string[];
   customEquipment?: string[];
+  /** Today's body-part focus — a hard legality gate on every work exercise. */
+  focus?: StrengthFocus | null;
   dislikedIds?: string[];
+
   /** Ids allowed in 🔥 Activation / 🧘 Cool Down (prep vocabulary, bodyweight-first). */
   prepIds?: string[];
   /** Blueprint minimum for 💪 Main Workout. */
@@ -59,11 +73,18 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
       .filter((s) => s.length > 3),
   );
 
+  // 0. Category / format legality — the doctrine decides which formats a
+  //    category may ever wear, regardless of what was requested upstream.
+  const formatIssue = categoryFormatViolation(opts.category, opts.format);
+  if (formatIssue) errors.push(formatIssue);
+
   const tokens = findTokens(html);
   if (!tokens.length) {
     errors.push("The workout contains no library exercises.");
     return { errors, warnings };
   }
+
+
 
   // 1. Every token must be a real library id that survived the session filter.
   for (const token of tokens) {
@@ -92,7 +113,20 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
       ) {
         errors.push(`"${row.name}" is not a bodyweight exercise.`);
       }
+      // 2b. Format legality — no setup-heavy apparatus in a dynamic format.
+      const dyn = dynamicExerciseViolation(row, opts.category, opts.format);
+      if (dyn) errors.push(dyn);
+      // 2c. Micro-workouts are equipment-free everyday movement only.
+      if (opts.category === "MICRO-WORKOUTS" && microExerciseViolation(row)) {
+        errors.push(`"${row.name}" needs equipment or a special setup, which a micro-workout never uses.`);
+      }
+      // 2d. Focus legality — a focus is a hard gate, not a preference.
+      if (opts.focus) {
+        const fv = focusViolation(row, opts.focus);
+        if (fv) errors.push(`"${row.name}" does not train the ${opts.focus} focus.`);
+      }
     }
+
     // 3. Disliked exercises and their close variations.
     if (banned.has(row.id) || bannedStems.has(nameStem(row.name))) {
       errors.push(`"${row.name}" is on the athlete's excluded list.`);
@@ -106,10 +140,11 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
   const activation = steps.filter((s) => s.section === "Activation" || s.section === "Warm-up");
   const cooldown = steps.filter((s) => s.section === "Cool-down");
   const requiresFinisher =
-    opts.requireFinisher ??
-    (opts.category !== "RECOVERY" &&
-      opts.category !== "MICRO-WORKOUTS" &&
-      opts.category !== "PILATES");
+    categoryAllowsFinisher(opts.category) && (opts.requireFinisher ?? true);
+  if (!categoryAllowsFinisher(opts.category) && finisher.length) {
+    errors.push(`${opts.category} sessions never carry a Finisher.`);
+  }
+
   const wantsActivation = opts.requireActivation ?? opts.category !== "MICRO-WORKOUTS";
   const wantsCooldown = opts.requireCooldown ?? opts.category !== "MICRO-WORKOUTS";
   const mainMin = opts.mainMin ?? 4;
@@ -150,7 +185,19 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
     warnings.push("Soft Tissue Preparation contained exercise links.");
   }
 
-  // 7. Duration integrity.
+  // 6b. Activation must prepare the actual demand of the Main Workout.
+  const rowsOf = (ids: string[]) =>
+    ids.map((id) => libraryById.get(id)).filter(Boolean) as PoolExercise[];
+  if (activation.length && main.length) {
+    const relevance = activationRelevanceViolation(
+      rowsOf(activation.map((s) => s.exerciseId)),
+      rowsOf(main.map((s) => s.exerciseId)),
+    );
+
+    if (relevance) errors.push(relevance);
+  }
+
+  // 7. Duration integrity — short sessions warn, material overflow is fatal.
   const workMinutes = estimateWorkMinutes(html);
   const floor = minimumWorkMinutes(opts.level, opts.category, opts.format);
   if (opts.targetMinutes >= floor && workMinutes + 8 < opts.targetMinutes) {
@@ -158,6 +205,9 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
       `Prescribed work (~${workMinutes} min) is short of the advertised ${opts.targetMinutes} min.`,
     );
   }
+  const overflow = durationOverflowViolation(workMinutes, opts.targetMinutes);
+  if (overflow) errors.push(overflow);
+
 
   return { errors, warnings };
 }

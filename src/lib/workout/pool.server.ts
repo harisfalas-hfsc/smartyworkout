@@ -1,5 +1,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Category, DifficultyLevel, EquipmentMode, StrengthFocus } from "./spec";
+import type { Category, DifficultyLevel, EquipmentMode, Format, StrengthFocus } from "./spec";
+import {
+  dynamicExerciseViolation,
+  focusRegion,
+  focusViolation,
+  microExerciseViolation,
+  regionOf,
+  type BodyRegion,
+} from "./doctrine";
+
 
 export type PoolExercise = {
   id: string;
@@ -62,53 +71,16 @@ const MICRO_BAN_RE =
 const RECOVERY_BAN_RE =
   /\b(jump|jumping|plyo|burpee|sprint|snatch|clean|jerk|thruster|crunch|sit-?up|deadlift|bench press|heavy)\b/i;
 
-/**
- * A focus is a hard filter on the session pool. `parts` matches the library's
- * own body_part tag, `targets` the target muscle, so the split follows the
- * exercise library instead of guessing from the exercise name.
- */
-const FOCUS_RULES: Record<
-  StrengthFocus,
-  { allow?: RegExp; deny?: RegExp; parts?: string[]; targets?: RegExp }
-> = {
-  "LOWER BODY": {
-    parts: ["upper legs", "lower legs"],
-    deny: /\b(press|push-?up|pushup|row|pull-?up|pulldown|curl|fly|dip|triceps|biceps|shoulder|chest|lat)\b/i,
-  },
-  "UPPER BODY": {
-    parts: ["chest", "back", "shoulders", "upper arms", "lower arms"],
-    deny: /\b(squat|lunge|leg press|deadlift|hip thrust|leg curl|leg extension|calf|step-?up|glute bridge)\b/i,
-  },
-  "FULL BODY": {},
-  "LOW PUSH & UPPER PULL": {
-    deny: /\b(deadlift|romanian|rdl|leg curl|bench press|shoulder press|push-?up|pushup|triceps|dip)\b/i,
-  },
-  "LOW PULL & UPPER PUSH": {
-    deny: /\b(squat|lunge|leg press|step-?up|row|pull-?up|pulldown|curl|chin-?up)\b/i,
-  },
-  "CORE & GLUTES": {
-    allow:
-      /\b(plank|dead bug|pallof|bird dog|hip thrust|glute bridge|kickback|clamshell|anti-rotation|abdominal|core|oblique|glute)\b/i,
-  },
-  PUSH: {
-    parts: ["chest", "shoulders", "upper arms"],
-    targets: /\b(pectorals|delts|triceps|serratus)\b/i,
-  },
-  PULL: {
-    parts: ["back", "upper arms", "lower arms"],
-    targets: /\b(lats|traps|upper back|biceps|forearms|rhomboids)\b/i,
-  },
-  CHEST: { parts: ["chest"] },
-  BACK: { parts: ["back"] },
-  SHOULDERS: { parts: ["shoulders"] },
-  ARMS: { parts: ["upper arms", "lower arms"] },
-  LEGS: { parts: ["upper legs", "lower legs"] },
-};
-
+// Focus legality lives in ./doctrine (FOCUS_RULES / focusViolation) so the
+// pool filter, the validator and the tests all use one definition.
 
 export type PoolFilter = {
   category: Category;
   equipmentMode: EquipmentMode;
+  /** Today's format — needed for the dynamic-format equipment doctrine. */
+  format?: Format | null;
+
+
   selectedEquipment: string[];
   customEquipment?: string[];
   level: DifficultyLevel;
@@ -163,25 +135,20 @@ const HOTEL_BAN_RE =
 const OUTDOOR_BAN_RE =
   /\b(machine|cable|smith|leverage|treadmill|elliptical|stepmill|ergometer|rowing machine|skierg|stationary bike|lat pulldown|pec deck|leg press|leg extension|leg curl machine)\b/i;
 
-/** Keeps only what the athlete can realistically do at today's location. */
+/**
+ * Keeps only what the athlete can realistically do at today's location.
+ * HARD filter: forbidden apparatus is never restored to reach an exercise
+ * count — a smaller legal pool is always preferred to an illegal one.
+ */
 export function filterByLocation(pool: PoolExercise[], location?: string | null): PoolExercise[] {
   const l = (location ?? "").toLowerCase();
-  if (l === "home") {
-    const kept = pool.filter((e) => !SMALL_SPACE_BAN_RE.test(text(e)));
-    return kept.length >= 12 ? kept : pool;
-  }
-  if (l === "hotel") {
-    const kept = pool.filter(
-      (e) => !SMALL_SPACE_BAN_RE.test(text(e)) && !HOTEL_BAN_RE.test(text(e)),
-    );
-    return kept.length >= 12 ? kept : pool;
-  }
-  if (l === "outdoors") {
-    const kept = pool.filter((e) => !OUTDOOR_BAN_RE.test(text(e)));
-    return kept.length >= 12 ? kept : pool;
-  }
+  if (l === "home") return pool.filter((e) => !SMALL_SPACE_BAN_RE.test(text(e)));
+  if (l === "hotel")
+    return pool.filter((e) => !SMALL_SPACE_BAN_RE.test(text(e)) && !HOTEL_BAN_RE.test(text(e)));
+  if (l === "outdoors") return pool.filter((e) => !OUTDOOR_BAN_RE.test(text(e)));
   return pool;
 }
+
 
 const isBodyweight = (e: PoolExercise) => (e.equipment ?? "").toLowerCase().includes("body weight");
 
@@ -262,7 +229,11 @@ export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
   const isMicro = f.category === "MICRO-WORKOUTS";
   if (isMicro)
     pool = pool.filter(
-      (e) => isBodyweight(e) && !MICRO_BAN_RE.test(text(e)) && !HOME_APPARATUS_RE.test(text(e)),
+      (e) =>
+        isBodyweight(e) &&
+        !MICRO_BAN_RE.test(text(e)) &&
+        !HOME_APPARATUS_RE.test(text(e)) &&
+        !microExerciseViolation(e),
     );
 
   // 2. Exact equipment allowlist. Never widen a user's choices to all equipment.
@@ -273,6 +244,12 @@ export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
     if (f.equipmentMode === "BODYWEIGHT")
       pool = pool.filter((e) => isBodyweight(e) && !HOME_APPARATUS_RE.test(text(e)));
   }
+
+  // 2b. CATEGORY + FORMAT equipment legality (doctrine 11-13). Selected
+  //     equipment is not enough: a dynamic conditioning format may never carry
+  //     barbell, rack, bench, cable, Smith or selectorized machine work.
+  if (f.format)
+    pool = pool.filter((e) => !dynamicExerciseViolation(e, f.category, f.format!));
 
   // 3. Difficulty. Start strict; when the level is genuinely thin, widen to the
   //    ADJACENT level only (never to the whole library, never by an arbitrary
@@ -298,23 +275,10 @@ export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
   const momentum: Category[] = ["CARDIO", "CALORIE BURNING", "METABOLIC", "CHALLENGE"];
   if (momentum.includes(f.category)) pool = pool.filter((e) => !STATIC_HOLD_RE.test(e.name));
 
-  // 5. Body-part / split focus — applies to both strength categories.
+  // 5. Body-part / split focus — HARD filter for both strength categories.
+  //    A focus is never widened because fewer than N exercises survive.
   if ((f.category === "STRENGTH" || f.category === "MUSCLE BUILDING") && f.focus) {
-    const rule = FOCUS_RULES[f.focus];
-    if (rule.parts?.length) {
-      const parts = new Set(rule.parts);
-      const kept = pool.filter((e) => parts.has((e.body_part ?? "").toLowerCase().trim()));
-      if (kept.length >= 12) pool = kept;
-    }
-    if (rule.targets) {
-      const kept = pool.filter((e) => rule.targets!.test(e.target_muscle ?? ""));
-      if (kept.length >= 12) pool = kept;
-    }
-    if (rule.deny) pool = pool.filter((e) => !rule.deny!.test(text(e)));
-    if (rule.allow) {
-      const kept = pool.filter((e) => rule.allow!.test(text(e)));
-      if (kept.length >= 15) pool = kept;
-    }
+    pool = pool.filter((e) => !focusViolation(e, f.focus!));
   }
 
 
@@ -332,9 +296,9 @@ export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
 
   // 7. Hard ban from today's note ("no burpees", "avoid bicep curls").
   if (f.bannedTerms?.length) {
-    const kept = pool.filter((e) => !f.bannedTerms!.some((t) => text(e).includes(t)));
-    if (kept.length >= 12) pool = kept;
+    pool = pool.filter((e) => !f.bannedTerms!.some((t) => text(e).includes(t)));
   }
+
 
 
 
@@ -394,16 +358,36 @@ function prepFilter(
 /**
  * The only vocabulary allowed in 🔥 Activation. Built from the whole library,
  * independent of the session pool, so the section is never empty.
+ *
+ * Doctrine 14: activation prepares the ACTUAL demand of the Main Workout. When
+ * a focus (or an explicit region) is known, the pool is biased to that region
+ * so a lower-body strength day never opens with arm-band drills.
  */
 export function buildActivationPool(
   all: PoolExercise[],
-  opts: { selectedEquipment: string[]; dislikedIds?: string[] },
+  opts: {
+    selectedEquipment: string[];
+    dislikedIds?: string[];
+    focus?: StrengthFocus | null;
+    region?: BodyRegion;
+  },
 ): PoolExercise[] {
   const disliked = opts.dislikedIds ?? [];
   const strict = prepFilter(all, opts.selectedEquipment, disliked, ACTIVATION_OK_RE, true);
-  if (strict.length >= 8) return strict;
-  return prepFilter(all, opts.selectedEquipment, disliked, ACTIVATION_OK_RE, false);
+  const base =
+    strict.length >= 8
+      ? strict
+      : prepFilter(all, opts.selectedEquipment, disliked, ACTIVATION_OK_RE, false);
+
+  const region = opts.region ?? focusRegion(opts.focus ?? null);
+  if (region === "full") return base;
+  const relevant = base.filter((e) => {
+    const r = regionOf(e);
+    return r === region || r === "full" || (region === "lower" && r === "core");
+  });
+  return relevant.length >= 6 ? relevant : base;
 }
+
 
 /** The only vocabulary allowed in 🧘 Cool Down: static stretches and breathing. */
 export function buildCooldownPool(
