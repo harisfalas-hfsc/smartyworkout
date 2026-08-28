@@ -207,7 +207,9 @@ export async function generateWorkoutContent(
     equipmentMode: input.equipmentMode,
     selectedEquipment: input.selectedEquipment,
     customEquipment,
+    focus: input.focus ?? null,
     dislikedIds,
+
     prepIds,
     requireFinisher: Boolean(plan.finisher),
     finisherMin: Math.max(1, plan.finisherCount[0]),
