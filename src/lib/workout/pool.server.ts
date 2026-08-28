@@ -358,16 +358,36 @@ function prepFilter(
 /**
  * The only vocabulary allowed in 🔥 Activation. Built from the whole library,
  * independent of the session pool, so the section is never empty.
+ *
+ * Doctrine 14: activation prepares the ACTUAL demand of the Main Workout. When
+ * a focus (or an explicit region) is known, the pool is biased to that region
+ * so a lower-body strength day never opens with arm-band drills.
  */
 export function buildActivationPool(
   all: PoolExercise[],
-  opts: { selectedEquipment: string[]; dislikedIds?: string[] },
+  opts: {
+    selectedEquipment: string[];
+    dislikedIds?: string[];
+    focus?: StrengthFocus | null;
+    region?: BodyRegion;
+  },
 ): PoolExercise[] {
   const disliked = opts.dislikedIds ?? [];
   const strict = prepFilter(all, opts.selectedEquipment, disliked, ACTIVATION_OK_RE, true);
-  if (strict.length >= 8) return strict;
-  return prepFilter(all, opts.selectedEquipment, disliked, ACTIVATION_OK_RE, false);
+  const base =
+    strict.length >= 8
+      ? strict
+      : prepFilter(all, opts.selectedEquipment, disliked, ACTIVATION_OK_RE, false);
+
+  const region = opts.region ?? focusRegion(opts.focus ?? null);
+  if (region === "full") return base;
+  const relevant = base.filter((e) => {
+    const r = regionOf(e);
+    return r === region || r === "full" || (region === "lower" && r === "core");
+  });
+  return relevant.length >= 6 ? relevant : base;
 }
+
 
 /** The only vocabulary allowed in 🧘 Cool Down: static stretches and breathing. */
 export function buildCooldownPool(
