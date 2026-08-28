@@ -219,7 +219,9 @@ function doseFor(category: Category, level: DifficultyLevel): { main: Dose; fini
     case "MOBILITY & STABILITY":
     case "PILATES":
     case "RECOVERY":
-      return { main: controlDose(level), finisher: controlDose(level) };
+      // Doctrine 20: these categories NEVER carry a finisher.
+      return { main: controlDose(level), finisher: null };
+
     case "MICRO-WORKOUTS":
       return { main: microDose(level), finisher: null };
     default:
