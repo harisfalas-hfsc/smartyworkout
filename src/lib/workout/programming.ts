@@ -645,6 +645,8 @@ export function planPrompt(plan: SessionPlan): string {
   const lifting = isLiftingCategory(plan.category);
   const lines = [
     `SESSION BLUEPRINT (hard numbers — a session outside these ranges is rejected)`,
+    doctrinePrompt(plan.category, plan.format),
+
     micro
       ? `- NO 🧽 Soft Tissue, NO 🔥 Activation, NO ⚡ Finisher, NO 🧘 Cool Down. Output ONE 💪 Main Workout section only — the first movement is the preparation.`
       : plan.activationCount === 0
