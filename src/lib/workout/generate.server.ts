@@ -130,6 +130,7 @@ export async function generateWorkoutContent(
   const bannedTerms = input.note ? parseNoteExclusions(input.note) : [];
   const pool = filterPool(all, {
     category: input.category,
+    format,
     equipmentMode: input.equipmentMode,
     selectedEquipment: input.selectedEquipment,
     customEquipment,
@@ -140,6 +141,7 @@ export async function generateWorkoutContent(
     bannedTerms,
     location: input.location ?? null,
   });
+
 
   if (pool.length < 12) {
     throw new Error("Not enough exercises match those settings. Try different equipment.");
