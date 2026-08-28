@@ -4,6 +4,7 @@
 // workout that passes enforcement + validation.
 import type { PoolExercise } from "./pool.server";
 import { pickPrep, STRETCH_RE } from "./pool.server";
+import { dominantRegion, regionOf } from "./doctrine";
 import type { Category, DifficultyLevel, Format, StrengthFocus } from "./spec";
 
 export type PackInput = {
