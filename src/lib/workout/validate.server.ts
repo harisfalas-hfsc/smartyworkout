@@ -120,7 +120,10 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
       // 2b. Format legality — no setup-heavy apparatus in a dynamic format.
       const dyn = dynamicExerciseViolation(row, opts.category, opts.format);
       if (dyn) errors.push(dyn);
-      // 2c. Micro-workouts are equipment-free everyday movement only.
+      // 2c. Category vocabulary legality (Pilates, Mobility, Recovery, Micro,
+      //     Challenge) — one shared definition with the pool filter.
+      const cat = categoryExerciseViolation(row, opts.category);
+      if (cat) errors.push(cat);
       if (opts.category === "MICRO-WORKOUTS" && microExerciseViolation(row)) {
         errors.push(`"${row.name}" needs equipment or a special setup, which a micro-workout never uses.`);
       }
@@ -129,6 +132,7 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
         const fv = focusViolation(row, opts.focus);
         if (fv) errors.push(`"${row.name}" does not train the ${opts.focus} focus.`);
       }
+
     }
 
     // 3. Disliked exercises and their close variations.
