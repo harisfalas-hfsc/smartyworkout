@@ -318,13 +318,14 @@ export function resolveDifficulty(
 function moodDirective(mood: string | null | undefined): string {
   const m = (mood ?? "").toLowerCase();
   if (LOW_ENERGY.has(m))
-    return `Athlete feels ${m}. Reduce total volume by roughly one working set per exercise, keep complexity low (no technical Olympic or high-skill work), extend rest by 15-30 sec, favour machines, supported and bilateral variations, and avoid heavy spinal loading and high-impact jumping. The session must still be a real workout — reduce volume, never purpose.`;
+    return `Athlete feels ${m}. Reduce total volume by roughly one working set per exercise, keep complexity low (no technical Olympic or high-skill work), extend rest by 15-30 sec, prefer simple bilateral and well-supported variations, and avoid heavy spinal loading and high-impact jumping. Mood NEVER changes the legal category, format or equipment of the session — it only changes dose, complexity, rest and impact. The session must still be a real workout — reduce volume, never purpose.`;
   if (m === "fun")
     return "Athlete wants a fun session. Use varied, playful patterns, unusual couplets and a game-style finisher, while keeping every prescription measurable.";
   if (HIGH_ENERGY.has(m))
     return "Athlete has good energy. Push toward the upper end of the prescribed sets and reps, allow the harder progression of each movement and keep rest at the shorter end of the window.";
   return "Athlete feels normal. Programme the middle of every prescribed range.";
 }
+
 
 const RESTRICTED_LOCATIONS: Record<string, string> = {
   home: "Training at home: assume a small floor space, no barbell rack, no machines, no heavy loading and no running. Every movement must work in one or two square metres with quiet landings (no repeated loud jumping).",
