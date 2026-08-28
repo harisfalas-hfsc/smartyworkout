@@ -296,11 +296,18 @@ export function enforceWorkout(
     warnings.push("Cool Down has fewer than 3 playable stretches.");
 
 
-  const requiresFinisher =
-    opts.requireFinisher ??
-    (opts.category !== "RECOVERY" &&
-      opts.category !== "MICRO-WORKOUTS" &&
-      opts.category !== "PILATES");
+  // Doctrine: some categories never carry a finisher at all — if the model
+  // produced one anyway, the section is dropped rather than validated.
+  const finisherAllowed = categoryAllowsFinisher(opts.category);
+  if (!finisherAllowed) {
+    const before = sections.length;
+    sections = sections.filter((s) => s.name !== "Finisher");
+    if (sections.length !== before)
+      warnings.push(`Removed the Finisher section — ${opts.category} never carries one.`);
+    counts.delete("Finisher");
+  }
+  const requiresFinisher = finisherAllowed && (opts.requireFinisher ?? true);
+
   const mainMin = opts.mainMin ?? 4;
   const main = counts.get("Main Workout") ?? 0;
   const finisher = counts.get("Finisher") ?? 0;
