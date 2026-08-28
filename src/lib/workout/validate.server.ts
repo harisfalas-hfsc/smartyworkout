@@ -73,11 +73,18 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
       .filter((s) => s.length > 3),
   );
 
+  // 0. Category / format legality — the doctrine decides which formats a
+  //    category may ever wear, regardless of what was requested upstream.
+  const formatIssue = categoryFormatViolation(opts.category, opts.format);
+  if (formatIssue) errors.push(formatIssue);
+
   const tokens = findTokens(html);
   if (!tokens.length) {
     errors.push("The workout contains no library exercises.");
     return { errors, warnings };
   }
+
+
 
   // 1. Every token must be a real library id that survived the session filter.
   for (const token of tokens) {
