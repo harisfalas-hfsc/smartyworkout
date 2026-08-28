@@ -38,7 +38,10 @@ export type ValidateOptions = {
   equipmentMode: EquipmentMode;
   selectedEquipment: string[];
   customEquipment?: string[];
+  /** Today's body-part focus — a hard legality gate on every work exercise. */
+  focus?: StrengthFocus | null;
   dislikedIds?: string[];
+
   /** Ids allowed in 🔥 Activation / 🧘 Cool Down (prep vocabulary, bodyweight-first). */
   prepIds?: string[];
   /** Blueprint minimum for 💪 Main Workout. */
