@@ -5,16 +5,20 @@
 import { matchesSelectedEquipment, nameStem, type PoolExercise } from "./pool.server";
 import { findTokens, isLibraryId, stripHtml } from "./tokens";
 import { parseWorkoutSteps } from "./parse-steps";
-import { estimateWorkMinutes } from "./enforce.server";
+import { estimateSessionMinutes, estimateWorkMinutes } from "./enforce.server";
 import {
   activationRelevanceViolation,
   categoryAllowsFinisher,
+  categoryExerciseViolation,
   categoryFormatViolation,
   durationOverflowViolation,
   dynamicExerciseViolation,
+  equipmentFamilyViolation,
   focusViolation,
   microExerciseViolation,
+  sessionOverflowViolation,
 } from "./doctrine";
+
 import {
   minimumWorkMinutes,
   type Category,
