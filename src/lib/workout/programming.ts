@@ -13,6 +13,8 @@ import type { WorkoutStep } from "./parse-steps";
 import {
   categoryAllowsFinisher,
   doctrinePrompt,
+  HUMAN_REALISM_PROMPT,
+
   equipmentFamilyOf,
   isRepsAndSetsOnly,
 } from "./doctrine";
