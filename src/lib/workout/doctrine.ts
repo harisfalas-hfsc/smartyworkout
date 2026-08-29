@@ -179,7 +179,83 @@ const MACHINE_STRENGTH_RE =
  * these are skill work, never calorie-burning vocabulary.
  */
 export const HIGH_SKILL_RE =
-  /\b(handstand|hand stand|pistol|shrimp squat|archer|planche|front lever|back lever|human flag|muscle-?up|nordic|one-?arm|one arm|single-?arm|single arm|one-?legged squat|iron cross)\b/i;
+  /\b(handstand|hand stand|pistol|shrimp squat|archer|planche|front lever|back lever|human flag|muscle-?up|nordic|one-?arm|one arm|single-?arm|single arm|one-?legged squat|iron cross|turkish get-?up|get-?up|windmill|bent press)\b/i;
+
+/**
+ * HUMAN REALISM (global).
+ *
+ * "Would a professional coach realistically give this exercise to an ordinary
+ * adult client?" Everything below fails that test in EVERY category and EVERY
+ * format: circus gymnastics, levers, exceptional-mobility work and technically
+ * demanding Olympic lifting. Smarty Coach trains working adults in their 30s,
+ * 40s and 50s — familiar, effective, achievable movements only.
+ */
+export const IMPRACTICAL_MOVEMENT_RE =
+  /\b(turkish get-?up|get-?up|handstand|hand stand|headstand|forearm stand|pike push-?up|pistol squat|pistol|shrimp squat|sissy squat|planche|front lever|back lever|lever|human flag|iron cross|dragon flag|skin the cat|muscle-?up|nordic|crow pose|frog stand|typewriter|aztec|clapping push-?up|superman push-?up|hollow back|windmill|bent press|jefferson|zercher|overhead squat|snatch|jerk|power clean|hang clean|squat clean|split clean|clean and press|clean and jerk|kipping|butterfly pull-?up|behind[- ]the[- ]neck|good morning)\b/i;
+
+/**
+ * Global legality: an exercise that a real coach would not hand to a normal
+ * adult is rejected before anything else looks at it.
+ */
+export function humanRealismViolation(e: ExerciseLike): string | null {
+  if (IMPRACTICAL_MOVEMENT_RE.test(e.name.toLowerCase()))
+    return `"${e.name}" is a high-skill, gymnastic or technically demanding movement that a coach would not program for a normal adult client.`;
+  return null;
+}
+
+/**
+ * §18 — the environment decides what is realistic. Outdoors means portable
+ * implements only: no machines, no cables, no racks, no barbells, whatever the
+ * athlete ticked in their equipment list.
+ */
+const OUTDOOR_FAMILIES = new Set([
+  "bodyweight",
+  "dumbbell",
+  "kettlebell",
+  "band",
+  "ball",
+  "suspension",
+]);
+
+export function locationEquipmentViolation(
+  e: ExerciseLike,
+  location: string | null | undefined,
+): string | null {
+  const l = (location ?? "").toLowerCase();
+  if (l !== "outdoors") return null;
+  const family = equipmentFamilyOf(e.equipment);
+  if (OUTDOOR_FAMILIES.has(family)) return null;
+  if (/\b(rope|jump rope|sandbag|sled|box|step|bench|bar)\b/.test((e.equipment ?? "").toLowerCase()))
+    return `"${e.name}" needs ${e.equipment} — an outdoor session uses portable equipment only.`;
+  return `"${e.name}" needs ${e.equipment ?? "gym apparatus"}, which does not exist outdoors.`;
+}
+
+/** High-output conditioning vocabulary — the athlete is breathing hard after it. */
+const HIGH_FATIGUE_RE =
+  /\b(burpee|sprint|jump squat|jumping lunge|jump lunge|box jump|thruster|mountain climber|high knee|skater|battle rope|jump rope|assault bike|air bike|rower|row erg|skierg|swing|shuttle|run)\b/i;
+
+/** Movements that need control, balance, precision or a loaded bar. */
+const TECHNICAL_AFTER_FATIGUE_RE =
+  /\b(handstand|pistol|turkish|get-?up|lever|planche|balance|bosu|stability ball|overhead squat|snatch|jerk|clean|barbell|bench press|deadlift|single-?leg (?:deadlift|balance)|pull-?over)\b/i;
+
+/**
+ * Sequencing realism: never send an athlete straight from a high-fatigue
+ * conditioning movement into a technical, balance- or precision-dependent one
+ * inside a clock-driven format.
+ */
+export function sequenceViolation(
+  exercises: ExerciseLike[],
+  format: Format,
+): string | null {
+  if (!isDynamicFormat(format)) return null;
+  for (let i = 1; i < exercises.length; i++) {
+    const prev = exercises[i - 1]!.name.toLowerCase();
+    const next = exercises[i]!.name.toLowerCase();
+    if (HIGH_FATIGUE_RE.test(prev) && TECHNICAL_AFTER_FATIGUE_RE.test(next))
+      return `"${exercises[i]!.name}" straight after "${exercises[i - 1]!.name}" is not realistic — a technical movement never follows a high-fatigue one under a clock.`;
+  }
+  return null;
+}
 
 /**
  * The clock-driven contract. Whenever the FORMAT is AMRAP, EMOM, CIRCUIT,
@@ -214,6 +290,7 @@ export function dynamicExerciseViolation(
     return `"${e.name}" is machine strength work, which is not legal in a ${format} ${category} session.`;
   return null;
 }
+
 
 
 // --- 15. Micro Workout ------------------------------------------------------
