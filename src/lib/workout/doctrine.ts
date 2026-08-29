@@ -571,6 +571,38 @@ export function sessionOverflowViolation(
  * shortfall side of the contract (the overflow side is above): a session that
  * only prescribes half the requested work is rejected, not shipped.
  */
+// --- 19b. Cardio stays cardio ----------------------------------------------
+
+/**
+ * High-fatigue conditioning vocabulary. These movements raise heart rate, but
+ * they are the language of METABOLIC / CALORIE BURNING — not of an aerobic
+ * session. They may appear in Cardio, but they may never define it.
+ */
+export const HIGH_FATIGUE_CONDITIONING_RE =
+  /\b(burpee|thruster|kettlebell swing|dumbbell swing|american swing|russian swing|ball slam|slam ball|wall ball|devil press|man ?maker|snatch|clean|box jump|jump squat|squat jump|jumping lunge|jump lunge|mountain climber)\b/i;
+
+/** Cyclical or simple repeatable aerobic vocabulary — the core of Cardio. */
+export const AEROBIC_RE =
+  /\b(run|running|jog|walk|walking|bike|cycling|cycle|row|rowing|elliptical|stair|step-?mill|stepper|ski ?erg|skierg|ergometer|treadmill|jump rope|skipping|march|shuttle|sprint|swim)\b/i;
+
+/**
+ * §4 — CARDIO must produce an aerobic stimulus, not a disguised metabolic
+ * session. At most ONE high-fatigue conditioning movement may appear in the
+ * main block, and it may never make up the majority of it.
+ */
+export function cardioDominanceViolation(
+  exercises: Array<{ name: string }>,
+  category: Category,
+): string | null {
+  if (category !== "CARDIO" || exercises.length === 0) return null;
+  const hot = exercises.filter((e) => HIGH_FATIGUE_CONDITIONING_RE.test(e.name));
+  if (hot.length > 1 || hot.length * 2 > exercises.length)
+    return `CARDIO is an aerobic session, not a metabolic one: ${hot
+      .map((e) => `"${e.name}"`)
+      .join(", ")} are high-fatigue conditioning movements — at most one may appear, and the block must be dominated by repeatable aerobic work.`;
+  return null;
+}
+
 export function sessionBudgetViolation(
   sessionMinutes: number,
   workMinutes: number,

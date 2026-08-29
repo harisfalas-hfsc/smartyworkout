@@ -3,6 +3,7 @@ import {
   activationOverflowViolation,
   cooldownOverflowViolation,
   activationRelevanceViolation,
+  cardioDominanceViolation,
   categoryAllowsFinisher,
   categoryExerciseViolation,
   categoryFormatViolation,
@@ -385,5 +386,58 @@ describe("human realism", () => {
     expect(
       sequenceViolation([e("Burpee"), e("Barbell Deadlift", "barbell")], "REPS & SETS"),
     ).toBeNull();
+  });
+});
+
+
+describe("final correction pass — cardio, categories and duration", () => {
+  const row = (name: string) => ({ name });
+
+  it("TEST 4 — cardio may not become a metabolic session", () => {
+    const metabolicised = [
+      row("Burpee"),
+      row("Dumbbell Thruster"),
+      row("Kettlebell Swing"),
+      row("Stationary Bike"),
+    ];
+    expect(cardioDominanceViolation(metabolicised, "CARDIO")).toBeTruthy();
+
+    const aerobic = [
+      row("Stationary Bike"),
+      row("Rowing Machine"),
+      row("Jump Rope"),
+      row("Burpee"),
+    ];
+    expect(cardioDominanceViolation(aerobic, "CARDIO")).toBeNull();
+    // Other categories are untouched by this rule.
+    expect(cardioDominanceViolation(metabolicised, "METABOLIC")).toBeNull();
+  });
+
+  it("TEST 5 — metabolic EMOM rejects setup-heavy strength work", () => {
+    const heavy = [
+      { name: "Barbell Bench Press", equipment: "Barbell", body_part: "chest" },
+      { name: "Barbell Back Squat", equipment: "Barbell", body_part: "upper legs" },
+      { name: "Leg Extension", equipment: "Leverage Machine", body_part: "upper legs" },
+      { name: "Cable Crossover", equipment: "Cable", body_part: "chest" },
+    ];
+    for (const e of heavy) expect(dynamicExerciseViolation(e, "METABOLIC", "EMOM")).toBeTruthy();
+  });
+
+  it("TEST 7/8 — pilates and mobility & stability stay reps & sets with no finisher", () => {
+    for (const c of ["PILATES", "MOBILITY & STABILITY"] as const) {
+      expect(isRepsAndSetsOnly(c)).toBe(true);
+      expect(categoryAllowsFinisher(c)).toBe(false);
+      for (const f of ["AMRAP", "EMOM", "TABATA", "FOR TIME", "CIRCUIT"] as const) {
+        expect(categoryFormatViolation(c, f)).toBeTruthy();
+      }
+      expect(categoryFormatViolation(c, "REPS & SETS")).toBeNull();
+    }
+  });
+
+  it("TEST 9 — a modestly short session passes, a drastically short one fails", () => {
+    // 22 min of work against a 30 min request: shorter, but legitimate.
+    expect(sessionBudgetViolation(32, 22, 30)).toBeNull();
+    // 12 min of work against a 30 min request: materially short.
+    expect(sessionBudgetViolation(20, 12, 30)).toBeTruthy();
   });
 });

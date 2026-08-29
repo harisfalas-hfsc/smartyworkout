@@ -77,9 +77,14 @@ type Shape = {
   cooldownCount: number;
 };
 
-/** Micro Workouts are always 10 minutes. */
-export function microMinutes(_requested: number): number {
-  return 10;
+/**
+ * Micro Workouts are a movement break, never a gym session: 10 minutes by
+ * default and never longer than 20, whatever the athlete requested.
+ */
+export function microMinutes(requested: number): number {
+  const m = Math.round(requested || 0);
+  if (!Number.isFinite(m) || m <= 10) return 10;
+  return Math.min(20, m);
 }
 
 function durationShape(minutes: number, category: Category): Shape {
@@ -204,13 +209,17 @@ function controlDose(level: DifficultyLevel): Dose {
   };
 }
 
-/** Micro Workout: bodyweight density controlled by level, never junk volume. */
+/**
+ * Micro Workout dose — a movement break, not a miniature gym session.
+ * Low sets, simple bodyweight patterns, short rest, never near failure.
+ * Advanced adds a little density and range, never leverage or skill.
+ */
 function microDose(level: DifficultyLevel): Dose {
   if (level === "beginner")
-    return { sets: [2, 3], reps: [8, 12], seconds: [20, 30], restSec: [30, 45], tempo: "controlled, easy breathing, no rush" };
+    return { sets: [2, 2], reps: [8, 12], seconds: [20, 30], restSec: [30, 40], tempo: "controlled, easy breathing, no rush" };
   if (level === "advanced")
-    return { sets: [4, 5], reps: [12, 20], seconds: [30, 45], restSec: [10, 20], tempo: "brisk but clean, harder leverage variations" };
-  return { sets: [3, 4], reps: [10, 15], seconds: [25, 40], restSec: [20, 30], tempo: "steady and controlled" };
+    return { sets: [2, 3], reps: [12, 15], seconds: [30, 40], restSec: [20, 30], tempo: "steady and controlled through a full range, well short of failure" };
+  return { sets: [2, 3], reps: [10, 15], seconds: [25, 35], restSec: [20, 40], tempo: "steady and controlled" };
 }
 
 function doseFor(category: Category, level: DifficultyLevel): { main: Dose; finisher: Dose | null } {
@@ -542,19 +551,27 @@ function fitMainToBudget(
   mainCount: [number, number],
   dose: Dose,
   budgetMinutes: number,
+  category: Category,
 ): { mainCount: [number, number]; dose: Dose } {
   let count: [number, number] = [mainCount[0], mainCount[1]];
   let d: Dose = { ...dose, sets: [dose.sets[0], dose.sets[1]], restSec: [dose.restSec[0], dose.restSec[1]] };
 
-  while (estimateBlockMinutes(count[0], d) > budgetMinutes && count[0] > 2) {
+  // §1 — the clock is the container. Exercises go first: a 30-minute strength
+  // session may legitimately hold only two or three high-quality lifts.
+  const minExercises = isLiftingCategory(category) ? 2 : 3;
+  // Rest is the LAST thing cut, and never below what the goal physiologically
+  // needs (heavy strength keeps at least 90 sec).
+  const restFloor = category === "STRENGTH" ? 90 : 60;
+
+  while (estimateBlockMinutes(count[0], d) > budgetMinutes && count[0] > minExercises) {
     count = [count[0] - 1, Math.max(count[0] - 1, count[1] - 1)];
   }
   while (estimateBlockMinutes(count[0], d) > budgetMinutes && d.sets[0] > 2) {
     const lo = d.sets[0] - 1;
     d = { ...d, sets: [lo, Math.max(lo, d.sets[1] - 1)] };
   }
-  while (estimateBlockMinutes(count[0], d) > budgetMinutes && d.restSec[0] > 60) {
-    const lo = Math.max(60, d.restSec[0] - 30);
+  while (estimateBlockMinutes(count[0], d) > budgetMinutes && d.restSec[0] > restFloor) {
+    const lo = Math.max(restFloor, d.restSec[0] - 30);
     d = { ...d, restSec: [lo, Math.max(lo, d.restSec[1] - 30)] };
   }
   return { mainCount: count, dose: d };
@@ -581,7 +598,7 @@ export function buildSessionPlan(input: {
   const fitted =
     input.category === "MICRO-WORKOUTS"
       ? { mainCount: rawShape.mainCount, dose: raw.main }
-      : fitMainToBudget(rawShape.mainCount, raw.main, mainBudget);
+      : fitMainToBudget(rawShape.mainCount, raw.main, mainBudget, input.category);
   const shape: Shape = { ...rawShape, mainCount: fitted.mainCount };
   const main = fitted.dose;
 
@@ -701,7 +718,7 @@ export function planPrompt(plan: SessionPlan): string {
       ? ``
       : `- 🧘 Cool Down: ${plan.cooldownCount} token lines plus one breathing line.`,
     micro
-      ? `- MICRO WORKOUT CONCEPT: an approximately ${microMinutes(plan.minutes)}-minute equipment-free movement break someone can do right now in office clothes, at a desk, on a sofa or in a small room. Bodyweight and everyday environment only (floor, wall, chair, sofa, desk, table, and a step or staircase when one happens to be there). Zero training equipment of any kind. Stairs may only ever be an optional surface, never a required setup, and there must always be a plain floor alternative. NO doorways, NO pull-up bars, NO other location-dependent setups. Keep the athlete in one small area with minimal movement around the room. Scale the number of movements, sets, work and rest so the session really lasts about ${microMinutes(plan.minutes)} minutes — never inflate a short request into a longer session. Reps must be intelligent for the level, never junk volume. Golden test: can this be performed immediately, in normal clothes, with zero setup, in one small area? If not, rewrite it.`
+      ? `- MICRO WORKOUT CONCEPT: an approximately ${microMinutes(plan.minutes)}-minute equipment-free movement break someone can do right now in office clothes, at a desk, on a sofa or in a small room. Bodyweight and everyday environment only (floor, wall, chair, sofa, desk, table, and a step or staircase when one happens to be there). Zero training equipment of any kind. Stairs may only ever be an optional surface, never a required setup, and there must always be a plain floor alternative. NO doorways, NO pull-up bars, NO other location-dependent setups. Keep the athlete in one small area with minimal movement around the room. Scale the number of movements, sets, work and rest so the session really lasts about ${microMinutes(plan.minutes)} minutes — never inflate a short request into a longer session. Keep it light and simple: 2-3 sets, short rest, well short of failure, plain patterns (squats, sit-to-stands, chair/desk/wall push-ups, lunges, calf raises, marching, gentle trunk and mobility work). Movement and activation, never a sweaty high-intensity session. Golden test: can this be performed immediately, in normal clothes, with zero setup, in one small area? If not, rewrite it.`
       : ``,
     pilates
       ? `- PILATES CONCEPT: a controlled Pilates session in SETS & REPS only — never Tabata, AMRAP, EMOM, For Time, circuit, HIIT or metabolic work, and never a conditioning finisher. Emphasise control, precision, breathing, spinal articulation, deep core, stability and full controlled range. Sequence movements so positions flow (supine work together, side-lying together, quadruped together) and keep equipment changes to a minimum. Quality over speed and fatigue.`

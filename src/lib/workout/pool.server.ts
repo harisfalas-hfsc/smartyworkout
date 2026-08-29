@@ -10,6 +10,7 @@ import {
   focusViolation,
   microExerciseViolation,
   regionOf,
+  HIGH_FATIGUE_CONDITIONING_RE,
   HOME_APPARATUS_RE,
   STATIC_HOLD_RE,
   STRETCH_RE,
@@ -258,6 +259,16 @@ export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
       const widened = [...strict, ...easier.flatMap(at)];
       if (widened.length) pool = widened;
     }
+  }
+
+  // 3b. CARDIO stays aerobic (§4). High-fatigue conditioning vocabulary is
+  //     legal but never dominant: the pool keeps a small minority of it so the
+  //     session is built from repeatable aerobic work.
+  if (f.category === "CARDIO") {
+    const hot = pool.filter((e) => HIGH_FATIGUE_CONDITIONING_RE.test(e.name));
+    const rest = pool.filter((e) => !HIGH_FATIGUE_CONDITIONING_RE.test(e.name));
+    if (rest.length >= 12)
+      pool = [...rest, ...hot.slice(0, Math.max(1, Math.ceil(rest.length * 0.05)))];
   }
 
   // 4. Static-hold guardrail for momentum / conditioning categories.
