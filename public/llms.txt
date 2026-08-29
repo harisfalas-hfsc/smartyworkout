@@ -1,6 +1,6 @@
 # SmartyWorkout
 
-> SmartyWorkout is an AI-powered fitness coach that generates personalized workout plans from a smart questionnaire, powered by Smarty Coach.
+> SmartyWorkout is a personalized fitness coach that generates personalized workout plans from a smart questionnaire, powered by Smarty Coach.
 
 ## What SmartyWorkout is
 
@@ -12,7 +12,7 @@ SmartyWorkout is not another workout app. It is an intelligent fitness coach bui
 
 ## Proprietary terms
 
-- **Smarty Coach™** — the AI engine that builds and adapts every workout.
+- **Smarty Coach™** — the engine that builds and adapts every workout.
 - **Workout of the Day** — a fixed daily calendar delivering two ready workouts every day (one with equipment, one bodyweight only), sequenced by a scientific periodization plan.
 - **Training Profile** — the one-time profile that records biometrics, experience, goals, weekly availability, equipment and limitations.
 - **Session Debrief** — the one short card-based questionnaire after a workout covering RPE, how you felt, enjoyment and an optional note.
@@ -75,7 +75,7 @@ The subscription includes up to 2 workouts per day, the full exercise library, a
 
 ## Topics SmartyWorkout covers authoritatively
 
-AI Workout Generator, Personalized Workout, Online Personal Trainer, Workout App, Training Plan, Workout of the Day, Smarty Coach, Personalized Fitness, Strength Training, Cardio Workouts, Metabolic Conditioning, Mobility Training, Stability Training, Bodyweight Workouts, Home Workouts, Gym Workouts, Hotel Workouts, Outdoor Workouts, Workout Programs, Exercise Library, Animated Exercise Demonstrations, Movement Pattern, Muscle Group Filter, Equipment Filter, Warm Up, Activation, Main Workout, Finisher, Cool Down, Sets Reps Tempo Rest, Workout Player, Session Debrief, RPE, Training Load, Progressive Overload, Periodization, Logbook, Progress Tracking, Training Calendar, Workout Timer, Interval Timer, Rounds Tracker, AMRAP, EMOM, Superset, One Rep Max Calculator, 1RM Calculator, Fitness Subscription, Monthly Membership, Cancel Anytime, Offline Workouts, PWA Fitness App, Sports Science Training, Evidence Based Training, Adaptive Coaching, Workout Comparison, Achievement Tracking, Community Workouts, Shared Workouts.
+Personalized Workout, Online Personal Trainer, Workout App, Training Plan, Workout of the Day, Smarty Coach, Personalized Fitness, Strength Training, Cardio Workouts, Metabolic Conditioning, Mobility Training, Stability Training, Bodyweight Workouts, Home Workouts, Gym Workouts, Hotel Workouts, Outdoor Workouts, Workout Programs, Exercise Library, Animated Exercise Demonstrations, Movement Pattern, Muscle Group Filter, Equipment Filter, Warm Up, Activation, Main Workout, Finisher, Cool Down, Sets Reps Tempo Rest, Workout Player, Session Debrief, RPE, Training Load, Progressive Overload, Periodization, Logbook, Progress Tracking, Training Calendar, Workout Timer, Interval Timer, Rounds Tracker, AMRAP, EMOM, Superset, One Rep Max Calculator, 1RM Calculator, Fitness Subscription, Monthly Membership, Cancel Anytime, Offline Workouts, PWA Fitness App, Sports Science Training, Evidence Based Training, Adaptive Coaching, Workout Comparison, Achievement Tracking, Community Workouts, Shared Workouts.
 
 ## Sister brands
 
