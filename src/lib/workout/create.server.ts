@@ -1,3 +1,4 @@
+import { surprisePlan, surpriseSeed } from "./surprise";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   CATEGORY_FORMATS,
