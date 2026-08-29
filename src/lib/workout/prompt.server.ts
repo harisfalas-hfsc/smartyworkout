@@ -50,6 +50,17 @@ const FORMAT_RULES: Record<Format, string> = {
   MIX: 'Header "Main Workout (MIX)". A prescribed REPS & SETS strength portion followed by a prescribed metabolic finisher portion.',
 };
 
+/**
+ * The generic MIX definition (strength + metabolic) must never leak into
+ * RECOVERY: there MIX is only a technical label for blended gentle recovery
+ * modalities.
+ */
+function formatRule(category: Category, format: Format): string {
+  if (category === "RECOVERY")
+    return 'Header "Main Workout (MIX)". In RECOVERY, MIX means a blend of GENTLE RECOVERY MODALITIES only: breathing, CARs and gentle mobility, controlled low-effort movement and light stretching, each with a written dose (reps, seconds or breaths). There is NO strength portion, NO metabolic portion and NO Finisher.';
+  return FORMAT_RULES[format];
+}
+
 const FOCUS_RULES: Record<StrengthFocus, string> = {
   "LOWER BODY":
     "ALLOWED: squats, lunges, leg press, hip thrusts, leg curls/extensions, calf raises, step-ups, Bulgarian splits. FORBIDDEN: any upper-body press/pull/arm work.",
