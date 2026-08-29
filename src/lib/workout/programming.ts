@@ -17,6 +17,7 @@ import {
 
   equipmentFamilyOf,
   isRepsAndSetsOnly,
+  legalFormats,
 } from "./doctrine";
 import type { Category, DifficultyLevel, Format, StrengthFocus } from "./spec";
 
