@@ -397,17 +397,58 @@ export function durationOverflowViolation(
 }
 
 /**
- * §19 — the WHOLE session (activation + main + rest + transitions + finisher +
- * cool down) must fit the requested duration. A 30-minute request may not ship
- * as 30 minutes of main work plus 30 minutes of everything else.
+ * §19 — the advertised duration is TRAINING TIME: Main Workout + Finisher.
+ * Activation and cool down sit on top of it as a bounded allowance, so prep
+ * can never eat the session and a 30-minute request really trains 30 minutes.
+ */
+export function activationAllowanceMinutes(targetMinutes: number): number {
+  if (targetMinutes <= 15) return 5;
+  if (targetMinutes <= 30) return 6;
+  return 8;
+}
+
+export function cooldownAllowanceMinutes(targetMinutes: number): number {
+  return targetMinutes <= 15 ? 4 : 5;
+}
+
+/** Activation may never exceed its allowance. */
+export function activationOverflowViolation(
+  activationMinutes: number,
+  targetMinutes: number,
+): string | null {
+  const ceiling = activationAllowanceMinutes(targetMinutes) + 3;
+  if (activationMinutes > ceiling)
+    return `Activation (~${activationMinutes} min) is too long — preparation may take at most about ${activationAllowanceMinutes(targetMinutes)} min on top of the ${targetMinutes} min of training.`;
+  return null;
+}
+
+/** Cool down may never exceed its allowance. */
+export function cooldownOverflowViolation(
+  cooldownMinutes: number,
+  targetMinutes: number,
+): string | null {
+  const ceiling = cooldownAllowanceMinutes(targetMinutes) + 3;
+  if (cooldownMinutes > ceiling)
+    return `Cool down (~${cooldownMinutes} min) is too long — it may take at most about ${cooldownAllowanceMinutes(targetMinutes)} min on top of the ${targetMinutes} min of training.`;
+  return null;
+}
+
+/**
+ * Sanity ceiling for the WHOLE session: advertised training time plus the two
+ * prep allowances. It exists to catch a runaway session, never to shorten a
+ * properly dosed one.
  */
 export function sessionOverflowViolation(
   sessionMinutes: number,
   targetMinutes: number,
 ): string | null {
-  const ceiling = Math.round(targetMinutes * 1.1) + 4;
+  const ceiling =
+    Math.round(targetMinutes * 1.2) +
+    activationAllowanceMinutes(targetMinutes) +
+    cooldownAllowanceMinutes(targetMinutes) +
+    5;
   if (sessionMinutes > ceiling)
-    return `The complete session (~${sessionMinutes} min including activation, main work, rest, finisher and cool down) does not fit the requested ${targetMinutes} min.`;
+    return `The complete session (~${sessionMinutes} min including activation, main work, rest, finisher and cool down) is far beyond the requested ${targetMinutes} min of training.`;
   return null;
 }
 

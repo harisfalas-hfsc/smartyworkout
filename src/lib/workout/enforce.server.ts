@@ -341,10 +341,21 @@ export function estimateWorkMinutes(html: string): number {
   return estimateMinutes(html, ["Main Workout", "Finisher"], 0);
 }
 
+/** Honest cost of the preparation blocks (soft tissue + activation + warm-up). */
+export function estimateActivationMinutes(html: string): number {
+  return estimateMinutes(html, ["Soft Tissue Preparation", "Activation", "Warm-up"], 10);
+}
+
+/** Honest cost of the cool down block. */
+export function estimateCooldownMinutes(html: string): number {
+  return estimateMinutes(html, ["Cool-down"], 10);
+}
+
 /**
  * §19 — the honest cost of the COMPLETE session: soft tissue, activation, main
- * work, prescribed rest, station transitions, finisher and cool down. This is
- * the number the duration gate validates against the requested duration.
+ * work, prescribed rest, station transitions, finisher and cool down. The
+ * ADVERTISED duration covers training time only (Main + Finisher); this total
+ * is checked against training time plus the prep allowances.
  */
 export function estimateSessionMinutes(html: string): number {
   const all = estimateMinutes(
