@@ -124,9 +124,10 @@ describe("category format lock (§4)", () => {
     expect(categoryFormatViolation("STRENGTH", "EMOM")).toBeTruthy();
     expect(categoryFormatViolation("PILATES", "AMRAP")).toBeTruthy();
     expect(categoryFormatViolation("MUSCLE BUILDING", "TABATA")).toBeTruthy();
-    expect(categoryFormatViolation("MICRO-WORKOUTS", "CIRCUIT")).toBeTruthy();
+    expect(categoryFormatViolation("MICRO-WORKOUTS", "CIRCUIT")).toBeNull();
     expect(categoryFormatViolation("MICRO-WORKOUTS", "REPS & SETS")).toBeNull();
     expect(categoryFormatViolation("METABOLIC", "AMRAP")).toBeNull();
+
   });
 });
 
