@@ -403,7 +403,6 @@ export const TRAINING_TOPICS: TrainingTopic[] = [
           "Calendar scheduling with completed, upcoming and missed states",
           "Full history of every generated session",
           "Progress tracking and training load from what you logged",
-          "PDF export of any workout",
         ],
       },
     ],

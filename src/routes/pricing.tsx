@@ -14,13 +14,13 @@ export const Route = createFileRoute("/pricing")({
       {
         name: "description",
         content:
-          "One SmartyWorkout subscription: €9.99 per month for 2 AI workouts a day programmed on the sports science of Haris Falas (CSCS), the full 1,300+ exercise library, all training tools, your logbook and every past workout.",
+          "One SmartyWorkout subscription: €9.99 per month for 2 personalized workouts a day programmed on the sports science of Haris Falas (CSCS), the full 1,300+ exercise library, all training tools, your logbook and every past workout.",
       },
 
       { property: "og:title", content: "SmartyWorkout Pricing — €9.99/month" },
       {
         property: "og:description",
-        content: "2 AI workouts a day, full exercise library, all tools and your training history.",
+        content: "2 personalized workouts a day, full exercise library, all tools and your training history.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -37,7 +37,7 @@ export const Route = createFileRoute("/pricing")({
               "@type": "Product",
               name: "SmartyWorkout Subscription",
               description:
-                "One SmartyWorkout subscription: 2 AI workouts a day, the full exercise library, all training tools, your logbook and every past workout.",
+                "One SmartyWorkout subscription: 2 personalized workouts a day, the full exercise library, all training tools, your logbook and every past workout.",
               brand: { "@id": "https://smartyworkout.com/#organization" },
               category: "Fitness subscription",
               image: "https://smartyworkout.com/og-social.jpg",
@@ -74,12 +74,11 @@ export const Route = createFileRoute("/pricing")({
 });
 
 const INCLUDES: { icon: string; label: string }[] = [
-  { icon: "🏋️", label: "2 AI workouts every day" },
+  { icon: "🏋️", label: "2 personalized workouts every day" },
   { icon: "🧠", label: "Smarty Coach personalization" },
   { icon: "📚", label: "Full exercise library" },
   { icon: "🕘", label: "All your previous workouts" },
   { icon: "📓", label: "Logbook & progress tracking" },
-  { icon: "📄", label: "PDF export of any workout" },
 ];
 
 const TOOLS: { icon: string; label: string }[] = [
