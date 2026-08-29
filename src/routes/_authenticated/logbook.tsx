@@ -837,6 +837,7 @@ function Logbook() {
   const [busy, setBusy] = useState(false);
   const saveMeta = useServerFn(setWorkoutMeta);
   const saveStatus = useServerFn(setWorkoutStatus);
+  const readFeedback = useServerFn(getSessionFeedback);
   const { user } = useAuth();
   // Marking a workout done from the logbook opens the same debrief the player uses,
   // so a session logged here still carries effort + feel data into load and progress.
