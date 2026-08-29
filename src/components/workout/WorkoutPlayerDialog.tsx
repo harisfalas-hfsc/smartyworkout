@@ -353,35 +353,19 @@ export function WorkoutPlayerDialog({
       result.finished !== null;
     if (hasAnything) {
       if (user) {
-        const id = attemptId ?? crypto.randomUUID();
         const performedAt = new Date(startedAtRef.current ?? Date.now()).toISOString();
-        const local = await saveLocalResult(user.id, {
-            id,
-            workout_id: workoutId,
-            attempt,
-            prescription_hash: planHash,
-            performed_at: performedAt,
-            format,
-            category,
-            metric: resultModel.metric,
-            duration_seconds: result.durationSeconds,
-            rounds: result.rounds,
-            extra_reps: result.extraReps,
-            intervals_done: result.intervalsDone,
-            intervals_total: resultModel.intervalsTotal,
-            finished: result.finished,
-            rpe: null,
-            analysis_note: null,
-            data_points: [result.durationSeconds, result.rounds, result.intervalsDone].filter((v) => v !== null).length,
-            created_at: performedAt,
-        });
-        await enqueueAction("workout-result", local, user.id, 0);
-        void storeResult({ data: {
-          workoutId, attempt, prescriptionHash: planHash, performedAt, format, category,
-          metric: resultModel.metric, durationSeconds: result.durationSeconds, rounds: result.rounds,
-          extraReps: result.extraReps, intervalsDone: result.intervalsDone,
-          intervalsTotal: resultModel.intervalsTotal, finished: result.finished,
-        } }).catch(() => undefined);
+        try {
+          await storeResult({
+            data: {
+              workoutId, attempt, prescriptionHash: planHash, performedAt, format, category,
+              metric: resultModel.metric, durationSeconds: result.durationSeconds, rounds: result.rounds,
+              extraReps: result.extraReps, intervalsDone: result.intervalsDone,
+              intervalsTotal: resultModel.intervalsTotal, finished: result.finished,
+            },
+          });
+        } catch {
+          toast.error("Could not save your result. Please try again.");
+        }
       }
     }
     void openDebrief();
