@@ -161,7 +161,7 @@ export function ConversationsPanel({
       await setRead({ data: { ids, read: true } });
       announceInboxChanged();
     } catch {
-      await enqueueAction("thread-read", { ids, read: true }, user?.id);
+      toast.error("Could not update those conversations.");
     }
   }
 
@@ -174,11 +174,11 @@ export function ConversationsPanel({
     try {
       await removeThreads({ data: { ids } });
       announceInboxChanged();
+      toast.success("Conversations deleted");
     } catch {
-      await enqueueAction("thread-delete", { ids }, user?.id);
-      toast.info("Deleted on this device — it will sync when you are online.");
+      toast.error("Could not delete those conversations.");
+      void reload();
     }
-    toast.success("Conversations deleted");
   }
 
   async function deleteOne(id: string) {
@@ -189,8 +189,8 @@ export function ConversationsPanel({
       await removeThreads({ data: { ids: [id] } });
       announceInboxChanged();
     } catch {
-      await enqueueAction("thread-delete", { ids: [id] }, user?.id);
-      toast.info("Deleted on this device — it will sync when you are online.");
+      toast.error("Could not delete that conversation.");
+      void reload();
     }
   }
 
