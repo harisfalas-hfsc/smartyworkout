@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRemoteData } from "@/lib/remote-data";
 import { useOnlineStatus } from "@/lib/connectivity";
-import { CachedNotice } from "@/components/offline/CachedNotice";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useServerFn } from "@tanstack/react-start";
@@ -60,11 +59,8 @@ import {
 import { equipmentBadges } from "@/lib/format/labels";
 import { getSessionLoads } from "@/lib/performance.functions";
 import { ProgressSection } from "@/components/progress/ProgressSection";
-import { localSessionLoads, readLocalPerformance } from "@/lib/offline/performance-store";
 import { SessionDebriefDialog } from "@/components/workout/SessionDebriefDialog";
-import type { SessionFeedback } from "@/lib/feedback.functions";
-import { enqueueAction } from "@/lib/offline/queue";
-import { scopedKey, writeCache } from "@/lib/offline/store";
+import { getSessionFeedback, type SessionFeedback } from "@/lib/feedback.functions";
 
 type View = "list" | "calendar" | "progress";
 type LogSearch = { filter: string; view: View; equip?: string };
@@ -856,19 +852,18 @@ function Logbook() {
       let attempt = 1;
       let initial: SessionFeedback | null = null;
       try {
-        const perf = await readLocalPerformance(user.id);
-        const attempts = perf.attempts.filter((a) => a.workout_id === workoutId);
-        attempt = attempts.length ? Math.max(...attempts.map((a) => a.attempt)) : 1;
-        const fb = perf.feedback
-          .filter((f) => f.workout_id === workoutId && f.attempt === attempt)
-          .at(-1);
-        if (fb) initial = fb;
+        const res = await readFeedback({ data: { workoutId } });
+        const fb = (res as { feedback: SessionFeedback | null }).feedback;
+        if (fb) {
+          attempt = fb.attempt;
+          initial = fb;
+        }
       } catch {
-        /* local store unavailable — start a fresh debrief */
+        /* no answers on record yet — start a fresh debrief */
       }
       setDebrief({ workoutId, attempt, initial });
     },
-    [user?.id],
+    [user?.id, readFeedback],
   );
 
   const loadRows = useCallback(async () => {
@@ -883,8 +878,7 @@ function Logbook() {
     return (data as unknown as Row[]) ?? [];
   }, []);
 
-  const cached = useOfflineData<Row[]>("logbook:list", loadRows, {
-    userId: user?.id ?? null,
+  const cached = useRemoteData<Row[]>("logbook:list", loadRows, {
     enabled: !!user?.id,
   });
   const online = useOnlineStatus();
@@ -898,11 +892,7 @@ function Logbook() {
   useEffect(() => {
     if (!user?.id) return;
     let alive = true;
-    void localSessionLoads(user.id)
-      .then((local) => {
-        if (alive) setSessions(local);
-      })
-      .then(() => fetchSessionLoads({ data: {} }))
+    void fetchSessionLoads({ data: {} })
       .then((res) => {
         if (alive) setSessions(res.sessions as SessionLoad[]);
       })
@@ -921,12 +911,11 @@ function Logbook() {
   async function toggleFavorite(id: string, next: boolean) {
     const updated = rows?.map((r) => (r.id === id ? { ...r, is_favorite: next } : r)) ?? [];
     setRows(updated);
-    if (user?.id) await writeCache(scopedKey(user.id, "logbook:list"), updated);
     try {
       await saveMeta({ data: { workoutId: id, is_favorite: next } });
     } catch {
-      await enqueueAction("workout-meta", { workoutId: id, is_favorite: next }, user?.id);
-      toast.success("Saved on this device — it will sync when you are online.");
+      setRows(rows);
+      toast.error("Could not save that change. Please try again.");
     }
   }
 
@@ -941,13 +930,12 @@ function Logbook() {
     const before = rows;
     const updated = rows?.map((r) => (r.id === id ? { ...r, ...optimistic } : r)) ?? [];
     setRows(updated);
-    if (user?.id) await writeCache(scopedKey(user.id, "logbook:list"), updated);
     try {
       await saveStatus({ data: { workoutId: id, ...patch } });
       toast.success(message);
     } catch {
-      await enqueueAction("workout-status", { workoutId: id, ...patch }, user?.id);
-      toast.success("Saved on this device — it will sync when you are online.");
+      setRows(before);
+      toast.error("Could not save that change. Please try again.");
     } finally {
       setBusy(false);
     }
@@ -1000,7 +988,6 @@ function Logbook() {
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">
-      <CachedNotice savedAt={cached.savedAt} show={cached.fromCache} />
       <PageHeader
         className="mb-2"
         eyebrow="Your history"
