@@ -306,7 +306,7 @@ CATEGORY COACHING RULES
 ${CATEGORY_COACHING[input.category]}
 
 FORMAT WRITING RULES
-${FORMAT_RULES[input.format]}
+${formatRule(input.category, input.format)}
 ${input.focus ? `\nFOCUS SPLIT RULES\n${FOCUS_RULES[input.focus]}` : ""}
 
 ${input.plan ? planPrompt(input.plan) : ""}
