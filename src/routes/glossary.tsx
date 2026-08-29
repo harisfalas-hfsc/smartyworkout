@@ -7,7 +7,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { TRAINING_TOPICS } from "@/lib/seo/training-topics";
+import { TRAINING_CATEGORIES } from "@/lib/training-categories";
 
 const URL = "https://smartyworkout.com/glossary";
 const TITLE = "Training Glossary — 25+ terms defined | SmartyWorkout";
