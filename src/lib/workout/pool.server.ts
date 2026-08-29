@@ -10,6 +10,7 @@ import {
   focusViolation,
   microExerciseViolation,
   regionOf,
+  HIGH_FATIGUE_CONDITIONING_RE,
   HOME_APPARATUS_RE,
   STATIC_HOLD_RE,
   STRETCH_RE,
