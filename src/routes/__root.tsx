@@ -17,10 +17,6 @@ import { Toaster } from "../components/ui/sonner";
 import { SisterAppsPopup } from "../components/growth/SisterAppsPopup";
 import { BottomNav } from "../components/BottomNav";
 import { ThemeProvider, THEME_INIT_SCRIPT } from "../lib/theme";
-import { OfflineStatus } from "../components/offline/OfflineStatus";
-import { OfflineSync } from "../components/offline/OfflineSync";
-import { OfflineBootstrap } from "../components/offline/OfflineBootstrap";
-import { registerAppServiceWorker, watchForAppUpdates } from "../lib/offline/register-sw";
 
 
 const SITE_URL = "https://smartyworkout.com";
@@ -408,19 +404,10 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
-  useEffect(() => {
-    void registerAppServiceWorker();
-    // A published release must reach browsers, installed apps and the phone
-    // apps on its own, without anyone clearing anything by hand.
-    watchForAppUpdates();
-  }, []);
-
-
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <div className="flex min-h-screen flex-col bg-background">
-          <OfflineStatus />
           <Navigation />
           <main>
             <Outlet />
@@ -429,8 +416,6 @@ function RootComponent() {
           <Toaster />
           <SisterAppsPopup />
           <BottomNav />
-          <OfflineSync />
-          <OfflineBootstrap />
         </div>
       </ThemeProvider>
     </QueryClientProvider>

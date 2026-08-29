@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { refreshRememberedSession } from "@/lib/offline/device-auth";
 import type { Session, User } from "@supabase/supabase-js";
 import { isOnline } from "@/lib/connectivity";
 
@@ -37,7 +36,7 @@ export function useAuth() {
         if (active) setProfile(null);
         return;
       }
-      // Show the saved copy instantly (also the only source when offline).
+      // Show the last known name/avatar instantly while the fresh one loads.
       try {
         const saved = localStorage.getItem(cacheKey(authUser.id));
         if (saved && active) setProfile(JSON.parse(saved) as ProfileSummary);
@@ -69,7 +68,6 @@ export function useAuth() {
       setSession(data.session);
       setUser(data.session?.user ?? null);
       setLoading(false);
-      refreshRememberedSession(data.session?.user?.email);
       void loadProfile(data.session?.user ?? null);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_evt, s) => {
@@ -77,7 +75,6 @@ export function useAuth() {
       setSession(s);
       setUser(s?.user ?? null);
       setLoading(false);
-      refreshRememberedSession(s?.user?.email);
       void loadProfile(s?.user ?? null);
     });
     return () => {

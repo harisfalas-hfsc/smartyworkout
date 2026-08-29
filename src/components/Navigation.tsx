@@ -1,5 +1,4 @@
 import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
-import { clearCacheForUser } from "@/lib/offline/store";
 import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import {
   LogOut,

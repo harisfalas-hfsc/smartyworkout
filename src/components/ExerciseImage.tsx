@@ -1,15 +1,11 @@
 import { useEffect, useState } from "react";
 import { Dumbbell } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getExerciseMediaUrl, readStoredMedia, storeMedia } from "@/lib/exercise-media";
-import { isOnline } from "@/lib/connectivity";
+import { getExerciseMediaUrl } from "@/lib/exercise-media";
 
 /**
- * Resolves the best address for an exercise picture.
- *
- * A stored copy always wins: it works offline, paints instantly, and costs no
- * data. When nothing is stored the signed link is used and the file is saved
- * for next time, so the library fills itself up simply by being used.
+ * Resolves the address for an exercise picture. Pictures live in a private
+ * bucket, so a short-lived signed link is requested unless one was passed in.
  */
 export function useExerciseImageSrc(path?: string | null, signedUrl?: string | null) {
   const [src, setSrc] = useState<string | null>(signedUrl ?? null);
