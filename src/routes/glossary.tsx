@@ -137,9 +137,42 @@ const TERMS: { term: string; def: string }[] = [
   },
 ];
 
+const CATEGORY_ANCHOR_PREFIX = "category-";
+
+export function categoryAnchor(id: string) {
+  return `${CATEGORY_ANCHOR_PREFIX}${id.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+}
+
 const JSONLD = {
   "@context": "https://schema.org",
   "@graph": [
+    {
+      "@type": "DefinedTermSet",
+      "@id": `${URL}#categories`,
+      name: "Smarty Workout Training Categories",
+      description:
+        "The complete set of workout categories SmartyWorkout generates, with the training formats each category uses, who it suits and when to choose it.",
+      hasDefinedTerm: TRAINING_CATEGORIES.map((c) => ({
+        "@type": "DefinedTerm",
+        "@id": `${URL}#${categoryAnchor(c.id)}`,
+        name: c.name,
+        description: c.brief,
+        inDefinedTermSet: `${URL}#categories`,
+      })),
+    },
+    {
+      "@type": "ItemList",
+      "@id": `${URL}#category-list`,
+      name: "Smarty Workout Training Categories",
+      numberOfItems: TRAINING_CATEGORIES.length,
+      itemListElement: TRAINING_CATEGORIES.map((c, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        name: c.name,
+        description: c.brief,
+        url: `${URL}#${categoryAnchor(c.id)}`,
+      })),
+    },
     {
       "@type": "DefinedTermSet",
       "@id": `${URL}#terms`,
@@ -166,10 +199,14 @@ export const Route = createFileRoute("/glossary")({
     meta: [
       { title: TITLE },
       { name: "description", content: DESCRIPTION },
+      { name: "keywords", content: KEYWORDS },
       { property: "og:title", content: TITLE },
       { property: "og:description", content: DESCRIPTION },
       { property: "og:url", content: URL },
       { property: "og:type", content: "article" },
+      { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: TITLE },
+      { name: "twitter:description", content: DESCRIPTION },
     ],
     links: [{ rel: "canonical", href: URL }],
     scripts: [{ type: "application/ld+json", children: JSON.stringify(JSONLD) }],
