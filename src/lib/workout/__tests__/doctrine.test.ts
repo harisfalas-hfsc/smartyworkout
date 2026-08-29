@@ -237,3 +237,61 @@ describe("§33 required scenarios", () => {
     expect(cooldownOverflowViolation(12, 30)).toBeTruthy();
   });
 });
+
+describe("clock-driven format contract", () => {
+  const ex = (name: string, equipment: string | null = "body weight") => ({ name, equipment });
+  const CLOCK = ["AMRAP", "EMOM", "CIRCUIT", "TABATA", "FOR TIME"] as const;
+
+  it("rejects high-skill and single-limb movements in every clock format", () => {
+    for (const f of CLOCK) {
+      for (const n of [
+        "Handstand Push-Up",
+        "Pistol Squat",
+        "Archer Push-Up",
+        "Planche Hold",
+        "Muscle-Up",
+        "Nordic Hamstring Curl",
+        "One-Arm Dumbbell Press",
+      ]) {
+        expect(dynamicExerciseViolation(ex(n), "CALORIE BURNING", f)).toBeTruthy();
+      }
+    }
+  });
+
+  it("rejects machines, racks and benches in a clock format for any category", () => {
+    expect(dynamicExerciseViolation(ex("Barbell Bench Press", "barbell"), "CHALLENGE", "EMOM")).toBeTruthy();
+    expect(dynamicExerciseViolation(ex("Leg Press", "leverage machine"), "METABOLIC", "CIRCUIT")).toBeTruthy();
+    expect(dynamicExerciseViolation(ex("Lat Pulldown", "cable"), "MICRO-WORKOUTS", "TABATA")).toBeTruthy();
+  });
+
+  it("keeps portable conditioning vocabulary legal", () => {
+    for (const [n, eq] of [
+      ["Kettlebell Swing", "kettlebell"],
+      ["Dumbbell Thruster", "dumbbell"],
+      ["Box Jump", "body weight"],
+      ["Rowing Machine Interval", "rower"],
+    ] as const) {
+      expect(dynamicExerciseViolation(ex(n, eq), "CARDIO", "AMRAP")).toBeNull();
+    }
+  });
+
+  it("never restricts equipment in a Reps & Sets session", () => {
+    for (const c of ["STRENGTH", "MUSCLE BUILDING"] as const) {
+      for (const [n, eq] of [
+        ["Barbell Bench Press", "barbell"],
+        ["Leg Press", "leverage machine"],
+        ["Lat Pulldown", "cable"],
+        ["Barbell Back Squat", "barbell"],
+      ] as const) {
+        expect(dynamicExerciseViolation(ex(n, eq), c, "REPS & SETS")).toBeNull();
+      }
+    }
+  });
+});
+
+describe("section budgets add up (§19)", () => {
+  it("rejects a session that materially undershoots the requested time", () => {
+    expect(sessionBudgetViolation(20, 12, 40)).toBeTruthy();
+    expect(sessionBudgetViolation(52, 40, 40)).toBeNull();
+  });
+});
