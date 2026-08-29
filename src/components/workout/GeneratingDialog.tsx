@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 const FITNESS_TIPS = [
   "Strength gains come from progressive overload — a little more load, reps or quality each week beats random hard sessions.",
@@ -45,6 +45,7 @@ export function GeneratingDialog({ open }: { open: boolean }) {
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
       >
+        <DialogTitle className="sr-only">Building your workout</DialogTitle>
         <div className="p-2 text-center text-muted-foreground">
           <Loader2 className="mx-auto mb-3 h-6 w-6 animate-spin text-primary" />
           <p className="font-medium text-foreground">
