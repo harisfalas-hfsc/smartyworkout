@@ -28,6 +28,7 @@ import {
 import { Link } from "@tanstack/react-router";
 import { ParqWaiverDialog } from "@/components/ParqWaiverDialog";
 import { hasParqAck, setParqAck } from "@/lib/parq-ack";
+import { GeneratingDialog } from "@/components/workout/GeneratingDialog";
 import { MembershipRequiredDialog } from "@/components/MembershipRequiredDialog";
 import { CoachRecommendationCard } from "@/components/coach/CoachRecommendationCard";
 import { levelToStars, starsToLevel } from "@/lib/workout/spec";
@@ -323,6 +324,7 @@ function CoachPage() {
         </div>
       ) : null}
 
+      <GeneratingDialog open={busy} />
       <MembershipRequiredDialog open={membershipOpen} onOpenChange={setMembershipOpen} />
 
       <ParqWaiverDialog

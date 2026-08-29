@@ -25,6 +25,7 @@ import {
 
 import { ParqWaiverDialog } from "@/components/ParqWaiverDialog";
 import { hasParqAck, setParqAck } from "@/lib/parq-ack";
+import { GeneratingDialog } from "@/components/workout/GeneratingDialog";
 import { MembershipRequiredDialog } from "@/components/MembershipRequiredDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { PageHeader } from "@/components/PageHeader";
@@ -348,6 +349,7 @@ function WodPage() {
         </div>
       </section>
 
+      <GeneratingDialog open={building} />
       <MembershipRequiredDialog
         open={membershipOpen}
         onOpenChange={setMembershipOpen}
