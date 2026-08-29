@@ -20,7 +20,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { generateWorkout } from "@/lib/coach.functions";
 import { isOnline } from "@/lib/connectivity";
-import { enqueueAction } from "@/lib/offline/queue";
 import {
   getExercisePreferences,
   setUseLibraryPreferences as saveUseLibraryPreferences,
@@ -234,10 +233,7 @@ function CoachPage() {
     };
     if (!isOnline()) {
       // Building a workout needs Smarty Coach on the server, so we never fake it.
-      // The request is stored safely and sent automatically when the connection returns.
-      const { data: auth } = await supabase.auth.getUser();
-      await enqueueAction("workout-generate", request, auth.user?.id ?? null, 2);
-      toast.success("You're offline. Your workout request is saved and will be created automatically once you're back online.");
+      toast.error("You appear to be offline. Connect to the internet to build a workout.");
       return;
     }
     setBusy(true);
