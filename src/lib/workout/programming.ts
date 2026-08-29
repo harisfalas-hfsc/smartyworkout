@@ -537,7 +537,7 @@ export function buildSessionPlan(input: {
   focus?: StrengthFocus | null;
   equipmentCount: number;
 }): SessionPlan {
-  const shape = durationShape(input.minutes, input.category);
+  const shape = fitShapeToBudget(durationShape(input.minutes, input.category), input);
   const { main, finisher } = doseFor(input.category, input.level);
 
   // HARD RULE: Strength, Muscle Building, Pilates and Mobility & Stability are
