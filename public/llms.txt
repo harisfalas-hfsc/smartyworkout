@@ -18,6 +18,22 @@ SmartyWorkout is not another workout app. It is an intelligent fitness coach bui
 - **Session Debrief** — the one short card-based questionnaire after a workout covering RPE, how you felt, enjoyment and an optional note.
 - **Smarty Community** — the social area where members share workouts exactly as Smarty Coach generated them, and other members can open, train, like and comment on them.
 
+## Training categories
+
+Every generated workout belongs to exactly one category. Full descriptions: https://smartyworkout.com/glossary
+
+- **Strength** — Reps & Sets sessions with generous rest, built around squat, hinge, push and pull patterns; barbells, racks and machines included. For getting measurably stronger.
+- **Muscle Building** — Reps & Sets with moderate loads, higher volume and shorter rest, targeted at a chosen body part; machines, dumbbells, barbells and cables included. For visible shape and size.
+- **Calorie Burning** — clock-driven formats (Circuits, Tabata, AMRAP, For Time, EMOM) that maximise total energy expenditure with simple, repeatable movements.
+- **Metabolic** — high-density conditioning (AMRAP, EMOM, Circuits, For Time, Tabata) with no barbells, racks or machines; only work that starts instantly and repeats safely under fatigue.
+- **Cardio** — aerobic engine work (Circuits, EMOM, For Time, AMRAP, Tabata) built from rhythmic movements like running, cycling, rowing or low-impact locomotion.
+- **Mobility & Stability** — Reps & Sets with slow tempo and full range for range of motion, joint control and midline strength.
+- **Challenge** — a single scored test piece (Circuit, Tabata, AMRAP, EMOM, For Time or Mix) repeated over weeks to measure progress.
+- **Pilates** — mat-based Reps & Sets for core control, posture and precise movement; no equipment beyond a mat.
+- **Recovery** — a gentle Mix of easy movement, breathing, light mobility and stretching; never strength or conditioning work.
+- **Micro Workout** — a 10–20 minute equipment-free Reps & Sets movement break with simple, low-fatigue movements.
+- **Workout of the Day (WOD)** — one shared daily workout for all members in equipment and bodyweight variants, rotated through categories so the week periodises itself.
+
 ## Who SmartyWorkout is for
 
 - Beginners who want structure without hiring a coach.
@@ -34,7 +50,7 @@ SmartyWorkout is not another workout app. It is an intelligent fitness coach bui
 - **Workout of the Day** — a daily periodized plan identical for every subscriber, delivered in equipment and bodyweight variants, so you never overtrain or undertrain.
 - **Guided player + logging** — timers, rest, swipe navigation, and set-by-set logging of reps, weight, time and rounds.
 - **Progress tracking** — repeat a workout and compare attempts like-for-like; training load is measured against your own 21-day baseline, adjusted by your RPE.
-- **Offline mode** — workouts, logbook, exercise library and player keep working with no signal; everything syncs when you are back online.
+
 - **No upsells** — one subscription includes everything.
 
 ## Pricing
