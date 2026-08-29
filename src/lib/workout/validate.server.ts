@@ -57,6 +57,9 @@ export type ValidateOptions = {
   /** Today's body-part focus — a hard legality gate on every work exercise. */
   focus?: StrengthFocus | null;
   dislikedIds?: string[];
+  /** Where the athlete trains today — outdoors bans gym apparatus outright. */
+  location?: string | null;
+
 
   /** Ids allowed in 🔥 Activation / 🧘 Cool Down (prep vocabulary, bodyweight-first). */
   prepIds?: string[];
