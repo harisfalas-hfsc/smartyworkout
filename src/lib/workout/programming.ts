@@ -551,19 +551,27 @@ function fitMainToBudget(
   mainCount: [number, number],
   dose: Dose,
   budgetMinutes: number,
+  category: Category,
 ): { mainCount: [number, number]; dose: Dose } {
   let count: [number, number] = [mainCount[0], mainCount[1]];
   let d: Dose = { ...dose, sets: [dose.sets[0], dose.sets[1]], restSec: [dose.restSec[0], dose.restSec[1]] };
 
-  while (estimateBlockMinutes(count[0], d) > budgetMinutes && count[0] > 2) {
+  // §1 — the clock is the container. Exercises go first: a 30-minute strength
+  // session may legitimately hold only two or three high-quality lifts.
+  const minExercises = isLiftingCategory(category) ? 2 : 3;
+  // Rest is the LAST thing cut, and never below what the goal physiologically
+  // needs (heavy strength keeps at least 90 sec).
+  const restFloor = category === "STRENGTH" ? 90 : 60;
+
+  while (estimateBlockMinutes(count[0], d) > budgetMinutes && count[0] > minExercises) {
     count = [count[0] - 1, Math.max(count[0] - 1, count[1] - 1)];
   }
   while (estimateBlockMinutes(count[0], d) > budgetMinutes && d.sets[0] > 2) {
     const lo = d.sets[0] - 1;
     d = { ...d, sets: [lo, Math.max(lo, d.sets[1] - 1)] };
   }
-  while (estimateBlockMinutes(count[0], d) > budgetMinutes && d.restSec[0] > 60) {
-    const lo = Math.max(60, d.restSec[0] - 30);
+  while (estimateBlockMinutes(count[0], d) > budgetMinutes && d.restSec[0] > restFloor) {
+    const lo = Math.max(restFloor, d.restSec[0] - 30);
     d = { ...d, restSec: [lo, Math.max(lo, d.restSec[1] - 30)] };
   }
   return { mainCount: count, dose: d };
