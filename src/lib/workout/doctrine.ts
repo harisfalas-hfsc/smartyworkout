@@ -476,6 +476,28 @@ export function sessionOverflowViolation(
   return null;
 }
 
+/**
+ * §19 — the section budgets must actually ADD UP. Soft tissue + activation +
+ * main work + rest + transitions + finisher + cool down are summed and checked
+ * against the requested training time plus its two prep allowances. This is the
+ * shortfall side of the contract (the overflow side is above): a session that
+ * only prescribes half the requested work is rejected, not shipped.
+ */
+export function sessionBudgetViolation(
+  sessionMinutes: number,
+  workMinutes: number,
+  targetMinutes: number,
+): string | null {
+  if (targetMinutes <= 0) return null;
+  if (workMinutes < Math.round(targetMinutes * 0.6))
+    return `The prescribed sections only add up to ~${workMinutes} min of training against a requested ${targetMinutes} min — the session is materially short.`;
+  const floorTotal = Math.round(targetMinutes * 0.7);
+  if (sessionMinutes < floorTotal)
+    return `The complete session (~${sessionMinutes} min across all blocks) falls far short of the requested ${targetMinutes} min.`;
+  return null;
+}
+
+
 
 /** Prompt text so the model sees the same doctrine the validator enforces. */
 export function doctrinePrompt(category: Category, format: Format): string {
