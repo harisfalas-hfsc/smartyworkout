@@ -6,7 +6,7 @@ import { validateWorkout } from "./validate.server";
 import { buildPackWorkout, packCopy } from "./pack.server";
 import { buildSessionPlan, scoreWorkout } from "./programming";
 import { parseWorkoutSteps } from "./parse-steps";
-import { dominantRegion } from "./doctrine";
+import { dominantRegion, focusRegion } from "./doctrine";
 
 import {
   buildActivationPool,
@@ -169,12 +169,18 @@ export async function generateWorkoutContent(
   // §21 — activation vocabulary is narrowed to the demand of the work that is
   // about to be programmed: the focus when one was chosen, otherwise the
   // dominant region of the approved session pool.
+  // Fix 3 — activation must prepare what the Main Workout actually trains:
+  // the focus region when one was chosen, otherwise the dominant body region /
+  // movement pattern of the exercises this session may actually draw from.
+  const focusReg = focusRegion(input.focus ?? null);
+  const activationRegion = focusReg === "full" ? dominantRegion(pool) : focusReg;
   const activationPool = buildActivationPool(all, {
     selectedEquipment: input.selectedEquipment,
     dislikedIds,
     focus: input.focus ?? null,
-    region: input.focus ? undefined : dominantRegion(pool),
+    region: activationRegion,
   });
+
 
   const cooldownPool = buildCooldownPool(all, {
     selectedEquipment: input.selectedEquipment,
