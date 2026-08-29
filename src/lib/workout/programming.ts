@@ -575,7 +575,11 @@ export function buildSessionPlan(input: {
   const prepMinutes =
     (rawShape.activationCount > 0 ? 3 : 0) + (rawShape.cooldownCount > 0 ? 3 : 0);
   const mainBudget = Math.max(4, input.minutes - prepMinutes);
-  const fitted = fitMainToBudget(rawShape.mainCount, raw.main, mainBudget);
+  // The Micro Workout shape is authored end to end and never trimmed.
+  const fitted =
+    input.category === "MICRO-WORKOUTS"
+      ? { mainCount: rawShape.mainCount, dose: raw.main }
+      : fitMainToBudget(rawShape.mainCount, raw.main, mainBudget);
   const shape: Shape = { ...rawShape, mainCount: fitted.mainCount };
   const main = fitted.dose;
 
