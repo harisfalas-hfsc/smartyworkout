@@ -19,21 +19,9 @@ export function useExerciseImageSrc(path?: string | null, signedUrl?: string | n
         setSrc(signedUrl ?? null);
         return;
       }
-      const stored = await readStoredMedia(path);
-      if (!active) {
-        if (stored) URL.revokeObjectURL(stored);
-        return;
-      }
-      if (stored) {
-        objectUrl = stored;
-        setSrc(stored);
-        return;
-      }
-
-      const link = signedUrl ?? (isOnline() ? await getExerciseMediaUrl(path) : null);
+      const link = signedUrl ?? (await getExerciseMediaUrl(path));
       if (!active) return;
       setSrc(link);
-      if (link) void storeMedia({ path, url: link });
     })();
 
     return () => {

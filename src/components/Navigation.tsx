@@ -30,7 +30,7 @@ import {
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/lib/theme";
-import { supabase } from "@/integrations/supabase/client";
+import { signOutAndClearDevice } from "@/lib/sign-out";
 import { adminCheckAccess } from "@/lib/admin.functions";
 import { NotificationBell } from "@/components/NotificationBell";
 import {
@@ -70,8 +70,7 @@ export function Navigation() {
   const canGoBack = navCount > 0 && pathname !== "/";
 
   async function handleSignOut() {
-    await clearCacheForUser(user?.id);
-    await supabase.auth.signOut();
+    await signOutAndClearDevice(user?.id, user?.email);
     navigate({ to: "/", replace: true });
   }
 
