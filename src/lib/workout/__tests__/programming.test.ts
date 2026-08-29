@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildSessionPlan,
   cardioExpression,
+  estimateBlockMinutes,
   countTransitions,
   equipmentFamily,
   microMinutes,
