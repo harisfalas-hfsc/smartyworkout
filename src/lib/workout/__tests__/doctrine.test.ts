@@ -28,12 +28,21 @@ const ex = (over: Partial<Record<string, string>> = {}) => ({
 
 describe("category / format legality", () => {
   it("locks quality categories to reps & sets", () => {
-    for (const c of ["STRENGTH", "MUSCLE BUILDING", "PILATES", "MOBILITY & STABILITY"] as const) {
+    for (const c of ["STRENGTH", "MUSCLE BUILDING", "PILATES"] as const) {
       expect(isRepsAndSetsOnly(c)).toBe(true);
       expect(categoryFormatViolation(c, "AMRAP")).toBeTruthy();
       expect(categoryFormatViolation(c, "REPS & SETS")).toBeNull();
     }
+    // Mobility & Stability: Reps & Sets or Mix only — never a clock format.
+    expect(categoryFormatViolation("MOBILITY & STABILITY", "REPS & SETS")).toBeNull();
+    expect(categoryFormatViolation("MOBILITY & STABILITY", "MIX")).toBeNull();
+    for (const f of ["AMRAP", "EMOM", "CIRCUIT", "TABATA", "FOR TIME"] as const)
+      expect(categoryFormatViolation("MOBILITY & STABILITY", f)).toBeTruthy();
+    // Recovery: MIX only.
+    expect(categoryFormatViolation("RECOVERY", "MIX")).toBeNull();
+    expect(categoryFormatViolation("RECOVERY", "REPS & SETS")).toBeTruthy();
   });
+
 
   it("never gives a finisher to recovery, pilates, mobility or micro", () => {
     for (const c of ["RECOVERY", "PILATES", "MOBILITY & STABILITY", "MICRO-WORKOUTS"] as const) {
