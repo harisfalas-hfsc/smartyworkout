@@ -644,9 +644,6 @@ export function WorkoutPlayerDialog({
           workoutId={workoutId}
           attempt={attempt}
           initial={existingFeedback}
-          onSaved={() => {
-            if (user) void completeLocalAttempt(user.id, workoutId, attempt);
-          }}
         />
 
         <PerformanceEditorDialog
