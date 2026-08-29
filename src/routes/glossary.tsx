@@ -229,7 +229,7 @@ function GlossaryPage() {
         </h2>
         <Accordion type="single" collapsible className="mt-3 rounded-2xl border-2 border-primary px-4">
           {TRAINING_CATEGORIES.map((cat) => (
-            <AccordionItem key={cat.id} value={cat.id}>
+            <AccordionItem key={cat.id} value={cat.id} id={categoryAnchor(cat.id)}>
               <AccordionTrigger className="text-left text-sm font-bold">{cat.name}</AccordionTrigger>
               <AccordionContent>
                 <p className="text-muted-foreground">{cat.brief}</p>
