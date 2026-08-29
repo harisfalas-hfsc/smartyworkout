@@ -387,7 +387,7 @@ export function equipmentFamilyOf(equipment: string | null | undefined): string 
  * for a conditioning format, three for anything else.
  */
 export function equipmentFamilyLimit(category: Category, format: Format): number {
-  if (isDynamicCategory(category) && isDynamicFormat(format)) return 2;
+  if (isDynamicFormat(format)) return 2;
   if (category === "MICRO-WORKOUTS") return 0;
   return 3;
 }
@@ -483,8 +483,9 @@ export function doctrinePrompt(category: Category, format: Format): string {
     return `HARD DOCTRINE: ${category} is REPS & SETS only. Never AMRAP, EMOM, Tabata, For Time, circuit or chipper anywhere in the session.${
       categoryAllowsFinisher(category) ? "" : " This category carries NO finisher of any kind."
     }`;
-  if (isDynamicCategory(category) && isDynamicFormat(format))
-    return `HARD DOCTRINE: ${format} in ${category} is a continuous time/repetition format. Every movement must start immediately and repeat safely. FORBIDDEN: barbell work of any kind, bench press, back/front squat, barbell deadlift, cleans, snatches, jerks, rack- or spotter-dependent movements, Smith machine, cables and selectorized strength machines. ALLOWED: bodyweight, dumbbells, kettlebells, medicine/slam balls, TRX, bands, portable boxes, carries, jump rope and genuine cardio ergometers (bike, rower, SkiErg). Keep equipment families to a minimum so the athlete never assembles or adjusts equipment mid-workout.`;
+  if (isDynamicFormat(format))
+    return `HARD DOCTRINE: ${format} in ${category} is a continuous time/repetition format. Every movement must start immediately and repeat safely. FORBIDDEN: barbell work of any kind, bench press, back/front squat, barbell deadlift, cleans, snatches, jerks, rack- or spotter-dependent movements, Smith machine, cables, selectorized strength machines, and every high-skill or single-limb movement (handstand of any kind, pistol squat, archer push-up/row, planche, muscle-up, nordic curl, one-arm pressing or pulling). ALLOWED: bodyweight, dumbbells, kettlebells, medicine/slam balls, TRX, bands, portable boxes, carries, jump rope, sled push/pull and genuine cardio ergometers (bike, rower, SkiErg). Keep equipment families to a minimum so the athlete never assembles or adjusts equipment mid-workout.`;
+
   if (category === "MICRO-WORKOUTS")
     return `HARD DOCTRINE: Micro Workouts are equipment-free. Bodyweight plus everyday environment only (floor, wall, chair, desk, sofa). No finisher, no separate soft tissue, activation or cool down.`;
   return "";
