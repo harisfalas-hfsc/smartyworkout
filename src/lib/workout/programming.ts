@@ -363,7 +363,7 @@ function intensityDirective(stars: number, category: Category): string {
       ? "One star: teach the pattern. Simple bilateral movements, longer rest, clearly submaximal effort, no failure."
       : stars === 2
         ? "Two stars: solid volume, moderate complexity, work close to but not at technical breakdown."
-        : "Three stars: dense volume, advanced progressions and short rest — still 1-2 reps in reserve on every set.";
+        : "Three stars: greater training demand — more volume, appropriate loading, shorter rest and more challenging but FAMILIAR variations of common movements. Advanced never means gymnastics, levers, handstands, pistol squats, Turkish get-ups, Olympic lifting or technically complicated exercises. Still 1-2 reps in reserve on every set.";
   const guard =
     category === "RECOVERY" || category === "MOBILITY & STABILITY"
       ? " Intensity here means quality of control, never fatigue."
@@ -492,10 +492,11 @@ export function decideLiftingFinisher(input: {
   shapeAllowsFinisher: boolean;
 }): FinisherDecision {
   const strength = input.category === "STRENGTH";
+  // §6 — REAL TIME. The honest cost of the main block is never shrunk to
+  // manufacture room for a finisher. If the properly dosed main work fills the
+  // session, the session simply carries no finisher.
   const raw = estimateBlockMinutes(input.mainCount[0], input.mainDose);
-  // A right-sized main block never eats the whole session: the coach can trim
-  // sets or exercises inside the blueprint range to protect session quality.
-  const mainMinutes = Math.min(raw, Math.round(input.minutes * 0.85));
+  const mainMinutes = raw;
   const remaining = Math.max(0, input.minutes - mainMinutes);
 
   const none = (why: string): FinisherDecision => ({

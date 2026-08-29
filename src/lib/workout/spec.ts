@@ -97,7 +97,7 @@ export function intensityNote(stars: number): string {
     return "Beginner: moderate volume, generous rest, the simplest safe variations. Never step up into intermediate work.";
   if (level === "intermediate")
     return "Intermediate: solid volume, moderate rest, standard variations. Never step down to beginner or up to advanced.";
-  return "Advanced: high volume, short rest, demanding variations under fatigue. Still technically safe and never reckless.";
+  return "Advanced: greater training demand — higher volume, appropriate loading, shorter rest and more challenging but familiar variations. Advanced never means gymnastic, technical or complicated exercises.";
 }
 
 
