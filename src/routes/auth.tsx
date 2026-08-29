@@ -194,6 +194,30 @@ function Auth() {
   }
 
 
+  /** Passwordless fallback: some browsers autofill a saved password from the
+   *  hosting domain (e.g. the editor), which the backend rejects as wrong. */
+  async function sendMagicLink() {
+    if (!email) {
+      setAuthError("Enter your email first, then tap the sign-in link button.");
+      return;
+    }
+    setAuthError("");
+    setAuthNotice("");
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email.trim().toLowerCase(),
+        options: { emailRedirectTo: window.location.origin, shouldCreateUser: false },
+      });
+      if (error) throw error;
+      setAuthNotice("Sign-in link sent. Open it from this device (check spam too).");
+    } catch (error) {
+      setAuthError(authMessage(error, "Couldn't send the sign-in link."));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   async function submitForgot(e: FormEvent) {
     e.preventDefault();
     if (!email) return;
