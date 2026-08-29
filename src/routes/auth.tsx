@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
-import { rememberDevice, offlineSignIn } from "@/lib/offline/device-auth";
 import { isOnline } from "@/lib/connectivity";
 
 
@@ -132,7 +131,6 @@ function Auth() {
       }
       if (data.session) {
         await ensureProfile(data.user, cleanName);
-        await rememberDevice(normalizedEmail, password);
         goNext();
       } else {
         setPassword("");
@@ -161,7 +159,7 @@ function Auth() {
     const offline = !isOnline();
     const message = error instanceof Error ? error.message : "";
     if (offline || /failed to fetch|network/i.test(message)) {
-      return "You're offline. Signing in for the first time on this device needs internet — once signed in, your saved data stays available offline.";
+      return "You appear to be offline. Signing in needs an internet connection.";
     }
     if (/invalid login credentials/i.test(message)) {
       return "Wrong email or password. Sign in with your email address (not a username). If you forgot it, use “Forgot password?”.";
@@ -187,31 +185,8 @@ function Auth() {
       });
       if (error) throw error;
       await ensureProfile(data.user);
-      await rememberDevice(normalizedEmail, password);
       goNext();
     } catch (error) {
-      // No internet: unlock this device with the saved session for this account.
-      const message = error instanceof Error ? error.message : "";
-      const networkIssue =
-        !isOnline() ||
-        /failed to fetch|network|load failed/i.test(message);
-      if (networkIssue) {
-        const result = await offlineSignIn(normalizedEmail, password);
-        if (result === "ok") {
-          window.location.assign(next ?? "/");
-          return;
-        }
-        if (result === "bad-password") {
-          setAuthError("Wrong password for the saved offline account on this device.");
-          setSubmitting(false);
-          return;
-        }
-        setAuthError(
-          "You're offline and this account has never signed in on this device. Connect to the internet once, then it works offline.",
-        );
-        setSubmitting(false);
-        return;
-      }
       setAuthError(authMessage(error, "Sign in failed. Check your email and password."));
     } finally {
       setSubmitting(false);
