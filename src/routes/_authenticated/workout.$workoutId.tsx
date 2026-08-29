@@ -2,9 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRemoteData } from "@/lib/remote-data";
-import { CachedNotice } from "@/components/offline/CachedNotice";
 import { useOnlineStatus } from "@/lib/connectivity";
-import { enqueueAction } from "@/lib/offline/queue";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -66,10 +64,10 @@ function WorkoutPage() {
     return { row: (data as unknown as WorkoutRow) ?? null, access };
   }, [workoutId]);
 
-  const cached = useOfflineData<{
+  const cached = useRemoteData<{
     row: WorkoutRow | null;
     access: Awaited<ReturnType<typeof getMyAccessState>> | null;
-  }>(`workout:${workoutId}`, load, { userId: user?.id ?? null });
+  }>(`workout:${workoutId}`, load);
 
   useEffect(() => {
     if (!cached.data) {
@@ -116,8 +114,7 @@ function WorkoutPage() {
       await saveStatus({ data: { workoutId, status: "completed" } });
       toast.success("Marked as completed.");
     } catch {
-      await enqueueAction("workout-status", { workoutId, status: "completed" });
-      toast.success("Saved on your device — it will sync when you are back online.");
+      toast.error("Could not mark this workout as completed. Please try again.");
     }
   }
 
@@ -219,7 +216,6 @@ function WorkoutPage() {
         void refreshFeedback();
       }}
     >
-      <CachedNotice savedAt={cached.savedAt} show={cached.fromCache} />
       <WorkoutStatusPanel
         workoutId={workoutId}
         status={done ? "completed" : scheduledAt ? "scheduled" : "created"}

@@ -31,10 +31,8 @@ import {
 } from "@/lib/support.functions";
 import { useAuth } from "@/hooks/useAuth";
 import { loadRemote } from "@/lib/remote-data";
-import { enqueueAction } from "@/lib/offline/queue";
 import { announceInboxChanged } from "@/lib/inbox-sync";
 import { useOnlineStatus } from "@/lib/connectivity";
-import { scopedKey, writeCache } from "@/lib/offline/store";
 import { formatDateTime } from "@/lib/date-format";
 
 function when(iso: string) {
@@ -97,10 +95,7 @@ export function ConversationsPanel({
   useEffect(() => {
     onUnread?.(unread);
     announceInboxChanged({ messagesUnread: unread });
-    if (user?.id && !loading) {
-      void writeCache(scopedKey(user.id, "inbox:threads"), { threads });
-    }
-  }, [unread, onUnread, user?.id, loading, threads]);
+  }, [unread, onUnread]);
 
   async function openThread(t: SupportThread) {
     setOpenId((cur) => (cur === t.id ? null : t.id));
@@ -112,7 +107,7 @@ export function ConversationsPanel({
         await setRead({ data: { ids: [t.id], read: true } });
         announceInboxChanged();
       } catch {
-        await enqueueAction("thread-read", { ids: [t.id], read: true }, user?.id);
+        toast.error("Could not update that conversation.");
       }
     }
   }
@@ -153,7 +148,7 @@ export function ConversationsPanel({
       await setRead({ data: { ids: [t.id], read } });
       announceInboxChanged();
     } catch {
-      await enqueueAction("thread-read", { ids: [t.id], read }, user?.id);
+      toast.error("Could not update that conversation.");
     }
   }
 
