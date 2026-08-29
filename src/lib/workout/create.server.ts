@@ -242,7 +242,9 @@ export async function createWorkoutForUser(
     (prof as never) ?? null,
     requestedLevel === "auto" ? undefined : requestedLevel,
   );
+  if (surpriseStars !== null) requestedStars = surpriseStars;
   let focus = (data.focus as StrengthFocus | undefined) ?? null;
+
 
   if (data.wod) {
     // WOD: the programming (category, difficulty, focus) is identical for
