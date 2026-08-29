@@ -545,7 +545,7 @@ function FounderNotePage() {
               Haris Falas
             </p>
             <p className="text-sm text-muted-foreground">
-              BSc Sports Science, EXO Specialist, CSCS
+              BSc Sports Science, EXOS Specialist, CSCS
             </p>
           </div>
         </SectionCard>

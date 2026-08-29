@@ -45,7 +45,7 @@ const Email = ({ name, subject, message }: Props) => (
         <Text style={footer}>
           Yours in good health,
           <br />
-          Haris Falas, BSc Sports Science, Exo Specialist, CSCS
+          Haris Falas, BSc Sports Science, EXOS Specialist, CSCS
         </Text>
       </Container>
     </Body>
