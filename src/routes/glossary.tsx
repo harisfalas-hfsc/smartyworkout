@@ -10,9 +10,33 @@ import {
 import { TRAINING_CATEGORIES } from "@/lib/training-categories";
 
 const URL = "https://smartyworkout.com/glossary";
-const TITLE = "Training Glossary — 25+ terms defined | SmartyWorkout";
+const TITLE =
+  "Training Glossary & Workout Categories Explained — Strength, Cardio, Metabolic, Pilates | SmartyWorkout";
 const DESCRIPTION =
-  "Clear definitions of common workout, training and fitness terms used by SmartyWorkout.";
+  "Every SmartyWorkout training category explained — Strength, Muscle Building, Calorie Burning, Metabolic, Cardio, Mobility & Stability, Challenge, Pilates, Recovery, Micro Workout and Workout of the Day — plus plain-language definitions of 25+ fitness terms: what each workout type is, the formats it uses, who it suits and when to choose it.";
+const KEYWORDS = [
+  "workout categories",
+  "types of workouts",
+  "strength training workout",
+  "muscle building workout",
+  "calorie burning workout",
+  "metabolic conditioning",
+  "AMRAP workout",
+  "EMOM workout",
+  "Tabata workout",
+  "circuit training",
+  "cardio workout",
+  "mobility and stability training",
+  "pilates workout",
+  "recovery workout",
+  "micro workout",
+  "workout of the day",
+  "WOD",
+  "reps and sets",
+  "fitness glossary",
+  "training terms defined",
+  "personalized workout categories",
+].join(", ");
 
 const TERMS: { term: string; def: string }[] = [
   {
