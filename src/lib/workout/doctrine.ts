@@ -63,7 +63,8 @@ export function isRepsAndSetsOnly(category: Category): boolean {
     category === "STRENGTH" ||
     category === "MUSCLE BUILDING" ||
     category === "PILATES" ||
-    category === "MOBILITY & STABILITY"
+    category === "MOBILITY & STABILITY" ||
+    category === "MICRO-WORKOUTS"
   );
 }
 
@@ -90,7 +91,7 @@ export const LEGAL_FORMATS: Record<Category, Format[]> = {
   PILATES: ["REPS & SETS"],
   "MOBILITY & STABILITY": ["REPS & SETS"],
   RECOVERY: ["MIX"],
-  "MICRO-WORKOUTS": ["REPS & SETS", "CIRCUIT", "AMRAP", "EMOM", "TABATA", "FOR TIME"],
+  "MICRO-WORKOUTS": ["REPS & SETS"],
 
   CARDIO: ["CIRCUIT", "EMOM", "FOR TIME", "AMRAP", "TABATA"],
   METABOLIC: ["CIRCUIT", "AMRAP", "EMOM", "FOR TIME", "TABATA"],
@@ -134,8 +135,13 @@ const PILATES_BAN_RE =
 const MOBILITY_BAN_RE =
   /\b(jump|jumping|plyo|burpee|sprint|snatch|clean|jerk|thruster|push-?up|pushup|crunch|sit-?up|leg raise|kettlebell|barbell|smith|leverage|sled|machine|cable|box jump|deadlift|bench press|squat rack|heavy)\b/i;
 
+/**
+ * §3 — RECOVERY is controlled recovery work: breathing, gentle mobility,
+ * controlled movement, light stretching, relaxation and movement quality.
+ * It may never turn into strength, conditioning, HIIT or metabolic work.
+ */
 const RECOVERY_BAN_RE =
-  /\b(jump|jumping|plyo|burpee|sprint|snatch|clean|jerk|thruster|crunch|sit-?up|deadlift|bench press|heavy)\b/i;
+  /\b(jump|jumping|plyo|burpee|sprint|snatch|clean|jerk|thruster|crunch|sit-?up|deadlift|bench press|heavy|barbell|kettlebell|machine|cable|smith|leverage|sled|swing|box jump|mountain climber|high knee|skater|battle rope|jump rope|rower|row erg|skierg|assault bike|air bike|treadmill|push-?up|pushup|pull-?up|chin-?up|dip|squat jump|run|carry)\b/i;
 
 const MICRO_BAN_RE =
   /\b(dumbbell|kettlebell|barbell|band|machine|bike|rower|rope|treadmill|sled|cable|smith|ez|olympic|medicine ball|bosu|stability ball|pull-?up|chin-?up|hang(ing)?|dip bar|parallette|bench press|box jump|doorway|door frame)\b/i;
