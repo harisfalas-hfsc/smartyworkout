@@ -584,9 +584,12 @@ export function buildSessionPlan(input: {
   const main = fitted.dose;
 
 
-  // HARD RULE: Strength, Muscle Building, Pilates and Mobility & Stability are
-  // always REPS & SETS — no dynamic conditioning format is ever legal there.
-  const format: Format = isRepsAndSetsOnly(input.category) ? "REPS & SETS" : input.format;
+  // HARD RULE: every category is locked to its legal format table (doctrine §4).
+  // Strength, Muscle Building, Pilates and Mobility & Stability are always
+  // REPS & SETS; Recovery is always MIX; anything illegal falls back to the
+  // category's first legal format.
+  const legal = legalFormats(input.category);
+  const format: Format = legal.includes(input.format) ? input.format : legal[0]!;
 
   // HARD RULE (doctrine 20): Recovery, Micro Workout, Pilates and
   // Mobility & Stability never carry a finisher.
