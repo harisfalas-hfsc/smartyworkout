@@ -59,7 +59,12 @@ export function isDynamicCategory(category: Category): boolean {
 
 /** Categories locked to REPS & SETS by doctrine. */
 export function isRepsAndSetsOnly(category: Category): boolean {
-  return category === "STRENGTH" || category === "MUSCLE BUILDING" || category === "PILATES";
+  return (
+    category === "STRENGTH" ||
+    category === "MUSCLE BUILDING" ||
+    category === "PILATES" ||
+    category === "MOBILITY & STABILITY"
+  );
 }
 
 
@@ -83,7 +88,7 @@ export const LEGAL_FORMATS: Record<Category, Format[]> = {
   STRENGTH: ["REPS & SETS"],
   "MUSCLE BUILDING": ["REPS & SETS"],
   PILATES: ["REPS & SETS"],
-  "MOBILITY & STABILITY": ["REPS & SETS", "MIX"],
+  "MOBILITY & STABILITY": ["REPS & SETS"],
   RECOVERY: ["MIX"],
   "MICRO-WORKOUTS": ["REPS & SETS", "CIRCUIT", "AMRAP", "EMOM", "TABATA", "FOR TIME"],
 
