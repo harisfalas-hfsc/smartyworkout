@@ -132,9 +132,16 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
       ) {
         errors.push(`"${row.name}" is not a bodyweight exercise.`);
       }
+      // 2a-bis. Human realism — no gymnastics, levers or technical Olympic work.
+      const real = humanRealismViolation(row);
+      if (real) errors.push(real);
+      // 2a-ter. Environment realism — outdoors means portable equipment only.
+      const loc = locationEquipmentViolation(row, opts.location ?? null);
+      if (loc) errors.push(loc);
       // 2b. Format legality — no setup-heavy apparatus in a dynamic format.
       const dyn = dynamicExerciseViolation(row, opts.category, opts.format);
       if (dyn) errors.push(dyn);
+
       // 2c. Category vocabulary legality (Pilates, Mobility, Recovery, Micro,
       //     Challenge) — one shared definition with the pool filter.
       const cat = categoryExerciseViolation(row, opts.category);
