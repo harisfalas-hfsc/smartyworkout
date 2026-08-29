@@ -1,10 +1,10 @@
 import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
-import { offlineFirst } from "@/lib/offline/offline-first";
+import { loadRemote } from "@/lib/remote-data";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { signOutAndClearDevice } from "@/lib/offline/sign-out";
+import { signOutAndClearDevice } from "@/lib/sign-out";
 import { useAuth } from "@/hooks/useAuth";
 import { Crown, LogOut, Mail, User, ClipboardList, Trash2, Zap } from "lucide-react";
 import { DailyCoachingSettings } from "@/components/DailyCoachingSettings";
@@ -68,7 +68,7 @@ function Account() {
 
   const refresh = useCallback(async () => {
     try {
-      const access = await offlineFirst("account:access", () => getMyAccessState(), user?.id);
+      const access = await loadRemote("account:access", () => getMyAccessState(), user?.id);
       setPremium(access.premium);
       setQuota({ used: access.generationsUsedToday, limit: access.generationsLimit });
     } catch {
@@ -76,7 +76,7 @@ function Account() {
     }
     try {
       setMembership(
-        await offlineFirst(
+        await loadRemote(
           "account:membership",
           () => getMembershipSummary({ data: { environment: getStripeEnvironment() } }),
           user?.id,
@@ -93,7 +93,7 @@ function Account() {
 
   useEffect(() => {
     (async () => {
-      const c = await offlineFirst("account:workout-count", async () => {
+      const c = await loadRemote("account:workout-count", async () => {
         const { count, error } = await supabase
           .from("workouts")
           .select("id", { count: "exact", head: true });

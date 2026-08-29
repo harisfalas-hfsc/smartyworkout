@@ -4,7 +4,6 @@ import { Activity, Dumbbell, Gauge, HeartPulse, Info, Loader2 } from "lucide-rea
 import { getPerformanceOverview } from "@/lib/performance.functions";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { localPerformanceOverview } from "@/lib/offline/performance-store";
 
 type Overview = Awaited<ReturnType<typeof getPerformanceOverview>>;
 
@@ -43,11 +42,7 @@ export function TrainingLoadPanel() {
   useEffect(() => {
     let active = true;
     if (!user) return;
-    localPerformanceOverview(user.id)
-      .then((local) => {
-        if (active && local.loggedSessions > 0) setData(local as Overview);
-      })
-      .then(() => fetchOverview({ data: {} }))
+    void fetchOverview({ data: {} })
       .then((res) => {
         if (active) setData(res as Overview);
       })

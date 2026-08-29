@@ -5,9 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { saveSessionFeedback, type SessionFeedback } from "@/lib/feedback.functions";
-import { enqueueAction } from "@/lib/offline/queue";
-import { useAuth } from "@/hooks/useAuth";
-import { saveLocalFeedback } from "@/lib/offline/performance-store";
 
 export const FEELING_OPTIONS = ["Excellent", "Good", "Normal", "Tired", "Exhausted"];
 export const ENJOY_OPTIONS = ["Yes", "Neutral", "No"];
@@ -34,7 +31,6 @@ export function SessionDebriefDialog({
   onSaved?: (feedback: SessionFeedback) => void;
 }) {
   const save = useServerFn(saveSessionFeedback);
-  const { user } = useAuth();
   const [step, setStep] = useState(0);
   const [rpe, setRpe] = useState<number | null>(null);
   const [feeling, setFeeling] = useState<string | null>(null);
@@ -73,12 +69,14 @@ export function SessionDebriefDialog({
       note: note.trim() || null,
       answeredAt: new Date().toISOString(),
     };
-    if (user) {
-      await saveLocalFeedback(user.id, workoutId, feedback);
-      await enqueueAction("session-debrief", payload, user.id, 0);
-      void save({ data: payload }).catch(() => undefined);
+    try {
+      await save({ data: payload });
+      toast.success("Saved.");
+    } catch {
+      toast.error("Could not save your answers. Please try again.");
+      setSaving(false);
+      return;
     }
-    toast.success("Saved on this device.");
     setSaving(false);
     onSaved?.(feedback);
     onOpenChange(false);

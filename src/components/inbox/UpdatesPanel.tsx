@@ -20,10 +20,8 @@ import {
   setNotificationsRead,
 } from "@/lib/daily.functions";
 import { useAuth } from "@/hooks/useAuth";
-import { offlineFirst } from "@/lib/offline/offline-first";
-import { enqueueAction } from "@/lib/offline/queue";
+import { loadRemote } from "@/lib/remote-data";
 import { announceInboxChanged } from "@/lib/inbox-sync";
-import { scopedKey, writeCache } from "@/lib/offline/store";
 import { formatDate } from "@/lib/date-format";
 
 type Notification = Awaited<ReturnType<typeof listNotifications>>["notifications"][number];
@@ -52,7 +50,7 @@ export function UpdatesPanel({ onUnread }: { onUnread?: (n: number) => void }) {
 
   const reload = useCallback(async () => {
     try {
-      const res = await offlineFirst("inbox:notifications", () => load({}), user?.id);
+      const res = await loadRemote("inbox:notifications", () => load({}), user?.id);
       setItems(res.notifications);
     } finally {
       setLoading(false);
@@ -75,13 +73,7 @@ export function UpdatesPanel({ onUnread }: { onUnread?: (n: number) => void }) {
   useEffect(() => {
     onUnread?.(unread);
     announceInboxChanged({ updatesUnread: unread });
-    if (user?.id && !loading) {
-      void writeCache(scopedKey(user.id, "inbox:notifications"), {
-        notifications: items,
-        unread,
-      });
-    }
-  }, [unread, onUnread, user?.id, loading, items]);
+  }, [unread, onUnread]);
 
   const toggleOne = (id: string) =>
     setSelected((prev) => {
@@ -105,11 +97,11 @@ export function UpdatesPanel({ onUnread }: { onUnread?: (n: number) => void }) {
     try {
       await setRead({ data: { ids, read } });
       announceInboxChanged();
+      toast.success(`${ids.length} marked as ${read ? "read" : "unread"}`);
     } catch {
-      await enqueueAction("notification-read", { ids, read }, user?.id);
-      toast.info("Saved on this device — it will sync when you are online.");
+      toast.error("Could not update those messages. Please try again.");
+      void reload();
     }
-    toast.success(`${ids.length} marked as ${read ? "read" : "unread"}`);
   }
 
   async function doDelete() {
@@ -123,11 +115,11 @@ export function UpdatesPanel({ onUnread }: { onUnread?: (n: number) => void }) {
     try {
       await removeMany({ data: { ids } });
       announceInboxChanged();
+      toast.success(`${ids.length} message${ids.length === 1 ? "" : "s"} deleted`);
     } catch {
-      await enqueueAction("notification-delete", { ids }, user?.id);
-      toast.info("Deleted on this device — it will sync when you are online.");
+      toast.error("Could not delete those messages. Please try again.");
+      void reload();
     }
-    toast.success(`${ids.length} message${ids.length === 1 ? "" : "s"} deleted`);
   }
 
   function openMessage(n: Notification) {

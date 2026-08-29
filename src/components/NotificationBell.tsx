@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { isOnline } from "@/lib/offline/connectivity";
+import { isOnline } from "@/lib/connectivity";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
 import { Bell, MailOpen, MessageSquare, Send } from "lucide-react";
@@ -14,7 +14,7 @@ import {
 import { listNotifications, markNotificationsRead } from "@/lib/daily.functions";
 import { listMyThreads } from "@/lib/support.functions";
 import { useAuth } from "@/hooks/useAuth";
-import { offlineFirst } from "@/lib/offline/offline-first";
+import { loadRemote } from "@/lib/remote-data";
 import { INBOX_CHANGED_EVENT, type InboxSnapshot } from "@/lib/inbox-sync";
 
 type Notification = Awaited<ReturnType<typeof listNotifications>>["notifications"][number];
@@ -43,8 +43,8 @@ export function NotificationBell() {
     let active = true;
     const fetchAll = () => {
       void Promise.all([
-        offlineFirst("inbox:notifications", () => load({}), user?.id),
-        offlineFirst("inbox:threads", () => loadThreads({}), user?.id),
+        loadRemote("inbox:notifications", () => load({}), user?.id),
+        loadRemote("inbox:threads", () => loadThreads({}), user?.id),
       ]).then(([notif, support]) => {
         if (!active) return;
         setUpdatesUnread(notif.unread);

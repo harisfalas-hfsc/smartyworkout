@@ -2,9 +2,6 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { isOnline } from "@/lib/offline/connectivity";
-import { readCache, scopedKey, writeCache } from "@/lib/offline/store";
-import { enqueueAction } from "@/lib/offline/queue";
 import { announceNewMember } from "@/lib/account.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -186,24 +183,16 @@ function ProfilePage() {
 
   useEffect(() => {
     (async () => {
-      // getUser() requires the auth server. The local session is the identity
-      // source here so the already-downloaded profile can open in airplane mode.
       const { data: auth } = await supabase.auth.getSession();
       const authUser = auth.session?.user;
       if (!authUser) return;
-      const cacheKey = scopedKey(authUser.id, "profile:full");
-      let data: unknown = (await readCache<Record<string, unknown>>(cacheKey))?.data ?? null;
-      if (isOnline()) {
-        const fresh = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", authUser.id)
-          .maybeSingle();
-        if (!fresh.error && fresh.data) {
-          data = fresh.data;
-          void writeCache(cacheKey, fresh.data);
-        }
-      }
+      let data: unknown = null;
+      const fresh = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", authUser.id)
+        .maybeSingle();
+      if (!fresh.error && fresh.data) data = fresh.data;
       const incoming = (data as unknown as Partial<Profile>) ?? {};
       // Drop nulls so dropdown defaults in EMPTY stay in sync with what is displayed.
       const clean = Object.fromEntries(
@@ -286,9 +275,6 @@ function ProfilePage() {
       return;
     }
     const next = { ...p, onboarded: true };
-    // Local first: the member's answers are stored on the device immediately,
-    // then sent to the account (now, or automatically when the connection is back).
-    await writeCache(scopedKey(auth.user.id, "profile:full"), next);
     try {
       localStorage.setItem(
         `smarty:profile:${auth.user.id}`,
@@ -298,19 +284,13 @@ function ProfilePage() {
       /* best effort */
     }
 
-    const error = isOnline()
-      ? (
-          await supabase
-            .from("profiles")
-            .update(next as never)
-            .eq("id", auth.user.id)
-        ).error
-      : null;
+    const { error } = await supabase
+      .from("profiles")
+      .update(next as never)
+      .eq("id", auth.user.id);
     setSaving(false);
-    if (error || !isOnline()) {
-      await enqueueAction("profile-save", { ...next, userId: auth.user.id }, auth.user.id, 0);
-      toast.success("Training profile saved on this device. It will sync when you're back online.");
-      setSaved(true);
+    if (error) {
+      toast.error("Could not save your training profile. Please try again.");
       return;
     }
     toast.success("Training profile saved.");

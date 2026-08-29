@@ -29,14 +29,6 @@ import { getSessionFeedback } from "@/lib/feedback.functions";
 import { setWorkoutStatus } from "@/lib/coach.functions";
 import { useExerciseMedia } from "./ExerciseMediaProvider";
 import { useAuth } from "@/hooks/useAuth";
-import {
-  completeLocalAttempt,
-  createLocalAttempt,
-  readLocalPerformance,
-  saveLocalResult,
-  saveLocalSet,
-} from "@/lib/offline/performance-store";
-import { enqueueAction } from "@/lib/offline/queue";
 
 
 function fmt(total: number) {
@@ -76,7 +68,7 @@ export function WorkoutPlayerDialog({
     [category, format, html, steps],
   );
   const storeResult = useServerFn(saveWorkoutResult);
-  useServerFn(startWorkoutAttempt);
+  const beginAttempt = useServerFn(startWorkoutAttempt);
   const readFeedback = useServerFn(getSessionFeedback);
   const markStatus = useServerFn(setWorkoutStatus);
   const { user } = useAuth();
@@ -124,18 +116,18 @@ export function WorkoutPlayerDialog({
     if (!open || previewMode) return;
     let active = true;
     if (!user) return;
-    createLocalAttempt(user.id, workoutId)
+    void beginAttempt({ data: { workoutId } })
       .then((res) => {
         if (active) {
           setAttempt(res.attempt);
-          setAttemptId(res.id);
+          setAttemptId(crypto.randomUUID());
         }
       })
       .catch(() => undefined);
     return () => {
       active = false;
     };
-  }, [open, workoutId, user?.id, previewMode]);
+  }, [open, workoutId, user?.id, previewMode, beginAttempt]);
 
   // The phone back button steps back one slide instead of quitting the session.
   useEffect(() => {
@@ -278,17 +270,15 @@ export function WorkoutPlayerDialog({
       rounds: null,
       interval_index: null,
     };
-    await saveLocalSet(user.id, row);
-    await enqueueAction("set-log", { ...row, user_id: user.id }, user.id, 0);
     const { error } = await supabase.from("set_logs").upsert({ ...row, user_id: user.id } as never, {
       onConflict: "id",
     });
     setSavingSet(false);
     if (error) {
-      toast.success(`Set ${setNumber} saved on this device.`);
-    } else {
-      toast.success(`Set ${setNumber} logged.`);
+      toast.error(`Could not save set ${setNumber}. Please try again.`);
+      return;
     }
+    toast.success(`Set ${setNumber} logged.`);
     setLogged((prev) => ({ ...prev, [index]: setNumber }));
     setLastSet((prev) => ({
       ...prev,
@@ -310,22 +300,12 @@ export function WorkoutPlayerDialog({
     if (previewMode) return;
     if (!loggedAnythingRef.current) return;
     loggedAnythingRef.current = false;
-    if (user) {
-      await completeLocalAttempt(user.id, workoutId, attempt);
-      await enqueueAction(
-        "workout-status",
-        { workoutId, status: "completed" },
-        user.id,
-        0,
-      );
-    }
     try {
       await markStatus({ data: { workoutId, status: "completed" } });
-      onFinish();
     } catch {
-      toast.success("Workout completion saved on this device.");
-      onFinish();
+      toast.error("Could not save your workout completion. Please try again.");
     }
+    onFinish();
   }
 
   function finishWorkout() {
@@ -373,35 +353,19 @@ export function WorkoutPlayerDialog({
       result.finished !== null;
     if (hasAnything) {
       if (user) {
-        const id = attemptId ?? crypto.randomUUID();
         const performedAt = new Date(startedAtRef.current ?? Date.now()).toISOString();
-        const local = await saveLocalResult(user.id, {
-            id,
-            workout_id: workoutId,
-            attempt,
-            prescription_hash: planHash,
-            performed_at: performedAt,
-            format,
-            category,
-            metric: resultModel.metric,
-            duration_seconds: result.durationSeconds,
-            rounds: result.rounds,
-            extra_reps: result.extraReps,
-            intervals_done: result.intervalsDone,
-            intervals_total: resultModel.intervalsTotal,
-            finished: result.finished,
-            rpe: null,
-            analysis_note: null,
-            data_points: [result.durationSeconds, result.rounds, result.intervalsDone].filter((v) => v !== null).length,
-            created_at: performedAt,
-        });
-        await enqueueAction("workout-result", local, user.id, 0);
-        void storeResult({ data: {
-          workoutId, attempt, prescriptionHash: planHash, performedAt, format, category,
-          metric: resultModel.metric, durationSeconds: result.durationSeconds, rounds: result.rounds,
-          extraReps: result.extraReps, intervalsDone: result.intervalsDone,
-          intervalsTotal: resultModel.intervalsTotal, finished: result.finished,
-        } }).catch(() => undefined);
+        try {
+          await storeResult({
+            data: {
+              workoutId, attempt, prescriptionHash: planHash, performedAt, format, category,
+              metric: resultModel.metric, durationSeconds: result.durationSeconds, rounds: result.rounds,
+              extraReps: result.extraReps, intervalsDone: result.intervalsDone,
+              intervalsTotal: resultModel.intervalsTotal, finished: result.finished,
+            },
+          });
+        } catch {
+          toast.error("Could not save your result. Please try again.");
+        }
       }
     }
     void openDebrief();
@@ -680,9 +644,6 @@ export function WorkoutPlayerDialog({
           workoutId={workoutId}
           attempt={attempt}
           initial={existingFeedback}
-          onSaved={() => {
-            if (user) void completeLocalAttempt(user.id, workoutId, attempt);
-          }}
         />
 
         <PerformanceEditorDialog

@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  activationOverflowViolation,
+  cooldownOverflowViolation,
   activationRelevanceViolation,
   categoryAllowsFinisher,
   categoryExerciseViolation,
@@ -213,8 +215,15 @@ describe("§33 required scenarios", () => {
     expect(focusViolation(row("Goblet Squat", "Kettlebell", "upper legs"), "LOWER BODY")).toBeNull();
   });
 
-  it("rejects a 30-minute request that balloons across all four blocks", () => {
-    expect(sessionOverflowViolation(34, 30)).toBeNull();
-    expect(sessionOverflowViolation(48, 30)).toBeTruthy();
+  it("counts the advertised duration as training time with bounded prep", () => {
+    // 30 min of training plus activation and cool down allowances is fine.
+    expect(sessionOverflowViolation(41, 30)).toBeNull();
+    // A session that balloons far beyond training time + prep is rejected.
+    expect(sessionOverflowViolation(60, 30)).toBeTruthy();
+    // Prep itself can never balloon.
+    expect(activationOverflowViolation(6, 30)).toBeNull();
+    expect(activationOverflowViolation(15, 30)).toBeTruthy();
+    expect(cooldownOverflowViolation(5, 30)).toBeNull();
+    expect(cooldownOverflowViolation(12, 30)).toBeTruthy();
   });
 });

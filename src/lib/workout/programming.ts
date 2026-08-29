@@ -570,11 +570,9 @@ export function buildSessionPlan(input: {
   const rawShape = durationShape(input.minutes, input.category);
   const raw = doseFor(input.category, input.level);
   const finisher = raw.finisher;
-  // Time actually available for the main block once activation and cool down
-  // are accounted for — a short session cannot spend its whole clock lifting.
-  const prepMinutes =
-    (rawShape.activationCount > 0 ? 3 : 0) + (rawShape.cooldownCount > 0 ? 3 : 0);
-  const mainBudget = Math.max(4, input.minutes - prepMinutes);
+  // The advertised duration is TRAINING time: the main block owns the whole
+  // clock, and activation / cool down are an allowance on top of it.
+  const mainBudget = Math.max(4, input.minutes);
   // The Micro Workout shape is authored end to end and never trimmed.
   const fitted =
     input.category === "MICRO-WORKOUTS"

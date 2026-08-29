@@ -18,7 +18,7 @@ import {
   setWodSubscription,
   type DailySettings,
 } from "@/lib/daily.functions";
-import { offlineFirst } from "@/lib/offline/offline-first";
+import { loadRemote } from "@/lib/remote-data";
 import { useAuth } from "@/hooks/useAuth";
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
@@ -49,7 +49,7 @@ export function DailyCoachingSettings({ premium = false }: { premium?: boolean }
 
   useEffect(() => {
     if (!user?.id) return;
-    void offlineFirst("wod:hub", () => load({}), user.id)
+    void loadRemote("wod:hub", () => load({}), user.id)
       .then((hub) => setSettings(hub.settings))
       .catch(() => undefined);
   }, [load, user?.id]);

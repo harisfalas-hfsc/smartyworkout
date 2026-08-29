@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { isOnline } from "@/lib/offline/connectivity";
+import { isOnline } from "@/lib/connectivity";
 import { useServerFn } from "@tanstack/react-start";
-import { offlineFirst } from "@/lib/offline/offline-first";
+import { loadRemote } from "@/lib/remote-data";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { CheckCircle2, Crown, Dumbbell, Home, Loader2, Play, UserRound } from "lucide-react";
@@ -173,7 +173,7 @@ function WodPage() {
   const [current, setCurrent] = useState(1);
 
   useEffect(() => {
-    void offlineFirst("wod:public-cycle", () => loadPublic({}))
+    void loadRemote("wod:public-cycle", () => loadPublic({}))
       .then(setPublicCycle)
       .catch(() => setPublicCycle(null));
   }, [loadPublic]);
@@ -195,7 +195,7 @@ function WodPage() {
 
   useEffect(() => {
     if (authLoading || !user) return;
-    void offlineFirst("wod:hub", () => load({}), user.id)
+    void loadRemote("wod:hub", () => load({}), user.id)
       .then(setHub)
       .catch(() => setHub(null));
   }, [authLoading, load, user]);

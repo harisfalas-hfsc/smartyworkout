@@ -8,7 +8,6 @@ import { MetricLineChart, MetricPicker } from "@/components/performance/MetricLi
 import { getSessionLoads } from "@/lib/performance.functions";
 import { formatDate } from "@/lib/date-format";
 import { useAuth } from "@/hooks/useAuth";
-import { localSessionLoads } from "@/lib/offline/performance-store";
 
 type Session = {
   workoutId: string;
@@ -51,11 +50,7 @@ export function RecentLoadTrend() {
   useEffect(() => {
     let active = true;
     if (!user) return;
-    void localSessionLoads(user.id)
-      .then((local) => {
-        if (active) setSessions(local);
-      })
-      .then(() => fetchSessions({ data: {} }))
+    void fetchSessions({ data: {} })
       .then((res) => {
         if (active) setSessions((res.sessions as Session[]) ?? []);
       })

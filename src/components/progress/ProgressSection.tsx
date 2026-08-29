@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { offlineFirst } from "@/lib/offline/offline-first";
+import { loadRemote } from "@/lib/remote-data";
 import { Button } from "@/components/ui/button";
 import {
   Loader2,
@@ -120,7 +120,7 @@ export function ProgressSection() {
   useEffect(() => {
     let active = true;
     if (!user?.id) return;
-    void offlineFirst("progress:overview", () => fetchOverview({ data: {} } as never), user.id)
+    void loadRemote("progress:overview", () => fetchOverview({ data: {} } as never), user.id)
       .then((r) => {
         if (!active) return;
         setData(r);

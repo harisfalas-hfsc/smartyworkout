@@ -5,17 +5,8 @@
 //     React/TanStack dedupe, error logger plugins, and sandbox detection (port/host/strictPort).
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
-import { VitePWA } from "vite-plugin-pwa";
 
 const APP_BUILD_ID = `${Date.now()}`;
-
-// Routes are real HTML responses, not fingerprinted assets. Giving every
-// production build a new revision prevents an installed phone from retaining
-// HTML that points at JavaScript or CSS files from an older deployment.
-const APP_SHELL_REVISION = new Date().toISOString();
-
-// Stable pages are warmed into the runtime page cache after load
-// (see src/lib/offline/register-sw.ts), never precached under their real URL.
 
 export default defineConfig({
   vite: {
@@ -30,104 +21,6 @@ export default defineConfig({
           });
         },
       },
-      VitePWA({
-        registerType: "autoUpdate",
-        injectRegister: null,
-        strategies: "generateSW",
-        filename: "sw.js",
-        // TanStack Start publishes browser files from dist/client. Without this,
-        // an installed phone can have a manifest but no usable /sw.js shell.
-        outDir: "dist/client",
-        includeAssets: [
-          "favicon.ico",
-          "favicon.png",
-          "apple-touch-icon.png",
-          "icon-192.png",
-          "icon-512.png",
-        ],
-        manifest: false,
-        devOptions: { enabled: false },
-        workbox: {
-          cleanupOutdatedCaches: true,
-          clientsClaim: true,
-          skipWaiting: true,
-          // No page URL is precached under its real address: a precached page is
-          // served cache-first, which is exactly what made phones keep showing an
-          // old published version. Only a hidden shell copy is stored, used as a
-          // last resort when the device is offline.
-          additionalManifestEntries: [{ url: "/?shell=1", revision: APP_SHELL_REVISION }],
-          navigateFallback: "/?shell=1",
-          navigateFallbackDenylist: [/^\/api\//, /^\/~oauth/],
-          // Keep the install shell lean. Images are cached on demand by the
-          // runtime rule below, avoiding failures from oversized media files.
-          globPatterns: ["**/*.{js,css,svg,ico,woff,woff2}"],
-          runtimeCaching: [
-            {
-              urlPattern: ({ request, url }) =>
-                request.mode === "navigate" &&
-                [
-                  "/",
-                  "/about",
-                  "/how-it-works",
-                  "/pricing",
-                  "/faq",
-                  "/founder-note",
-                  "/exercise-library",
-                  "/tools",
-                  "/glossary",
-                  "/privacy",
-                  "/terms",
-                  "/disclaimer",
-                  "/training",
-                ].includes(url.pathname),
-              handler: "StaleWhileRevalidate",
-              options: {
-                cacheName: "smarty-public-pages-v1",
-                cacheableResponse: { statuses: [0, 200] },
-              },
-            },
-            {
-              urlPattern: ({ request, url }) =>
-                request.mode === "navigate" &&
-                !url.pathname.startsWith("/api/") &&
-                !url.pathname.startsWith("/~oauth"),
-              handler: "NetworkFirst",
-              options: {
-                cacheName: "smarty-pages-v3",
-                cacheableResponse: { statuses: [0, 200] },
-                // NetworkFirst throws when both the network and the exact page
-                // cache miss. Workbox then serves the precached app shell, so a
-                // first offline visit to a dynamic URL (for example
-                // /workout/:id) boots SmartyWorkout instead of Chrome's generic
-                // "You're offline" page.
-                precacheFallback: { fallbackURL: "/?shell=1" },
-              },
-            },
-            {
-              urlPattern: ({ request, url }) =>
-                url.origin === globalThis.location.origin &&
-                ["script", "style", "font"].includes(request.destination),
-              handler: "CacheFirst",
-              options: {
-                cacheName: "smarty-assets-v1",
-                cacheableResponse: { statuses: [0, 200] },
-                expiration: { maxEntries: 300, maxAgeSeconds: 60 * 60 * 24 * 30 },
-              },
-            },
-            {
-              urlPattern: ({ request }) => request.destination === "image",
-              handler: "StaleWhileRevalidate",
-              options: {
-                cacheName: "smarty-media-v1",
-                cacheableResponse: { statuses: [0, 200] },
-                // Room for the whole exercise library plus icons, so prefetched
-                // demonstration images are never evicted before going offline.
-                expiration: { maxEntries: 4000, maxAgeSeconds: 60 * 60 * 24 * 60 },
-              },
-            },
-          ],
-        },
-      }),
     ],
     define: {
       __APP_BUILD_ID__: JSON.stringify(APP_BUILD_ID),

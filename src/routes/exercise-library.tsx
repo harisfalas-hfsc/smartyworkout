@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { offlineFirst } from "@/lib/offline/offline-first";
+import { loadRemote } from "@/lib/remote-data";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -306,7 +306,7 @@ function ExerciseLibraryPage() {
       setOptions(next);
       return next;
     };
-    void offlineFirst("library:filters", load)
+    void loadRemote("library:filters", load)
       .then((next) => {
         if (active && next && "bodyParts" in next) setOptions(next);
       })
@@ -341,7 +341,7 @@ function ExerciseLibraryPage() {
       if (conditions) query = query.or(conditions);
     }
 
-    const rows = await offlineFirst(
+    const rows = await loadRemote(
       `library:list:${bodyPart}|${equipment}|${target}|${difficulty}|${nameSearch.trim()}`,
       async () => {
         const { data, error } = await query.order("name").limit(60);
