@@ -10,9 +10,33 @@ import {
 import { TRAINING_CATEGORIES } from "@/lib/training-categories";
 
 const URL = "https://smartyworkout.com/glossary";
-const TITLE = "Training Glossary — 25+ terms defined | SmartyWorkout";
+const TITLE =
+  "Training Glossary & Workout Categories Explained — Strength, Cardio, Metabolic, Pilates | SmartyWorkout";
 const DESCRIPTION =
-  "Clear definitions of common workout, training and fitness terms used by SmartyWorkout.";
+  "Every SmartyWorkout training category explained — Strength, Muscle Building, Calorie Burning, Metabolic, Cardio, Mobility & Stability, Challenge, Pilates, Recovery, Micro Workout and Workout of the Day — plus plain-language definitions of 25+ fitness terms: what each workout type is, the formats it uses, who it suits and when to choose it.";
+const KEYWORDS = [
+  "workout categories",
+  "types of workouts",
+  "strength training workout",
+  "muscle building workout",
+  "calorie burning workout",
+  "metabolic conditioning",
+  "AMRAP workout",
+  "EMOM workout",
+  "Tabata workout",
+  "circuit training",
+  "cardio workout",
+  "mobility and stability training",
+  "pilates workout",
+  "recovery workout",
+  "micro workout",
+  "workout of the day",
+  "WOD",
+  "reps and sets",
+  "fitness glossary",
+  "training terms defined",
+  "personalized workout categories",
+].join(", ");
 
 const TERMS: { term: string; def: string }[] = [
   {
@@ -113,9 +137,42 @@ const TERMS: { term: string; def: string }[] = [
   },
 ];
 
+const CATEGORY_ANCHOR_PREFIX = "category-";
+
+export function categoryAnchor(id: string) {
+  return `${CATEGORY_ANCHOR_PREFIX}${id.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+}
+
 const JSONLD = {
   "@context": "https://schema.org",
   "@graph": [
+    {
+      "@type": "DefinedTermSet",
+      "@id": `${URL}#categories`,
+      name: "Smarty Workout Training Categories",
+      description:
+        "The complete set of workout categories SmartyWorkout generates, with the training formats each category uses, who it suits and when to choose it.",
+      hasDefinedTerm: TRAINING_CATEGORIES.map((c) => ({
+        "@type": "DefinedTerm",
+        "@id": `${URL}#${categoryAnchor(c.id)}`,
+        name: c.name,
+        description: c.brief,
+        inDefinedTermSet: `${URL}#categories`,
+      })),
+    },
+    {
+      "@type": "ItemList",
+      "@id": `${URL}#category-list`,
+      name: "Smarty Workout Training Categories",
+      numberOfItems: TRAINING_CATEGORIES.length,
+      itemListElement: TRAINING_CATEGORIES.map((c, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        name: c.name,
+        description: c.brief,
+        url: `${URL}#${categoryAnchor(c.id)}`,
+      })),
+    },
     {
       "@type": "DefinedTermSet",
       "@id": `${URL}#terms`,
@@ -142,10 +199,14 @@ export const Route = createFileRoute("/glossary")({
     meta: [
       { title: TITLE },
       { name: "description", content: DESCRIPTION },
+      { name: "keywords", content: KEYWORDS },
       { property: "og:title", content: TITLE },
       { property: "og:description", content: DESCRIPTION },
       { property: "og:url", content: URL },
       { property: "og:type", content: "article" },
+      { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: TITLE },
+      { name: "twitter:description", content: DESCRIPTION },
     ],
     links: [{ rel: "canonical", href: URL }],
     scripts: [{ type: "application/ld+json", children: JSON.stringify(JSONLD) }],
@@ -168,7 +229,7 @@ function GlossaryPage() {
         </h2>
         <Accordion type="single" collapsible className="mt-3 rounded-2xl border-2 border-primary px-4">
           {TRAINING_CATEGORIES.map((cat) => (
-            <AccordionItem key={cat.id} value={cat.id}>
+            <AccordionItem key={cat.id} value={cat.id} id={categoryAnchor(cat.id)}>
               <AccordionTrigger className="text-left text-sm font-bold">{cat.name}</AccordionTrigger>
               <AccordionContent>
                 <p className="text-muted-foreground">{cat.brief}</p>
