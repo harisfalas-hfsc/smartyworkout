@@ -16,6 +16,9 @@ import {
   isRepsAndSetsOnly,
   microExerciseViolation,
   regionOf,
+  humanRealismViolation,
+  locationEquipmentViolation,
+  sequenceViolation,
 } from "../doctrine";
 
 const ex = (over: Partial<Record<string, string>> = {}) => ({
@@ -294,5 +297,61 @@ describe("section budgets add up (§19)", () => {
   it("rejects a session that materially undershoots the requested time", () => {
     expect(sessionBudgetViolation(20, 12, 40)).toBeTruthy();
     expect(sessionBudgetViolation(52, 40, 40)).toBeNull();
+  });
+});
+
+describe("human realism", () => {
+  const e = (name: string, equipment = "body weight") => ({ name, equipment });
+
+  it("rejects gymnastic, lever and technical Olympic work in every category", () => {
+    for (const name of [
+      "Turkish Get-Up",
+      "Pistol Squat",
+      "Handstand Push-Up",
+      "Front Lever Raise",
+      "Nordic Hamstring Curl",
+      "Barbell Snatch",
+      "Barbell Clean and Jerk",
+      "Overhead Squat",
+      "Sissy Squat",
+    ]) {
+      expect(humanRealismViolation(e(name))).toBeTruthy();
+    }
+  });
+
+  it("keeps common, familiar movements legal", () => {
+    for (const name of [
+      "Goblet Squat",
+      "Dumbbell Bench Press",
+      "Kettlebell Swing",
+      "Push-Up",
+      "Reverse Lunge",
+      "Barbell Deadlift",
+      "Lat Pulldown",
+      "Step-Up",
+    ]) {
+      expect(humanRealismViolation(e(name))).toBeNull();
+    }
+  });
+
+  it("keeps outdoor sessions on portable equipment only", () => {
+    expect(locationEquipmentViolation(e("Leg Press", "leverage machine"), "outdoors")).toBeTruthy();
+    expect(locationEquipmentViolation(e("Cable Row", "cable"), "outdoors")).toBeTruthy();
+    expect(locationEquipmentViolation(e("Barbell Row", "barbell"), "outdoors")).toBeTruthy();
+    expect(locationEquipmentViolation(e("Goblet Squat", "dumbbell"), "outdoors")).toBeNull();
+    expect(locationEquipmentViolation(e("Push-Up", "body weight"), "outdoors")).toBeNull();
+    expect(locationEquipmentViolation(e("Leg Press", "leverage machine"), "gym")).toBeNull();
+  });
+
+  it("rejects a technical movement straight after a high-fatigue one under a clock", () => {
+    expect(
+      sequenceViolation([e("Burpee"), e("Handstand Push-Up")], "CIRCUIT"),
+    ).toBeTruthy();
+    expect(
+      sequenceViolation([e("Burpee"), e("Goblet Squat", "dumbbell")], "CIRCUIT"),
+    ).toBeNull();
+    expect(
+      sequenceViolation([e("Burpee"), e("Barbell Deadlift", "barbell")], "REPS & SETS"),
+    ).toBeNull();
   });
 });
