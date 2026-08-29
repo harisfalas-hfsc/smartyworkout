@@ -232,6 +232,14 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
   if (workRows.length) {
     const fam = equipmentFamilyViolation(workRows, opts.category, opts.format);
     if (fam) errors.push(fam);
+    // 6d. Sequencing realism — never a technical movement straight after a
+    //     high-fatigue one under a running clock.
+    const seq = sequenceViolation(rowsOf(main.map((s) => s.exerciseId)), opts.format);
+    if (seq) errors.push(seq);
+  }
+
+    const fam = equipmentFamilyViolation(workRows, opts.category, opts.format);
+    if (fam) errors.push(fam);
   }
 
   // 7. Duration integrity — the advertised duration is TRAINING time
