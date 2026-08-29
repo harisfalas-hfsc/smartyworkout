@@ -209,13 +209,17 @@ function controlDose(level: DifficultyLevel): Dose {
   };
 }
 
-/** Micro Workout: bodyweight density controlled by level, never junk volume. */
+/**
+ * Micro Workout dose — a movement break, not a miniature gym session.
+ * Low sets, simple bodyweight patterns, short rest, never near failure.
+ * Advanced adds a little density and range, never leverage or skill.
+ */
 function microDose(level: DifficultyLevel): Dose {
   if (level === "beginner")
-    return { sets: [2, 3], reps: [8, 12], seconds: [20, 30], restSec: [30, 45], tempo: "controlled, easy breathing, no rush" };
+    return { sets: [2, 2], reps: [8, 12], seconds: [20, 30], restSec: [30, 40], tempo: "controlled, easy breathing, no rush" };
   if (level === "advanced")
-    return { sets: [4, 5], reps: [12, 20], seconds: [30, 45], restSec: [10, 20], tempo: "brisk but clean, harder leverage variations" };
-  return { sets: [3, 4], reps: [10, 15], seconds: [25, 40], restSec: [20, 30], tempo: "steady and controlled" };
+    return { sets: [2, 3], reps: [12, 15], seconds: [30, 40], restSec: [20, 30], tempo: "steady and controlled through a full range, well short of failure" };
+  return { sets: [2, 3], reps: [10, 15], seconds: [25, 35], restSec: [20, 40], tempo: "steady and controlled" };
 }
 
 function doseFor(category: Category, level: DifficultyLevel): { main: Dose; finisher: Dose | null } {
