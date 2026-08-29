@@ -27,10 +27,10 @@ const SITE_DESCRIPTION =
 
 
 const KEYWORDS = [
-  "AI workout generator",
-  "AI personal trainer",
-  "AI workout planner",
-  "AI fitness coach",
+  "personalized workout generator",
+  "online personal trainer",
+  "workout planner",
+  "fitness coach app",
   "personalized workout plan",
   "custom workout generator",
   "workout plan generator",
@@ -81,12 +81,12 @@ const JSONLD_GRAPH = {
       "@type": "Organization",
       "@id": `${SITE_URL}/#organization`,
       name: "SmartyWorkout",
-      alternateName: ["Smarty Workout", "SmartyWorkout AI"],
+      alternateName: ["Smarty Workout", "SmartyWorkout"],
       url: SITE_URL,
       logo: `${SITE_URL}/icon-512.png`,
       image: OG_IMAGE,
       description:
-        "SmartyWorkout creates personalized workouts through Smarty Coach, combining AI with the coaching expertise of sports scientist Haris Falas.",
+        "SmartyWorkout creates personalized workouts through Smarty Coach, built on the coaching expertise of sports scientist Haris Falas.",
       foundingDate: "2024",
       email: "smartyworkout@outlook.com",
       knowsAbout: [
@@ -103,7 +103,7 @@ const JSONLD_GRAPH = {
         "Dumbbell training",
         "Injury-aware training",
         "Sports science",
-        "AI workout generation",
+        "personalized workout generation",
         "Personalized fitness coaching",
       ],
       founder: {
@@ -213,9 +213,9 @@ const JSONLD_GRAPH = {
     {
       "@type": ["SoftwareApplication", "WebApplication"],
       "@id": `${SITE_URL}/#software`,
-      name: "SmartyWorkout — AI Workout Generator",
+      name: "SmartyWorkout — Personalized Workout Generator",
       applicationCategory: "HealthApplication",
-      applicationSubCategory: "AI workout generator and personal training coach",
+      applicationSubCategory: "Personalized workout generator and personal training coach",
       operatingSystem: "Web, iOS, Android",
       browserRequirements: "Requires a modern web browser with JavaScript enabled",
       url: SITE_URL,
@@ -223,7 +223,7 @@ const JSONLD_GRAPH = {
       publisher: { "@id": `${SITE_URL}/#organization` },
       description: SITE_DESCRIPTION,
       featureList: [
-        "AI workout generator built on your training profile",
+        "Personalized workout generator built on your training profile",
         "Workout of the Day in bodyweight and equipment variants",
         "Exercise library with 1,300+ demonstrated movements",
         "Equipment-aware exercise filtering",
@@ -233,7 +233,6 @@ const JSONLD_GRAPH = {
         "Training logbook and calendar scheduling",
         "Progress tracking and workout feedback loop",
         "Workout timer, rounds tracker and 1RM calculator",
-        "PDF export of any workout",
       ],
       keywords: KEYWORDS,
       offers: {

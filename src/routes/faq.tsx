@@ -18,7 +18,7 @@ const DESCRIPTION =
 const ITEMS: { q: string; a: string }[] = [
   {
     q: "What is SmartyWorkout?",
-    a: "An AI training app. Smarty Coach builds a personalized workout for you, today — based on your goal, mood, time, location and equipment.",
+    a: "A personalized training app. Smarty Coach builds a personalized workout for you, today — based on your goal, mood, time, location and equipment.",
   },
   {
     q: "How does Smarty Coach build my workout?",
@@ -62,7 +62,7 @@ const ITEMS: { q: string; a: string }[] = [
   },
   {
     q: "Can I see my past workouts?",
-    a: "Yes — every workout is saved to your logbook and can be repeated or exported as a PDF.",
+    a: "Yes — every workout is saved to your logbook and can be repeated anytime.",
   },
   {
     q: "Does the app track what I actually do in a session?",
