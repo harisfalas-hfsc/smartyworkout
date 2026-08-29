@@ -136,7 +136,11 @@ export function filterByLocation(pool: PoolExercise[], location?: string | null)
   if (l === "home") return pool.filter((e) => !SMALL_SPACE_BAN_RE.test(text(e)));
   if (l === "hotel")
     return pool.filter((e) => !SMALL_SPACE_BAN_RE.test(text(e)) && !HOTEL_BAN_RE.test(text(e)));
-  if (l === "outdoors") return pool.filter((e) => !OUTDOOR_BAN_RE.test(text(e)));
+  if (l === "outdoors")
+    return pool.filter(
+      (e) => !OUTDOOR_BAN_RE.test(text(e)) && !locationEquipmentViolation(e, "outdoors"),
+    );
+
   return pool;
 }
 
