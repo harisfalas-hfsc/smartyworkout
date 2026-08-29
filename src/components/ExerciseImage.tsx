@@ -12,7 +12,6 @@ export function useExerciseImageSrc(path?: string | null, signedUrl?: string | n
 
   useEffect(() => {
     let active = true;
-    let objectUrl: string | null = null;
 
     (async () => {
       if (!path) {
@@ -26,7 +25,6 @@ export function useExerciseImageSrc(path?: string | null, signedUrl?: string | n
 
     return () => {
       active = false;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
   }, [path, signedUrl]);
 
