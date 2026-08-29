@@ -123,7 +123,7 @@ const RECOVERY_BAN_RE =
   /\b(jump|jumping|plyo|burpee|sprint|snatch|clean|jerk|thruster|crunch|sit-?up|deadlift|bench press|heavy)\b/i;
 
 const MICRO_BAN_RE =
-  /\b(dumbbell|kettlebell|barbell|band|machine|bike|rower|rope|treadmill|sled|cable|smith|ez|olympic|medicine ball|bosu|stability ball|pull-?up|chin-?up|hang(ing)?|dip bar|parallette|bench press|box jump|stair|stairs|step-?up|doorway|door frame)\b/i;
+  /\b(dumbbell|kettlebell|barbell|band|machine|bike|rower|rope|treadmill|sled|cable|smith|ez|olympic|medicine ball|bosu|stability ball|pull-?up|chin-?up|hang(ing)?|dip bar|parallette|bench press|box jump|doorway|door frame)\b/i;
 
 /**
  * Category-level legality for a single exercise, independent of format.
@@ -199,7 +199,7 @@ const MICRO_EQUIPMENT_RE =
 
 export function microExerciseViolation(e: ExerciseLike): string | null {
   const both = `${e.name} ${e.equipment ?? ""}`.toLowerCase();
-  if (!both.includes("body weight") && !/\b(chair|desk|table|wall|sofa|floor|bed)\b/.test(both))
+  if (!both.includes("body weight") && !/\b(chair|desk|table|wall|sofa|floor|bed|stair|stairs|step)\b/.test(both))
     return `"${e.name}" is not an equipment-free movement — Micro Workouts are bodyweight and environment only.`;
   if (MICRO_EQUIPMENT_RE.test(both))
     return `"${e.name}" needs training equipment, which Micro Workouts never use.`;

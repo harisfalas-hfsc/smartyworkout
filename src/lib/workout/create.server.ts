@@ -225,8 +225,10 @@ export async function createWorkoutForUser(
     const fresh = pool.filter((c) => !recentCats.has(c));
     const choices = fresh.length ? fresh : pool;
     category = choices[seed % choices.length]!;
-    // Never a 10-minute surprise session, and always 2 stars.
-    if (minutes < 20) minutes = 30;
+    // Surprise me is always a normal full session: 40, 45 or 50 minutes of
+    // training time, never shorter, never longer, whatever the time chip says.
+    const SURPRISE_MINUTES = [40, 45, 50];
+    minutes = SURPRISE_MINUTES[seed % SURPRISE_MINUTES.length]!;
     surpriseStars = 2;
     // Alternate between an equipped session and a bodyweight-only session.
     if (seed % 2 === 1) {
