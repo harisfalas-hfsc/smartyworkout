@@ -238,9 +238,7 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
     if (seq) errors.push(seq);
   }
 
-    const fam = equipmentFamilyViolation(workRows, opts.category, opts.format);
-    if (fam) errors.push(fam);
-  }
+
 
   // 7. Duration integrity — the advertised duration is TRAINING time
   //    (Main + Finisher). Activation and cool down are bounded allowances on
