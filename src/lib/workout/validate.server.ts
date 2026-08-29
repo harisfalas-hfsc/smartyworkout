@@ -15,6 +15,7 @@ import {
   activationRelevanceViolation,
   categoryAllowsFinisher,
   categoryExerciseViolation,
+  cardioDominanceViolation,
   categoryFormatViolation,
   durationOverflowViolation,
   dynamicExerciseViolation,
@@ -236,6 +237,9 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
     //     high-fatigue one under a running clock.
     const seq = sequenceViolation(rowsOf(main.map((s) => s.exerciseId)), opts.format);
     if (seq) errors.push(seq);
+    // 6e. Cardio stays aerobic — it may never turn into a metabolic session.
+    const cardio = cardioDominanceViolation(rowsOf(main.map((s) => s.exerciseId)), opts.category);
+    if (cardio) errors.push(cardio);
   }
 
 
