@@ -598,7 +598,7 @@ export function buildSessionPlan(input: {
   const fitted =
     input.category === "MICRO-WORKOUTS"
       ? { mainCount: rawShape.mainCount, dose: raw.main }
-      : fitMainToBudget(rawShape.mainCount, raw.main, mainBudget);
+      : fitMainToBudget(rawShape.mainCount, raw.main, mainBudget, input.category);
   const shape: Shape = { ...rawShape, mainCount: fitted.mainCount };
   const main = fitted.dose;
 
