@@ -576,8 +576,19 @@ export function sessionBudgetViolation(
 
 
 
+/**
+ * The human-realism preamble every session sees, whatever the category.
+ */
+export const HUMAN_REALISM_PROMPT = `HUMAN REALISM (HARD RULE, EVERY CATEGORY AND FORMAT)
+Before choosing any exercise ask: "Would a professional coach realistically give this to an ordinary adult client — a working 35, 45 or 55 year old who wants to get fit, strong and lean — in THIS workout?" If the answer is no, do not use it.
+NEVER program: Turkish get-ups, pistol squats, shrimp/sissy squats, handstands or handstand push-ups, headstands, pike push-ups, levers (front/back/human flag), planches, muscle-ups, nordic curls, dragon flags, skin the cat, clapping/aztec push-ups, kipping or butterfly pull-ups, windmills, bent presses, overhead squats, snatches, cleans, jerks, behind-the-neck pressing, or any movement needing exceptional mobility, balance, skill or coordination. Bodyweight does not make an exercise appropriate, and advanced does not make it better.
+ALWAYS prefer the common, familiar, effective movements from the library: squats, goblet squats, lunges, reverse lunges, step-ups, hip thrusts, glute bridges, push-ups, presses, rows, pulldowns, TRX rows, dumbbell and kettlebell work, kettlebell swings, medicine-ball work, carries, simple core work, and genuine cardio (bike, rower, jump rope, running) where appropriate.
+SEQUENCING: never place a technical, balance or precision movement straight after a high-fatigue one (burpees → handstand push-ups is unacceptable), and never chain movements that need completely different setups or locations inside a timed workout. The athlete must spend the session training, not preparing equipment.
+FINAL TEST before you output: would you genuinely give this workout to that client, can they understand it, perform it safely, transition naturally between the exercises, and does it feel achievable rather than complicated? If not, replace the exercise.`;
+
 /** Prompt text so the model sees the same doctrine the validator enforces. */
 export function doctrinePrompt(category: Category, format: Format): string {
+
   if (isRepsAndSetsOnly(category))
     return `HARD DOCTRINE: ${category} is REPS & SETS only. Never AMRAP, EMOM, Tabata, For Time, circuit or chipper anywhere in the session.${
       categoryAllowsFinisher(category) ? "" : " This category carries NO finisher of any kind."
