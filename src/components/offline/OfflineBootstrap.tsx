@@ -18,7 +18,7 @@ import {
 } from "@/lib/community-queries";
 import { getSharedWorkout } from "@/lib/community.functions";
 import { getProgressOverview } from "@/lib/progress.functions";
-import { isOnline, subscribeConnectivity } from "@/lib/offline/connectivity";
+import { isOnline, subscribeConnectivity } from "@/lib/connectivity";
 import { onSyncRequested, setSyncState } from "@/lib/offline/sync-bus";
 import {
   bindUser,
@@ -30,7 +30,7 @@ import {
 } from "@/lib/offline/db";
 import { mergeServerPerformance } from "@/lib/offline/performance-store";
 import { markOfflineReady, readOfflineReadiness } from "@/lib/offline/readiness";
-import { cacheMediaUrls, getExerciseMediaItems, storedMediaCount, warmExerciseMedia } from "@/lib/offline/media-cache";
+import { cacheMediaUrls, getExerciseMediaItems, storedMediaCount, warmExerciseMedia } from "@/lib/exercise-media";
 import { syncUserTables } from "@/lib/offline/data-sync";
 import { resolveSyncOutcome } from "@/lib/offline/sync-result";
 import { getMembershipSummary } from "@/utils/payments.functions";

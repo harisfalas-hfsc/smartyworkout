@@ -19,7 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { generateWorkout } from "@/lib/coach.functions";
-import { isOnline } from "@/lib/offline/connectivity";
+import { isOnline } from "@/lib/connectivity";
 import { enqueueAction } from "@/lib/offline/queue";
 import {
   getExercisePreferences,

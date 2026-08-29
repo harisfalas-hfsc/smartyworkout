@@ -9,7 +9,7 @@ import { deleteMyThreads, setThreadsRead } from "@/lib/support.functions";
 import { saveSessionFeedback } from "@/lib/feedback.functions";
 import { flushQueue, type QueuedAction } from "@/lib/offline/queue";
 import { onSyncRequested, requestSync } from "@/lib/offline/sync-bus";
-import { useOnlineStatus } from "@/lib/offline/useOnlineStatus";
+import { useOnlineStatus } from "@/lib/connectivity";
 import { announceInboxChanged } from "@/lib/inbox-sync";
 
 /** Replays anything the member did while offline as soon as the network returns. */

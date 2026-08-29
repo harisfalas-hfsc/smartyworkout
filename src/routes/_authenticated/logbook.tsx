@@ -1,8 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useOfflineData } from "@/lib/offline/useOfflineData";
-import { useOnlineStatus } from "@/lib/offline/useOnlineStatus";
+import { useRemoteData } from "@/lib/remote-data";
+import { useOnlineStatus } from "@/lib/connectivity";
 import { CachedNotice } from "@/components/offline/CachedNotice";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";

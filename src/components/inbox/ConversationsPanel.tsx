@@ -30,10 +30,10 @@ import {
   type SupportThread,
 } from "@/lib/support.functions";
 import { useAuth } from "@/hooks/useAuth";
-import { offlineFirst } from "@/lib/offline/offline-first";
+import { loadRemote } from "@/lib/remote-data";
 import { enqueueAction } from "@/lib/offline/queue";
 import { announceInboxChanged } from "@/lib/inbox-sync";
-import { useOnlineStatus } from "@/lib/offline/useOnlineStatus";
+import { useOnlineStatus } from "@/lib/connectivity";
 import { scopedKey, writeCache } from "@/lib/offline/store";
 import { formatDateTime } from "@/lib/date-format";
 
@@ -69,7 +69,7 @@ export function ConversationsPanel({
 
   const reload = useCallback(async () => {
     try {
-      const res = await offlineFirst("inbox:threads", () => load({}), user?.id);
+      const res = await loadRemote("inbox:threads", () => load({}), user?.id);
       setThreads(res.threads);
     } finally {
       setLoading(false);

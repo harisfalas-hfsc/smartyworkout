@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { CloudOff, RefreshCw, ServerCrash, X } from "lucide-react";
-import { useConnectivityState } from "@/lib/offline/useOnlineStatus";
+import { useConnectivityState } from "@/lib/connectivity";
 import { pendingActionCount } from "@/lib/offline/queue";
 import { subscribeSyncState, type SyncState } from "@/lib/offline/sync-bus";
 import { readOfflineReadiness, type OfflineReadiness } from "@/lib/offline/readiness";

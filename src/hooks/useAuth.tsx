@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { refreshRememberedSession } from "@/lib/offline/device-auth";
 import type { Session, User } from "@supabase/supabase-js";
-import { isOnline } from "@/lib/offline/connectivity";
+import { isOnline } from "@/lib/connectivity";
 
 type ProfileSummary = {
   display_name: string | null;

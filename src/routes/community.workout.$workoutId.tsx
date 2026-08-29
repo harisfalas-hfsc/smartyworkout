@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { offlineFirst } from "@/lib/offline/offline-first";
+import { loadRemote } from "@/lib/remote-data";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -99,7 +99,7 @@ function SharedWorkoutPage() {
       const { data: auth } = await supabase.auth.getUser();
       if (active) setMe(auth.user?.id ?? null);
       try {
-        const res = await offlineFirst(`community:workout:${workoutId}`, () =>
+        const res = await loadRemote(`community:workout:${workoutId}`, () =>
           load({ data: { workoutId } }),
         );
         if (!active) return;
@@ -113,7 +113,7 @@ function SharedWorkoutPage() {
         if (active) setError((e as Error).message);
       }
       const [list] = await Promise.all([
-        offlineFirst(`community:workout-comments:${workoutId}`, () => fetchComments(workoutId)).catch(
+        loadRemote(`community:workout-comments:${workoutId}`, () => fetchComments(workoutId)).catch(
           () => [] as CommunityComment[],
         ),
         refreshCounts(),

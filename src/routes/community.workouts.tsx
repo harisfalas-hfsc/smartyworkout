@@ -21,7 +21,7 @@ import {
 import { fetchBadgesFor, fetchCategories, fetchCommunityWorkouts } from "@/lib/community-queries";
 import { SORTS, type CommunityBadge, type CommunitySort, type CommunityWorkoutCard as CardData } from "@/lib/community";
 import { CATEGORIES, MAX_STARS } from "@/lib/workout/spec";
-import { offlineFirst } from "@/lib/offline/offline-first";
+import { loadRemote } from "@/lib/remote-data";
 
 const searchSchema = z.object({
   sort: fallback(z.string(), "latest").default("latest"),
@@ -71,7 +71,7 @@ function BrowsePage() {
   const difficulty = Math.max(0, Math.min(MAX_STARS, search.difficulty));
 
   useEffect(() => {
-    void offlineFirst("community:categories", fetchCategories).then((rows) => {
+    void loadRemote("community:categories", fetchCategories).then((rows) => {
       const merged = Array.from(new Set([...CATEGORIES, ...rows]));
       setCategories(merged);
     });
@@ -86,7 +86,7 @@ function BrowsePage() {
     setLoading(true);
     void (async () => {
       const cacheKey = ["community:browse", sort, difficulty, search.category || "all", search.q || "all", page].join(":");
-      const list = await offlineFirst(cacheKey, () =>
+      const list = await loadRemote(cacheKey, () =>
         fetchCommunityWorkouts({
           sort,
           difficulty: difficulty || null,
@@ -101,7 +101,7 @@ function BrowsePage() {
       setDone(list.length < PAGE);
       setLoading(false);
       const creatorIds = list.map((w) => w.creator_id).sort();
-      const map = await offlineFirst(
+      const map = await loadRemote(
         `community:badges:${creatorIds.join(",")}`,
         () => fetchBadgesFor(creatorIds),
       ).catch(() => ({} as Record<string, CommunityBadge[]>));

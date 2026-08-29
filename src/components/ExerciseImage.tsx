@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Dumbbell } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getExerciseMediaUrl, readStoredMedia, storeMedia } from "@/lib/offline/media-cache";
-import { isOnline } from "@/lib/offline/connectivity";
+import { getExerciseMediaUrl, readStoredMedia, storeMedia } from "@/lib/exercise-media";
+import { isOnline } from "@/lib/connectivity";
 
 /**
  * Resolves the best address for an exercise picture.

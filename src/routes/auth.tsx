@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { rememberDevice, offlineSignIn } from "@/lib/offline/device-auth";
-import { isOnline } from "@/lib/offline/connectivity";
+import { isOnline } from "@/lib/connectivity";
 
 
 export const Route = createFileRoute("/auth")({

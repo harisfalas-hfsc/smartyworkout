@@ -8,13 +8,13 @@ import {
   isNativeApp,
   nativePlatform,
   probeBackend,
-} from "@/lib/offline/connectivity";
+} from "@/lib/connectivity";
 import { readMeta } from "@/lib/offline/db";
 import { queueDiagnostics } from "@/lib/offline/queue";
 import { readOfflineReadiness } from "@/lib/offline/readiness";
 import { readCache, scopedKey } from "@/lib/offline/store";
 import { offlineDatabaseDiagnostics, offlineDb } from "@/lib/offline/database";
-import { storedMediaCount } from "@/lib/offline/media-cache";
+import { storedMediaCount } from "@/lib/exercise-media";
 
 export const Route = createFileRoute("/diagnostics")({
   component: DiagnosticsPage,

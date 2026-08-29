@@ -20,7 +20,7 @@ import {
   setNotificationsRead,
 } from "@/lib/daily.functions";
 import { useAuth } from "@/hooks/useAuth";
-import { offlineFirst } from "@/lib/offline/offline-first";
+import { loadRemote } from "@/lib/remote-data";
 import { enqueueAction } from "@/lib/offline/queue";
 import { announceInboxChanged } from "@/lib/inbox-sync";
 import { scopedKey, writeCache } from "@/lib/offline/store";
@@ -52,7 +52,7 @@ export function UpdatesPanel({ onUnread }: { onUnread?: (n: number) => void }) {
 
   const reload = useCallback(async () => {
     try {
-      const res = await offlineFirst("inbox:notifications", () => load({}), user?.id);
+      const res = await loadRemote("inbox:notifications", () => load({}), user?.id);
       setItems(res.notifications);
     } finally {
       setLoading(false);
