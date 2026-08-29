@@ -37,10 +37,9 @@ describe("category / format legality", () => {
       expect(categoryFormatViolation(c, "AMRAP")).toBeTruthy();
       expect(categoryFormatViolation(c, "REPS & SETS")).toBeNull();
     }
-    // Mobility & Stability: Reps & Sets or Mix only — never a clock format.
+    // Mobility & Stability: Reps & Sets only — never a clock format, never MIX.
     expect(categoryFormatViolation("MOBILITY & STABILITY", "REPS & SETS")).toBeNull();
-    expect(categoryFormatViolation("MOBILITY & STABILITY", "MIX")).toBeNull();
-    for (const f of ["AMRAP", "EMOM", "CIRCUIT", "TABATA", "FOR TIME"] as const)
+    for (const f of ["AMRAP", "EMOM", "CIRCUIT", "TABATA", "FOR TIME", "MIX"] as const)
       expect(categoryFormatViolation("MOBILITY & STABILITY", f)).toBeTruthy();
     // Recovery: MIX only.
     expect(categoryFormatViolation("RECOVERY", "MIX")).toBeNull();
