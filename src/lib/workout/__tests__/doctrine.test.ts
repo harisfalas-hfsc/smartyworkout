@@ -127,10 +127,43 @@ describe("category format lock (§4)", () => {
     expect(categoryFormatViolation("STRENGTH", "EMOM")).toBeTruthy();
     expect(categoryFormatViolation("PILATES", "AMRAP")).toBeTruthy();
     expect(categoryFormatViolation("MUSCLE BUILDING", "TABATA")).toBeTruthy();
-    expect(categoryFormatViolation("MICRO-WORKOUTS", "CIRCUIT")).toBeNull();
-    expect(categoryFormatViolation("MICRO-WORKOUTS", "REPS & SETS")).toBeNull();
     expect(categoryFormatViolation("METABOLIC", "AMRAP")).toBeNull();
+  });
 
+  it("locks Micro Workout to Reps & Sets — every clock format is invalid", () => {
+    expect(isRepsAndSetsOnly("MICRO-WORKOUTS")).toBe(true);
+    for (const f of ["CIRCUIT", "AMRAP", "EMOM", "TABATA", "FOR TIME"] as const)
+      expect(categoryFormatViolation("MICRO-WORKOUTS", f)).toBeTruthy();
+    expect(categoryFormatViolation("MICRO-WORKOUTS", "REPS & SETS")).toBeNull();
+  });
+
+  it("keeps Recovery on MIX and never on a conditioning format", () => {
+    expect(categoryFormatViolation("RECOVERY", "MIX")).toBeNull();
+    for (const f of ["CIRCUIT", "AMRAP", "EMOM", "TABATA", "FOR TIME", "REPS & SETS"] as const)
+      expect(categoryFormatViolation("RECOVERY", f)).toBeTruthy();
+  });
+
+  it("keeps Recovery and Pilates from becoming conditioning", () => {
+    const e = (name: string, equipment: string | null = "body weight") => ({ name, equipment });
+    for (const name of ["Burpee", "Kettlebell Swing", "Box Jump", "Mountain Climber", "Sprint"])
+      expect(categoryExerciseViolation(e(name), "RECOVERY")).toBeTruthy();
+    expect(categoryExerciseViolation(e("Box Breathing"), "RECOVERY")).toBeNull();
+    for (const name of ["Burpee", "Box Jump", "Barbell Thruster"])
+      expect(categoryExerciseViolation(e(name), "PILATES")).toBeTruthy();
+    expect(categoryAllowsFinisher("RECOVERY")).toBe(false);
+    expect(categoryAllowsFinisher("PILATES")).toBe(false);
+  });
+
+  it("rejects setup-heavy strength work in Metabolic clock formats", () => {
+    const bench = { name: "Barbell Bench Press", equipment: "barbell" };
+    const rack = { name: "Barbell Back Squat", equipment: "barbell" };
+    const press = { name: "Leverage Machine Chest Press", equipment: "leverage machine" };
+    expect(dynamicExerciseViolation(bench, "METABOLIC", "EMOM")).toBeTruthy();
+    expect(dynamicExerciseViolation(rack, "METABOLIC", "CIRCUIT")).toBeTruthy();
+    expect(dynamicExerciseViolation(press, "METABOLIC", "AMRAP")).toBeTruthy();
+    expect(
+      dynamicExerciseViolation({ name: "Dumbbell Thruster", equipment: "dumbbell" }, "METABOLIC", "CIRCUIT"),
+    ).toBeNull();
   });
 });
 

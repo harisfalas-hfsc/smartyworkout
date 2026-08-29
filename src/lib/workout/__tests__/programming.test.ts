@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildSessionPlan,
   cardioExpression,
+  estimateBlockMinutes,
   countTransitions,
   equipmentFamily,
   microMinutes,
@@ -67,15 +68,26 @@ describe("quality score", () => {
 });
 
 describe("micro workout and pilates blueprints", () => {
-  it("micro is one 10-minute block: no activation, cooldown or finisher", () => {
+  it("micro is one 10-minute block: no activation, cooldown or finisher, always reps & sets", () => {
     const plan = buildSessionPlan({
       category: "MICRO-WORKOUTS", format: "CIRCUIT", level: "advanced",
       stars: 3, minutes: 45, equipmentCount: 4,
     });
+    expect(plan.format).toBe("REPS & SETS");
     expect(plan.activationCount).toBe(0);
     expect(plan.cooldownCount).toBe(0);
     expect(plan.finisher).toBeNull();
     expect(plan.softTissue).toBe(false);
+  });
+
+  it("recovery stays on MIX and never carries a finisher", () => {
+    const plan = buildSessionPlan({
+      category: "RECOVERY", format: "CIRCUIT", level: "intermediate",
+      stars: 2, minutes: 30, equipmentCount: 1,
+    });
+    expect(plan.format).toBe("MIX");
+    expect(plan.finisher).toBeNull();
+    expect(plan.finisherCount).toEqual([0, 0]);
   });
 
   it("pilates never carries a finisher", () => {
@@ -85,6 +97,19 @@ describe("micro workout and pilates blueprints", () => {
     });
     expect(plan.finisher).toBeNull();
     expect(plan.format).toBe("REPS & SETS");
+  });
+
+  it("never shrinks the estimated main block to make room for a finisher", () => {
+    for (const minutes of [30, 45, 60]) {
+      const plan = buildSessionPlan({
+        category: "STRENGTH", format: "REPS & SETS", level: "advanced",
+        stars: 3, minutes, equipmentCount: 2,
+      });
+      const honest = estimateBlockMinutes(plan.mainCount[0], plan.main);
+      expect(plan.mainMinutesEstimate).toBe(honest);
+      // The finisher only exists in genuinely leftover time.
+      expect(plan.mainMinutesEstimate + plan.finisherMinutes).toBeLessThanOrEqual(minutes + 1);
+    }
   });
 });
 
