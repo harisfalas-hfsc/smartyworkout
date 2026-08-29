@@ -77,9 +77,14 @@ type Shape = {
   cooldownCount: number;
 };
 
-/** Micro Workouts are always 10 minutes. */
-export function microMinutes(_requested: number): number {
-  return 10;
+/**
+ * Micro Workouts are a movement break, never a gym session: 10 minutes by
+ * default and never longer than 20, whatever the athlete requested.
+ */
+export function microMinutes(requested: number): number {
+  const m = Math.round(requested || 0);
+  if (!Number.isFinite(m) || m <= 10) return 10;
+  return Math.min(20, m);
 }
 
 function durationShape(minutes: number, category: Category): Shape {
