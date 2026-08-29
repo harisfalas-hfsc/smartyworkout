@@ -220,6 +220,8 @@ export async function generateWorkoutContent(
     customEquipment,
     focus: input.focus ?? null,
     dislikedIds,
+    location: input.location ?? null,
+
 
     prepIds,
     requireFinisher: Boolean(plan.finisher),

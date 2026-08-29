@@ -4,6 +4,9 @@ import {
   categoryExerciseViolation,
   dynamicExerciseViolation,
   focusRegion,
+  humanRealismViolation,
+  locationEquipmentViolation,
+
   focusViolation,
   microExerciseViolation,
   regionOf,
@@ -133,7 +136,11 @@ export function filterByLocation(pool: PoolExercise[], location?: string | null)
   if (l === "home") return pool.filter((e) => !SMALL_SPACE_BAN_RE.test(text(e)));
   if (l === "hotel")
     return pool.filter((e) => !SMALL_SPACE_BAN_RE.test(text(e)) && !HOTEL_BAN_RE.test(text(e)));
-  if (l === "outdoors") return pool.filter((e) => !OUTDOOR_BAN_RE.test(text(e)));
+  if (l === "outdoors")
+    return pool.filter(
+      (e) => !OUTDOOR_BAN_RE.test(text(e)) && !locationEquipmentViolation(e, "outdoors"),
+    );
+
   return pool;
 }
 
@@ -203,6 +210,11 @@ export function resolveCustomEquipment(all: PoolExercise[], raw: string): string
 export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
   let pool = all.slice();
 
+  // 0. HUMAN REALISM — before anything else. Circus gymnastics, levers,
+  //    Turkish get-ups, pistol squats and technical Olympic lifting are never
+  //    handed to a normal adult client, in any category or format.
+  pool = pool.filter((e) => !humanRealismViolation(e));
+
   // 1. Category vocabulary legality (doctrine §3/§7/§8/§14) — one definition,
   //    applied before anything else.
   pool = pool.filter((e) => !categoryExerciseViolation(e, f.category));
@@ -212,6 +224,7 @@ export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
   // apparatus. The athlete's normal equipment preferences do not apply here.
   const isMicro = f.category === "MICRO-WORKOUTS";
   if (isMicro) pool = pool.filter((e) => isBodyweight(e) && !microExerciseViolation(e));
+
 
   // 2. Exact equipment allowlist. Never widen a user's choices to all equipment.
   if (!isMicro) {

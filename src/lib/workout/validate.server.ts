@@ -20,6 +20,10 @@ import {
   dynamicExerciseViolation,
   equipmentFamilyViolation,
   focusViolation,
+  humanRealismViolation,
+  locationEquipmentViolation,
+  sequenceViolation,
+
   microExerciseViolation,
   activationOverflowViolation,
   cooldownOverflowViolation,
@@ -53,6 +57,9 @@ export type ValidateOptions = {
   /** Today's body-part focus — a hard legality gate on every work exercise. */
   focus?: StrengthFocus | null;
   dislikedIds?: string[];
+  /** Where the athlete trains today — outdoors bans gym apparatus outright. */
+  location?: string | null;
+
 
   /** Ids allowed in 🔥 Activation / 🧘 Cool Down (prep vocabulary, bodyweight-first). */
   prepIds?: string[];
@@ -125,9 +132,16 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
       ) {
         errors.push(`"${row.name}" is not a bodyweight exercise.`);
       }
+      // 2a-bis. Human realism — no gymnastics, levers or technical Olympic work.
+      const real = humanRealismViolation(row);
+      if (real) errors.push(real);
+      // 2a-ter. Environment realism — outdoors means portable equipment only.
+      const loc = locationEquipmentViolation(row, opts.location ?? null);
+      if (loc) errors.push(loc);
       // 2b. Format legality — no setup-heavy apparatus in a dynamic format.
       const dyn = dynamicExerciseViolation(row, opts.category, opts.format);
       if (dyn) errors.push(dyn);
+
       // 2c. Category vocabulary legality (Pilates, Mobility, Recovery, Micro,
       //     Challenge) — one shared definition with the pool filter.
       const cat = categoryExerciseViolation(row, opts.category);
@@ -218,7 +232,13 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
   if (workRows.length) {
     const fam = equipmentFamilyViolation(workRows, opts.category, opts.format);
     if (fam) errors.push(fam);
+    // 6d. Sequencing realism — never a technical movement straight after a
+    //     high-fatigue one under a running clock.
+    const seq = sequenceViolation(rowsOf(main.map((s) => s.exerciseId)), opts.format);
+    if (seq) errors.push(seq);
   }
+
+
 
   // 7. Duration integrity — the advertised duration is TRAINING time
   //    (Main + Finisher). Activation and cool down are bounded allowances on

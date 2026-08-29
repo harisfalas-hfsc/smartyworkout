@@ -13,6 +13,8 @@ import type { WorkoutStep } from "./parse-steps";
 import {
   categoryAllowsFinisher,
   doctrinePrompt,
+  HUMAN_REALISM_PROMPT,
+
   equipmentFamilyOf,
   isRepsAndSetsOnly,
 } from "./doctrine";
@@ -677,7 +679,9 @@ export function planPrompt(plan: SessionPlan): string {
   const lifting = isLiftingCategory(plan.category);
   const lines = [
     `SESSION BLUEPRINT (hard numbers — a session outside these ranges is rejected)`,
+    HUMAN_REALISM_PROMPT,
     doctrinePrompt(plan.category, plan.format),
+
 
     micro
       ? `- NO 🧽 Soft Tissue, NO 🔥 Activation, NO ⚡ Finisher, NO 🧘 Cool Down. Output ONE 💪 Main Workout section only — the first movement is the preparation.`
