@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { SURPRISE_EXCLUDED, surprisePlan, surpriseSeed } from "../surprise";
 import { CATEGORIES } from "../spec";
 import { microExerciseViolation } from "../doctrine";
-import { getDayIn84Cycle, starsForCycleDayWithLevel, WOD_CYCLE } from "../../wod-cycle";
+import { getCycleDay, PERIODIZATION_84DAY, starsForCycleDayWithLevel } from "../../wod-cycle";
 
 const ALL = [...CATEGORIES];
 
@@ -69,12 +69,12 @@ describe("micro workout environment", () => {
 
 describe("workout of the day periodization", () => {
   it("keeps the full 84 day calendar and never programmes micro workouts", () => {
-    expect(WOD_CYCLE.length).toBe(84);
-    for (const day of WOD_CYCLE) expect(day.category).not.toBe("MICRO-WORKOUTS");
+    expect(PERIODIZATION_84DAY.length).toBe(84);
+    for (const day of PERIODIZATION_84DAY) expect(day.category).not.toBe("MICRO-WORKOUTS");
   });
 
   it("gives the same difficulty to every athlete on cycle level", () => {
-    const day = WOD_CYCLE[getDayIn84Cycle(new Date("2026-03-01T09:00:00Z")) - 1]!;
+    const day = getCycleDay("2026-03-01");
     expect(starsForCycleDayWithLevel(day, "cycle")).toBe(starsForCycleDayWithLevel(day, "cycle"));
     expect([1, 2, 3]).toContain(starsForCycleDayWithLevel(day, "cycle"));
   });
