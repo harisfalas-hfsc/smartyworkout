@@ -4,6 +4,9 @@ import {
   categoryExerciseViolation,
   dynamicExerciseViolation,
   focusRegion,
+  humanRealismViolation,
+  locationEquipmentViolation,
+
   focusViolation,
   microExerciseViolation,
   regionOf,

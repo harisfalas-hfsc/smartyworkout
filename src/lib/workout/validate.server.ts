@@ -20,6 +20,10 @@ import {
   dynamicExerciseViolation,
   equipmentFamilyViolation,
   focusViolation,
+  humanRealismViolation,
+  locationEquipmentViolation,
+  sequenceViolation,
+
   microExerciseViolation,
   activationOverflowViolation,
   cooldownOverflowViolation,
