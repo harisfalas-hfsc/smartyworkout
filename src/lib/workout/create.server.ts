@@ -206,32 +206,18 @@ export async function createWorkoutForUser(
 
   let surpriseStars: number | null = null;
   if (data.surprise) {
-    // Deterministic per user per day, and never the same category as the last 2 workouts.
-    const seedSource = `${userId}:${new Date().toISOString().slice(0, 10)}`;
-    let seed = 0;
-    for (let i = 0; i < seedSource.length; i++) seed = (seed * 31 + seedSource.charCodeAt(i)) >>> 0;
-    // Surprise me is always a real training session: never a micro break,
-    // never Pilates, Mobility & Stability or Recovery.
-    const EXCLUDED: Category[] = [
-      "MICRO-WORKOUTS",
-      "PILATES",
-      "MOBILITY & STABILITY",
-      "RECOVERY",
-    ];
-    const pool = (Object.values(GOAL_TO_CATEGORY) as Category[]).filter(
-      (c) => !EXCLUDED.includes(c),
+    // Deterministic per user per day, never a break category, never the same
+    // category as the last 2 workouts, always 2 stars and always 40-50 minutes.
+    const seed = surpriseSeed(userId, new Date().toISOString().slice(0, 10));
+    const plan = surprisePlan(
+      seed,
+      Object.values(GOAL_TO_CATEGORY) as Category[],
+      history.slice(0, 2).map((h) => String(h.category)),
     );
-    const recentCats = new Set(history.slice(0, 2).map((h) => h.category));
-    const fresh = pool.filter((c) => !recentCats.has(c));
-    const choices = fresh.length ? fresh : pool;
-    category = choices[seed % choices.length]!;
-    // Surprise me is always a normal full session: 40, 45 or 50 minutes of
-    // training time, never shorter, never longer, whatever the time chip says.
-    const SURPRISE_MINUTES = [40, 45, 50];
-    minutes = SURPRISE_MINUTES[seed % SURPRISE_MINUTES.length]!;
-    surpriseStars = 2;
-    // Alternate between an equipped session and a bodyweight-only session.
-    if (seed % 2 === 1) {
+    category = plan.category;
+    minutes = plan.minutes;
+    surpriseStars = plan.stars;
+    if (plan.bodyweightOnly) {
       equipmentIds = ["bodyweight"];
       equipmentMode = "BODYWEIGHT";
     }
