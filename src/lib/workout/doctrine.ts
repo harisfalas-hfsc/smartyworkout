@@ -39,11 +39,19 @@ export const DYNAMIC_CATEGORIES: Category[] = [
   "CHALLENGE",
 ];
 
+/**
+ * The five clock-driven formats. The machine / rack / bench / high-skill
+ * restriction is a property of THESE FORMATS, never of a category: a REPS &
+ * SETS session always keeps full gym access, whatever the category.
+ */
 export const DYNAMIC_FORMATS: Format[] = ["TABATA", "CIRCUIT", "AMRAP", "EMOM", "FOR TIME"];
 
 export function isDynamicFormat(format: Format): boolean {
   return DYNAMIC_FORMATS.includes(format);
 }
+
+/** Alias — clock-driven == the five conditioning formats. */
+export const isClockFormat = isDynamicFormat;
 
 export function isDynamicCategory(category: Category): boolean {
   return DYNAMIC_CATEGORIES.includes(category);
@@ -51,8 +59,9 @@ export function isDynamicCategory(category: Category): boolean {
 
 /** Categories locked to REPS & SETS by doctrine. */
 export function isRepsAndSetsOnly(category: Category): boolean {
-  return QUALITY_CATEGORIES.includes(category);
+  return category === "STRENGTH" || category === "MUSCLE BUILDING" || category === "PILATES";
 }
+
 
 /** Pilates, Mobility & Stability, Recovery and Micro Workouts never carry a Finisher. */
 export function categoryAllowsFinisher(category: Category): boolean {
