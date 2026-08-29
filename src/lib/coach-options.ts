@@ -43,7 +43,7 @@ export const MOODS = [
   { id: "push", label: "I want to push myself" },
 ] as const;
 
-export const TIMES = [5, 10, 15, 20, 30, 45, 60];
+export const TIMES = [5, 10, 15, 20, 30, 40, 45, 50, 60];
 
 export const LOCATIONS = [
   { id: "home", label: "Home" },

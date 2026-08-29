@@ -100,7 +100,7 @@ export async function runWodForUser(
   const existing = (existingRows as { id: string; wod_variant: string | null }[] | null) ?? [];
   const byVariant = new Map(existing.map((r) => [r.wod_variant ?? "equipment", r.id]));
 
-  const minutes = recovery ? 20 : Math.max(10, Math.min(90, prof?.typical_duration_min ?? 30));
+  const minutes = recovery ? 20 : Math.max(20, Math.min(90, prof?.typical_duration_min ?? 30));
   const stars = starsForCycleDayWithLevel(cycleDay, (prof?.wod_level as WodLevel) ?? "cycle");
   const variants: { key: string; equipment: string[] }[] = recovery
     ? [{ key: "recovery", equipment: ["bodyweight"] }]
