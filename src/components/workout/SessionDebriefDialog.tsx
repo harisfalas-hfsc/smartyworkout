@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { saveSessionFeedback, type SessionFeedback } from "@/lib/feedback.functions";
-import { useAuth } from "@/hooks/useAuth";
 
 export const FEELING_OPTIONS = ["Excellent", "Good", "Normal", "Tired", "Exhausted"];
 export const ENJOY_OPTIONS = ["Yes", "Neutral", "No"];
@@ -32,7 +31,6 @@ export function SessionDebriefDialog({
   onSaved?: (feedback: SessionFeedback) => void;
 }) {
   const save = useServerFn(saveSessionFeedback);
-  const { user } = useAuth();
   const [step, setStep] = useState(0);
   const [rpe, setRpe] = useState<number | null>(null);
   const [feeling, setFeeling] = useState<string | null>(null);
