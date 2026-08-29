@@ -24,6 +24,7 @@ import {
   activationOverflowViolation,
   cooldownOverflowViolation,
   sessionOverflowViolation,
+  sessionBudgetViolation,
 } from "./doctrine";
 
 import {
@@ -241,11 +242,12 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
     opts.targetMinutes,
   );
   if (cooldownOverflow) errors.push(cooldownOverflow);
-  const sessionOverflow = sessionOverflowViolation(
-    estimateSessionMinutes(html),
-    opts.targetMinutes,
-  );
+  const sessionMinutes = estimateSessionMinutes(html);
+  const sessionOverflow = sessionOverflowViolation(sessionMinutes, opts.targetMinutes);
   if (sessionOverflow) errors.push(sessionOverflow);
+  const budget = sessionBudgetViolation(sessionMinutes, workMinutes, opts.targetMinutes);
+  if (budget) errors.push(budget);
+
 
 
 

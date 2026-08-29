@@ -299,7 +299,7 @@ export const ACTIVATION_OK_RE =
 
 /** Never movement prep — load, impact, skill or maximal strength. */
 export const PREP_BAN_RE =
-  /\b(barbell|dumbbell|kettlebell|machine|cable|smith|ez[\s-]?bar|olympic|sled|weighted|leverage|trap bar|hammer|deadlift|bench press|back squat|front squat|overhead press|push press|clean|snatch|jerk|thruster|push-?up|pushup|pull-?up|chin-?up|muscle-?up|burpee|box jump|jump|jumping|sprint|dip|plyo|planche|lever|flag|handstand|sit-?up|crunch)\b/i;
+  /\b(barbell|dumbbell|kettlebell|machine|cable|smith|ez[\s-]?bar|olympic|sled|weighted|leverage|trap bar|hammer|deadlift|bench press|back squat|front squat|overhead press|push press|clean|snatch|jerk|thruster|push-?up|pushup|pull-?up|chin-?up|muscle-?up|burpee|box jump|jump|jumping|sprint|dip|plyo|planche|nordic|pistol|archer|one-?arm|one arm|single-?arm|single arm|lever|flag|handstand|hand stand|sit-?up|crunch)\b/i;
 
 /** Static flexibility and breathing vocabulary for the Cool Down. */
 export const COOLDOWN_OK_RE =
