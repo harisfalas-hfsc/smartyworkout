@@ -191,7 +191,7 @@ export const HIGH_SKILL_RE =
  * 40s and 50s — familiar, effective, achievable movements only.
  */
 export const IMPRACTICAL_MOVEMENT_RE =
-  /\b(turkish get-?up|get-?up|handstand|hand stand|headstand|forearm stand|pike push-?up|pistol squat|pistol|shrimp squat|sissy squat|planche|front lever|back lever|lever|human flag|iron cross|dragon flag|skin the cat|muscle-?up|nordic|crow pose|frog stand|typewriter|aztec|clapping push-?up|superman push-?up|hollow back|windmill|bent press|jefferson|zercher|overhead squat|snatch|jerk|power clean|hang clean|squat clean|split clean|clean and press|clean and jerk|kipping|butterfly pull-?up|behind[- ]the[- ]neck|good morning)\b/i;
+  /\b(turkish get-?up|get-?up|handstand|hand stand|headstand|forearm stand|pike push-?up|pistol squat|pistol|shrimp squat|sissy squat|planche|front lever|back lever|human flag|iron cross|dragon flag|skin the cat|muscle-?up|nordic|crow pose|frog stand|typewriter|aztec|clapping push-?up|superman push-?up|hollow back|windmill|bent press|jefferson|zercher|overhead squat|snatch|jerk|power clean|hang clean|squat clean|split clean|clean and press|clean and jerk|kipping|butterfly pull-?up|behind[- ]the[- ]neck|good morning)\b/i;
 
 /**
  * Global legality: an exercise that a real coach would not hand to a normal
