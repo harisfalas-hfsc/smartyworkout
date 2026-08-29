@@ -194,6 +194,30 @@ function Auth() {
   }
 
 
+  /** Passwordless fallback: some browsers autofill a saved password from the
+   *  hosting domain (e.g. the editor), which the backend rejects as wrong. */
+  async function sendMagicLink() {
+    if (!email) {
+      setAuthError("Enter your email first, then tap the sign-in link button.");
+      return;
+    }
+    setAuthError("");
+    setAuthNotice("");
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email.trim().toLowerCase(),
+        options: { emailRedirectTo: window.location.origin, shouldCreateUser: false },
+      });
+      if (error) throw error;
+      setAuthNotice("Sign-in link sent. Open it from this device (check spam too).");
+    } catch (error) {
+      setAuthError(authMessage(error, "Couldn't send the sign-in link."));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   async function submitForgot(e: FormEvent) {
     e.preventDefault();
     if (!email) return;
@@ -287,7 +311,18 @@ function Auth() {
           >
             {submitting ? "Signing in..." : "Sign in"}
           </Button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={submitting}
+            onClick={sendMagicLink}
+            className="h-11 w-full rounded-2xl border-2 border-primary text-sm font-semibold"
+          >
+            Email me a sign-in link instead
+          </Button>
+          {authNotice && <p className="text-center text-sm font-semibold text-primary">{authNotice}</p>}
           {authError && <p className="text-center text-sm font-semibold text-destructive">{authError}</p>}
+
           <p className="mt-1 text-center text-sm text-muted-foreground">
             New here?{" "}
             <button type="button" onClick={() => { setAuthError(""); setAuthNotice(""); setMode("signup"); }} className="bg-transparent p-0 font-bold text-primary">
