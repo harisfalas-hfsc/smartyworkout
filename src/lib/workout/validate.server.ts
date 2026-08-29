@@ -5,7 +5,12 @@
 import { matchesSelectedEquipment, nameStem, type PoolExercise } from "./pool.server";
 import { findTokens, isLibraryId, stripHtml } from "./tokens";
 import { parseWorkoutSteps } from "./parse-steps";
-import { estimateSessionMinutes, estimateWorkMinutes } from "./enforce.server";
+import {
+  estimateActivationMinutes,
+  estimateCooldownMinutes,
+  estimateSessionMinutes,
+  estimateWorkMinutes,
+} from "./enforce.server";
 import {
   activationRelevanceViolation,
   categoryAllowsFinisher,
@@ -16,6 +21,8 @@ import {
   equipmentFamilyViolation,
   focusViolation,
   microExerciseViolation,
+  activationOverflowViolation,
+  cooldownOverflowViolation,
   sessionOverflowViolation,
 } from "./doctrine";
 
@@ -212,8 +219,9 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
     if (fam) errors.push(fam);
   }
 
-  // 7. Duration integrity — short sessions warn, material overflow is fatal,
-  //    and the COMPLETE session (warm-up → cool down) must fit the request.
+  // 7. Duration integrity — the advertised duration is TRAINING time
+  //    (Main + Finisher). Activation and cool down are bounded allowances on
+  //    top of it, and the whole session keeps a generous sanity ceiling.
   const workMinutes = estimateWorkMinutes(html);
   const floor = minimumWorkMinutes(opts.level, opts.category, opts.format);
   if (opts.targetMinutes >= floor && workMinutes + 8 < opts.targetMinutes) {
@@ -223,6 +231,16 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
   }
   const overflow = durationOverflowViolation(workMinutes, opts.targetMinutes);
   if (overflow) errors.push(overflow);
+  const activationOverflow = activationOverflowViolation(
+    estimateActivationMinutes(html),
+    opts.targetMinutes,
+  );
+  if (activationOverflow) errors.push(activationOverflow);
+  const cooldownOverflow = cooldownOverflowViolation(
+    estimateCooldownMinutes(html),
+    opts.targetMinutes,
+  );
+  if (cooldownOverflow) errors.push(cooldownOverflow);
   const sessionOverflow = sessionOverflowViolation(
     estimateSessionMinutes(html),
     opts.targetMinutes,
