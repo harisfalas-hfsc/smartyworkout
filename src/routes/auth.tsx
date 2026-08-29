@@ -311,7 +311,18 @@ function Auth() {
           >
             {submitting ? "Signing in..." : "Sign in"}
           </Button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={submitting}
+            onClick={sendMagicLink}
+            className="h-11 w-full rounded-2xl border-2 border-primary text-sm font-semibold"
+          >
+            Email me a sign-in link instead
+          </Button>
+          {authNotice && <p className="text-center text-sm font-semibold text-primary">{authNotice}</p>}
           {authError && <p className="text-center text-sm font-semibold text-destructive">{authError}</p>}
+
           <p className="mt-1 text-center text-sm text-muted-foreground">
             New here?{" "}
             <button type="button" onClick={() => { setAuthError(""); setAuthNotice(""); setMode("signup"); }} className="bg-transparent p-0 font-bold text-primary">
