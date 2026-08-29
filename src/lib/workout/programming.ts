@@ -526,6 +526,36 @@ export function decideLiftingFinisher(input: {
 // Plan builder
 // ---------------------------------------------------------------------------
 
+/**
+ * A blueprint must be physically doable inside the requested duration.
+ * Short sessions (10-15 min) with a heavy dose would otherwise prescribe far
+ * more work than the advertised time, and every generation attempt would be
+ * rejected by the duration gate. Here the main block is trimmed — exercises
+ * first, then sets, then rest — until the honest cost of the work fits the
+ * time available for the main block.
+ */
+function fitMainToBudget(
+  mainCount: [number, number],
+  dose: Dose,
+  budgetMinutes: number,
+): { mainCount: [number, number]; dose: Dose } {
+  let count: [number, number] = [mainCount[0], mainCount[1]];
+  let d: Dose = { ...dose, sets: [dose.sets[0], dose.sets[1]], restSec: [dose.restSec[0], dose.restSec[1]] };
+
+  while (estimateBlockMinutes(count[0], d) > budgetMinutes && count[0] > 2) {
+    count = [count[0] - 1, Math.max(count[0] - 1, count[1] - 1)];
+  }
+  while (estimateBlockMinutes(count[0], d) > budgetMinutes && d.sets[0] > 2) {
+    const lo = d.sets[0] - 1;
+    d = { ...d, sets: [lo, Math.max(lo, d.sets[1] - 1)] };
+  }
+  while (estimateBlockMinutes(count[0], d) > budgetMinutes && d.restSec[0] > 60) {
+    const lo = Math.max(60, d.restSec[0] - 30);
+    d = { ...d, restSec: [lo, Math.max(lo, d.restSec[1] - 30)] };
+  }
+  return { mainCount: count, dose: d };
+}
+
 export function buildSessionPlan(input: {
   category: Category;
   format: Format;
@@ -537,8 +567,18 @@ export function buildSessionPlan(input: {
   focus?: StrengthFocus | null;
   equipmentCount: number;
 }): SessionPlan {
-  const shape = fitShapeToBudget(durationShape(input.minutes, input.category), input);
-  const { main, finisher } = doseFor(input.category, input.level);
+  const rawShape = durationShape(input.minutes, input.category);
+  const raw = doseFor(input.category, input.level);
+  const finisher = raw.finisher;
+  // Time actually available for the main block once activation and cool down
+  // are accounted for — a short session cannot spend its whole clock lifting.
+  const prepMinutes =
+    (rawShape.activationCount > 0 ? 3 : 0) + (rawShape.cooldownCount > 0 ? 3 : 0);
+  const mainBudget = Math.max(4, input.minutes - prepMinutes);
+  const fitted = fitMainToBudget(rawShape.mainCount, raw.main, mainBudget);
+  const shape: Shape = { ...rawShape, mainCount: fitted.mainCount };
+  const main = fitted.dose;
+
 
   // HARD RULE: Strength, Muscle Building, Pilates and Mobility & Stability are
   // always REPS & SETS — no dynamic conditioning format is ever legal there.
