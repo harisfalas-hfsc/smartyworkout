@@ -7,7 +7,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { TRAINING_TOPICS } from "@/lib/seo/training-topics";
+import { TRAINING_CATEGORIES } from "@/lib/training-categories";
 
 const URL = "https://smartyworkout.com/glossary";
 const TITLE = "Training Glossary — 25+ terms defined | SmartyWorkout";
@@ -162,31 +162,33 @@ function GlossaryPage() {
         subtitle="Every metric, training pattern and concept SmartyWorkout uses, defined in plain language."
       />
 
-      <section aria-labelledby="training-topics" className="mt-8">
-        <h2 id="training-topics" className="text-xs font-semibold uppercase tracking-wider text-primary">
-          Training topics
+      <section aria-labelledby="training-categories" className="mt-8">
+        <h2 id="training-categories" className="text-xs font-semibold uppercase tracking-wider text-primary">
+          Smarty Workout Training Categories
         </h2>
         <Accordion type="single" collapsible className="mt-3 rounded-2xl border-2 border-primary px-4">
-          {TRAINING_TOPICS.map((topic) => (
-            <AccordionItem key={topic.slug} value={topic.slug}>
-              <AccordionTrigger className="text-left text-sm font-bold">{topic.h1}</AccordionTrigger>
+          {TRAINING_CATEGORIES.map((cat) => (
+            <AccordionItem key={cat.id} value={cat.id}>
+              <AccordionTrigger className="text-left text-sm font-bold">{cat.name}</AccordionTrigger>
               <AccordionContent>
-                <p className="text-muted-foreground">{topic.metaDescription}</p>
-                <Link
-                  to="/training/$slug"
-                  params={{ slug: topic.slug }}
-                  className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
-                >
-                  Read more
-                  <ArrowRight className="h-4 w-4 shrink-0" />
-                </Link>
+                <p className="text-muted-foreground">{cat.brief}</p>
+                {cat.topicSlug && (
+                  <Link
+                    to="/training/$slug"
+                    params={{ slug: cat.topicSlug }}
+                    className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+                  >
+                    Read more
+                    <ArrowRight className="h-4 w-4 shrink-0" />
+                  </Link>
+                )}
               </AccordionContent>
             </AccordionItem>
           ))}
         </Accordion>
         <p className="mt-3 text-[13px] text-muted-foreground">
           <Link to="/training" className="font-semibold text-primary hover:underline">
-            See every training topic
+            Explore the training hub
           </Link>
         </p>
       </section>
