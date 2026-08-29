@@ -599,15 +599,18 @@ FINAL TEST before you output: would you genuinely give this workout to that clie
 
 /** Prompt text so the model sees the same doctrine the validator enforces. */
 export function doctrinePrompt(category: Category, format: Format): string {
+  if (category === "MICRO-WORKOUTS")
+    return `HARD DOCTRINE: Micro Workouts are equipment-free and REPS & SETS only — never Circuit, AMRAP, EMOM, Tabata or For Time, whatever the athlete's level. Bodyweight plus everyday environment only (floor, wall, chair, desk, table, sofa, bed, stairs, a small space). No dumbbells, kettlebells, barbells, bands, TRX, machines, cables, medicine or slam balls, benches or any other gym equipment. No finisher, no separate soft tissue, activation or cool down.`;
+
+  if (category === "RECOVERY")
+    return `HARD DOCTRINE: RECOVERY is controlled recovery work written as MIX — and MIX here means ONLY gentle recovery modalities: breathing, gentle mobility and CARs, controlled low-effort movement, light stretching and relaxation. MIX never means a strength portion plus a metabolic portion in this category. FORBIDDEN: strength training, conditioning, HIIT, metabolic work, fatigue-based training, loaded implements (barbell, kettlebell, machine, cable, sled), jumping, sprinting, swings, push-ups, pull-ups, crunches and any finisher.`;
 
   if (isRepsAndSetsOnly(category))
     return `HARD DOCTRINE: ${category} is REPS & SETS only. Never AMRAP, EMOM, Tabata, For Time, circuit or chipper anywhere in the session.${
       categoryAllowsFinisher(category) ? "" : " This category carries NO finisher of any kind."
     }`;
   if (isDynamicFormat(format))
-    return `HARD DOCTRINE: ${format} in ${category} is a continuous time/repetition format. Every movement must start immediately and repeat safely. FORBIDDEN: barbell work of any kind, bench press, back/front squat, barbell deadlift, cleans, snatches, jerks, rack- or spotter-dependent movements, Smith machine, cables, selectorized strength machines, and every high-skill or single-limb movement (handstand of any kind, pistol squat, archer push-up/row, planche, muscle-up, nordic curl, one-arm pressing or pulling). ALLOWED: bodyweight, dumbbells, kettlebells, medicine/slam balls, TRX, bands, portable boxes, carries, jump rope, sled push/pull and genuine cardio ergometers (bike, rower, SkiErg). Keep equipment families to a minimum so the athlete never assembles or adjusts equipment mid-workout.`;
+    return `HARD DOCTRINE: ${format} in ${category} is a continuous time/repetition format. Every movement must start immediately and repeat safely. FORBIDDEN: barbell work of any kind (including barbell complexes), bench press, back/front squat, barbell deadlift, cleans, snatches, jerks, rack- or spotter-dependent movements, Smith machine, cables, selectorized strength machines, and every high-skill or single-limb movement (handstand of any kind, pistol squat, archer push-up/row, planche, muscle-up, nordic curl, one-arm pressing or pulling). ALLOWED: bodyweight, dumbbells, kettlebells, medicine/slam balls, TRX, bands, portable boxes, carries, jump rope, sled push/pull and genuine cardio ergometers (bike, rower, SkiErg). Keep equipment families to a minimum so the athlete never assembles or adjusts equipment mid-workout.`;
 
-  if (category === "MICRO-WORKOUTS")
-    return `HARD DOCTRINE: Micro Workouts are equipment-free. Bodyweight plus everyday environment only (floor, wall, chair, desk, sofa). No finisher, no separate soft tissue, activation or cool down.`;
   return "";
 }
