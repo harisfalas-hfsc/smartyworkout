@@ -114,9 +114,10 @@ describe("micro workout and pilates blueprints", () => {
 });
 
 describe("difficulty, micro scaling, cardio and transition cost", () => {
-  it("micro is always 10 minutes; no activation, cooldown or finisher", () => {
+  it("micro is a 10-20 minute movement break; no activation, cooldown or finisher", () => {
     expect(microMinutes(3)).toBe(10);
-    expect(microMinutes(20)).toBe(10);
+    expect(microMinutes(20)).toBe(20);
+    expect(microMinutes(45)).toBe(20);
     const plan = buildSessionPlan({
       category: "MICRO-WORKOUTS", format: "REPS & SETS", level: "beginner", stars: 1,
       minutes: 3, equipmentCount: 1,
@@ -181,5 +182,45 @@ describe("difficulty, micro scaling, cardio and transition cost", () => {
       [ex("Dumbbell Press", "dumbbell"), ex("Floor Plank", "body weight"), ex("Barbell Squat", "barbell")],
       "REPS & SETS");
     expect(grouped).toBeLessThan(scattered);
+  });
+});
+
+
+describe("final correction pass — duration, micro, advanced, cardio", () => {
+  it("TEST 1 — a 30-min Strength session may hold only 2-3 quality lifts and still fit", () => {
+    const plan = buildSessionPlan({
+      category: "STRENGTH", format: "REPS & SETS", level: "advanced",
+      stars: 3, minutes: 30, equipmentCount: 2,
+    });
+    expect(plan.mainCount[0]).toBeGreaterThanOrEqual(2);
+    expect(plan.mainCount[0]).toBeLessThanOrEqual(3);
+    // Heavy strength keeps physiologically honest rest.
+    expect(plan.main.restSec[0]).toBeGreaterThanOrEqual(90);
+    // The estimate is honest, never manipulated to appear to fit.
+    expect(plan.mainMinutesEstimate).toBe(estimateBlockMinutes(plan.mainCount[0], plan.main));
+    expect(plan.mainMinutesEstimate + plan.finisherMinutes).toBeLessThanOrEqual(31);
+  });
+
+  it("TEST 2 — a 20-min Micro Workout stays a low-dose movement break", () => {
+    const plan = buildSessionPlan({
+      category: "MICRO-WORKOUTS", format: "REPS & SETS", level: "advanced",
+      stars: 3, minutes: microMinutes(20), equipmentCount: 1,
+    });
+    expect(plan.format).toBe("REPS & SETS");
+    expect(plan.activationCount).toBe(0);
+    expect(plan.cooldownCount).toBe(0);
+    expect(plan.finisher).toBeNull();
+    expect(plan.main.sets[1]).toBeLessThanOrEqual(3);
+    expect(plan.main.restSec[1]).toBeLessThanOrEqual(40);
+    expect(plan.main.tempo).not.toMatch(/leverage/i);
+  });
+
+  it("TEST 3 — advanced means demand, never technical complexity", () => {
+    const plan = buildSessionPlan({
+      category: "METABOLIC", format: "AMRAP", level: "advanced",
+      stars: 3, minutes: 30, equipmentCount: 2,
+    });
+    expect(plan.intensityDirective).toMatch(/never means gymnastics/i);
+    expect(plan.intensityDirective).not.toMatch(/leverage/i);
   });
 });
