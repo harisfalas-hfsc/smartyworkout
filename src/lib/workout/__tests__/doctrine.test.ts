@@ -8,6 +8,7 @@ import {
   categoryFormatViolation,
   equipmentFamilyViolation,
   sessionOverflowViolation,
+  sessionBudgetViolation,
 
   durationOverflowViolation,
   dynamicExerciseViolation,
