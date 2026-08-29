@@ -174,21 +174,34 @@ const MACHINE_STRENGTH_RE =
   /\b(leverage|smith|selectorized|pec deck|lat pulldown|leg press|leg extension|leg curl|machine (chest|shoulder|row|press)|cable)\b/i;
 
 /**
- * Rule 11 + 12 + 13. In a dynamic category running a dynamic format, an
- * exercise must start immediately and repeat safely. Barbells, racks, benches,
- * cables, selectorized machines, spotters and technical Olympic lifts destroy
- * the flow and are rejected — regardless of what the athlete's equipment list
- * allows. Genuine cardio ergometers stay legal (rule 8 / 24J).
+ * High-skill gymnastic and single-limb movements. Nobody hits a handstand
+ * push-up or a pistol squat under a running clock in a conditioning session —
+ * these are skill work, never calorie-burning vocabulary.
+ */
+export const HIGH_SKILL_RE =
+  /\b(handstand|hand stand|pistol|shrimp squat|archer|planche|front lever|back lever|human flag|muscle-?up|nordic|one-?arm|one arm|single-?arm|single arm|one-?legged squat|iron cross)\b/i;
+
+/**
+ * The clock-driven contract. Whenever the FORMAT is AMRAP, EMOM, CIRCUIT,
+ * TABATA or FOR TIME — whatever the category — every movement must start
+ * immediately and repeat safely. Machines, racks, benches, cables, spotter- or
+ * setup-dependent lifts and high-skill gymnastic / single-limb movements are
+ * rejected regardless of the athlete's equipment list. Genuine cardio
+ * ergometers stay legal. REPS & SETS is untouched: full gym access, machines
+ * included, exactly as a trainer would program it.
  */
 export function dynamicExerciseViolation(
   e: ExerciseLike,
   category: Category,
   format: Format,
 ): string | null {
-  if (!isDynamicCategory(category) || !isDynamicFormat(format)) return null;
+  if (!isDynamicFormat(format)) return null;
   const equipment = (e.equipment ?? "").toLowerCase();
   const name = e.name.toLowerCase();
   const both = `${name} ${equipment}`;
+
+  if (HIGH_SKILL_RE.test(name))
+    return `"${e.name}" is a high-skill or single-limb movement and is never programmed inside a ${format} session.`;
 
   const isErgo = ERGOMETER_RE.test(both) && !MACHINE_STRENGTH_RE.test(name);
   if (isErgo) return null;
@@ -201,6 +214,7 @@ export function dynamicExerciseViolation(
     return `"${e.name}" is machine strength work, which is not legal in a ${format} ${category} session.`;
   return null;
 }
+
 
 // --- 15. Micro Workout ------------------------------------------------------
 
