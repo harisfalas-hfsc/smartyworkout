@@ -8,6 +8,7 @@ import {
   categoryFormatViolation,
   equipmentFamilyViolation,
   sessionOverflowViolation,
+  sessionBudgetViolation,
 
   durationOverflowViolation,
   dynamicExerciseViolation,
@@ -28,12 +29,21 @@ const ex = (over: Partial<Record<string, string>> = {}) => ({
 
 describe("category / format legality", () => {
   it("locks quality categories to reps & sets", () => {
-    for (const c of ["STRENGTH", "MUSCLE BUILDING", "PILATES", "MOBILITY & STABILITY"] as const) {
+    for (const c of ["STRENGTH", "MUSCLE BUILDING", "PILATES"] as const) {
       expect(isRepsAndSetsOnly(c)).toBe(true);
       expect(categoryFormatViolation(c, "AMRAP")).toBeTruthy();
       expect(categoryFormatViolation(c, "REPS & SETS")).toBeNull();
     }
+    // Mobility & Stability: Reps & Sets or Mix only — never a clock format.
+    expect(categoryFormatViolation("MOBILITY & STABILITY", "REPS & SETS")).toBeNull();
+    expect(categoryFormatViolation("MOBILITY & STABILITY", "MIX")).toBeNull();
+    for (const f of ["AMRAP", "EMOM", "CIRCUIT", "TABATA", "FOR TIME"] as const)
+      expect(categoryFormatViolation("MOBILITY & STABILITY", f)).toBeTruthy();
+    // Recovery: MIX only.
+    expect(categoryFormatViolation("RECOVERY", "MIX")).toBeNull();
+    expect(categoryFormatViolation("RECOVERY", "REPS & SETS")).toBeTruthy();
   });
+
 
   it("never gives a finisher to recovery, pilates, mobility or micro", () => {
     for (const c of ["RECOVERY", "PILATES", "MOBILITY & STABILITY", "MICRO-WORKOUTS"] as const) {
@@ -115,9 +125,10 @@ describe("category format lock (§4)", () => {
     expect(categoryFormatViolation("STRENGTH", "EMOM")).toBeTruthy();
     expect(categoryFormatViolation("PILATES", "AMRAP")).toBeTruthy();
     expect(categoryFormatViolation("MUSCLE BUILDING", "TABATA")).toBeTruthy();
-    expect(categoryFormatViolation("MICRO-WORKOUTS", "CIRCUIT")).toBeTruthy();
+    expect(categoryFormatViolation("MICRO-WORKOUTS", "CIRCUIT")).toBeNull();
     expect(categoryFormatViolation("MICRO-WORKOUTS", "REPS & SETS")).toBeNull();
     expect(categoryFormatViolation("METABOLIC", "AMRAP")).toBeNull();
+
   });
 });
 
@@ -225,5 +236,63 @@ describe("§33 required scenarios", () => {
     expect(activationOverflowViolation(15, 30)).toBeTruthy();
     expect(cooldownOverflowViolation(5, 30)).toBeNull();
     expect(cooldownOverflowViolation(12, 30)).toBeTruthy();
+  });
+});
+
+describe("clock-driven format contract", () => {
+  const ex = (name: string, equipment: string | null = "body weight") => ({ name, equipment });
+  const CLOCK = ["AMRAP", "EMOM", "CIRCUIT", "TABATA", "FOR TIME"] as const;
+
+  it("rejects high-skill and single-limb movements in every clock format", () => {
+    for (const f of CLOCK) {
+      for (const n of [
+        "Handstand Push-Up",
+        "Pistol Squat",
+        "Archer Push-Up",
+        "Planche Hold",
+        "Muscle-Up",
+        "Nordic Hamstring Curl",
+        "One-Arm Dumbbell Press",
+      ]) {
+        expect(dynamicExerciseViolation(ex(n), "CALORIE BURNING", f)).toBeTruthy();
+      }
+    }
+  });
+
+  it("rejects machines, racks and benches in a clock format for any category", () => {
+    expect(dynamicExerciseViolation(ex("Barbell Bench Press", "barbell"), "CHALLENGE", "EMOM")).toBeTruthy();
+    expect(dynamicExerciseViolation(ex("Leg Press", "leverage machine"), "METABOLIC", "CIRCUIT")).toBeTruthy();
+    expect(dynamicExerciseViolation(ex("Lat Pulldown", "cable"), "MICRO-WORKOUTS", "TABATA")).toBeTruthy();
+  });
+
+  it("keeps portable conditioning vocabulary legal", () => {
+    for (const [n, eq] of [
+      ["Kettlebell Swing", "kettlebell"],
+      ["Dumbbell Thruster", "dumbbell"],
+      ["Box Jump", "body weight"],
+      ["Rowing Machine Interval", "rower"],
+    ] as const) {
+      expect(dynamicExerciseViolation(ex(n, eq), "CARDIO", "AMRAP")).toBeNull();
+    }
+  });
+
+  it("never restricts equipment in a Reps & Sets session", () => {
+    for (const c of ["STRENGTH", "MUSCLE BUILDING"] as const) {
+      for (const [n, eq] of [
+        ["Barbell Bench Press", "barbell"],
+        ["Leg Press", "leverage machine"],
+        ["Lat Pulldown", "cable"],
+        ["Barbell Back Squat", "barbell"],
+      ] as const) {
+        expect(dynamicExerciseViolation(ex(n, eq), c, "REPS & SETS")).toBeNull();
+      }
+    }
+  });
+});
+
+describe("section budgets add up (§19)", () => {
+  it("rejects a session that materially undershoots the requested time", () => {
+    expect(sessionBudgetViolation(20, 12, 40)).toBeTruthy();
+    expect(sessionBudgetViolation(52, 40, 40)).toBeNull();
   });
 });

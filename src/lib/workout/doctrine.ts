@@ -39,11 +39,19 @@ export const DYNAMIC_CATEGORIES: Category[] = [
   "CHALLENGE",
 ];
 
+/**
+ * The five clock-driven formats. The machine / rack / bench / high-skill
+ * restriction is a property of THESE FORMATS, never of a category: a REPS &
+ * SETS session always keeps full gym access, whatever the category.
+ */
 export const DYNAMIC_FORMATS: Format[] = ["TABATA", "CIRCUIT", "AMRAP", "EMOM", "FOR TIME"];
 
 export function isDynamicFormat(format: Format): boolean {
   return DYNAMIC_FORMATS.includes(format);
 }
+
+/** Alias — clock-driven == the five conditioning formats. */
+export const isClockFormat = isDynamicFormat;
 
 export function isDynamicCategory(category: Category): boolean {
   return DYNAMIC_CATEGORIES.includes(category);
@@ -51,8 +59,9 @@ export function isDynamicCategory(category: Category): boolean {
 
 /** Categories locked to REPS & SETS by doctrine. */
 export function isRepsAndSetsOnly(category: Category): boolean {
-  return QUALITY_CATEGORIES.includes(category);
+  return category === "STRENGTH" || category === "MUSCLE BUILDING" || category === "PILATES";
 }
+
 
 /** Pilates, Mobility & Stability, Recovery and Micro Workouts never carry a Finisher. */
 export function categoryAllowsFinisher(category: Category): boolean {
@@ -74,9 +83,10 @@ export const LEGAL_FORMATS: Record<Category, Format[]> = {
   STRENGTH: ["REPS & SETS"],
   "MUSCLE BUILDING": ["REPS & SETS"],
   PILATES: ["REPS & SETS"],
-  "MOBILITY & STABILITY": ["REPS & SETS"],
+  "MOBILITY & STABILITY": ["REPS & SETS", "MIX"],
   RECOVERY: ["MIX"],
-  "MICRO-WORKOUTS": ["REPS & SETS"],
+  "MICRO-WORKOUTS": ["REPS & SETS", "CIRCUIT", "AMRAP", "EMOM", "TABATA", "FOR TIME"],
+
   CARDIO: ["CIRCUIT", "EMOM", "FOR TIME", "AMRAP", "TABATA"],
   METABOLIC: ["CIRCUIT", "AMRAP", "EMOM", "FOR TIME", "TABATA"],
   "CALORIE BURNING": ["CIRCUIT", "TABATA", "AMRAP", "FOR TIME", "EMOM"],
@@ -164,21 +174,34 @@ const MACHINE_STRENGTH_RE =
   /\b(leverage|smith|selectorized|pec deck|lat pulldown|leg press|leg extension|leg curl|machine (chest|shoulder|row|press)|cable)\b/i;
 
 /**
- * Rule 11 + 12 + 13. In a dynamic category running a dynamic format, an
- * exercise must start immediately and repeat safely. Barbells, racks, benches,
- * cables, selectorized machines, spotters and technical Olympic lifts destroy
- * the flow and are rejected — regardless of what the athlete's equipment list
- * allows. Genuine cardio ergometers stay legal (rule 8 / 24J).
+ * High-skill gymnastic and single-limb movements. Nobody hits a handstand
+ * push-up or a pistol squat under a running clock in a conditioning session —
+ * these are skill work, never calorie-burning vocabulary.
+ */
+export const HIGH_SKILL_RE =
+  /\b(handstand|hand stand|pistol|shrimp squat|archer|planche|front lever|back lever|human flag|muscle-?up|nordic|one-?arm|one arm|single-?arm|single arm|one-?legged squat|iron cross)\b/i;
+
+/**
+ * The clock-driven contract. Whenever the FORMAT is AMRAP, EMOM, CIRCUIT,
+ * TABATA or FOR TIME — whatever the category — every movement must start
+ * immediately and repeat safely. Machines, racks, benches, cables, spotter- or
+ * setup-dependent lifts and high-skill gymnastic / single-limb movements are
+ * rejected regardless of the athlete's equipment list. Genuine cardio
+ * ergometers stay legal. REPS & SETS is untouched: full gym access, machines
+ * included, exactly as a trainer would program it.
  */
 export function dynamicExerciseViolation(
   e: ExerciseLike,
   category: Category,
   format: Format,
 ): string | null {
-  if (!isDynamicCategory(category) || !isDynamicFormat(format)) return null;
+  if (!isDynamicFormat(format)) return null;
   const equipment = (e.equipment ?? "").toLowerCase();
   const name = e.name.toLowerCase();
   const both = `${name} ${equipment}`;
+
+  if (HIGH_SKILL_RE.test(name))
+    return `"${e.name}" is a high-skill or single-limb movement and is never programmed inside a ${format} session.`;
 
   const isErgo = ERGOMETER_RE.test(both) && !MACHINE_STRENGTH_RE.test(name);
   if (isErgo) return null;
@@ -191,6 +214,7 @@ export function dynamicExerciseViolation(
     return `"${e.name}" is machine strength work, which is not legal in a ${format} ${category} session.`;
   return null;
 }
+
 
 // --- 15. Micro Workout ------------------------------------------------------
 
@@ -363,7 +387,7 @@ export function equipmentFamilyOf(equipment: string | null | undefined): string 
  * for a conditioning format, three for anything else.
  */
 export function equipmentFamilyLimit(category: Category, format: Format): number {
-  if (isDynamicCategory(category) && isDynamicFormat(format)) return 2;
+  if (isDynamicFormat(format)) return 2;
   if (category === "MICRO-WORKOUTS") return 0;
   return 3;
 }
@@ -452,6 +476,28 @@ export function sessionOverflowViolation(
   return null;
 }
 
+/**
+ * §19 — the section budgets must actually ADD UP. Soft tissue + activation +
+ * main work + rest + transitions + finisher + cool down are summed and checked
+ * against the requested training time plus its two prep allowances. This is the
+ * shortfall side of the contract (the overflow side is above): a session that
+ * only prescribes half the requested work is rejected, not shipped.
+ */
+export function sessionBudgetViolation(
+  sessionMinutes: number,
+  workMinutes: number,
+  targetMinutes: number,
+): string | null {
+  if (targetMinutes <= 0) return null;
+  if (workMinutes < Math.round(targetMinutes * 0.6))
+    return `The prescribed sections only add up to ~${workMinutes} min of training against a requested ${targetMinutes} min — the session is materially short.`;
+  const floorTotal = Math.round(targetMinutes * 0.7);
+  if (sessionMinutes < floorTotal)
+    return `The complete session (~${sessionMinutes} min across all blocks) falls far short of the requested ${targetMinutes} min.`;
+  return null;
+}
+
+
 
 /** Prompt text so the model sees the same doctrine the validator enforces. */
 export function doctrinePrompt(category: Category, format: Format): string {
@@ -459,8 +505,9 @@ export function doctrinePrompt(category: Category, format: Format): string {
     return `HARD DOCTRINE: ${category} is REPS & SETS only. Never AMRAP, EMOM, Tabata, For Time, circuit or chipper anywhere in the session.${
       categoryAllowsFinisher(category) ? "" : " This category carries NO finisher of any kind."
     }`;
-  if (isDynamicCategory(category) && isDynamicFormat(format))
-    return `HARD DOCTRINE: ${format} in ${category} is a continuous time/repetition format. Every movement must start immediately and repeat safely. FORBIDDEN: barbell work of any kind, bench press, back/front squat, barbell deadlift, cleans, snatches, jerks, rack- or spotter-dependent movements, Smith machine, cables and selectorized strength machines. ALLOWED: bodyweight, dumbbells, kettlebells, medicine/slam balls, TRX, bands, portable boxes, carries, jump rope and genuine cardio ergometers (bike, rower, SkiErg). Keep equipment families to a minimum so the athlete never assembles or adjusts equipment mid-workout.`;
+  if (isDynamicFormat(format))
+    return `HARD DOCTRINE: ${format} in ${category} is a continuous time/repetition format. Every movement must start immediately and repeat safely. FORBIDDEN: barbell work of any kind, bench press, back/front squat, barbell deadlift, cleans, snatches, jerks, rack- or spotter-dependent movements, Smith machine, cables, selectorized strength machines, and every high-skill or single-limb movement (handstand of any kind, pistol squat, archer push-up/row, planche, muscle-up, nordic curl, one-arm pressing or pulling). ALLOWED: bodyweight, dumbbells, kettlebells, medicine/slam balls, TRX, bands, portable boxes, carries, jump rope, sled push/pull and genuine cardio ergometers (bike, rower, SkiErg). Keep equipment families to a minimum so the athlete never assembles or adjusts equipment mid-workout.`;
+
   if (category === "MICRO-WORKOUTS")
     return `HARD DOCTRINE: Micro Workouts are equipment-free. Bodyweight plus everyday environment only (floor, wall, chair, desk, sofa). No finisher, no separate soft tissue, activation or cool down.`;
   return "";
