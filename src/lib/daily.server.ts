@@ -6,7 +6,6 @@ import {
   type WodLevel,
 } from "@/lib/wod-cycle";
 import { motivationFor } from "@/lib/motivation";
-import { createWorkoutForUser } from "@/lib/workout/create.server";
 
 type DB = SupabaseClient;
 
@@ -115,21 +114,31 @@ export async function runWodForUser(
       const known = byVariant.get(variant.key);
       if (known) return { id: known, created: false };
       let built: { id: string; name: string; category: string };
+      const request = {
+        minutes,
+        mood: "normal",
+        location: variant.key === "bodyweight" ? "home" : prof?.preferred_environment ?? "home",
+        equipment: variant.equipment,
+        wod: {
+          category: cycleDay.category,
+          stars,
+          focus: cycleDay.strengthFocus ?? null,
+          date: today,
+          cycleDay: getDayIn84Cycle(today),
+          variant: variant.key,
+        },
+      };
       try {
-        built = await createWorkoutForUser(db as never, userId, {
-          minutes,
-          mood: "normal",
-          location: variant.key === "bodyweight" ? "home" : prof?.preferred_environment ?? "home",
-          equipment: variant.equipment,
-          wod: {
-            category: cycleDay.category,
-            stars,
-            focus: cycleDay.strengthFocus ?? null,
-            date: today,
-            cycleDay: getDayIn84Cycle(today),
-            variant: variant.key,
-          },
-        });
+        const { runTrackedGeneration } = await import("@/lib/workout-generation.server");
+        const result = await runTrackedGeneration({ db: db as never, userId, stage: "wod", request });
+        if (!result.ok) throw new Error("Workout of the Day is queued for automatic recovery.");
+        const { data: workout } = await db
+          .from("workouts")
+          .select("id,name,category")
+          .eq("id", result.workoutId)
+          .single();
+        if (!workout) throw new Error("Workout of the Day was created but could not be loaded.");
+        built = workout as { id: string; name: string; category: string };
       } catch (e) {
         // A parallel request already claimed this variant (unique index) — reuse it.
         const { data: raced } = await db
@@ -142,27 +151,6 @@ export async function runWodForUser(
           .maybeSingle();
         const racedId = (raced as { id: string } | null)?.id;
         if (racedId) return { id: racedId, created: false };
-        // A real Workout of the Day failure — track it so it retries and alerts.
-        const { recordGenerationFailure } = await import("@/lib/workout-generation.server");
-        await recordGenerationFailure({
-          userId,
-          stage: "wod",
-          request: {
-            minutes,
-            mood: "normal",
-            location: variant.key === "bodyweight" ? "home" : prof?.preferred_environment ?? "home",
-            equipment: variant.equipment,
-            wod: {
-              category: cycleDay.category,
-              stars,
-              focus: cycleDay.strengthFocus ?? null,
-              date: today,
-              cycleDay: getDayIn84Cycle(today),
-              variant: variant.key,
-            },
-          },
-          reason: e instanceof Error ? e.message : String(e),
-        }).catch(() => undefined);
         throw e;
       }
       await db.from("notifications").insert({

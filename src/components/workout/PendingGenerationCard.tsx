@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Clock3, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getLatestGeneration } from "@/lib/coach.functions";
+import { getPendingGeneration } from "@/lib/coach.functions";
 
 type GenerationState = {
   id: string;
@@ -15,24 +15,16 @@ type GenerationState = {
 };
 
 export function PendingGenerationCard() {
-  const readLatest = useServerFn(getLatestGeneration);
-  const navigate = useNavigate();
+  const readPending = useServerFn(getPendingGeneration);
   const [generation, setGeneration] = useState<GenerationState | null>(null);
 
   useEffect(() => {
     let active = true;
-    let previousWorkoutId: string | null = null;
-
     const refresh = async () => {
       try {
-        const result = await readLatest();
+        const result = await readPending();
         if (!active) return;
-        const next = result.generation as GenerationState | null;
-        setGeneration(next?.status === "ready" ? null : next);
-        if (next?.status === "ready" && next.workout_id && next.workout_id !== previousWorkoutId) {
-          previousWorkoutId = next.workout_id;
-          void navigate({ to: "/workout/$workoutId", params: { workoutId: next.workout_id } });
-        }
+        setGeneration(result.pending as GenerationState | null);
       } catch {
         // This status is reassuring, not load-bearing; generation keeps running.
       }
@@ -44,7 +36,7 @@ export function PendingGenerationCard() {
       active = false;
       window.clearInterval(timer);
     };
-  }, [navigate, readLatest]);
+  }, [readPending]);
 
   if (!generation || !["building", "failed"].includes(generation.status)) return null;
 

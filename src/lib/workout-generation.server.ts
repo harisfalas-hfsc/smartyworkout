@@ -123,7 +123,7 @@ export async function runTrackedGeneration(opts: {
 
   let requestId = opts.requestId ?? "";
   if (!requestId) {
-    const { data: created } = await svc
+    const { data: created, error: createError } = await svc
       .from("workout_generation_requests")
       .insert({
         user_id: opts.userId,
@@ -135,7 +135,9 @@ export async function runTrackedGeneration(opts: {
       } as never)
       .select("id")
       .maybeSingle();
+    if (createError) throw new Error(`Could not save generation request: ${createError.message}`);
     requestId = (created as { id?: string } | null)?.id ?? "";
+    if (!requestId) throw new Error("Could not save generation request.");
   }
 
   try {
@@ -415,7 +417,7 @@ export async function recordGenerationFailure(opts: {
   refinementText?: string | null;
 }) {
   const svc = await admin();
-  const { data: created } = await svc
+  const { data: created, error: createError } = await svc
     .from("workout_generation_requests")
     .insert({
       user_id: opts.userId,
@@ -426,7 +428,9 @@ export async function recordGenerationFailure(opts: {
     } as never)
     .select("id")
     .maybeSingle();
+  if (createError) throw new Error(`Could not save generation request: ${createError.message}`);
   const requestId = (created as { id?: string } | null)?.id ?? "";
+  if (!requestId) throw new Error("Could not save generation request.");
   await recordFailure(svc, {
     requestId,
     reason: opts.reason,

@@ -39,22 +39,23 @@ export const generateWorkout = createServerFn({ method: "POST" })
   });
 
 /** Any session still being recovered for this member — drives the "we are on it" card. */
-export const getLatestGeneration = createServerFn({ method: "GET" })
+export const getPendingGeneration = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { data } = await context.supabase
       .from("workout_generation_requests")
       .select("id,status,stage,attempt_count,created_at,workout_id")
       .eq("user_id", context.userId)
-      .in("status", ["failed", "building", "ready"])
+      .in("status", ["failed", "building"])
+      .is("workout_id", null)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
     const row = (data ?? null) as
       | { id: string; status: string; stage: string; attempt_count: number; created_at: string }
       | null;
-    if (!row) return { generation: null };
-    return { generation: row };
+    if (!row) return { pending: null };
+    return { pending: row };
   });
 
 export const getExerciseDetails = createServerFn({ method: "POST" })
