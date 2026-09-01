@@ -7,6 +7,7 @@ import {
   adminListGenerationFailures,
   adminMarkGenerationFailureRead,
   adminRunGenerationRecovery,
+  adminRetryGeneration,
   adminSendTestFailureEmail,
   type GenerationFailureRow,
 } from "@/lib/generation-admin.functions";
@@ -35,6 +36,7 @@ export function AdminGenerationFailuresTab() {
   const markRead = useServerFn(adminMarkGenerationFailureRead);
   const runRecovery = useServerFn(adminRunGenerationRecovery);
   const sendTest = useServerFn(adminSendTestFailureEmail);
+  const retryOne = useServerFn(adminRetryGeneration);
 
   const [rows, setRows] = useState<GenerationFailureRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -160,6 +162,23 @@ export function AdminGenerationFailuresTab() {
                   }}
                 >
                   <CheckCheck className="mr-2 h-4 w-4" /> Mark as read
+                </Button>
+              ) : null}
+              {!r.workout_id && r.session_id && (r.attempt_count ?? 0) < 5 ? (
+                <Button
+                  size="sm"
+                  className="mt-3 ml-2 rounded-xl"
+                  disabled={busy}
+                  onClick={async () => {
+                    setBusy(true);
+                    const result = await retryOne({ data: { sessionId: r.session_id as string } });
+                    setBusy(false);
+                    if ("error" in result) toast.error(result.error);
+                    else toast.success(result.recovered ? "Workout delivered." : "Recovery attempt completed.");
+                    void load();
+                  }}
+                >
+                  <RefreshCw className="mr-2 h-4 w-4" /> Retry now
                 </Button>
               ) : null}
             </div>

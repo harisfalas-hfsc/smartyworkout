@@ -141,3 +141,16 @@ export const adminRunGenerationRecovery = createServerFn({ method: "POST" })
       return { error: e instanceof Error ? e.message : "Failed" };
     }
   });
+
+export const adminRetryGeneration = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { sessionId: string }) => data)
+  .handler(async ({ context, data }) => {
+    try {
+      await assertAdmin(context as any);
+      const { retryGenerationById } = await import("@/lib/workout-generation.server");
+      return { ok: true, ...(await retryGenerationById(data.sessionId)) };
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : "Failed" };
+    }
+  });

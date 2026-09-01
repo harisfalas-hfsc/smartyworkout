@@ -330,6 +330,40 @@ export async function retryPendingGenerations(limit = 5, force = false) {
   return { scanned: rows.length, retried, recovered };
 }
 
+/** Retries one specific failed request from the administrator panel. */
+export async function retryGenerationById(requestId: string) {
+  const svc = await admin();
+  const { data } = await svc
+    .from("workout_generation_requests")
+    .select("id,user_id,stage,request,refinement_text,attempt_count,status")
+    .eq("id", requestId)
+    .eq("status", "failed")
+    .lt("attempt_count", MAX_GENERATION_ATTEMPTS)
+    .maybeSingle();
+  const row = (data ?? null) as GenerationRequestRow | null;
+  if (!row) return { retried: 0, recovered: 0 };
+  const { data: claimed } = await svc
+    .from("workout_generation_requests")
+    .update({ status: "building" } as never)
+    .eq("id", row.id)
+    .eq("status", "failed")
+    .select("id")
+    .maybeSingle();
+  if (!claimed) return { retried: 0, recovered: 0 };
+  const request: CoachRequest = row.refinement_text
+    ? { ...(row.request ?? {}), note: row.refinement_text }
+    : (row.request ?? {});
+  const result = await runTrackedGeneration({
+    db: svc,
+    userId: row.user_id,
+    stage: (row.stage as GenerationStage) ?? "initial",
+    request,
+    refinementText: row.refinement_text,
+    requestId: row.id,
+  });
+  return { retried: 1, recovered: result.ok ? 1 : 0 };
+}
+
 /** Daily sweep — re-alerts (URGENT) any member still stuck with no workout. */
 export async function sweepAbandonedGenerations(limit = 25) {
   const svc = await admin();
