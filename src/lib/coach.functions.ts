@@ -4,9 +4,13 @@ import type { CoachRequest } from "@/lib/workout/create.server";
 
 export type { CoachRequest };
 
+/** The only failure wording an athlete ever sees. */
+const GENERIC_APOLOGY =
+  "We hit a temporary snag building your workout. Your answers are safe, we are already on it, and it will arrive shortly — nothing for you to do.";
+
 export const generateWorkout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: CoachRequest) => input)
+  .inputValidator((input: CoachRequest & { refinementText?: string }) => input)
   .handler(async ({ data, context }) => {
     const { withProblemReport } = await import("@/lib/errors/report.server");
     return withProblemReport(
@@ -16,11 +20,42 @@ export const generateWorkout = createServerFn({ method: "POST" })
         await requireWorkoutAccess(context.supabase as never, context.userId, {
           countsAgainstDailyQuota: true,
         });
-        const { createWorkoutForUser } = await import("@/lib/workout/create.server");
-        const built = await createWorkoutForUser(context.supabase as never, context.userId, data);
-        return { id: built.id };
+        const { runTrackedGeneration } = await import("@/lib/workout-generation.server");
+        const { refinementText, ...request } = data;
+        const res = await runTrackedGeneration({
+          db: context.supabase as never,
+          userId: context.userId,
+          stage: refinementText ? "refinement" : "initial",
+          request,
+          refinementText: refinementText ?? null,
+        });
+        if (!res.ok) {
+          // Never expose the internal cause — the retry cron takes it from here.
+          throw new Error(GENERIC_APOLOGY);
+        }
+        return { id: res.workoutId, notes: res.notes, requestId: res.requestId };
       },
     );
+  });
+
+/** Any session still being recovered for this member — drives the "we are on it" card. */
+export const getPendingGeneration = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data } = await context.supabase
+      .from("workout_generation_requests")
+      .select("id,status,stage,attempt_count,created_at,workout_id")
+      .eq("user_id", context.userId)
+      .in("status", ["failed", "building"])
+      .is("workout_id", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const row = (data ?? null) as
+      | { id: string; status: string; stage: string; attempt_count: number; created_at: string }
+      | null;
+    if (!row) return { pending: null };
+    return { pending: row };
   });
 
 export const getExerciseDetails = createServerFn({ method: "POST" })
