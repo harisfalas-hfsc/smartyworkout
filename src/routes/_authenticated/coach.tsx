@@ -241,9 +241,15 @@ function CoachPage() {
     localStorage.setItem("smarty:generating", "1");
     try {
       const res = await run({ data: request });
+      if (res.notes?.length) toast.info(res.notes[0]);
       navigate({ to: "/workout/$workoutId", params: { workoutId: res.id } });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Smarty Coach could not build that workout.");
+      // Never expose the internal cause — the recovery system delivers it.
+      toast.error(
+        e instanceof Error && /snag/i.test(e.message)
+          ? e.message
+          : "We hit a temporary snag building your workout. Your answers are safe, we are already on it, and it will arrive shortly.",
+      );
     } finally {
       localStorage.removeItem("smarty:generating");
       setBusy(false);
