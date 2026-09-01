@@ -592,10 +592,10 @@ export function sessionOverflowViolation(
   targetMinutes: number,
 ): string | null {
   const ceiling =
-    Math.round(targetMinutes * 1.2) +
+    Math.round(targetMinutes * 1.05) +
     activationAllowanceMinutes(targetMinutes) +
     cooldownAllowanceMinutes(targetMinutes) +
-    5;
+    2;
   if (sessionMinutes > ceiling)
     return `The complete session (~${sessionMinutes} min including activation, main work, rest, finisher and cool down) is far beyond the requested ${targetMinutes} min of training.`;
   return null;
