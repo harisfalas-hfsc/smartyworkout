@@ -134,7 +134,7 @@ export const adminRunGenerationRecovery = createServerFn({ method: "POST" })
       const { retryPendingGenerations, sweepAbandonedGenerations } = await import(
         "@/lib/workout-generation.server"
       );
-      const retried = await retryPendingGenerations(10);
+      const retried = await retryPendingGenerations(10, true);
       const swept = await sweepAbandonedGenerations(25);
       return { ok: true, ...retried, ...swept };
     } catch (e) {

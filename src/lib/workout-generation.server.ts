@@ -285,17 +285,19 @@ async function recordFailure(
 // ---------------------------------------------------------------------------
 
 /** Retries every failed session that is due. Bounded per run, single-flight per row. */
-export async function retryPendingGenerations(limit = 5) {
+export async function retryPendingGenerations(limit = 5, force = false) {
   const svc = await admin();
-  const { data } = await svc
+  let query = svc
     .from("workout_generation_requests")
     .select("id,user_id,stage,request,refinement_text,attempt_count")
     .eq("status", "failed")
-    .lt("attempt_count", MAX_GENERATION_ATTEMPTS)
-    .not("next_retry_at", "is", null)
-    .lte("next_retry_at", new Date().toISOString())
-    .order("next_retry_at", { ascending: true })
-    .limit(limit);
+    .lt("attempt_count", MAX_GENERATION_ATTEMPTS);
+  if (!force) {
+    query = query
+      .not("next_retry_at", "is", null)
+      .lte("next_retry_at", new Date().toISOString());
+  }
+  const { data } = await query.order("created_at", { ascending: true }).limit(limit);
   const rows = (data ?? []) as GenerationRequestRow[];
 
   let retried = 0;
