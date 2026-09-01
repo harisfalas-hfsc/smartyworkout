@@ -466,10 +466,55 @@ export function dominantRegion(main: ExerciseLike[]): BodyRegion {
   return top;
 }
 
+/** Movement pattern of an exercise, used to check activation specificity. */
+export type MovementPattern = "push" | "pull" | "squat" | "hinge" | "core" | "other";
+
+export function patternOf(e: ExerciseLike): MovementPattern {
+  const n = e.name.toLowerCase();
+  if (/\b(row|pull-?up|pull-?down|chin-?up|face pull|pull ?over|curl|shrug|reverse fly|rear delt)\b/.test(n))
+    return "pull";
+  if (/\b(press|push-?up|dip|fly|push press|overhead|bench)\b/.test(n)) return "push";
+  if (/\b(squat|lunge|step-?up|leg press|split squat|leg extension)\b/.test(n)) return "squat";
+  if (/\b(deadlift|hinge|good morning|swing|hip thrust|glute bridge|romanian|leg curl|hamstring)\b/.test(n))
+    return "hinge";
+  if (/\b(plank|crunch|sit-?up|dead bug|bird dog|hollow|rotation|twist|carry|pallof)\b/.test(n))
+    return "core";
+  return "other";
+}
+
+/** Preparation patterns that legitimately serve a given main-block pattern. */
+const PATTERN_PREP: Record<MovementPattern, MovementPattern[]> = {
+  push: ["push", "core", "other"],
+  pull: ["pull", "core", "other"],
+  squat: ["squat", "hinge", "core", "other"],
+  hinge: ["hinge", "squat", "core", "other"],
+  core: ["core", "other"],
+  other: ["push", "pull", "squat", "hinge", "core", "other"],
+};
+
+/** The pattern a main block is built around, when one clearly dominates. */
+export function dominantPattern(main: ExerciseLike[]): MovementPattern {
+  const counts: Record<MovementPattern, number> = {
+    push: 0,
+    pull: 0,
+    squat: 0,
+    hinge: 0,
+    core: 0,
+    other: 0,
+  };
+  for (const e of main) counts[patternOf(e)] += 1;
+  const ranked = (Object.keys(counts) as MovementPattern[])
+    .filter((p) => p !== "other")
+    .sort((a, b) => counts[b] - counts[a]);
+  const top = ranked[0]!;
+  if (!main.length || counts[top] / main.length < 0.6) return "other";
+  return top;
+}
+
 /**
- * Activation must prepare the demand of the Main Workout. Returns a violation
- * when the majority of activation work targets a region the main block does
- * not train (for example arm-band drills before a lower-body strength day).
+ * §21 — activation must prepare the demand of the Main Workout, in BOTH the
+ * body region and the movement pattern. Band pull-aparts before a pressing day
+ * hit the right region but the wrong demand, so region alone is not enough.
  */
 export function activationRelevanceViolation(
   activation: ExerciseLike[],
@@ -477,15 +522,29 @@ export function activationRelevanceViolation(
 ): string | null {
   if (activation.length < 2 || main.length < 2) return null;
   const target = dominantRegion(main);
-  if (target === "full") return null;
-  const relevant = activation.filter((e) => {
-    const r = regionOf(e);
-    return r === target || r === "full" || (target === "lower" && r === "core") || (target === "core" && r === "lower");
-  }).length;
-  if (relevant / activation.length < 0.5)
-    return `Activation prepares the wrong region: the Main Workout is ${target}-body dominant but most activation drills are not.`;
+  if (target !== "full") {
+    const relevant = activation.filter((e) => {
+      const r = regionOf(e);
+      return (
+        r === target ||
+        r === "full" ||
+        (target === "lower" && r === "core") ||
+        (target === "core" && r === "lower")
+      );
+    }).length;
+    if (relevant / activation.length < 0.5)
+      return `Activation prepares the wrong region: the Main Workout is ${target}-body dominant but most activation drills are not.`;
+  }
+
+  const pattern = dominantPattern(main);
+  if (pattern === "other") return null;
+  const allowed = PATTERN_PREP[pattern];
+  const onPattern = activation.filter((e) => allowed.includes(patternOf(e))).length;
+  if (onPattern / activation.length < 0.5)
+    return `Activation prepares the wrong demand: the Main Workout is a ${pattern}-dominant block but most activation drills do not prepare that pattern.`;
   return null;
 }
+
 
 // --- 12. Equipment family doctrine ------------------------------------------
 
