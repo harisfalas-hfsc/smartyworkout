@@ -70,7 +70,9 @@ A new **Generation failures** tab in the admin panel: member, time, stage, failu
 - `src/routes/api/public/retry-generations.ts` and `src/routes/api/public/recover-abandoned.ts`, bearer `CRON_SECRET`; also registered in `src/lib/cron/registry.ts` so they appear in the existing Cron admin tab.
 - `src/components/admin/AdminGenerationFailuresTab.tsx` wired into `admin.index.tsx`, backed by admin server functions.
 - Coach and WOD call sites (`src/lib/coach.functions.ts`, `src/lib/daily.server.ts`) route through the new orchestrator; the Coach UI renders the caution/adjustment notes on the delivered workout.
+- `GeneratingDialog.tsx` gains the 90-second hand-off state; a small `PendingGenerationCard` polls the request row on Coach and Logbook; completion writes a `notifications` row so the bell/inbox shows "Your workout is ready".
 
-**Secrets**: `ALERT_BACKUP_EMAIL`, `CRON_SECRET` (added if absent).
+**Secrets**: `ALERT_BACKUP_EMAIL` (set to `harisfalas@gmail.com`), `CRON_SECRET` (added if absent).
+
 
 **Verification**: unit tests for classification, conflict priority, backoff, idempotency-key derivation and once-only notification guards; simulated ai-balance failure, recovery, soft-issue delivery and happy-path (zero emails) tests; full build and the existing engine test suite must pass.
