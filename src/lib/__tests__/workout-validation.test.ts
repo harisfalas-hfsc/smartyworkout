@@ -88,7 +88,7 @@ describe("generation alert recipients", () => {
   it("uses the two fixed administrator inboxes without configuration", () => {
     expect(adminRecipients()).toEqual([
       "smartyworkout@outlook.com",
-      "harisforas@gmail.com",
+      "harisfalas@gmail.com",
     ]);
   });
 });
