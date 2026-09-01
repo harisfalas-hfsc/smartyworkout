@@ -130,6 +130,9 @@ export async function generateWorkoutContent(
   const favoriteIds = input.favoriteIds ?? [];
   const dislikedIds = input.dislikedIds ?? [];
   const bannedTerms = input.note ? parseNoteExclusions(input.note) : [];
+  // §18 — "Anywhere" is a real practicality filter (portable equipment only),
+  // unless the athlete explicitly ticked fixed-station gym equipment.
+  const location = resolveLocation(input.location ?? null, input.selectedEquipment);
   const pool = filterPool(all, {
     category: input.category,
     format,
@@ -141,7 +144,8 @@ export async function generateWorkoutContent(
     dislikedIds,
     favoriteIds,
     bannedTerms,
-    location: input.location ?? null,
+    location,
+    age: input.athlete?.age ?? null,
   });
 
 
