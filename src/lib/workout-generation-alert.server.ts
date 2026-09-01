@@ -16,7 +16,7 @@ export const SYSTEM_INBOX = "smartyworkout@outlook.com";
 export const SUPPORT_REPLY_TO = "smartyworkout@outlook.com";
 
 export function adminRecipients(): string[] {
-  return [SYSTEM_INBOX, "harisforas@gmail.com"];
+  return [SYSTEM_INBOX, "harisfalas@gmail.com"];
 }
 
 export function siteOrigin(): string {
