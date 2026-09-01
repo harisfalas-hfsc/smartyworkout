@@ -253,6 +253,30 @@ export function locationEquipmentViolation(
   return `"${e.name}" needs ${e.equipment ?? "gym apparatus"}, which cannot be assumed in ${where}.`;
 }
 
+/** Equipment ids that only exist as a fixed station in a real gym. */
+const GYM_ONLY_EQUIPMENT = new Set(["machines", "cables", "barbell", "rack", "bench", "cardio"]);
+
+/**
+ * §18 — "Anywhere" promises a session the athlete can run wherever they are, so
+ * it is filtered as a portable location. When the athlete explicitly ticked
+ * fixed-station equipment they contradicted themselves; equipment outranks the
+ * environment preference (injuries > equipment > level > goal > likes >
+ * dislikes), so the session is resolved to a gym session instead of shrinking
+ * the pool to nothing.
+ */
+export function resolveLocation(
+  location: string | null | undefined,
+  selectedEquipment: readonly string[] = [],
+): string {
+  const l = (location ?? "").toLowerCase() || "anywhere";
+  if (l !== "anywhere") return l;
+  return selectedEquipment.some((id) => GYM_ONLY_EQUIPMENT.has(String(id).toLowerCase()))
+    ? "gym"
+    : "anywhere";
+}
+
+
+
 
 /** High-output conditioning vocabulary — the athlete is breathing hard after it. */
 const HIGH_FATIGUE_RE =
