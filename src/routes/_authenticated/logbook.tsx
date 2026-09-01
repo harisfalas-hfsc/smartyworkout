@@ -60,6 +60,7 @@ import { equipmentBadges } from "@/lib/format/labels";
 import { getSessionLoads } from "@/lib/performance.functions";
 import { ProgressSection } from "@/components/progress/ProgressSection";
 import { SessionDebriefDialog } from "@/components/workout/SessionDebriefDialog";
+import { PendingGenerationCard } from "@/components/workout/PendingGenerationCard";
 import { getSessionFeedback, type SessionFeedback } from "@/lib/feedback.functions";
 
 type View = "list" | "calendar" | "progress";
@@ -995,6 +996,8 @@ function Logbook() {
         title="Logbook"
         subtitle="Your complete training record, with workouts, performance, progress, records and planning in one place."
       />
+
+      <PendingGenerationCard />
 
       {/* Three views, one line on every width. */}
       <div className="mt-5 grid grid-cols-3 gap-2">

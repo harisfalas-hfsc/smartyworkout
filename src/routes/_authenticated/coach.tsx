@@ -28,6 +28,7 @@ import { Link } from "@tanstack/react-router";
 import { ParqWaiverDialog } from "@/components/ParqWaiverDialog";
 import { hasParqAck, setParqAck } from "@/lib/parq-ack";
 import { GeneratingDialog } from "@/components/workout/GeneratingDialog";
+import { PendingGenerationCard } from "@/components/workout/PendingGenerationCard";
 import { MembershipRequiredDialog } from "@/components/MembershipRequiredDialog";
 import { CoachRecommendationCard } from "@/components/coach/CoachRecommendationCard";
 import { levelToStars, starsToLevel } from "@/lib/workout/spec";
@@ -150,6 +151,7 @@ function CoachPage() {
   const [useLibraryPreferences, setUseLibraryPreferences] = useState(true);
 
   const [busy, setBusy] = useState(false);
+  const [generationDialogOpen, setGenerationDialogOpen] = useState(false);
   const [name, setName] = useState<string>("");
   const [level, setLevel] = useState<string>("auto");
   const [confirmHard, setConfirmHard] = useState(false);
@@ -237,6 +239,7 @@ function CoachPage() {
       return;
     }
     setBusy(true);
+    setGenerationDialogOpen(true);
     setResuming(false);
     localStorage.setItem("smarty:generating", "1");
     try {
@@ -252,6 +255,7 @@ function CoachPage() {
       );
     } finally {
       localStorage.removeItem("smarty:generating");
+      setGenerationDialogOpen(false);
       setBusy(false);
     }
   }
@@ -308,6 +312,8 @@ function CoachPage() {
         subtitle="Smarty Coach already knows your profile. Answer below — or let it decide for you."
       />
 
+      <PendingGenerationCard />
+
       {resuming && !busy ? (
         <div className="mb-5 rounded-2xl border-2 border-primary bg-primary/5 p-4 text-sm">
           <p className="font-semibold">A workout was being built when you left.</p>
@@ -326,7 +332,7 @@ function CoachPage() {
         </div>
       ) : null}
 
-      <GeneratingDialog open={busy} />
+      <GeneratingDialog open={busy && generationDialogOpen} onLeave={() => setGenerationDialogOpen(false)} />
       <MembershipRequiredDialog open={membershipOpen} onOpenChange={setMembershipOpen} />
 
       <ParqWaiverDialog

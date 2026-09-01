@@ -15,12 +15,8 @@ import { generationIdempotencyKey, type FailureKind } from "@/lib/workout-valida
 export const SYSTEM_INBOX = "smartyworkout@outlook.com";
 export const SUPPORT_REPLY_TO = "smartyworkout@outlook.com";
 
-export function backupAdminEmail(): string {
-  return (process.env["ALERT_BACKUP_EMAIL"] || "harisfalas@gmail.com").trim();
-}
-
 export function adminRecipients(): string[] {
-  return [...new Set([SYSTEM_INBOX, backupAdminEmail()].filter(Boolean))];
+  return [SYSTEM_INBOX, "harisforas@gmail.com"];
 }
 
 export function siteOrigin(): string {

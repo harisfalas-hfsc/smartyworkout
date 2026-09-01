@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 const FITNESS_TIPS = [
@@ -25,7 +26,7 @@ const FITNESS_TIPS = [
  * Workout of the Day). Same behaviour and wording as the sister app: a clear
  * wait message, rotating tips and a "stay on this screen" reminder.
  */
-export function GeneratingDialog({ open }: { open: boolean }) {
+export function GeneratingDialog({ open, onLeave }: { open: boolean; onLeave?: () => void }) {
   const [tipIndex, setTipIndex] = useState(0);
   const [handOff, setHandOff] = useState(false);
 
@@ -79,6 +80,16 @@ export function GeneratingDialog({ open }: { open: boolean }) {
               ? "You can close this and carry on — your workout finishes on the server and lands in your logbook. We will email you the moment it is ready."
               : "Stay on this screen — your workout will appear automatically when it is ready."}
           </p>
+          {handOff ? (
+            <div className="mt-5 grid grid-cols-2 gap-2">
+              <Button type="button" variant="outline" className="h-11 rounded-xl" onClick={onLeave}>
+                Leave it with us
+              </Button>
+              <Button type="button" className="h-11 rounded-xl" onClick={() => setHandOff(false)}>
+                Keep waiting
+              </Button>
+            </div>
+          ) : null}
         </div>
       </DialogContent>
     </Dialog>
