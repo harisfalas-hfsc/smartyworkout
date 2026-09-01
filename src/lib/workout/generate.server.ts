@@ -3,6 +3,7 @@ import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 import { buildWorkoutPrompt, type AthleteContext } from "./prompt.server";
 import { enforceWorkout, estimateWorkMinutes } from "./enforce.server";
 import { validateWorkout } from "./validate.server";
+import { classifyIssues } from "@/lib/workout-validation";
 import { buildPackWorkout, packCopy } from "./pack.server";
 import { buildSessionPlan, scoreWorkout } from "./programming";
 import { parseWorkoutSteps } from "./parse-steps";
@@ -278,21 +279,28 @@ export async function generateWorkoutContent(
     const html = String(payload["main_workout"] ?? "");
     const enforced = enforceWorkout(html, pool, enforceOpts);
 
-
-    if (enforced.errors.length) {
-      lastError = enforced.errors.join(" ");
+    // Only structural faults block delivery — drift becomes a caution note.
+    const enforcedSplit = classifyIssues(enforced.errors);
+    if (enforcedSplit.structural.length) {
+      lastError = enforcedSplit.structural.join(" ");
       continue;
     }
 
     // Deterministic validation — the last word on ids, equipment and dosing.
     const validated = validateWorkout(enforced.html, validateOpts);
-    if (validated.errors.length) {
-      lastError = validated.errors.slice(0, 6).join(" ");
+    const validatedSplit = classifyIssues(validated.errors);
+    if (validatedSplit.structural.length) {
+      lastError = validatedSplit.structural.slice(0, 6).join(" ");
       continue;
     }
 
     let name = String(payload["name"] ?? "").trim();
-    const warnings = [...enforced.warnings, ...validated.warnings];
+    const warnings = [
+      ...enforced.warnings,
+      ...validated.warnings,
+      ...enforcedSplit.soft,
+      ...validatedSplit.soft,
+    ];
     if (!isValidName(name, usedNames)) {
       name = fallbackName();
       warnings.push("Workout name was replaced by a compliant fallback.");
@@ -344,7 +352,8 @@ export async function generateWorkoutContent(
   const enforcedPack = enforceWorkout(pack.html, pool, enforceOpts);
 
   const packValidation = validateWorkout(enforcedPack.html, validateOpts);
-  if (enforcedPack.errors.length || packValidation.errors.length) {
+  const packSplit = classifyIssues([...enforcedPack.errors, ...packValidation.errors]);
+  if (packSplit.structural.length) {
     throw new Error(
       `Smarty Coach could not build a compliant workout (${lastError}). Please try again.`,
     );
@@ -367,6 +376,7 @@ export async function generateWorkoutContent(
       `Built by the template engine after the AI attempts failed (${lastError}).`,
       ...enforcedPack.warnings,
       ...packValidation.warnings,
+      ...packSplit.soft,
     ],
     needs_review: true,
     format,

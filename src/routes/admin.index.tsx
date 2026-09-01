@@ -17,6 +17,7 @@ import {
   Trophy,
   Flag,
   ArrowLeft,
+  AlertTriangle,
   Lock,
   type LucideIcon,
 } from "lucide-react";
@@ -39,6 +40,7 @@ import { AdminAwardsTab } from "@/components/admin/AdminAwardsTab";
 import { AdminReportsTab } from "@/components/admin/AdminReportsTab";
 import { AdminPaymentsTab } from "@/components/admin/AdminPaymentsTab";
 import { AdminCronTab } from "@/components/admin/AdminCronTab";
+import { AdminGenerationFailuresTab } from "@/components/admin/AdminGenerationFailuresTab";
 
 export const Route = createFileRoute("/admin/")({
   component: AdminPage,
@@ -66,7 +68,8 @@ type SectionKey =
   | "awards"
   | "reports"
   | "payments"
-  | "cron";
+  | "cron"
+  | "generation";
 
 const SECTIONS: { key: SectionKey; label: string; description: string; Icon: LucideIcon }[] = [
   {
@@ -107,6 +110,12 @@ const SECTIONS: { key: SectionKey; label: string; description: string; Icon: Luc
     label: "Community reports",
     description: "Moderate shared workouts and comments",
     Icon: Flag,
+  },
+  {
+    key: "generation",
+    label: "Generation failures",
+    description: "Failed workout builds, alerts and recovery",
+    Icon: AlertTriangle,
   },
   {
     key: "cron",
@@ -215,6 +224,7 @@ function AdminPage() {
           {section === "awards" && <AdminAwardsTab />}
           {section === "reports" && <AdminReportsTab />}
           {section === "cron" && <AdminCronTab />}
+          {section === "generation" && <AdminGenerationFailuresTab />}
         </div>
       ) : (
         <AdminHub onOpen={openSection} unreadMessages={unreadMessages} badges={badges} />

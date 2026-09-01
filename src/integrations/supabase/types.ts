@@ -1223,6 +1223,135 @@ export type Database = {
           },
         ]
       }
+      workout_generation_failures: {
+        Row: {
+          email_dispatched_at: string | null
+          email_error: string | null
+          email_message_id: string | null
+          email_recipient: string | null
+          email_status: string | null
+          failure_kind: string
+          id: string
+          occurred_at: string
+          read_at: string | null
+          reason: string
+          refinement_text: string | null
+          session_id: string | null
+          stage: string
+          user_id: string | null
+        }
+        Insert: {
+          email_dispatched_at?: string | null
+          email_error?: string | null
+          email_message_id?: string | null
+          email_recipient?: string | null
+          email_status?: string | null
+          failure_kind?: string
+          id?: string
+          occurred_at?: string
+          read_at?: string | null
+          reason: string
+          refinement_text?: string | null
+          session_id?: string | null
+          stage?: string
+          user_id?: string | null
+        }
+        Update: {
+          email_dispatched_at?: string | null
+          email_error?: string | null
+          email_message_id?: string | null
+          email_recipient?: string | null
+          email_status?: string | null
+          failure_kind?: string
+          id?: string
+          occurred_at?: string
+          read_at?: string | null
+          reason?: string
+          refinement_text?: string | null
+          session_id?: string | null
+          stage?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      workout_generation_requests: {
+        Row: {
+          abandoned_alert_at: string | null
+          attempt_count: number
+          completed_at: string | null
+          created_at: string
+          customer_notified_at: string | null
+          id: string
+          last_error: string | null
+          next_retry_at: string | null
+          notes: string[]
+          recovery_notified_at: string | null
+          refinement_text: string | null
+          request: Json
+          stage: string
+          status: string
+          updated_at: string
+          user_id: string
+          workout_id: string | null
+          workout_name: string | null
+        }
+        Insert: {
+          abandoned_alert_at?: string | null
+          attempt_count?: number
+          completed_at?: string | null
+          created_at?: string
+          customer_notified_at?: string | null
+          id?: string
+          last_error?: string | null
+          next_retry_at?: string | null
+          notes?: string[]
+          recovery_notified_at?: string | null
+          refinement_text?: string | null
+          request?: Json
+          stage?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          workout_id?: string | null
+          workout_name?: string | null
+        }
+        Update: {
+          abandoned_alert_at?: string | null
+          attempt_count?: number
+          completed_at?: string | null
+          created_at?: string
+          customer_notified_at?: string | null
+          id?: string
+          last_error?: string | null
+          next_retry_at?: string | null
+          notes?: string[]
+          recovery_notified_at?: string | null
+          refinement_text?: string | null
+          request?: Json
+          stage?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          workout_id?: string | null
+          workout_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_generation_requests_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "community_workouts_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_generation_requests_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workout_plans: {
         Row: {
           created_at: string

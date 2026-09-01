@@ -27,6 +27,7 @@ const FITNESS_TIPS = [
  */
 export function GeneratingDialog({ open }: { open: boolean }) {
   const [tipIndex, setTipIndex] = useState(0);
+  const [handOff, setHandOff] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -35,6 +36,17 @@ export function GeneratingDialog({ open }: { open: boolean }) {
       setTipIndex((i) => (i + 1) % FITNESS_TIPS.length);
     }, 7000);
     return () => clearInterval(id);
+  }, [open]);
+
+  // After 90 seconds the athlete is never trapped — the build continues on the
+  // server and, if anything goes wrong, the recovery system delivers it.
+  useEffect(() => {
+    if (!open) {
+      setHandOff(false);
+      return;
+    }
+    const id = setTimeout(() => setHandOff(true), 90000);
+    return () => clearTimeout(id);
   }, [open]);
 
   return (
@@ -49,7 +61,9 @@ export function GeneratingDialog({ open }: { open: boolean }) {
         <div className="p-2 text-center text-muted-foreground">
           <Loader2 className="mx-auto mb-3 h-6 w-6 animate-spin text-primary" />
           <p className="font-medium text-foreground">
-            Building your workout… this can take up to 2 minutes.
+            {handOff
+              ? "Still building — leave it with us."
+              : "Building your workout… this can take up to 2 minutes."}
           </p>
           <div
             className="mx-auto mt-6 max-w-md rounded-md border border-border bg-muted/40 p-4 text-left"
@@ -61,7 +75,9 @@ export function GeneratingDialog({ open }: { open: boolean }) {
             </p>
           </div>
           <p className="mt-4 text-xs leading-5 text-muted-foreground">
-            Stay on this screen — your workout will appear automatically when it is ready.
+            {handOff
+              ? "You can close this and carry on — your workout finishes on the server and lands in your logbook. We will email you the moment it is ready."
+              : "Stay on this screen — your workout will appear automatically when it is ready."}
           </p>
         </div>
       </DialogContent>
