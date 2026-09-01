@@ -304,10 +304,18 @@ export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
   // 6b. Location practicality — no machines in a hotel room, no jumping upstairs.
   pool = filterByLocation(pool, f.location);
 
+  // 6c. Biometrics — past 70 impact work leaves the vocabulary entirely rather
+  //     than relying on the model to avoid it.
+  if (typeof f.age === "number" && f.age >= 70) {
+    const impactFree = pool.filter((e) => !HIGH_IMPACT_RE.test(e.name));
+    if (impactFree.length >= 12) pool = impactFree;
+  }
+
   // 7. Hard ban from today's note ("no burpees", "avoid bicep curls").
   if (f.bannedTerms?.length) {
     pool = pool.filter((e) => !f.bannedTerms!.some((t) => text(e).includes(t)));
   }
+
 
 
 
