@@ -11,6 +11,7 @@ import {
   microExerciseViolation,
   regionOf,
   HIGH_FATIGUE_CONDITIONING_RE,
+  HIGH_IMPACT_RE,
   HOME_APPARATUS_RE,
   STATIC_HOLD_RE,
   STRETCH_RE,
