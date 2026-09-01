@@ -699,7 +699,70 @@ export function cardioDominanceViolation(
   return null;
 }
 
+// --- 27. Mood and biometrics: deterministic dose ----------------------------
+
+/** Impact and plyometric vocabulary — the first thing to go on a bad day. */
+export const HIGH_IMPACT_RE =
+  /\b(jump|jumping|jump squat|squat jump|box jump|broad jump|tuck jump|plyo|plyometric|bound|hop|hopping|burpee|depth jump|skater jump|jumping jack|jumping lunge|jump lunge|sprint|slam)\b/i;
+
+const LOW_ENERGY_MOODS = new Set(["tired", "stressed", "low", "sore"]);
+
+export function isLowEnergyMood(mood: string | null | undefined): boolean {
+  return LOW_ENERGY_MOODS.has((mood ?? "").toLowerCase().trim());
+}
+
+/**
+ * §27 — mood changes DOSE, and the change must be verifiable, not just asked
+ * for in the prompt. On a low-energy day repeated high-impact work is rejected
+ * outright: at most one impact movement may survive in the main block.
+ */
+export function moodDoseViolation(
+  mood: string | null | undefined,
+  exercises: ExerciseLike[],
+): string | null {
+  if (!isLowEnergyMood(mood) || exercises.length === 0) return null;
+  const impact = exercises.filter((e) => HIGH_IMPACT_RE.test(e.name));
+  if (impact.length > 1)
+    return `The athlete reported feeling ${(mood ?? "").toLowerCase()}, but the session still prescribes repeated high-impact work (${impact
+      .map((e) => `"${e.name}"`)
+      .join(", ")}). Reduce impact and volume on a low-energy day.`;
+  return null;
+}
+
+/**
+ * §2 — biometrics are not decoration. Past 60 the joints, not the willingness,
+ * set the ceiling: repeated impact is replaced with low-impact equivalents.
+ */
+export function ageSafetyViolation(
+  age: number | null | undefined,
+  exercises: ExerciseLike[],
+): string | null {
+  if (typeof age !== "number" || !Number.isFinite(age) || age < 60) return null;
+  const impact = exercises.filter((e) => HIGH_IMPACT_RE.test(e.name));
+  const limit = age >= 70 ? 0 : 1;
+  if (impact.length > limit)
+    return `The athlete is ${Math.round(age)}: ${impact
+      .map((e) => `"${e.name}"`)
+      .join(", ")} ${impact.length === 1 ? "is" : "are"} repeated high-impact work. Use low-impact equivalents (step-ups, marches, fast bodyweight squats, carries, cycling).`;
+  return null;
+}
+
+/** Deterministic coaching directive derived from age, shown to the model. */
+export function ageDirective(age: number | null | undefined): string {
+  if (typeof age !== "number" || !Number.isFinite(age)) return "";
+  if (age >= 70)
+    return "The athlete is over 70: no jumping, hopping, plyometrics or impact of any kind. Prefer supported, stable, low-complexity movements, longer rest and a slightly lower total volume. Strength work stays — it matters more at this age, not less.";
+  if (age >= 60)
+    return "The athlete is over 60: at most one low-amplitude impact movement in the whole session, prefer stable and well-supported variations, extend rest slightly and avoid heavy spinal loading late in the session.";
+  if (age >= 50)
+    return "The athlete is over 50: keep impact moderate, warm the joints properly and prefer controlled tempo over ballistic speed. Volume and loading stay appropriate to their level.";
+  if (age <= 17)
+    return "The athlete is under 18: prioritise technique, bodyweight and light loading, no maximal or near-maximal loads, and no fatigue-to-failure work.";
+  return "";
+}
+
 export function sessionBudgetViolation(
+
   sessionMinutes: number,
   workMinutes: number,
   targetMinutes: number,
