@@ -367,6 +367,40 @@ export async function sweepAbandonedGenerations(limit = 25) {
   return { alerted: rows.length };
 }
 
+/**
+ * Records a failure for work built outside `runTrackedGeneration` (the
+ * Workout of the Day builder) so it joins the same retry + alert lifecycle.
+ */
+export async function recordGenerationFailure(opts: {
+  userId: string;
+  stage: GenerationStage;
+  request: CoachRequest;
+  reason: string;
+  refinementText?: string | null;
+}) {
+  const svc = await admin();
+  const { data: created } = await svc
+    .from("workout_generation_requests")
+    .insert({
+      user_id: opts.userId,
+      stage: opts.stage,
+      request: opts.request as unknown as Record<string, unknown>,
+      refinement_text: opts.refinementText ?? null,
+      status: "building",
+    } as never)
+    .select("id")
+    .maybeSingle();
+  const requestId = (created as { id?: string } | null)?.id ?? "";
+  await recordFailure(svc, {
+    requestId,
+    reason: opts.reason,
+    userId: opts.userId,
+    stage: opts.stage,
+    refinementText: opts.refinementText ?? null,
+  });
+  return { requestId };
+}
+
 /** Admin "send test failure email" action. */
 export async function sendTestFailureAlert(userId: string) {
   const svc = await admin();
