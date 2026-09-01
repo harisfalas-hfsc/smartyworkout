@@ -1,5 +1,6 @@
 import type { PoolExercise } from "./pool.server";
 import { planPrompt, type SessionPlan } from "./programming";
+import { ageDirective } from "./doctrine";
 import {
   BANNED_NAME_WORDS,
   intensityNote,
