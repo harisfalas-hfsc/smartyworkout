@@ -1,78 +1,145 @@
 # No workout generation ever gets lost
 
-Today a generation either succeeds or throws. `generateWorkout` (Coach) and the Workout-of-the-Day cron both call `createWorkoutForUser`, and any engine rejection — including cosmetic ones like "prescribed work is short of the advertised duration" — surfaces to the member as an error with nothing saved and no alert to anyone. This builds the full delivery guarantee, alerting, recovery and admin visibility around that engine.
+Build a permanent delivery system so every requested workout is either delivered immediately or safely completed in the background. A member never loses their answers, request, or paid workout because of a temporary service failure or a cosmetic validation warning.
 
-Note on wording: this app generates one session at a time (there are no multi-week programs). "Session" below means one generation request — Coach generation, Workout of the Day, or a refinement/regeneration of a previous one.
+## 1. Guaranteed workout delivery
 
-## 1. Delivery guarantee
+Every Coach, Workout of the Day, and refinement request is saved before generation begins.
 
-Split validation into two classes:
+Validation is split into two classes:
 
-- **Soft (never fails a generation):** volume/duration drift, name-match suspicion, formatting, repetition, quality score, activation/cool-down count shortfalls. These become a caution note attached to the delivered workout.
-- **Structural (may trigger repair):** missing Main Workout, fewer exercises than the blueprint minimum, missing dose on a prescribed line, missing warm-up/cool-down when the blueprint requires them, exercises outside the approved pool/equipment/focus, wrong format vs. what the member selected.
+- **Soft issue — deliver the workout:** duration/volume drift, naming concerns, formatting, repetition, quality score, or minor Activation/Cool Down count differences. These may add a caution note but never discard the workout.
+- **Structural issue — repair before delivery:** missing Main Workout, too few required exercises, missing prescriptions, an exercise outside the approved library or available equipment, an incompatible format, or a required section that is absent.
 
-Flow for every generation:
+For structural issues:
 
-1. Generate.
-2. On a structural fault, run up to **3 targeted repair passes** that regenerate only the broken section (Activation, Main, Finisher, Cool Down) and re-validate — not the whole workout.
-3. Still broken → **salvage**: rebuild the missing sections deterministically from the compliant sections and the approved pool (the existing template engine), then re-validate.
-4. Contradictory answers are resolved by priority rather than rejected: injuries/medical limits > available equipment > experience level > goal > liked exercises > disliked exercises. Each override produces a plain-language line shown to the member ("Your knee limitation removed two jumping exercises; the session keeps the same training effect").
-5. A hard failure is allowed only for a genuine outage (AI provider down / no AI balance / network dead). The member sees a polite generic apology only.
+1. Run up to **3 targeted repair passes**, repairing only the broken section.
+2. Revalidate after every repair.
+3. If targeted repair still fails, deterministically salvage the workout from the approved exercise pool.
+4. Deliver the safest compliant result instead of throwing it away.
 
-## 2. Failure alerts
+Contradictory answers are resolved in this exact priority:
 
-On a true failure, three emails, once per session:
+1. Injuries and medical limitations
+2. Available equipment
+3. Experience level
+4. Training goal
+5. Liked exercises
+6. Disliked exercises
 
-- `smartyworkout@outlook.com` — subject `[SmartyWorkout ALERT] …`, or `[SmartyWorkout URGENT] …` once a session is stuck after the final retry. Contains member name, email, user id, session id, questionnaire/preferences id, stage (initial generation / workout of the day / refinement), payment state, technical failure reason, timestamp.
-- **`harisfalas@gmail.com`** — the administrator's personal address, so a junk rule in Outlook can never hide a failure. It is stored in an `ALERT_BACKUP_EMAIL` secret (default value `harisfalas@gmail.com`) so it can be changed later without a code change.
-- The member — branded, zero technical detail, no error codes, no mention of AI balance: "We hit a temporary snag building your workout. Your payment and your answers are safe, we are already on it, and you will get your workout shortly — nothing for you to do."
+A hard failure is reserved for a genuine external outage, unavailable AI balance, or network/service failure. Technical details are never shown to the member.
 
-Reply-to on all of them is the support address. The member apology is sent once per failed session, guarded by `customer_notified_at` — never once per retry.
+## 2. Exactly three failure notifications
 
-## 3. What the member sees while this happens
+When a real generation failure occurs, notify exactly these three recipients:
 
-The member must never be trapped on a spinner, and must never lose a workout by closing the tab.
+1. **System inbox:** `smartyworkout@outlook.com`
+2. **Administrator:** `harisforas@gmail.com`
+3. **The member:** the email address belonging to the user whose workout failed
 
-- **0–90 seconds — foreground wait.** The existing "Building your workout" screen with rotating tips stays as it is. Most sessions finish here and nothing else happens.
-- **After ~90 seconds — handoff.** The waiting screen turns into a calm hand-off card: "This one is taking longer than usual. You can leave this page — we will finish it in the background and tell you the moment it is ready." With two buttons: *Keep waiting* and *Leave it with us*.
-- **Leaving the page is safe.** The generation request row already exists in the database before the first AI call, so the work continues server-side and is picked up by the retry cron regardless of whether the browser is open, the app is closed, or the phone is locked.
-- **Where the member can check.** A small "Workout in progress" card appears on Coach and in the Logbook while a request is pending, showing status (building / retrying / ready) and refreshing itself. Nothing is ever silently dropped.
-- **When it is ready.** The member gets an in-app notification ("Your workout is ready — open it") in the bell/inbox, and — only if the session had previously failed and they were told about the delay — the "Your workout is ready" email with a direct button. The workout appears in their account and Logbook as normal.
-- **If they are still on the page when it completes**, the screen navigates straight into the workout, exactly as today.
-- **Only when everything fails** (a genuine outage) do they see the polite apology screen, plus the one delay email, and the retry cron keeps working on it without them doing anything.
+These addresses are fixed by the application. There is no “alert backup email” field, no email secret to enter, and no setup form for you to submit.
+
+### Administrator notifications
+
+Both administrator addresses receive the complete technical report:
+
+- Member name and email
+- User and generation-request IDs
+- Questionnaire/preferences ID
+- Request type: Coach, Workout of the Day, or refinement
+- Membership/payment state
+- Failure category and complete technical reason
+- Retry attempt and timestamp
+
+The subject begins with `[SmartyWorkout ALERT]`. If all recovery attempts remain unsuccessful, it becomes `[SmartyWorkout URGENT]`.
+
+### Member notification
+
+The member receives a branded, non-technical message only:
+
+> We hit a temporary snag building your workout. Your payment and your answers are safe, we are already on it, and you will get your workout shortly — nothing for you to do.
+
+The member never sees error codes, AI balance information, provider details, or internal diagnostics. This apology is sent only once for each failed request, not once per retry.
+
+## 3. What the member sees
+
+- **First 90 seconds:** keep the existing “Building your workout” screen with rotating fitness tips.
+- **After 90 seconds:** show a calm handoff message explaining that the member can leave and the workout will continue in the background.
+- Provide **Keep waiting** and **Leave it with us** actions.
+- Closing the page or app cannot lose the request because it was already saved.
+- Show a small **Workout in progress** status card on Coach and Logbook while recovery is running.
+- If the workout finishes while the member is waiting, open it immediately.
+- If it finishes later, place it in the Logbook and create an in-app “Your workout is ready” notification.
 
 ## 4. Automatic recovery
 
-- A retry cron every few minutes retries each failed session with exponential backoff, up to 5 attempts. A failed refinement is retried **as a refinement**, restoring the saved refinement text, so the old workout is never mistaken for a success.
-- A daily sweep re-alerts (URGENT) any session still failed with no retry scheduled and no workout.
-- The first time a previously-failed session succeeds: "Your workout is ready" to the member (with a button opening the workout) and to both admin addresses, guarded by `recovery_notified_at`.
-- Happy path with no prior failure sends **no email** (the in-app notification is only added for sessions that went to background).
-- After the admin tops up AI balance, pending sessions regenerate on the next cron run with no manual step; a protected admin endpoint also triggers recovery immediately.
+- Retry failed requests automatically every **5 minutes**.
+- Use exponential backoff with no more than **5 recovery attempts**.
+- Preserve the original request and questionnaire answers for every retry.
+- Preserve refinement instructions when retrying a refinement.
+- Retry WOD requests as WOD requests rather than converting them into normal Coach workouts.
+- Run a daily safety sweep for requests that are still waiting without a scheduled retry.
+- Once a failed request succeeds, send “Your workout is ready” to the same three recipients:
+  - `smartyworkout@outlook.com`
+  - `harisforas@gmail.com`
+  - The affected member’s email
+- The member email contains a direct button to open the completed workout.
+- A normal successful generation sends **zero emails**.
 
-## 5. Admin visibility
+The scheduler authorization remains internal and automatic. It is not an email address, is not shown as a user setting, and requires no form submission from you.
 
-A new **Generation failures** tab in the admin panel: member, time, stage, failure kind, reason, email delivery status + recipient + message id, a "mark as read" action, and a "send test failure email" button.
+## 5. Administrator visibility
 
+Add a **Generation failures** tab to the Admin Panel showing:
 
-## Technical section
+- Member
+- Date and time
+- Request type
+- Failure category
+- Technical reason
+- Retry count and next retry
+- Current request status
+- Email recipients and delivery status
+- Read/unread state
 
-**Database migration**
-- New `workout_generation_requests` table (one row per generation attempt-set — the app has no existing per-generation session row): `id`, `user_id`, `stage`, `request` (jsonb payload), `refinement_text`, `status`, `workout_id`, `attempt_count`, `next_retry_at`, `last_error`, `customer_notified_at`, `recovery_notified_at`, `abandoned_alert_at`, timestamps.
-- New `workout_generation_failures` table: `id`, `user_id`, `session_id`, `stage`, `reason`, `failure_kind` (`technical` | `ai_balance` | `outage`), `refinement_text`, `email_status`, `email_error`, `email_message_id`, `email_recipient`, `email_dispatched_at`, `occurred_at`, `read_at`.
-- Both: explicit GRANTs, RLS on, admins read via `has_role`/`is_app_admin`, service role writes, members read their own request rows.
-- pg_cron entries for the two new endpoints.
+Actions:
 
-**Code**
-- `src/lib/workout-validation.ts` — soft vs. structural classification over the existing `validateWorkout` output, plus questionnaire conflict resolution by priority. Unit tested.
-- `src/lib/workout-generation.server.ts` — orchestrator around `createWorkoutForUser`: repair passes, salvage, outage detection (402/403/429/5xx from the AI gateway), request-row lifecycle.
-- `src/lib/workout-generation-alert.server.ts` — the three-recipient fan-out, failure-row persistence, email status capture, recovery notifications.
-- Templates in `src/lib/email-templates/` registered in `registry.ts`: `workout-generation-failure`, `workout-delay-customer`, `workout-ready-customer`, `workout-ready-admin`, sent through `sendTemplateEmail` with `idempotencyKey` derived from session id + template name.
-- `src/routes/api/public/retry-generations.ts` and `src/routes/api/public/recover-abandoned.ts`, bearer `CRON_SECRET`; also registered in `src/lib/cron/registry.ts` so they appear in the existing Cron admin tab.
-- `src/components/admin/AdminGenerationFailuresTab.tsx` wired into `admin.index.tsx`, backed by admin server functions.
-- Coach and WOD call sites (`src/lib/coach.functions.ts`, `src/lib/daily.server.ts`) route through the new orchestrator; the Coach UI renders the caution/adjustment notes on the delivered workout.
-- `GeneratingDialog.tsx` gains the 90-second hand-off state; a small `PendingGenerationCard` polls the request row on Coach and Logbook; completion writes a `notifications` row so the bell/inbox shows "Your workout is ready".
+- **Mark as read**
+- **Send test failure email** to the two fixed administrator addresses only
+- **Retry now** for a pending failed request
 
-**Secrets**: `ALERT_BACKUP_EMAIL` (set to `harisfalas@gmail.com`), `CRON_SECRET` (added if absent).
+## 6. Data and security
 
+Store one durable lifecycle record per generation request and a separate failure history. Members can read only their own request status. Administrator-only failure details remain protected. Background services can update lifecycle records and complete retries.
 
-**Verification**: unit tests for classification, conflict priority, backoff, idempotency-key derivation and once-only notification guards; simulated ai-balance failure, recovery, soft-issue delivery and happy-path (zero emails) tests; full build and the existing engine test suite must pass.
+Do not expose technical failure details, internal scheduler credentials, or administrator controls to members.
+
+## 7. Implementation structure
+
+- `src/lib/workout-validation.ts` — soft/structural classification and conflict priority
+- `src/lib/workout-generation.server.ts` — durable lifecycle, repair, salvage, retries, and recovery
+- `src/lib/workout-generation-alert.server.ts` — fixed three-recipient notifications
+- `src/lib/email-templates/` — administrator failure, member delay, administrator recovery, and member-ready emails
+- Protected scheduled endpoints for retries and abandoned-request recovery
+- Admin failure-management functions and tab
+- Pending-generation status UI on Coach and Logbook
+- Existing Coach, WOD, and refinement flows routed through the same guarantee
+
+## 8. Acceptance checks
+
+Before completion, verify all of the following:
+
+1. Simulated AI-balance failure creates a durable pending request.
+2. Exactly three notifications are attempted: the two fixed administrator addresses and the affected member.
+3. The member email contains no technical details.
+4. Recovery succeeds automatically after the simulated outage clears.
+5. Recovery sends “Your workout is ready” to all three recipients once.
+6. A soft validation issue still delivers the workout.
+7. A structural issue runs targeted repairs and deterministic salvage.
+8. Closing the page does not lose the request.
+9. WOD and refinement preserve their original request type during retry.
+10. Happy-path generation sends zero emails.
+11. Duplicate retries do not create duplicate workouts or duplicate notifications.
+12. Admin mark-as-read, test email, and retry-now actions work.
+13. Full workout-engine tests pass.
+14. Full application build passes.
