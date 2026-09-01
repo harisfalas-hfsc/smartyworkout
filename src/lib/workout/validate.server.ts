@@ -13,6 +13,7 @@ import {
 } from "./enforce.server";
 import {
   activationRelevanceViolation,
+  ageSafetyViolation,
   categoryAllowsFinisher,
   categoryExerciseViolation,
   cardioDominanceViolation,
@@ -23,6 +24,7 @@ import {
   focusViolation,
   humanRealismViolation,
   locationEquipmentViolation,
+  moodDoseViolation,
   sequenceViolation,
 
   microExerciseViolation,
