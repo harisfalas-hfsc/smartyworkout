@@ -3,7 +3,7 @@ import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 import { buildWorkoutPrompt, type AthleteContext } from "./prompt.server";
 import { enforceWorkout, estimateWorkMinutes } from "./enforce.server";
 import { validateWorkout } from "./validate.server";
-import { classifyIssues } from "@/lib/workout-validation";
+import { classifyIssues, classifyIssuesForFallback } from "@/lib/workout-validation";
 import { buildPackWorkout, packCopy } from "./pack.server";
 import { buildSessionPlan, scoreWorkout } from "./programming";
 import { parseWorkoutSteps } from "./parse-steps";
@@ -359,7 +359,10 @@ export async function generateWorkoutContent(
   const enforcedPack = enforceWorkout(pack.html, pool, enforceOpts);
 
   const packValidation = validateWorkout(enforcedPack.html, validateOpts);
-  const packSplit = classifyIssues([...enforcedPack.errors, ...packValidation.errors]);
+  const packSplit = classifyIssuesForFallback([
+    ...enforcedPack.errors,
+    ...packValidation.errors,
+  ]);
   if (packSplit.structural.length) {
     throw new Error(
       `Smarty Coach could not build a compliant workout (${lastError}). Please try again.`,
