@@ -217,7 +217,9 @@ export function humanRealismViolation(e: ExerciseLike): string | null {
 /**
  * §18 — the environment decides what is realistic. Outdoors means portable
  * implements only: no machines, no cables, no racks, no barbells, whatever the
- * athlete ticked in their equipment list.
+ * athlete ticked in their equipment list. "Anywhere" makes the same promise:
+ * the athlete asked for a session they can run wherever they happen to be, so
+ * it may never depend on a fixed gym station either.
  */
 const OUTDOOR_FAMILIES = new Set([
   "bodyweight",
@@ -228,18 +230,29 @@ const OUTDOOR_FAMILIES = new Set([
   "suspension",
 ]);
 
+/** Locations that can only host equipment an athlete can carry. */
+const PORTABLE_ONLY_LOCATIONS = new Set(["outdoors", "anywhere"]);
+
+/** Apparatus that only exists as a fixed station in a real gym. */
+const FIXED_STATION_RE =
+  /\b(machine|cable|smith|leverage|rack|power rack|squat rack|pulldown|pec deck|leg press|leg extension|leg curl|treadmill|elliptical|stepmill|ergometer|rowing machine|skierg|stationary bike|sled)\b/i;
+
 export function locationEquipmentViolation(
   e: ExerciseLike,
   location: string | null | undefined,
 ): string | null {
   const l = (location ?? "").toLowerCase();
-  if (l !== "outdoors") return null;
+  if (!PORTABLE_ONLY_LOCATIONS.has(l)) return null;
+  const where = l === "anywhere" ? "an anywhere session" : "an outdoor session";
   const family = equipmentFamilyOf(e.equipment);
+  if (FIXED_STATION_RE.test(`${e.equipment ?? ""} ${e.name}`))
+    return `"${e.name}" needs a fixed gym station — ${where} uses portable equipment only.`;
   if (OUTDOOR_FAMILIES.has(family)) return null;
   if (/\b(rope|jump rope|sandbag|sled|box|step|bench|bar)\b/.test((e.equipment ?? "").toLowerCase()))
-    return `"${e.name}" needs ${e.equipment} — an outdoor session uses portable equipment only.`;
-  return `"${e.name}" needs ${e.equipment ?? "gym apparatus"}, which does not exist outdoors.`;
+    return `"${e.name}" needs ${e.equipment} — ${where} uses portable equipment only.`;
+  return `"${e.name}" needs ${e.equipment ?? "gym apparatus"}, which cannot be assumed in ${where}.`;
 }
+
 
 /** High-output conditioning vocabulary — the athlete is breathing hard after it. */
 const HIGH_FATIGUE_RE =
