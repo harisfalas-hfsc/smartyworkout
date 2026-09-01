@@ -7,6 +7,10 @@ import { template as errorAlert } from './error-alert'
 import { template as contactConfirmation } from './contact-confirmation'
 import { template as contactNotification } from './contact-notification'
 import { template as supportReply } from './support-reply'
+import { template as workoutGenerationFailure } from './workout-generation-failure'
+import { template as workoutDelayCustomer } from './workout-delay-customer'
+import { template as workoutReadyCustomer } from './workout-ready-customer'
+import { template as workoutReadyAdmin } from './workout-ready-admin'
 
 export interface TemplateEntry {
   component: ComponentType<any>
@@ -29,4 +33,8 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'error-alert': errorAlert,
   'contact-notification': contactNotification,
   'support-reply': supportReply,
+  'workout-generation-failure': workoutGenerationFailure,
+  'workout-delay-customer': workoutDelayCustomer,
+  'workout-ready-customer': workoutReadyCustomer,
+  'workout-ready-admin': workoutReadyAdmin,
 }

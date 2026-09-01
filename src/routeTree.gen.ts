@@ -53,6 +53,8 @@ import { Route as WWorkoutIdRouteImport } from './routes/w.$workoutId'
 import { Route as AuthenticatedCheckoutReturnRouteImport } from './routes/_authenticated/checkout.return'
 import { Route as AuthenticatedWorkoutWorkoutIdRouteImport } from './routes/_authenticated/workout.$workoutId'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
+import { Route as ApiPublicRecoverAbandonedRouteImport } from './routes/api/public/recover-abandoned'
+import { Route as ApiPublicRetryGenerationsRouteImport } from './routes/api/public/retry-generations'
 import { Route as CommunityWorkoutWorkoutIdRouteImport } from './routes/community.workout.$workoutId'
 import { Route as ApiPublicBlogCoverFileRouteImport } from './routes/api/public/blog-cover/$file'
 import { Route as ApiPublicHooksDailyRunRouteImport } from './routes/api/public/hooks/daily-run'
@@ -283,6 +285,18 @@ const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
   path: '/api/public/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicRecoverAbandonedRoute =
+  ApiPublicRecoverAbandonedRouteImport.update({
+    id: '/api/public/recover-abandoned',
+    path: '/api/public/recover-abandoned',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicRetryGenerationsRoute =
+  ApiPublicRetryGenerationsRouteImport.update({
+    id: '/api/public/retry-generations',
+    path: '/api/public/retry-generations',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const CommunityWorkoutWorkoutIdRoute =
   CommunityWorkoutWorkoutIdRouteImport.update({
     id: '/community/workout/$workoutId',
@@ -366,6 +380,8 @@ export interface FileRoutesByFullPath {
   '/checkout/return': typeof AuthenticatedCheckoutReturnRoute
   '/workout/$workoutId': typeof AuthenticatedWorkoutWorkoutIdRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/recover-abandoned': typeof ApiPublicRecoverAbandonedRoute
+  '/api/public/retry-generations': typeof ApiPublicRetryGenerationsRoute
   '/community/workout/$workoutId': typeof CommunityWorkoutWorkoutIdRoute
   '/api/public/blog-cover/$file': typeof ApiPublicBlogCoverFileRoute
   '/api/public/hooks/daily-run': typeof ApiPublicHooksDailyRunRoute
@@ -418,6 +434,8 @@ export interface FileRoutesByTo {
   '/checkout/return': typeof AuthenticatedCheckoutReturnRoute
   '/workout/$workoutId': typeof AuthenticatedWorkoutWorkoutIdRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/recover-abandoned': typeof ApiPublicRecoverAbandonedRoute
+  '/api/public/retry-generations': typeof ApiPublicRetryGenerationsRoute
   '/community/workout/$workoutId': typeof CommunityWorkoutWorkoutIdRoute
   '/api/public/blog-cover/$file': typeof ApiPublicBlogCoverFileRoute
   '/api/public/hooks/daily-run': typeof ApiPublicHooksDailyRunRoute
@@ -472,6 +490,8 @@ export interface FileRoutesById {
   '/_authenticated/checkout/return': typeof AuthenticatedCheckoutReturnRoute
   '/_authenticated/workout/$workoutId': typeof AuthenticatedWorkoutWorkoutIdRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/recover-abandoned': typeof ApiPublicRecoverAbandonedRoute
+  '/api/public/retry-generations': typeof ApiPublicRetryGenerationsRoute
   '/community/workout/$workoutId': typeof CommunityWorkoutWorkoutIdRoute
   '/api/public/blog-cover/$file': typeof ApiPublicBlogCoverFileRoute
   '/api/public/hooks/daily-run': typeof ApiPublicHooksDailyRunRoute
@@ -526,6 +546,8 @@ export interface FileRouteTypes {
     | '/checkout/return'
     | '/workout/$workoutId'
     | '/api/public/health'
+    | '/api/public/recover-abandoned'
+    | '/api/public/retry-generations'
     | '/community/workout/$workoutId'
     | '/api/public/blog-cover/$file'
     | '/api/public/hooks/daily-run'
@@ -578,6 +600,8 @@ export interface FileRouteTypes {
     | '/checkout/return'
     | '/workout/$workoutId'
     | '/api/public/health'
+    | '/api/public/recover-abandoned'
+    | '/api/public/retry-generations'
     | '/community/workout/$workoutId'
     | '/api/public/blog-cover/$file'
     | '/api/public/hooks/daily-run'
@@ -631,6 +655,8 @@ export interface FileRouteTypes {
     | '/_authenticated/checkout/return'
     | '/_authenticated/workout/$workoutId'
     | '/api/public/health'
+    | '/api/public/recover-abandoned'
+    | '/api/public/retry-generations'
     | '/community/workout/$workoutId'
     | '/api/public/blog-cover/$file'
     | '/api/public/hooks/daily-run'
@@ -674,6 +700,8 @@ export interface RootRouteChildren {
   ToolsIndexRoute: typeof ToolsIndexRoute
   TrainingIndexRoute: typeof TrainingIndexRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
+  ApiPublicRecoverAbandonedRoute: typeof ApiPublicRecoverAbandonedRoute
+  ApiPublicRetryGenerationsRoute: typeof ApiPublicRetryGenerationsRoute
   CommunityWorkoutWorkoutIdRoute: typeof CommunityWorkoutWorkoutIdRoute
   ApiPublicBlogCoverFileRoute: typeof ApiPublicBlogCoverFileRoute
   ApiPublicHooksDailyRunRoute: typeof ApiPublicHooksDailyRunRoute
@@ -993,6 +1021,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/recover-abandoned': {
+      id: '/api/public/recover-abandoned'
+      path: '/api/public/recover-abandoned'
+      fullPath: '/api/public/recover-abandoned'
+      preLoaderRoute: typeof ApiPublicRecoverAbandonedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/retry-generations': {
+      id: '/api/public/retry-generations'
+      path: '/api/public/retry-generations'
+      fullPath: '/api/public/retry-generations'
+      preLoaderRoute: typeof ApiPublicRetryGenerationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/community/workout/$workoutId': {
       id: '/community/workout/$workoutId'
       path: '/community/workout/$workoutId'
@@ -1121,6 +1163,8 @@ const rootRouteChildren: RootRouteChildren = {
   ToolsIndexRoute: ToolsIndexRoute,
   TrainingIndexRoute: TrainingIndexRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
+  ApiPublicRecoverAbandonedRoute: ApiPublicRecoverAbandonedRoute,
+  ApiPublicRetryGenerationsRoute: ApiPublicRetryGenerationsRoute,
   CommunityWorkoutWorkoutIdRoute: CommunityWorkoutWorkoutIdRoute,
   ApiPublicBlogCoverFileRoute: ApiPublicBlogCoverFileRoute,
   ApiPublicHooksDailyRunRoute: ApiPublicHooksDailyRunRoute,
