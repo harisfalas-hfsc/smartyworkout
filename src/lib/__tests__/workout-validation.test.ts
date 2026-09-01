@@ -8,6 +8,7 @@ import {
   resolveRequestConflicts,
   retryDelayMs,
 } from "@/lib/workout-validation";
+import { adminRecipients } from "@/lib/workout-generation-alert.server";
 
 describe("issue classification", () => {
   it("treats volume drift as soft", () => {
@@ -80,5 +81,14 @@ describe("retry policy", () => {
 
   it("derives stable idempotency keys", () => {
     expect(generationIdempotencyKey("s1", "workout-ready-customer")).toBe("s1:workout-ready-customer");
+  });
+});
+
+describe("generation alert recipients", () => {
+  it("uses the two fixed administrator inboxes without configuration", () => {
+    expect(adminRecipients()).toEqual([
+      "smartyworkout@outlook.com",
+      "harisforas@gmail.com",
+    ]);
   });
 });
