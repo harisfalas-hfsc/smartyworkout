@@ -352,7 +352,8 @@ export async function generateWorkoutContent(
   const enforcedPack = enforceWorkout(pack.html, pool, enforceOpts);
 
   const packValidation = validateWorkout(enforcedPack.html, validateOpts);
-  if (enforcedPack.errors.length || packValidation.errors.length) {
+  const packSplit = classifyIssues([...enforcedPack.errors, ...packValidation.errors]);
+  if (packSplit.structural.length) {
     throw new Error(
       `Smarty Coach could not build a compliant workout (${lastError}). Please try again.`,
     );
@@ -375,6 +376,7 @@ export async function generateWorkoutContent(
       `Built by the template engine after the AI attempts failed (${lastError}).`,
       ...enforcedPack.warnings,
       ...packValidation.warnings,
+      ...packSplit.soft,
     ],
     needs_review: true,
     format,
