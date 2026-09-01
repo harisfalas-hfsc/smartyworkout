@@ -539,7 +539,7 @@ export function durationOverflowViolation(
   estimatedMinutes: number,
   targetMinutes: number,
 ): string | null {
-  const ceiling = Math.round(targetMinutes * 1.35) + 5;
+  const ceiling = Math.round(targetMinutes * 1.15) + 4;
   if (estimatedMinutes > ceiling)
     return `Prescribed work (~${estimatedMinutes} min) materially exceeds the advertised ${targetMinutes} min session.`;
   return null;
