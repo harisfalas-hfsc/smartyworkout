@@ -7,7 +7,7 @@ import { classifyIssues } from "@/lib/workout-validation";
 import { buildPackWorkout, packCopy } from "./pack.server";
 import { buildSessionPlan, scoreWorkout } from "./programming";
 import { parseWorkoutSteps } from "./parse-steps";
-import { dominantRegion, focusRegion } from "./doctrine";
+import { dominantRegion, focusRegion, resolveLocation } from "./doctrine";
 
 import {
   buildActivationPool,
