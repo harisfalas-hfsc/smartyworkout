@@ -62,6 +62,10 @@ export type ValidateOptions = {
   dislikedIds?: string[];
   /** Where the athlete trains today — outdoors bans gym apparatus outright. */
   location?: string | null;
+  /** Today's reported state — a low-energy day caps impact deterministically. */
+  mood?: string | null;
+  /** Athlete age — past 60 repeated impact is replaced, not just discouraged. */
+  age?: number | null;
 
 
   /** Ids allowed in 🔥 Activation / 🧘 Cool Down (prep vocabulary, bodyweight-first). */
