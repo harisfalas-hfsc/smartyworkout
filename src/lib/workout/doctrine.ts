@@ -217,7 +217,9 @@ export function humanRealismViolation(e: ExerciseLike): string | null {
 /**
  * §18 — the environment decides what is realistic. Outdoors means portable
  * implements only: no machines, no cables, no racks, no barbells, whatever the
- * athlete ticked in their equipment list.
+ * athlete ticked in their equipment list. "Anywhere" makes the same promise:
+ * the athlete asked for a session they can run wherever they happen to be, so
+ * it may never depend on a fixed gym station either.
  */
 const OUTDOOR_FAMILIES = new Set([
   "bodyweight",
@@ -228,18 +230,53 @@ const OUTDOOR_FAMILIES = new Set([
   "suspension",
 ]);
 
+/** Locations that can only host equipment an athlete can carry. */
+const PORTABLE_ONLY_LOCATIONS = new Set(["outdoors", "anywhere"]);
+
+/** Apparatus that only exists as a fixed station in a real gym. */
+const FIXED_STATION_RE =
+  /\b(machine|cable|smith|leverage|rack|power rack|squat rack|pulldown|pec deck|leg press|leg extension|leg curl|treadmill|elliptical|stepmill|ergometer|rowing machine|skierg|stationary bike|sled)\b/i;
+
 export function locationEquipmentViolation(
   e: ExerciseLike,
   location: string | null | undefined,
 ): string | null {
   const l = (location ?? "").toLowerCase();
-  if (l !== "outdoors") return null;
+  if (!PORTABLE_ONLY_LOCATIONS.has(l)) return null;
+  const where = l === "anywhere" ? "an anywhere session" : "an outdoor session";
   const family = equipmentFamilyOf(e.equipment);
+  if (FIXED_STATION_RE.test(`${e.equipment ?? ""} ${e.name}`))
+    return `"${e.name}" needs a fixed gym station — ${where} uses portable equipment only.`;
   if (OUTDOOR_FAMILIES.has(family)) return null;
   if (/\b(rope|jump rope|sandbag|sled|box|step|bench|bar)\b/.test((e.equipment ?? "").toLowerCase()))
-    return `"${e.name}" needs ${e.equipment} — an outdoor session uses portable equipment only.`;
-  return `"${e.name}" needs ${e.equipment ?? "gym apparatus"}, which does not exist outdoors.`;
+    return `"${e.name}" needs ${e.equipment} — ${where} uses portable equipment only.`;
+  return `"${e.name}" needs ${e.equipment ?? "gym apparatus"}, which cannot be assumed in ${where}.`;
 }
+
+/** Equipment ids that only exist as a fixed station in a real gym. */
+const GYM_ONLY_EQUIPMENT = new Set(["machines", "cables", "barbell", "rack", "bench", "cardio"]);
+
+/**
+ * §18 — "Anywhere" promises a session the athlete can run wherever they are, so
+ * it is filtered as a portable location. When the athlete explicitly ticked
+ * fixed-station equipment they contradicted themselves; equipment outranks the
+ * environment preference (injuries > equipment > level > goal > likes >
+ * dislikes), so the session is resolved to a gym session instead of shrinking
+ * the pool to nothing.
+ */
+export function resolveLocation(
+  location: string | null | undefined,
+  selectedEquipment: readonly string[] = [],
+): string {
+  const l = (location ?? "").toLowerCase() || "anywhere";
+  if (l !== "anywhere") return l;
+  return selectedEquipment.some((id) => GYM_ONLY_EQUIPMENT.has(String(id).toLowerCase()))
+    ? "gym"
+    : "anywhere";
+}
+
+
+
 
 /** High-output conditioning vocabulary — the athlete is breathing hard after it. */
 const HIGH_FATIGUE_RE =
@@ -429,10 +466,55 @@ export function dominantRegion(main: ExerciseLike[]): BodyRegion {
   return top;
 }
 
+/** Movement pattern of an exercise, used to check activation specificity. */
+export type MovementPattern = "push" | "pull" | "squat" | "hinge" | "core" | "other";
+
+export function patternOf(e: ExerciseLike): MovementPattern {
+  const n = e.name.toLowerCase();
+  if (/\b(row|pull-?up|pull-?down|chin-?up|face pull|pull ?over|curl|shrug|reverse fly|rear delt)\b/.test(n))
+    return "pull";
+  if (/\b(press|push-?up|dip|fly|push press|overhead|bench)\b/.test(n)) return "push";
+  if (/\b(squat|lunge|step-?up|leg press|split squat|leg extension)\b/.test(n)) return "squat";
+  if (/\b(deadlift|hinge|good morning|swing|hip thrust|glute bridge|romanian|leg curl|hamstring)\b/.test(n))
+    return "hinge";
+  if (/\b(plank|crunch|sit-?up|dead bug|bird dog|hollow|rotation|twist|carry|pallof)\b/.test(n))
+    return "core";
+  return "other";
+}
+
+/** Preparation patterns that legitimately serve a given main-block pattern. */
+const PATTERN_PREP: Record<MovementPattern, MovementPattern[]> = {
+  push: ["push", "core", "other"],
+  pull: ["pull", "core", "other"],
+  squat: ["squat", "hinge", "core", "other"],
+  hinge: ["hinge", "squat", "core", "other"],
+  core: ["core", "other"],
+  other: ["push", "pull", "squat", "hinge", "core", "other"],
+};
+
+/** The pattern a main block is built around, when one clearly dominates. */
+export function dominantPattern(main: ExerciseLike[]): MovementPattern {
+  const counts: Record<MovementPattern, number> = {
+    push: 0,
+    pull: 0,
+    squat: 0,
+    hinge: 0,
+    core: 0,
+    other: 0,
+  };
+  for (const e of main) counts[patternOf(e)] += 1;
+  const ranked = (Object.keys(counts) as MovementPattern[])
+    .filter((p) => p !== "other")
+    .sort((a, b) => counts[b] - counts[a]);
+  const top = ranked[0]!;
+  if (!main.length || counts[top] / main.length < 0.6) return "other";
+  return top;
+}
+
 /**
- * Activation must prepare the demand of the Main Workout. Returns a violation
- * when the majority of activation work targets a region the main block does
- * not train (for example arm-band drills before a lower-body strength day).
+ * §21 — activation must prepare the demand of the Main Workout, in BOTH the
+ * body region and the movement pattern. Band pull-aparts before a pressing day
+ * hit the right region but the wrong demand, so region alone is not enough.
  */
 export function activationRelevanceViolation(
   activation: ExerciseLike[],
@@ -440,15 +522,29 @@ export function activationRelevanceViolation(
 ): string | null {
   if (activation.length < 2 || main.length < 2) return null;
   const target = dominantRegion(main);
-  if (target === "full") return null;
-  const relevant = activation.filter((e) => {
-    const r = regionOf(e);
-    return r === target || r === "full" || (target === "lower" && r === "core") || (target === "core" && r === "lower");
-  }).length;
-  if (relevant / activation.length < 0.5)
-    return `Activation prepares the wrong region: the Main Workout is ${target}-body dominant but most activation drills are not.`;
+  if (target !== "full") {
+    const relevant = activation.filter((e) => {
+      const r = regionOf(e);
+      return (
+        r === target ||
+        r === "full" ||
+        (target === "lower" && r === "core") ||
+        (target === "core" && r === "lower")
+      );
+    }).length;
+    if (relevant / activation.length < 0.5)
+      return `Activation prepares the wrong region: the Main Workout is ${target}-body dominant but most activation drills are not.`;
+  }
+
+  const pattern = dominantPattern(main);
+  if (pattern === "other") return null;
+  const allowed = PATTERN_PREP[pattern];
+  const onPattern = activation.filter((e) => allowed.includes(patternOf(e))).length;
+  if (onPattern / activation.length < 0.5)
+    return `Activation prepares the wrong demand: the Main Workout is a ${pattern}-dominant block but most activation drills do not prepare that pattern.`;
   return null;
 }
+
 
 // --- 12. Equipment family doctrine ------------------------------------------
 
@@ -502,7 +598,7 @@ export function durationOverflowViolation(
   estimatedMinutes: number,
   targetMinutes: number,
 ): string | null {
-  const ceiling = Math.round(targetMinutes * 1.35) + 5;
+  const ceiling = Math.round(targetMinutes * 1.15) + 4;
   if (estimatedMinutes > ceiling)
     return `Prescribed work (~${estimatedMinutes} min) materially exceeds the advertised ${targetMinutes} min session.`;
   return null;
@@ -555,10 +651,10 @@ export function sessionOverflowViolation(
   targetMinutes: number,
 ): string | null {
   const ceiling =
-    Math.round(targetMinutes * 1.2) +
+    Math.round(targetMinutes * 1.05) +
     activationAllowanceMinutes(targetMinutes) +
     cooldownAllowanceMinutes(targetMinutes) +
-    5;
+    2;
   if (sessionMinutes > ceiling)
     return `The complete session (~${sessionMinutes} min including activation, main work, rest, finisher and cool down) is far beyond the requested ${targetMinutes} min of training.`;
   return null;
@@ -603,7 +699,70 @@ export function cardioDominanceViolation(
   return null;
 }
 
+// --- 27. Mood and biometrics: deterministic dose ----------------------------
+
+/** Impact and plyometric vocabulary — the first thing to go on a bad day. */
+export const HIGH_IMPACT_RE =
+  /\b(jump|jumping|jump squat|squat jump|box jump|broad jump|tuck jump|plyo|plyometric|bound|hop|hopping|burpee|depth jump|skater jump|jumping jack|jumping lunge|jump lunge|sprint|slam)\b/i;
+
+const LOW_ENERGY_MOODS = new Set(["tired", "stressed", "low", "sore"]);
+
+export function isLowEnergyMood(mood: string | null | undefined): boolean {
+  return LOW_ENERGY_MOODS.has((mood ?? "").toLowerCase().trim());
+}
+
+/**
+ * §27 — mood changes DOSE, and the change must be verifiable, not just asked
+ * for in the prompt. On a low-energy day repeated high-impact work is rejected
+ * outright: at most one impact movement may survive in the main block.
+ */
+export function moodDoseViolation(
+  mood: string | null | undefined,
+  exercises: ExerciseLike[],
+): string | null {
+  if (!isLowEnergyMood(mood) || exercises.length === 0) return null;
+  const impact = exercises.filter((e) => HIGH_IMPACT_RE.test(e.name));
+  if (impact.length > 1)
+    return `The athlete reported feeling ${(mood ?? "").toLowerCase()}, but the session still prescribes repeated high-impact work (${impact
+      .map((e) => `"${e.name}"`)
+      .join(", ")}). Reduce impact and volume on a low-energy day.`;
+  return null;
+}
+
+/**
+ * §2 — biometrics are not decoration. Past 60 the joints, not the willingness,
+ * set the ceiling: repeated impact is replaced with low-impact equivalents.
+ */
+export function ageSafetyViolation(
+  age: number | null | undefined,
+  exercises: ExerciseLike[],
+): string | null {
+  if (typeof age !== "number" || !Number.isFinite(age) || age < 60) return null;
+  const impact = exercises.filter((e) => HIGH_IMPACT_RE.test(e.name));
+  const limit = age >= 70 ? 0 : 1;
+  if (impact.length > limit)
+    return `The athlete is ${Math.round(age)}: ${impact
+      .map((e) => `"${e.name}"`)
+      .join(", ")} ${impact.length === 1 ? "is" : "are"} repeated high-impact work. Use low-impact equivalents (step-ups, marches, fast bodyweight squats, carries, cycling).`;
+  return null;
+}
+
+/** Deterministic coaching directive derived from age, shown to the model. */
+export function ageDirective(age: number | null | undefined): string {
+  if (typeof age !== "number" || !Number.isFinite(age)) return "";
+  if (age >= 70)
+    return "The athlete is over 70: no jumping, hopping, plyometrics or impact of any kind. Prefer supported, stable, low-complexity movements, longer rest and a slightly lower total volume. Strength work stays — it matters more at this age, not less.";
+  if (age >= 60)
+    return "The athlete is over 60: at most one low-amplitude impact movement in the whole session, prefer stable and well-supported variations, extend rest slightly and avoid heavy spinal loading late in the session.";
+  if (age >= 50)
+    return "The athlete is over 50: keep impact moderate, warm the joints properly and prefer controlled tempo over ballistic speed. Volume and loading stay appropriate to their level.";
+  if (age <= 17)
+    return "The athlete is under 18: prioritise technique, bodyweight and light loading, no maximal or near-maximal loads, and no fatigue-to-failure work.";
+  return "";
+}
+
 export function sessionBudgetViolation(
+
   sessionMinutes: number,
   workMinutes: number,
   targetMinutes: number,

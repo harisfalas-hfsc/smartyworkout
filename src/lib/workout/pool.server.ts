@@ -11,6 +11,7 @@ import {
   microExerciseViolation,
   regionOf,
   HIGH_FATIGUE_CONDITIONING_RE,
+  HIGH_IMPACT_RE,
   HOME_APPARATUS_RE,
   STATIC_HOLD_RE,
   STRETCH_RE,
@@ -85,6 +86,8 @@ export type PoolFilter = {
   bannedTerms?: string[];
   /** Where the athlete trains today — filters impractical apparatus / impact. */
   location?: string | null;
+  /** Athlete age — past 70 impact work leaves the vocabulary entirely. */
+  age?: number | null;
 };
 
 const NOTE_STOPWORDS = new Set([
@@ -131,6 +134,8 @@ const OUTDOOR_BAN_RE =
  * Keeps only what the athlete can realistically do at today's location.
  * HARD filter: forbidden apparatus is never restored to reach an exercise
  * count — a smaller legal pool is always preferred to an illegal one.
+ * "Anywhere" is a real constraint, not a blank cheque: it means a session the
+ * athlete can run wherever they are, so fixed gym stations are removed too.
  */
 export function filterByLocation(pool: PoolExercise[], location?: string | null): PoolExercise[] {
   const l = (location ?? "").toLowerCase();
@@ -141,9 +146,14 @@ export function filterByLocation(pool: PoolExercise[], location?: string | null)
     return pool.filter(
       (e) => !OUTDOOR_BAN_RE.test(text(e)) && !locationEquipmentViolation(e, "outdoors"),
     );
+  if (l === "anywhere")
+    return pool.filter(
+      (e) => !OUTDOOR_BAN_RE.test(text(e)) && !locationEquipmentViolation(e, "anywhere"),
+    );
 
   return pool;
 }
+
 
 
 const isBodyweight = (e: PoolExercise) => (e.equipment ?? "").toLowerCase().includes("body weight");
@@ -295,10 +305,18 @@ export function filterPool(all: PoolExercise[], f: PoolFilter): PoolExercise[] {
   // 6b. Location practicality — no machines in a hotel room, no jumping upstairs.
   pool = filterByLocation(pool, f.location);
 
+  // 6c. Biometrics — past 70 impact work leaves the vocabulary entirely rather
+  //     than relying on the model to avoid it.
+  if (typeof f.age === "number" && f.age >= 70) {
+    const impactFree = pool.filter((e) => !HIGH_IMPACT_RE.test(e.name));
+    if (impactFree.length >= 12) pool = impactFree;
+  }
+
   // 7. Hard ban from today's note ("no burpees", "avoid bicep curls").
   if (f.bannedTerms?.length) {
     pool = pool.filter((e) => !f.bannedTerms!.some((t) => text(e).includes(t)));
   }
+
 
 
 

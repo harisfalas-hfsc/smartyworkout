@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   classifyFailureKind,
   classifyIssues,
+  classifyIssuesForFallback,
   isDeliverable,
   MAX_GENERATION_ATTEMPTS,
   generationIdempotencyKey,
@@ -10,17 +11,31 @@ import {
 } from "@/lib/workout-validation";
 import { adminRecipients } from "@/lib/workout-generation-alert.server";
 
+const DURATION_FAULTS = [
+  "Prescribed work (~48 min) materially exceeds the advertised 40 min session.",
+  "The prescribed sections only add up to ~18 min of training against a requested 40 min — the session is materially short.",
+  "Cool down (~14 min) is too long — it may take at most about 8 min.",
+];
+
 describe("issue classification", () => {
-  it("treats volume drift as soft", () => {
-    const split = classifyIssues([
-      "Prescribed work (~48 min) materially exceeds the advertised 40 min session.",
-      "The prescribed sections only add up to ~18 min of training against a requested 40 min — the session is materially short.",
-      "Cool down (~14 min) is too long — it may take at most about 8 min.",
-    ]);
+  it("blocks a session that does not fit the advertised time", () => {
+    const split = classifyIssues(DURATION_FAULTS);
+    expect(split.structural).toHaveLength(3);
+    expect(split.soft).toHaveLength(0);
+    expect(isDeliverable(DURATION_FAULTS)).toBe(false);
+  });
+
+  it("still delivers the deterministic fallback with a caution", () => {
+    const split = classifyIssuesForFallback(DURATION_FAULTS);
     expect(split.structural).toHaveLength(0);
     expect(split.soft).toHaveLength(3);
-    expect(isDeliverable(split.soft)).toBe(true);
   });
+
+  it("keeps real structural faults blocking in the fallback too", () => {
+    const split = classifyIssuesForFallback([...DURATION_FAULTS, "Main Workout has only 2 exercises."]);
+    expect(split.structural).toEqual(["Main Workout has only 2 exercises."]);
+  });
+
 
   it("treats missing structure as blocking", () => {
     const split = classifyIssues([

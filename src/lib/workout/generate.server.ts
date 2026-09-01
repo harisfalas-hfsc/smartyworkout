@@ -3,11 +3,11 @@ import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 import { buildWorkoutPrompt, type AthleteContext } from "./prompt.server";
 import { enforceWorkout, estimateWorkMinutes } from "./enforce.server";
 import { validateWorkout } from "./validate.server";
-import { classifyIssues } from "@/lib/workout-validation";
+import { classifyIssues, classifyIssuesForFallback } from "@/lib/workout-validation";
 import { buildPackWorkout, packCopy } from "./pack.server";
 import { buildSessionPlan, scoreWorkout } from "./programming";
 import { parseWorkoutSteps } from "./parse-steps";
-import { dominantRegion, focusRegion } from "./doctrine";
+import { dominantRegion, focusRegion, resolveLocation } from "./doctrine";
 
 import {
   buildActivationPool,
@@ -130,6 +130,9 @@ export async function generateWorkoutContent(
   const favoriteIds = input.favoriteIds ?? [];
   const dislikedIds = input.dislikedIds ?? [];
   const bannedTerms = input.note ? parseNoteExclusions(input.note) : [];
+  // §18 — "Anywhere" is a real practicality filter (portable equipment only),
+  // unless the athlete explicitly ticked fixed-station gym equipment.
+  const location = resolveLocation(input.location ?? null, input.selectedEquipment);
   const pool = filterPool(all, {
     category: input.category,
     format,
@@ -141,7 +144,8 @@ export async function generateWorkoutContent(
     dislikedIds,
     favoriteIds,
     bannedTerms,
-    location: input.location ?? null,
+    location,
+    age: input.athlete?.age ?? null,
   });
 
 
@@ -221,7 +225,10 @@ export async function generateWorkoutContent(
     customEquipment,
     focus: input.focus ?? null,
     dislikedIds,
-    location: input.location ?? null,
+    location,
+    mood: input.mood ?? null,
+    age: input.athlete?.age ?? null,
+
 
 
     prepIds,
@@ -352,7 +359,10 @@ export async function generateWorkoutContent(
   const enforcedPack = enforceWorkout(pack.html, pool, enforceOpts);
 
   const packValidation = validateWorkout(enforcedPack.html, validateOpts);
-  const packSplit = classifyIssues([...enforcedPack.errors, ...packValidation.errors]);
+  const packSplit = classifyIssuesForFallback([
+    ...enforcedPack.errors,
+    ...packValidation.errors,
+  ]);
   if (packSplit.structural.length) {
     throw new Error(
       `Smarty Coach could not build a compliant workout (${lastError}). Please try again.`,

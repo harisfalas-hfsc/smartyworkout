@@ -1,5 +1,6 @@
 import type { PoolExercise } from "./pool.server";
 import { planPrompt, type SessionPlan } from "./programming";
+import { ageDirective } from "./doctrine";
 import {
   BANNED_NAME_WORDS,
   intensityNote,
@@ -123,6 +124,8 @@ function athleteBlock(a?: AthleteContext): string {
     a.weight_kg ? `${a.weight_kg} kg` : "",
   ].filter(Boolean).join(", ");
   if (bio) lines.push(`Biometrics: ${bio}`);
+  const ageRule = ageDirective(a.age ?? null);
+  if (ageRule) lines.push(`AGE-APPROPRIATE PROGRAMMING (hard rule): ${ageRule}`);
   if (a.fitness_level) lines.push(`Fitness level: ${a.fitness_level}`);
   if (a.primary_goal) lines.push(`Primary goal: ${a.primary_goal}`);
   if (a.secondary_goal) lines.push(`Secondary goal: ${a.secondary_goal}`);

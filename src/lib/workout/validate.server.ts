@@ -13,6 +13,7 @@ import {
 } from "./enforce.server";
 import {
   activationRelevanceViolation,
+  ageSafetyViolation,
   categoryAllowsFinisher,
   categoryExerciseViolation,
   cardioDominanceViolation,
@@ -23,6 +24,7 @@ import {
   focusViolation,
   humanRealismViolation,
   locationEquipmentViolation,
+  moodDoseViolation,
   sequenceViolation,
 
   microExerciseViolation,
@@ -60,6 +62,10 @@ export type ValidateOptions = {
   dislikedIds?: string[];
   /** Where the athlete trains today — outdoors bans gym apparatus outright. */
   location?: string | null;
+  /** Today's reported state — a low-energy day caps impact deterministically. */
+  mood?: string | null;
+  /** Athlete age — past 60 repeated impact is replaced, not just discouraged. */
+  age?: number | null;
 
 
   /** Ids allowed in 🔥 Activation / 🧘 Cool Down (prep vocabulary, bodyweight-first). */
@@ -240,6 +246,13 @@ export function validateWorkout(html: string, opts: ValidateOptions): Validation
     // 6e. Cardio stays aerobic — it may never turn into a metabolic session.
     const cardio = cardioDominanceViolation(rowsOf(main.map((s) => s.exerciseId)), opts.category);
     if (cardio) errors.push(cardio);
+    // 6f. Mood and biometrics change the DOSE, and the change is verified here
+    //     rather than merely requested in the prompt.
+    const mainRows = rowsOf([...main, ...finisher].map((s) => s.exerciseId));
+    const moodIssue = moodDoseViolation(opts.mood ?? null, mainRows);
+    if (moodIssue) errors.push(moodIssue);
+    const ageIssue = ageSafetyViolation(opts.age ?? null, mainRows);
+    if (ageIssue) errors.push(ageIssue);
   }
 
 

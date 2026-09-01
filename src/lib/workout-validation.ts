@@ -9,13 +9,27 @@
  * may trigger a repair pass.
  */
 
-/** Messages that describe drift, not a broken session. */
-const SOFT_PATTERNS: RegExp[] = [
+/**
+ * Duration faults. A session that does not fit the advertised time is NOT
+ * cosmetic — the athlete bought 40 minutes, not 66 — so these block a
+ * candidate and force a regeneration. They are listed separately because the
+ * very last deterministic fallback may still ship with a caution rather than
+ * leave the athlete with nothing at all.
+ */
+const DURATION_PATTERNS: RegExp[] = [
   /materially exceeds/i,
   /materially short/i,
   /falls far short/i,
   /far beyond the requested/i,
   /is too long/i,
+];
+
+export function isDurationIssue(message: string): boolean {
+  return DURATION_PATTERNS.some((re) => re.test(message));
+}
+
+/** Messages that describe drift, not a broken session. */
+const SOFT_PATTERNS: RegExp[] = [
   /session quality/i,
   /did not match the library entry/i,
   /name was replaced/i,
@@ -40,6 +54,19 @@ export function classifyIssues(messages: readonly string[]): IssueSplit {
     (isSoftIssue(message) ? soft : structural).push(message);
   }
   return { structural, soft };
+}
+
+/**
+ * Last-resort split used by the deterministic fallback only: duration faults
+ * become cautions so a paid request is still delivered, while every real
+ * structural fault still blocks.
+ */
+export function classifyIssuesForFallback(messages: readonly string[]): IssueSplit {
+  const { structural, soft } = classifyIssues(messages);
+  return {
+    structural: structural.filter((m) => !isDurationIssue(m)),
+    soft: [...soft, ...structural.filter(isDurationIssue)],
+  };
 }
 
 /** True when nothing structural is wrong — the workout may be delivered. */
