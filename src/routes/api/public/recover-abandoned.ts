@@ -1,14 +1,26 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-function authorised(request: Request): boolean {
-  const secret = process.env["CRON_SECRET"] || process.env["DAILY_RUN_SECRET"] || "";
-  if (!secret) return false;
-  const header = request.headers.get("authorization") ?? "";
-  return header.replace(/^Bearer\s+/i, "").trim() === secret;
+async function authorised(request: Request): Promise<boolean> {
+  const presented = (
+    request.headers.get("x-daily-secret") ??
+    request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ??
+    ""
+  ).trim();
+  if (!presented) return false;
+  const envSecret = (process.env["CRON_SECRET"] || process.env["DAILY_RUN_SECRET"] || "").trim();
+  if (envSecret && presented === envSecret) return true;
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: row } = await supabaseAdmin
+    .from("app_settings")
+    .select("value")
+    .eq("key", "daily_run_token")
+    .maybeSingle();
+  const token = (row as { value?: { token?: string } } | null)?.value?.token ?? "";
+  return Boolean(token) && presented === token;
 }
 
 async function run(request: Request) {
-  if (!authorised(request)) return new Response("Unauthorized", { status: 401 });
+  if (!(await authorised(request))) return new Response("Unauthorized", { status: 401 });
   const { retryPendingGenerations, sweepAbandonedGenerations } = await import(
     "@/lib/workout-generation.server"
   );
