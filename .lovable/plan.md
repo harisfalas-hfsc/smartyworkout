@@ -24,22 +24,35 @@ Flow for every generation:
 On a true failure, three emails, once per session:
 
 - `smartyworkout@outlook.com` — subject `[SmartyWorkout ALERT] …`, or `[SmartyWorkout URGENT] …` once a session is stuck after the final retry. Contains member name, email, user id, session id, questionnaire/preferences id, stage (initial generation / workout of the day / refinement), payment state, technical failure reason, timestamp.
-- The administrator's personal address, read from a new `ALERT_BACKUP_EMAIL` secret, so a junk rule can never hide a failure.
+- **`harisfalas@gmail.com`** — the administrator's personal address, so a junk rule in Outlook can never hide a failure. It is stored in an `ALERT_BACKUP_EMAIL` secret (default value `harisfalas@gmail.com`) so it can be changed later without a code change.
 - The member — branded, zero technical detail, no error codes, no mention of AI balance: "We hit a temporary snag building your workout. Your payment and your answers are safe, we are already on it, and you will get your workout shortly — nothing for you to do."
 
 Reply-to on all of them is the support address. The member apology is sent once per failed session, guarded by `customer_notified_at` — never once per retry.
 
-## 3. Automatic recovery
+## 3. What the member sees while this happens
+
+The member must never be trapped on a spinner, and must never lose a workout by closing the tab.
+
+- **0–90 seconds — foreground wait.** The existing "Building your workout" screen with rotating tips stays as it is. Most sessions finish here and nothing else happens.
+- **After ~90 seconds — handoff.** The waiting screen turns into a calm hand-off card: "This one is taking longer than usual. You can leave this page — we will finish it in the background and tell you the moment it is ready." With two buttons: *Keep waiting* and *Leave it with us*.
+- **Leaving the page is safe.** The generation request row already exists in the database before the first AI call, so the work continues server-side and is picked up by the retry cron regardless of whether the browser is open, the app is closed, or the phone is locked.
+- **Where the member can check.** A small "Workout in progress" card appears on Coach and in the Logbook while a request is pending, showing status (building / retrying / ready) and refreshing itself. Nothing is ever silently dropped.
+- **When it is ready.** The member gets an in-app notification ("Your workout is ready — open it") in the bell/inbox, and — only if the session had previously failed and they were told about the delay — the "Your workout is ready" email with a direct button. The workout appears in their account and Logbook as normal.
+- **If they are still on the page when it completes**, the screen navigates straight into the workout, exactly as today.
+- **Only when everything fails** (a genuine outage) do they see the polite apology screen, plus the one delay email, and the retry cron keeps working on it without them doing anything.
+
+## 4. Automatic recovery
 
 - A retry cron every few minutes retries each failed session with exponential backoff, up to 5 attempts. A failed refinement is retried **as a refinement**, restoring the saved refinement text, so the old workout is never mistaken for a success.
 - A daily sweep re-alerts (URGENT) any session still failed with no retry scheduled and no workout.
 - The first time a previously-failed session succeeds: "Your workout is ready" to the member (with a button opening the workout) and to both admin addresses, guarded by `recovery_notified_at`.
-- Happy path with no prior failure sends **nothing**.
+- Happy path with no prior failure sends **no email** (the in-app notification is only added for sessions that went to background).
 - After the admin tops up AI balance, pending sessions regenerate on the next cron run with no manual step; a protected admin endpoint also triggers recovery immediately.
 
-## 4. Admin visibility
+## 5. Admin visibility
 
 A new **Generation failures** tab in the admin panel: member, time, stage, failure kind, reason, email delivery status + recipient + message id, a "mark as read" action, and a "send test failure email" button.
+
 
 ## Technical section
 
