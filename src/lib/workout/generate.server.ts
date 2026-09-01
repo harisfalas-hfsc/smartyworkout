@@ -225,7 +225,10 @@ export async function generateWorkoutContent(
     customEquipment,
     focus: input.focus ?? null,
     dislikedIds,
-    location: input.location ?? null,
+    location,
+    mood: input.mood ?? null,
+    age: input.athlete?.age ?? null,
+
 
 
     prepIds,
