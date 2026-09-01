@@ -85,6 +85,8 @@ export type PoolFilter = {
   bannedTerms?: string[];
   /** Where the athlete trains today — filters impractical apparatus / impact. */
   location?: string | null;
+  /** Athlete age — past 70 impact work leaves the vocabulary entirely. */
+  age?: number | null;
 };
 
 const NOTE_STOPWORDS = new Set([
