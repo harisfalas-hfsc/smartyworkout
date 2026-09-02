@@ -243,7 +243,10 @@ export async function runHealthCheck(
       .gte("ran_at", new Date(Date.now() - 24 * 3600 * 1000).toISOString())
       .limit(200);
     const rows = (runs as { job_key: string; status: string }[] | null) ?? [];
-    const failed = rows.filter((r) => r.status === "failed");
+    // A health-check run is marked "failed" whenever any check below fails, so
+    // counting it here would make yesterday's report fail today's report for
+    // ever. Every other check in this email already covers what it reports.
+    const failed = rows.filter((r) => r.status === "failed" && r.job_key !== "health-check");
     const parts = [`${rows.length} job run(s) in the last 24h`];
     if (off.length) parts.push(`switched off: ${off.join(", ")}`);
     if (failed.length) {
@@ -251,6 +254,7 @@ export async function runHealthCheck(
       return ["fail", parts.join(" · ")];
     }
     return [off.length ? "warn" : "pass", parts.join(" · ")];
+
   });
 
   await run("pages", async () => {
