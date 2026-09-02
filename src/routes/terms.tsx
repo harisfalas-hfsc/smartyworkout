@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { FileText } from "lucide-react";
 import { LegalLayout } from "@/components/LegalLayout";
+import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
 
 export const Route = createFileRoute("/terms")({
   head: () => ({
@@ -24,6 +25,7 @@ export const Route = createFileRoute("/terms")({
 });
 
 function Terms() {
+  const { freeAccessMode } = useFreeAccessMode();
   return (
     <LegalLayout title="Terms & Conditions" icon={<FileText className="h-5 w-5" />} lastUpdated="July 2026">
       <p>
@@ -70,27 +72,45 @@ function Terms() {
         <li>You are responsible for all activity that occurs under your account.</li>
       </ul>
 
-      <h2>5. Membership &amp; Pricing</h2>
-      <ul>
-        <li>
-          Smarty Workout offers a single paid membership priced at <strong>€9.99 per month</strong>,
-          which gives you access to up to 2 AI-generated workouts per day, the full exercise
-          library, our training tools, and your workout logbook.
-        </li>
-        <li>
-          Your membership renews automatically each month until you cancel. You can cancel at any
-          time from your account settings; access continues until the end of the current billing
-          period.
-        </li>
-        <li>Prices may change with prior notice. Continued use after a price change constitutes acceptance of the new price.</li>
-      </ul>
+      {freeAccessMode ? (
+        <>
+          <h2>5. Access to the Service</h2>
+          <ul>
+            <li>
+              All Smarty Workout features — daily workouts, the full exercise library, the training
+              tools and your logbook — are available to every registered user at no cost.
+            </li>
+            <li>
+              We do not charge for access and we do not collect card details. You may stop using
+              the service and delete your account at any time.
+            </li>
+          </ul>
+        </>
+      ) : (
+        <>
+          <h2>5. Membership &amp; Pricing</h2>
+          <ul>
+            <li>
+              Smarty Workout offers a single paid membership priced at <strong>€9.99 per month</strong>,
+              which gives you access to up to 2 generated workouts per day, the full exercise
+              library, our training tools, and your workout logbook.
+            </li>
+            <li>
+              Your membership renews automatically each month until you cancel. You can cancel at any
+              time from your account settings; access continues until the end of the current billing
+              period.
+            </li>
+            <li>Prices may change with prior notice. Continued use after a price change constitutes acceptance of the new price.</li>
+          </ul>
+        </>
+      )}
 
       <h2>6. Availability</h2>
       <ul>
         <li>
           The service is provided &quot;as is&quot; and we may change, improve, or discontinue
           individual features at any time, provided this does not materially reduce the value of
-          your paid membership without notice.
+          {freeAccessMode ? " the service" : " your paid membership"} without notice.
         </li>
         <li>Your statutory consumer rights under EU and national law remain unaffected.</li>
       </ul>
@@ -141,9 +161,11 @@ function Terms() {
 
       <h2>9. Third-Party Services</h2>
       <ul>
-        <li><strong>Hosting &amp; infrastructure providers:</strong> Host the database, authentication, and payment processing.</li>
+        <li><strong>Hosting &amp; infrastructure providers:</strong> Host the database, authentication{freeAccessMode ? "" : ", and payment processing"}.</li>
         <li><strong>AI provider(s):</strong> Used to generate your personalized workouts.</li>
-        <li><strong>Payment processor:</strong> Used to securely process your monthly membership payment.</li>
+        {freeAccessMode ? null : (
+          <li><strong>Payment processor:</strong> Used to securely process your monthly membership payment.</li>
+        )}
       </ul>
 
       <h2>10. Acceptable Use</h2>
@@ -167,7 +189,7 @@ function Terms() {
 
       <h2>12. Account Deletion &amp; Cancellation</h2>
       <ul>
-        <li>You can cancel your membership and delete your account at any time from your profile settings.</li>
+        <li>You can {freeAccessMode ? "" : "cancel your membership and "}delete your account at any time from your profile settings.</li>
         <li>Before deletion, you can download a copy of your account data.</li>
         <li>
           Account deletion permanently removes your profile, preferences, generated workouts, and

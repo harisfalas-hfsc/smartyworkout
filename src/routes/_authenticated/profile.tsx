@@ -1,3 +1,4 @@
+import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
@@ -174,6 +175,7 @@ function Pills({
 
 function ProfilePage() {
   const navigate = useNavigate();
+  const { freeAccessMode } = useFreeAccessMode();
   const [p, setP] = useState<Profile | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -630,7 +632,7 @@ function ProfilePage() {
             <Button
               onClick={() => {
                 setSaved(false);
-                navigate({ to: wasOnboarded ? "/coach" : "/pricing" });
+                navigate({ to: wasOnboarded || freeAccessMode ? "/coach" : "/pricing" });
               }}
             >
               {wasOnboarded ? "Create a workout" : "Continue"}

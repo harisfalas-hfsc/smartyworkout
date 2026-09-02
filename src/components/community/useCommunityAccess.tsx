@@ -1,3 +1,4 @@
+import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
@@ -69,24 +70,34 @@ export function CommunityGateDialog({
   onOpenChange: (v: boolean) => void;
   signedIn: boolean;
 }) {
+  const { freeAccessMode } = useFreeAccessMode();
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="rounded-3xl">
         <DialogHeader>
           <DialogTitle className="uppercase tracking-tight">Members only</DialogTitle>
           <DialogDescription>
-            Smarty Community is part of the Smarty Workout membership. Join or renew to open shared
-            workouts, like, comment and take your place in the rankings.
+            {freeAccessMode
+              ? "Sign in to open shared workouts, like, comment and take your place in the rankings."
+              : "Smarty Community is part of the Smarty Workout membership. Join or renew to open shared workouts, like, comment and take your place in the rankings."}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-2">
-          <Button asChild className="h-12 rounded-2xl font-bold">
-            <Link to="/pricing">{signedIn ? "Renew my membership" : "See membership"}</Link>
-          </Button>
-          {!signedIn && (
-            <Button asChild variant="secondary" className="h-12 rounded-2xl">
+          {freeAccessMode ? (
+            <Button asChild className="h-12 rounded-2xl font-bold">
               <Link to="/auth">Sign in</Link>
             </Button>
+          ) : (
+            <>
+              <Button asChild className="h-12 rounded-2xl font-bold">
+                <Link to="/pricing">{signedIn ? "Renew my membership" : "See membership"}</Link>
+              </Button>
+              {!signedIn && (
+                <Button asChild variant="secondary" className="h-12 rounded-2xl">
+                  <Link to="/auth">Sign in</Link>
+                </Button>
+              )}
+            </>
           )}
         </div>
       </DialogContent>

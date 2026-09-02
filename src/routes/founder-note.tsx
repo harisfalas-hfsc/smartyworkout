@@ -1,3 +1,4 @@
+import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,7 +39,7 @@ import {
 const URL = "https://smartyworkout.com/founder-note";
 const TITLE = "A Note From The Founder | Smarty Workout";
 const DESCRIPTION =
-  "Why Smarty Workout exists, how the trained AI coach builds every workout from a real 1,384-movement library, and why €9.99 a month is worth it.";
+  "Why Smarty Workout exists and how the trained coach builds every workout from a real 1,384-movement library.";
 
 export const Route = createFileRoute("/founder-note")({
   head: () => ({
@@ -128,6 +129,7 @@ function List({
 }
 
 function FounderNotePage() {
+  const { freeAccessMode } = useFreeAccessMode();
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">
       <div className="text-center">
@@ -164,8 +166,9 @@ function FounderNotePage() {
       <div className="mt-8 space-y-6">
         <SectionCard icon={<Quote size={20} />} title="Why I built this">
           <p className="text-base font-semibold leading-8 text-foreground sm:text-lg">
-            Let me tell you what I built and why I believe it is worth your
-            €9.99.
+            {freeAccessMode
+              ? "Let me tell you what I built and why I believe it is worth your time."
+              : "Let me tell you what I built and why I believe it is worth your €9.99."}
           </p>
           <P>
             <Brand>Smarty Workout</Brand> is a powerful AI fitness coach — but it
@@ -252,8 +255,8 @@ function FounderNotePage() {
           title="The Workout of the Day is the real innovation"
         >
           <P>
-            Every subscriber follows a fixed 84-day periodization calendar. All
-            subscribers see the same category, focus, and difficulty for the day
+            Everyone follows a fixed 84-day periodization calendar. All
+            members see the same category, focus, and difficulty for the day
             — but the actual workout is generated from your individual profile
             and equipment. You receive two versions each day: one bodyweight, one
             using your equipment. On recovery days, you get a single session.
@@ -271,10 +274,21 @@ function FounderNotePage() {
                 icon: <Crown size={18} />,
                 text: (
                   <>
-                    <strong>It is the premium feature.</strong> When you
-                    subscribe, the app automatically creates your workouts every
-                    day at midnight. You do not think. You do not plan. You just
-                    train.
+                    {freeAccessMode ? (
+                      <>
+                        <strong>It is the flagship feature.</strong> When you turn
+                        it on, the app automatically creates your workouts every
+                        day at midnight. You do not think. You do not plan. You
+                        just train.
+                      </>
+                    ) : (
+                      <>
+                        <strong>It is the premium feature.</strong> When you
+                        subscribe, the app automatically creates your workouts
+                        every day at midnight. You do not think. You do not plan.
+                        You just train.
+                      </>
+                    )}
                   </>
                 ),
               },
@@ -282,7 +296,7 @@ function FounderNotePage() {
                 icon: <Clock size={18} />,
                 text: (
                   <>
-                    While you are subscribed to the Workout of the Day, manual
+                    While the Workout of the Day is switched on, manual
                     generation is paused — the daily programme already covers
                     you.
                   </>
@@ -292,6 +306,7 @@ function FounderNotePage() {
           />
         </SectionCard>
 
+        {freeAccessMode ? null : (
         <SectionCard icon={<Coins size={20} />} title="Why €9.99 a month is worth it">
           <P>Think of what you are paying for:</P>
           <List
@@ -322,6 +337,7 @@ function FounderNotePage() {
             ]}
           />
         </SectionCard>
+        )}
 
         <SectionCard icon={<ListChecks size={20} />} title="How does it work?">
           <List
@@ -524,16 +540,14 @@ function FounderNotePage() {
           className="bg-primary/5"
         >
           <P>
-            From my perspective as the person who built it, this is the core
-            pitch: €9.99 per month for a daily personal workout that is built
-            from a real exercise library, respects your body, follows a
-            long-term plan, and removes the decision fatigue of “what should I
-            train today?”
+            {freeAccessMode
+              ? "From my perspective as the person who built it, this is the core pitch: a daily personal workout that is built from a real exercise library, respects your body, follows a long-term plan, and removes the decision fatigue of “what should I train today?”"
+              : "From my perspective as the person who built it, this is the core pitch: €9.99 per month for a daily personal workout that is built from a real exercise library, respects your body, follows a long-term plan, and removes the decision fatigue of “what should I train today?”"}
           </P>
           <P>
-            If you want to try it, start with the free parts. Create a profile,
-            browse the exercise library, play with the tools. When you are
-            ready, subscribe to the Workout of the Day. That is the moment{" "}
+            {freeAccessMode
+              ? "Start anywhere. Create a profile, browse the exercise library, play with the tools. When you are ready, switch on the Workout of the Day. That is the moment "
+              : "If you want to try it, start with the free parts. Create a profile, browse the exercise library, play with the tools. When you are ready, subscribe to the Workout of the Day. That is the moment "}
             <Brand>Smarty Workout</Brand> becomes a real coach in your pocket.
           </P>
 

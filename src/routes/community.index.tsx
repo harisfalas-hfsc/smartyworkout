@@ -1,3 +1,4 @@
+import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { loadRemote } from "@/lib/remote-data";
 import { useEffect, useState } from "react";
@@ -105,6 +106,7 @@ function badgeFor(index: number) {
 
 function CommunityPage() {
   const navigate = useNavigate();
+  const { freeAccessMode } = useFreeAccessMode();
   const access = useCommunityAccess();
 
   const [mobileApi, setMobileApi] = useState<CarouselApi>();
@@ -258,11 +260,18 @@ function CommunityPage() {
         <div className="mx-auto mb-6 max-w-2xl rounded-3xl border-2 border-blue-400 bg-card p-5 text-center">
           <p className="text-sm font-bold uppercase tracking-wider text-primary">Members only</p>
           <p className="mt-2 text-sm text-muted-foreground">
-            You can read the community, but opening workouts, liking, commenting and training shared
-            sessions are part of the membership.
+            {freeAccessMode
+              ? "You can read the community. Sign in to open workouts, like, comment and train shared sessions."
+              : "You can read the community, but opening workouts, liking, commenting and training shared sessions are part of the membership."}
           </p>
           <Button asChild className="mt-4 h-12 rounded-2xl font-bold">
-            <Link to="/pricing">{access.signedIn ? "Renew membership" : "Join Smarty Workout"}</Link>
+            {freeAccessMode ? (
+              <Link to="/auth">Sign in</Link>
+            ) : (
+              <Link to="/pricing">
+                {access.signedIn ? "Renew membership" : "Join Smarty Workout"}
+              </Link>
+            )}
           </Button>
         </div>
       )}

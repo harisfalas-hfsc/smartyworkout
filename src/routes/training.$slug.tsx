@@ -2,15 +2,21 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { SmartyCard } from "@/components/SmartyCard";
-import { TOPIC_BY_SLUG } from "@/lib/seo/training-topics";
+import { TOPIC_BY_SLUG, sanitizeTopicForFreeAccess } from "@/lib/seo/training-topics";
 
 const SITE = "https://smartyworkout.com";
 
 export const Route = createFileRoute("/training/$slug")({
-  loader: ({ params }) => {
+  loader: async ({ params }) => {
     const topic = TOPIC_BY_SLUG[params.slug];
     if (!topic) throw notFound();
-    return topic;
+    try {
+      const { getFreeAccessMode } = await import("@/lib/free-access.functions");
+      const { freeAccessMode } = await getFreeAccessMode();
+      return freeAccessMode ? sanitizeTopicForFreeAccess(topic) : topic;
+    } catch {
+      return topic;
+    }
   },
   head: ({ params, loaderData }) => {
     const topic = loaderData ?? TOPIC_BY_SLUG[params.slug];

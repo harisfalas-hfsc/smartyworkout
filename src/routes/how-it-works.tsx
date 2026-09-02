@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/PageHeader";
 
@@ -109,7 +110,7 @@ const STEPS = [
 const WOD_STEPS = [
   {
     n: "01",
-    title: "You subscribe",
+    title: "You turn it on",
     desc: "Training Profile • One tap",
   },
   {
@@ -179,6 +180,7 @@ const TRACKING_STEPS = [
 
 
 function HowItWorks() {
+  const { freeAccessMode } = useFreeAccessMode();
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">
       <PageHeader
@@ -232,7 +234,9 @@ function HowItWorks() {
           Way 2 — Workout of the Day
         </p>
         <h2 className="mt-2 text-center text-xl font-extrabold uppercase sm:text-2xl">
-          You subscribe once. Your training is planned.
+          {freeAccessMode
+            ? "You turn it on once. Your training is planned."
+            : "You subscribe once. Your training is planned."}
         </h2>
         <p className="mx-auto mt-2 max-w-2xl text-center text-sm leading-6 text-muted-foreground">
           Every day you get two ready workouts — one with equipment, one bodyweight only — built

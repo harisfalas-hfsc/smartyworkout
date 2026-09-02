@@ -160,7 +160,7 @@ function Account() {
         className="mb-2"
         eyebrow="Smarty Workout"
         title="My account"
-        subtitle="Your subscription and personal details."
+        subtitle={freeAccessMode ? "Your personal details and preferences." : "Your subscription and personal details."}
       />
 
       <section className="mt-6 rounded-2xl border-2 border-blue-400 bg-card p-5">

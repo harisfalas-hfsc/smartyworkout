@@ -1,5 +1,5 @@
 import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { Navigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Crown } from "lucide-react";
@@ -8,6 +8,16 @@ import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
 
 export const Route = createFileRoute("/pricing")({
+  loader: async () => {
+    const { getFreeAccessMode } = await import("@/lib/free-access.functions");
+    try {
+      const { freeAccessMode } = await getFreeAccessMode();
+      if (freeAccessMode) throw redirect({ to: "/" });
+    } catch (e) {
+      if (e && typeof e === "object" && "isRedirect" in e) throw e;
+    }
+  },
+
   head: () => ({
     meta: [
       { title: "Pricing — SmartyWorkout subscription €9.99/month" },

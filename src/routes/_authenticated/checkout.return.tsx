@@ -1,5 +1,5 @@
 import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { Navigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,16 @@ import { CheckCircle2, ClipboardList } from "lucide-react";
 import { getMyAccessState } from "@/lib/access.functions";
 
 export const Route = createFileRoute("/_authenticated/checkout/return")({
+  loader: async () => {
+    const { getFreeAccessMode } = await import("@/lib/free-access.functions");
+    try {
+      const { freeAccessMode } = await getFreeAccessMode();
+      if (freeAccessMode) throw redirect({ to: "/" });
+    } catch (e) {
+      if (e && typeof e === "object" && "isRedirect" in e) throw e;
+    }
+  },
+
   validateSearch: (search: Record<string, unknown>): { session_id?: string } => ({
     session_id: typeof search["session_id"] === "string" ? search["session_id"] : undefined,
   }),

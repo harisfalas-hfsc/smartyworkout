@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
 
 /**
  * Shown when a signed-in athlete without an active membership tries to use a
@@ -21,6 +22,9 @@ export function MembershipRequiredDialog({
   title?: string;
   description?: string;
 }) {
+  const { freeAccessMode } = useFreeAccessMode();
+  // Hard safety net: never show paid copy while Free Access Mode is on.
+  if (freeAccessMode) return null;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="mx-auto max-h-[80vh] w-[calc(100%-2.5rem)] max-w-md overflow-y-auto rounded-3xl p-5 sm:p-6">
