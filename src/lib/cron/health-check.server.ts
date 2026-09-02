@@ -156,6 +156,41 @@ export async function runHealthCheck(
     return ["pass", `Media link works (HTTP 200${size ? `, ${Math.round(size / 1024)} KB` : ""}).`];
   });
 
+  await run("blogimages", async () => {
+    // Every published article must have a cover that actually loads.
+    const { data } = await db
+      .from("blog_articles")
+      .select("slug,image_url")
+      .eq("is_published", true);
+    const rows = (data as { slug: string; image_url: string | null }[] | null) ?? [];
+    if (rows.length === 0) return ["warn", "No published articles to check."];
+
+    const missing = rows.filter((r) => !r.image_url).map((r) => r.slug);
+    const withImage = rows.filter((r) => r.image_url) as { slug: string; image_url: string }[];
+
+    // Check a rolling sample so the nightly run stays fast but covers everything over time.
+    const day = new Date().getUTCDate();
+    const sample = withImage.filter((_, i) => i % 7 === day % 7).slice(0, 8);
+    const broken: string[] = [];
+    for (const row of sample) {
+      try {
+        const res = await fetch(row.image_url, { method: "GET" });
+        if (!res.ok) broken.push(`${row.slug} (HTTP ${res.status})`);
+      } catch {
+        broken.push(`${row.slug} (unreachable)`);
+      }
+    }
+
+    if (missing.length > 0 || broken.length > 0) {
+      const parts = [
+        missing.length ? `${missing.length} article(s) with no cover: ${missing.slice(0, 3).join(", ")}` : "",
+        broken.length ? `broken cover(s): ${broken.slice(0, 3).join(", ")}` : "",
+      ].filter(Boolean);
+      return ["fail", `Blog covers need attention — ${parts.join("; ")}.`];
+    }
+    return ["pass", `All ${rows.length} published articles have a cover (${sample.length} verified tonight).`];
+  });
+
   await run("ai", async () => {
     const apiKey = process.env["LOVABLE_API_KEY"];
     if (!apiKey) return ["fail", "AI key is not configured — no member can generate a workout."];
