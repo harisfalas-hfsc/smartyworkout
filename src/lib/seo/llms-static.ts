@@ -1,4 +1,8 @@
-# SmartyWorkout
+/**
+ * Full /llms.txt body (moved out of public/ so Global Free Access Mode can strip
+ * every paid reference before it is served).
+ */
+export const LLMS_STATIC = `# SmartyWorkout
 
 > SmartyWorkout is a personalized fitness coach that generates personalized workout plans from a smart questionnaire, powered by Smarty Coach.
 
@@ -96,3 +100,4 @@ Personalized Workout, Online Personal Trainer, Workout App, Training Plan, Worko
 ## Sister brands
 
 SmartyWorkout is part of the Smarty Wellness family alongside SmartyDiet (https://smartydiet.com), SmartyGym (https://smartygym.com) and SmartyMove (https://smartymove.com).
+`;
