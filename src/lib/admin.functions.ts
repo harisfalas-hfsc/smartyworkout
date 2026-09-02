@@ -915,3 +915,281 @@ export const adminCheckAccess = createServerFn({ method: "POST" })
       return { isAdmin: false };
     }
   });
+
+/* ------------------------------------------------------------------ *
+ * Member detail — the real training profile and real history of one
+ * member, read straight from their own rows (no sample data).
+ * ------------------------------------------------------------------ */
+
+export type AdminMemberDetail = {
+  id: string;
+  email: string;
+  name: string;
+  joined_at: string;
+  last_sign_in_at: string | null;
+  email_confirmed: boolean;
+  is_admin: boolean;
+  /** Training profile, exactly as the member filled it in. */
+  profile: {
+    age: number | null;
+    gender: string | null;
+    height_cm: number | null;
+    weight_kg: number | null;
+    experience: string | null;
+    fitness_level: string | null;
+    primary_goal: string | null;
+    secondary_goal: string | null;
+    training_frequency: number | null;
+    typical_duration_min: number | null;
+    preferred_categories: string[];
+    preferred_equipment: string[];
+    preferred_environment: string | null;
+    limitations: string[];
+    favorite_exercises: string[];
+    disliked_exercises: string[];
+    use_library_preferences: boolean;
+    onboarded: boolean;
+    timezone: string | null;
+    wod_mode: boolean;
+    wod_level: string | null;
+    health_acknowledged_at: string | null;
+    updated_at: string | null;
+  } | null;
+  /** Membership + engagement. */
+  membership: {
+    status: string | null;
+    active: boolean;
+    provider: string | null;
+    current_period_end: string | null;
+    credits: number;
+  };
+  progress: {
+    score: number;
+    workouts_generated: number;
+    workouts_completed: number;
+    active_days: number;
+    current_streak: number;
+    longest_streak: number;
+    badge_points: number;
+  } | null;
+  totals: {
+    workouts: number;
+    completed: number;
+    scheduled: number;
+    favorites: number;
+    shared: number;
+    logged_sets: number;
+    last_workout_at: string | null;
+    last_completed_at: string | null;
+  };
+  /** Real training history, newest first. */
+  history: Array<{
+    id: string;
+    name: string;
+    category: string;
+    format: string | null;
+    focus: string | null;
+    difficulty_stars: number;
+    duration_min: number;
+    status: string;
+    created_at: string;
+    completed_at: string | null;
+    is_wod: boolean;
+    rpe: number | null;
+    feeling: string | null;
+    difficulty_rating: string | null;
+    comment: string | null;
+    result_note: string | null;
+  }>;
+  badges: Array<{ id: string; name: string; category: string; earned_at: string }>;
+};
+
+export const adminGetMemberDetail = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { userId: string }) => data)
+  .handler(
+    async ({ context, data }): Promise<{ member: AdminMemberDetail } | { error: string }> => {
+      try {
+        await assertAdmin(context as any);
+        const { isAdminEmail } = await import("@/lib/admin.server");
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+        const [
+          { data: authUser },
+          { data: profile },
+          { data: progress },
+          { data: sub },
+          { data: workouts },
+          { data: feedback },
+          { data: results },
+          { data: badges },
+          { count: setCount },
+          { data: role },
+        ] = await Promise.all([
+          supabaseAdmin.auth.admin.getUserById(data.userId),
+          supabaseAdmin.from("profiles").select("*").eq("id", data.userId).maybeSingle(),
+          supabaseAdmin.from("user_progress").select("*").eq("user_id", data.userId).maybeSingle(),
+          supabaseAdmin
+            .from("subscriptions")
+            .select("status, provider, current_period_end, updated_at")
+            .eq("user_id", data.userId)
+            .order("updated_at", { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+          supabaseAdmin
+            .from("workouts")
+            .select(
+              "id, name, category, format, focus, difficulty_stars, duration_min, status, created_at, completed_at, is_wod, is_favorite, is_shared, scheduled_at",
+            )
+            .eq("user_id", data.userId)
+            .order("created_at", { ascending: false })
+            .limit(200),
+          supabaseAdmin
+            .from("workout_feedback")
+            .select("workout_id, rpe, feeling, difficulty_rating, comment, created_at")
+            .eq("user_id", data.userId)
+            .order("created_at", { ascending: false })
+            .limit(300),
+          supabaseAdmin
+            .from("workout_results")
+            .select("workout_id, analysis_note, created_at")
+            .eq("user_id", data.userId)
+            .order("created_at", { ascending: false })
+            .limit(300),
+          supabaseAdmin
+            .from("user_badges")
+            .select("badge_id, badge_name, category, earned_at")
+            .eq("user_id", data.userId)
+            .order("earned_at", { ascending: false })
+            .limit(50),
+          supabaseAdmin
+            .from("set_logs")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", data.userId),
+          supabaseAdmin
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", data.userId)
+            .eq("role", "admin")
+            .maybeSingle(),
+        ]);
+
+        const p = profile as any;
+        const rows = ((workouts as any[]) ?? []);
+        const feedbackByWorkout = new Map<string, any>();
+        for (const f of ((feedback as any[]) ?? [])) {
+          if (!feedbackByWorkout.has(f.workout_id)) feedbackByWorkout.set(f.workout_id, f);
+        }
+        const resultByWorkout = new Map<string, any>();
+        for (const r of ((results as any[]) ?? [])) {
+          if (!resultByWorkout.has(r.workout_id)) resultByWorkout.set(r.workout_id, r);
+        }
+
+        const completed = rows.filter((w) => w.status === "completed");
+        const periodEnd = (sub as any)?.current_period_end
+          ? new Date((sub as any).current_period_end).getTime()
+          : null;
+        const email = authUser?.user?.email ?? p?.email ?? "";
+
+        const member: AdminMemberDetail = {
+          id: data.userId,
+          email,
+          name: p?.display_name ?? "",
+          joined_at: authUser?.user?.created_at ?? p?.created_at ?? "",
+          last_sign_in_at: authUser?.user?.last_sign_in_at ?? null,
+          email_confirmed: Boolean(authUser?.user?.email_confirmed_at),
+          is_admin: isAdminEmail(email) || Boolean(role),
+          profile: p
+            ? {
+                age: p.age ?? null,
+                gender: p.gender ?? null,
+                height_cm: p.height_cm ?? null,
+                weight_kg: p.weight_kg ?? null,
+                experience: p.experience ?? null,
+                fitness_level: p.fitness_level ?? null,
+                primary_goal: p.primary_goal ?? null,
+                secondary_goal: p.secondary_goal ?? null,
+                training_frequency: p.training_frequency ?? null,
+                typical_duration_min: p.typical_duration_min ?? null,
+                preferred_categories: p.preferred_categories ?? [],
+                preferred_equipment: p.preferred_equipment ?? [],
+                preferred_environment: p.preferred_environment ?? null,
+                limitations: p.limitations ?? [],
+                favorite_exercises: p.favorite_exercises ?? [],
+                disliked_exercises: p.disliked_exercises ?? [],
+                use_library_preferences: Boolean(p.use_library_preferences),
+                onboarded: Boolean(p.onboarded),
+                timezone: p.timezone ?? null,
+                wod_mode: Boolean(p.wod_mode),
+                wod_level: p.wod_level ?? null,
+                health_acknowledged_at: p.health_acknowledged_at ?? null,
+                updated_at: p.updated_at ?? null,
+              }
+            : null,
+          membership: {
+            status: (sub as any)?.status ?? null,
+            active:
+              Boolean(sub) &&
+              ["active", "trialing"].includes((sub as any).status) &&
+              (!periodEnd || periodEnd > Date.now()),
+            provider: (sub as any)?.provider ?? null,
+            current_period_end: (sub as any)?.current_period_end ?? null,
+            credits: p?.bonus_credits ?? 0,
+          },
+          progress: progress
+            ? {
+                score: (progress as any).score ?? 0,
+                workouts_generated: (progress as any).workouts_generated ?? 0,
+                workouts_completed: (progress as any).workouts_completed ?? 0,
+                active_days: (progress as any).active_days ?? 0,
+                current_streak: (progress as any).current_streak ?? 0,
+                longest_streak: (progress as any).longest_streak ?? 0,
+                badge_points: (progress as any).badge_points ?? 0,
+              }
+            : null,
+          totals: {
+            workouts: rows.length,
+            completed: completed.length,
+            scheduled: rows.filter((w) => w.scheduled_at).length,
+            favorites: rows.filter((w) => w.is_favorite).length,
+            shared: rows.filter((w) => w.is_shared).length,
+            logged_sets: setCount ?? 0,
+            last_workout_at: rows[0]?.created_at ?? null,
+            last_completed_at: completed[0]?.completed_at ?? null,
+          },
+          history: rows.slice(0, 50).map((w) => {
+            const f = feedbackByWorkout.get(w.id);
+            const r = resultByWorkout.get(w.id);
+            return {
+              id: w.id,
+              name: w.name,
+              category: w.category,
+              format: w.format ?? null,
+              focus: w.focus ?? null,
+              difficulty_stars: w.difficulty_stars ?? 0,
+              duration_min: w.duration_min ?? 0,
+              status: w.status,
+              created_at: w.created_at,
+              completed_at: w.completed_at ?? null,
+              is_wod: Boolean(w.is_wod),
+              rpe: f?.rpe ?? null,
+              feeling: f?.feeling ?? null,
+              difficulty_rating: f?.difficulty_rating ?? null,
+              comment: f?.comment ?? null,
+              result_note: r?.analysis_note ?? null,
+            };
+          }),
+          badges: ((badges as any[]) ?? []).map((b) => ({
+            id: b.badge_id,
+            name: b.badge_name,
+            category: b.category,
+            earned_at: b.earned_at,
+          })),
+        };
+
+        return { member };
+      } catch (e) {
+        return { error: e instanceof Error ? e.message : "Failed to load member" };
+      }
+    },
+  );
