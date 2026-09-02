@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Shield } from "lucide-react";
 import { LegalLayout } from "@/components/LegalLayout";
+import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
 
 export const Route = createFileRoute("/privacy")({
   head: () => ({
@@ -24,6 +25,7 @@ export const Route = createFileRoute("/privacy")({
 });
 
 function Privacy() {
+  const { freeAccessMode } = useFreeAccessMode();
   return (
     <LegalLayout title="Privacy Policy" icon={<Shield className="h-5 w-5" />} lastUpdated="July 2026">
       <p>
@@ -40,7 +42,9 @@ function Privacy() {
       <ul>
         <li>Name, email address, and password (stored hashed) when you create an account.</li>
         <li>Optional profile information: display name, timezone, and notification preferences.</li>
-        <li>Billing information needed to process your monthly membership payment (handled by our payment processor — we do not store full card numbers).</li>
+        {freeAccessMode ? null : (
+          <li>Billing information needed to process your monthly membership payment (handled by our payment processor — we do not store full card numbers).</li>
+        )}
       </ul>
 
       <h3>Fitness &amp; Training Data</h3>
@@ -64,8 +68,10 @@ function Privacy() {
         <li>Generate your personalized daily workouts and recommend exercises from the library.</li>
         <li>Exclude injuries, disliked exercises, and unavailable equipment from your workouts.</li>
         <li>Save your logbook entries and history so you can track your progress over time.</li>
-        <li>Process your monthly membership payment and manage your subscription.</li>
-        <li>Send transactional emails (account, billing, security) and, with consent, product updates.</li>
+        {freeAccessMode ? null : (
+          <li>Process your monthly membership payment and manage your subscription.</li>
+        )}
+        <li>Send transactional emails (account{freeAccessMode ? "" : ", billing"}, security) and, with consent, product updates.</li>
         <li>Improve Smarty Workout through anonymized, aggregated analytics.</li>
         <li>Ensure legal compliance and platform security.</li>
       </ul>
@@ -78,7 +84,7 @@ function Privacy() {
         <li><strong>Consent (Art. 6(1)(a)):</strong> Marketing emails, optional analytics.</li>
         <li>
           <strong>Contractual necessity (Art. 6(1)(b)):</strong> Running your account, generating
-          workouts, processing your membership payment, and saving your logbook.
+          workouts{freeAccessMode ? "" : ", processing your membership payment"}, and saving your logbook.
         </li>
         <li><strong>Legal obligation (Art. 6(1)(c)):</strong> Record keeping, tax compliance, fraud prevention.</li>
         <li><strong>Legitimate interests (Art. 6(1)(f)):</strong> Service security, product improvement.</li>
@@ -97,7 +103,9 @@ function Privacy() {
           your profile. No direct identifiers (name, email) are sent to the AI provider unless
           strictly required.
         </li>
-        <li><strong>Payment processor</strong> — securely handles your membership billing.</li>
+        {freeAccessMode ? null : (
+          <li><strong>Payment processor</strong> — securely handles your membership billing.</li>
+        )}
         <li><strong>Email delivery provider</strong> — for transactional and (with consent) marketing emails.</li>
       </ul>
       <p>

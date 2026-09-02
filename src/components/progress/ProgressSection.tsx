@@ -1,3 +1,4 @@
+import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
@@ -115,6 +116,7 @@ export function ProgressSection() {
   const fetchOverview = useServerFn(getProgressOverview);
   const [data, setData] = useState<ProgressOverview | null>(null);
   const [unlocked, setUnlocked] = useState<string[]>([]);
+  const { freeAccessMode } = useFreeAccessMode();
   const [detail, setDetail] = useState<"score" | "rank" | "current" | "longest" | "days" | "membership" | "awards" | null>(null);
 
   useEffect(() => {
@@ -143,7 +145,9 @@ export function ProgressSection() {
           : c === "completed"
             ? data.stats.workouts_completed
             : data.stats.longest_streak;
-    const cats = ["completed", "streak", "generated", "subscription"];
+    const cats = freeAccessMode
+      ? ["completed", "streak", "generated"]
+      : ["completed", "streak", "generated", "subscription"];
     return cats.map((c) => {
       const defs = data.definitions
         .filter((d) => d.category === c)
@@ -151,7 +155,7 @@ export function ProgressSection() {
       const next = defs.find((d) => !earned.has(d.id));
       return { category: c, defs, next, value: value(c), earned };
     });
-  }, [data]);
+  }, [data, freeAccessMode]);
 
   if (!data)
     return (
@@ -165,7 +169,9 @@ export function ProgressSection() {
     { label: "Completed workouts", value: s.workouts_completed, points: s.workouts_completed * SCORE_RULES.perCompletedWorkout },
     { label: "Generated workouts", value: s.workouts_generated, points: s.workouts_generated * SCORE_RULES.perGeneratedWorkout },
     { label: "Active training days", value: s.active_days, points: s.active_days * SCORE_RULES.perStreakDay },
-    { label: "Membership months", value: s.subscription_months, points: s.subscription_months * SCORE_RULES.perSubscriptionMonth },
+    ...(freeAccessMode
+      ? []
+      : [{ label: "Membership months", value: s.subscription_months, points: s.subscription_months * SCORE_RULES.perSubscriptionMonth }]),
     { label: "Award points", value: data.badges.length, points: s.badge_points },
   ];
 
@@ -311,7 +317,7 @@ export function ProgressSection() {
               {detail === "score" ? "Progress score" : detail === "rank" ? "Your ranking" : detail === "current" ? "Current streak" : detail === "longest" ? "Longest streak" : detail === "days" ? "Training days" : detail === "membership" ? "Membership" : "Awards earned"}
             </DialogTitle>
             <DialogDescription>
-              {detail === "score" ? "A transparent total built from your saved training activity and awards." : detail === "rank" ? "Members are ordered by score, then completed workouts, longest streak, and the time the score was reached." : detail === "current" ? "Consecutive calendar days with a completed workout, ending today or yesterday." : detail === "longest" ? "Your best run of consecutive calendar days with completed workouts." : detail === "days" ? "The number of different calendar days on which you completed at least one workout." : detail === "membership" ? "Whole active membership months recorded on your account." : "Awards already unlocked from completed workouts, generated workouts, streaks, and membership."}
+              {detail === "score" ? "A transparent total built from your saved training activity and awards." : detail === "rank" ? "Members are ordered by score, then completed workouts, longest streak, and the time the score was reached." : detail === "current" ? "Consecutive calendar days with a completed workout, ending today or yesterday." : detail === "longest" ? "Your best run of consecutive calendar days with completed workouts." : detail === "days" ? "The number of different calendar days on which you completed at least one workout." : detail === "membership" ? "Whole active membership months recorded on your account." : (freeAccessMode ? "Awards already unlocked from completed workouts, generated workouts and streaks." : "Awards already unlocked from completed workouts, generated workouts, streaks, and membership.")}
             </DialogDescription>
           </DialogHeader>
 

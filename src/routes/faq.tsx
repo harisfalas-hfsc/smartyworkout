@@ -11,9 +11,9 @@ import {
 import { PageHeader } from "@/components/PageHeader";
 
 const URL = "https://smartyworkout.com/faq";
-const TITLE = "SmartyWorkout FAQ — Smarty Coach, workouts & subscription";
+const TITLE = "SmartyWorkout FAQ — Smarty Coach, workouts & training";
 const DESCRIPTION =
-  "Short answers about SmartyWorkout: how Smarty Coach builds your workout, what the €9.99/month subscription includes, equipment, injuries and privacy.";
+  "Short answers about SmartyWorkout: how Smarty Coach builds your workout, what is included, equipment, injuries and privacy.";
 
 const ITEMS: { q: string; a: string }[] = [
   {
@@ -124,13 +124,24 @@ const ITEMS: { q: string; a: string }[] = [
   },
 ];
 
-const JSONLD = {
+/** Drops every paid-membership question while Free Access Mode is ON. */
+function visibleItems(freeAccessMode: boolean) {
+  return freeAccessMode
+    ? ITEMS.filter(
+        (it) =>
+          !/cost|subscription|subscribed|Unsubscribe/i.test(it.q) &&
+          !/€|subscription|subscribed|Unsubscribe|cancel anytime/i.test(it.a),
+      )
+    : ITEMS;
+}
+
+const jsonLd = (freeAccessMode: boolean) => ({
   "@context": "https://schema.org",
   "@graph": [
     {
       "@type": "FAQPage",
       "@id": `${URL}#faq`,
-      mainEntity: ITEMS.map((it) => ({
+      mainEntity: visibleItems(freeAccessMode).map((it) => ({
         "@type": "Question",
         name: it.q,
         acceptedAnswer: { "@type": "Answer", text: it.a },
@@ -144,10 +155,18 @@ const JSONLD = {
       ],
     },
   ],
-};
+});
 
 export const Route = createFileRoute("/faq")({
-  head: () => ({
+  loader: async () => {
+    try {
+      const { getFreeAccessMode } = await import("@/lib/free-access.functions");
+      return await getFreeAccessMode();
+    } catch {
+      return { freeAccessMode: false };
+    }
+  },
+  head: ({ loaderData }) => ({
     meta: [
       { title: TITLE },
       { name: "description", content: DESCRIPTION },
@@ -160,20 +179,19 @@ export const Route = createFileRoute("/faq")({
       { name: "twitter:description", content: DESCRIPTION },
     ],
     links: [{ rel: "canonical", href: URL }],
-    scripts: [{ type: "application/ld+json", children: JSON.stringify(JSONLD) }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify(jsonLd(loaderData?.freeAccessMode ?? false)),
+      },
+    ],
   }),
   component: FAQ,
 });
 
 function FAQ() {
   const { freeAccessMode } = useFreeAccessMode();
-  const items = freeAccessMode
-    ? ITEMS.filter(
-        (it) =>
-          !/cost|subscription|subscribed|Unsubscribe/i.test(it.q) &&
-          !/€|subscription/i.test(it.a),
-      )
-    : ITEMS;
+  const items = visibleItems(freeAccessMode);
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">
       <PageHeader

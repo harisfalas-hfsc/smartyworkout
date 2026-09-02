@@ -239,7 +239,7 @@ function WodPage() {
       await setSub({ data: { subscribe } });
       await refresh();
       if (!subscribe) {
-        toast.success("Unsubscribed. You can create your own workouts again.");
+        toast.success("Daily plan turned off. You can create your own workouts again.");
         return;
       }
       toast.success("You're in. Building today's two workouts now…");
@@ -360,7 +360,7 @@ function WodPage() {
       <ParqWaiverDialog
         open={parqOpen}
         flags={access?.readinessFlags ?? []}
-        confirmLabel="I confirm — subscribe to the WOD"
+        confirmLabel="I confirm — follow the daily plan"
         onConfirm={() => {
           setParqAck();
           setParqOpen(false);
@@ -393,8 +393,8 @@ function WodPage() {
               : busy
                 ? "Please wait…"
                 : subscribed
-                  ? "Unsubscribe"
-                  : "Subscribe"}
+                  ? "Stop the daily plan"
+                  : "Follow the daily plan"}
           </span>
         </Button>
 
@@ -410,7 +410,7 @@ function WodPage() {
               <Link to="/profile">Complete Training Profile</Link>
             </Button>
           </div>
-        ) : (
+        ) : access.premium ? null : (
           <div className="w-full max-w-xl rounded-2xl border-2 border-primary bg-card p-5 text-center">
             <Crown className="mx-auto h-6 w-6 text-primary" />
             <p className="mt-2 font-extrabold">Premium membership required</p>
@@ -430,8 +430,8 @@ function WodPage() {
               : !access.premium
                 ? "Workout of the Day cannot be activated without a verified premium membership."
             : subscribed
-            ? "Your two daily workouts arrive automatically. You can still open every workout you already have, but manual generation stays paused until you unsubscribe."
-            : "Subscribe and today's two workouts are built right away, then every night automatically. Manual generation is paused while subscribed because Smarty Coach already creates your daily pair."}
+            ? "Your two daily workouts arrive automatically. You can still open every workout you already have, but manual generation stays paused until you stop the daily plan."
+            : "Turn the daily plan on and today's two workouts are built right away, then every night automatically. Manual generation is paused while it is on because Smarty Coach already creates your daily pair."}
         </p>
 
       </section>

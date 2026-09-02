@@ -40,6 +40,16 @@ export async function fetchFreeAccessMode(force = false): Promise<boolean> {
   return value;
 }
 
+/**
+ * Seeds the cache from a server-rendered value (root loader) so the first
+ * render already knows the mode. Safe to call during render.
+ */
+export function seedFreeAccessMode(value: boolean) {
+  if (cached === value) return;
+  cached = value;
+  for (const fn of subscribers) fn(value);
+}
+
 /** Pushes a new value to every listener instantly (used by the admin toggle). */
 export function setFreeAccessModeCache(value: boolean) {
   publish(value);

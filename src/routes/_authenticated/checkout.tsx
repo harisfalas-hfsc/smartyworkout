@@ -1,5 +1,5 @@
 import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Navigate } from "@tanstack/react-router";
 import { StripeEmbeddedCheckout } from "@/components/StripeEmbeddedCheckout";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
@@ -7,12 +7,24 @@ import { PageHeader } from "@/components/PageHeader";
 import { MEMBERSHIP_PRICE_ID } from "@/lib/stripe";
 
 export const Route = createFileRoute("/_authenticated/checkout")({
+  beforeLoad: async () => {
+    const { getFreeAccessMode } = await import("@/lib/free-access.functions");
+    let free = false;
+    try {
+      free = (await getFreeAccessMode()).freeAccessMode;
+    } catch {
+      free = false;
+    }
+    // Free Access Mode: never render or index any paid screen.
+    if (free) throw redirect({ to: "/", replace: true });
+  },
+
   head: () => ({
     meta: [
-      { title: "Checkout — Smarty Workout membership" },
+      { title: "Smarty Workout" },
       {
         name: "description",
-        content: "Activate your Smarty Workout membership — €9.99 per month, cancel anytime.",
+        content: "Smarty Workout account page.",
       },
       { name: "robots", content: "noindex" },
     ],

@@ -482,3 +482,31 @@ export const TOPIC_BY_SLUG: Record<string, TrainingTopic> = Object.fromEntries(
 );
 
 export const TRAINING_TOPIC_SLUGS = TRAINING_TOPICS.map((t) => t.slug);
+
+
+/**
+ * Removes every paid-membership reference from a topic so the page reads as a
+ * fully free product while Global Free Access Mode is ON.
+ */
+export function sanitizeTopicForFreeAccess(topic: TrainingTopic): TrainingTopic {
+  const clean = (text: string) =>
+    text
+      .replace(/\s*A single membership covers everything at €9\.99 per month\./g, "")
+      .replace(/€9\.99 per month/gi, "no cost")
+      .replace(/every subscriber/gi, "every member")
+      .replace(/for every subscriber/gi, "for every member")
+      .replace(/subscribers see/gi, "members see")
+      .trim();
+  return {
+    ...topic,
+    intro: clean(topic.intro),
+    metaDescription: clean(topic.metaDescription),
+    sections: topic.sections.map((s) => ({
+      ...s,
+      body: s.body ? clean(s.body) : s.body,
+      bullets: s.bullets?.map(clean),
+    })),
+    faq: topic.faq.filter((f) => !/membership|subscription|price|cost/i.test(f.q + f.a)),
+    appLinks: topic.appLinks.filter((l) => l.to !== "/pricing"),
+  };
+}

@@ -17,6 +17,8 @@ import { Toaster } from "../components/ui/sonner";
 import { SisterAppsPopup } from "../components/growth/SisterAppsPopup";
 import { BottomNav } from "../components/BottomNav";
 import { ThemeProvider, THEME_INIT_SCRIPT } from "../lib/theme";
+import { getFreeAccessMode } from "../lib/free-access.functions";
+import { seedFreeAccessMode } from "../hooks/useFreeAccessMode";
 
 
 const SITE_URL = "https://smartyworkout.com";
@@ -235,17 +237,36 @@ const JSONLD_GRAPH = {
         "Workout timer, rounds tracker and 1RM calculator",
       ],
       keywords: KEYWORDS,
-      offers: {
-        "@type": "Offer",
-        price: "9.99",
-        priceCurrency: "EUR",
-        category: "subscription",
-        availability: "https://schema.org/InStock",
-        url: `${SITE_URL}/pricing`,
-      },
     },
   ],
 };
+
+/** Paid offer node — omitted entirely while Global Free Access Mode is ON. */
+const PAID_OFFER = {
+  "@type": "Offer",
+  price: "9.99",
+  priceCurrency: "EUR",
+  category: "subscription",
+  availability: "https://schema.org/InStock",
+  url: `${SITE_URL}/pricing`,
+};
+
+const FREE_OFFER = {
+  "@type": "Offer",
+  price: "0",
+  priceCurrency: "EUR",
+  availability: "https://schema.org/InStock",
+  url: SITE_URL,
+};
+
+function jsonLdGraph(freeAccessMode: boolean) {
+  const graph = JSONLD_GRAPH["@graph"].map((node: Record<string, unknown>) =>
+    node["@type"] === "WebApplication" || node["@type"] === "SoftwareApplication"
+      ? { ...node, offers: freeAccessMode ? FREE_OFFER : PAID_OFFER }
+      : node,
+  );
+  return { ...JSONLD_GRAPH, "@graph": graph };
+}
 
 
 function NotFoundComponent() {
@@ -309,7 +330,14 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({
+  loader: async () => {
+    try {
+      return await getFreeAccessMode();
+    } catch {
+      return { freeAccessMode: false };
+    }
+  },
+  head: ({ loaderData }) => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
@@ -367,7 +395,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     scripts: [
       {
         type: "application/ld+json",
-        children: JSON.stringify(JSONLD_GRAPH),
+        children: JSON.stringify(jsonLdGraph(Boolean(loaderData?.freeAccessMode))),
       },
       {
         async: true,
@@ -402,6 +430,10 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const { freeAccessMode } = Route.useLoaderData();
+  // Seed synchronously so every useFreeAccessMode() consumer renders the right
+  // copy on the very first paint (SSR and hydration) — no paid-copy flash.
+  seedFreeAccessMode(freeAccessMode);
 
   return (
     <QueryClientProvider client={queryClient}>

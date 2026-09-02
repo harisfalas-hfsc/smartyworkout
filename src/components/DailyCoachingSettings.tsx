@@ -63,8 +63,8 @@ export function DailyCoachingSettings({ premium = false }: { premium?: boolean }
       setSettings(hub.settings);
       toast.success(
         subscribe
-          ? "Subscribed. Today's two workouts are in your account."
-          : "Unsubscribed from the Workout of the Day.",
+          ? "Daily plan on. Today's two workouts are in your account."
+          : "Daily plan off. You can create your own workouts again.",
       );
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not update your subscription.");
@@ -154,8 +154,8 @@ export function DailyCoachingSettings({ premium = false }: { premium?: boolean }
             <p className="text-xs text-muted-foreground">
               {premium
                 ? settings.wod_mode
-                  ? "You are subscribed. Two workouts land in your account every morning."
-                  : "Subscribe to get two workouts (bodyweight and equipment) every morning."
+                  ? "Daily plan is on. Two workouts land in your account every morning."
+                  : "Turn it on to get two workouts (bodyweight and equipment) every morning."
                 : "Members only. Join Smarty Workout to receive the daily programme."}
             </p>
           </div>
@@ -166,7 +166,7 @@ export function DailyCoachingSettings({ premium = false }: { premium?: boolean }
               disabled={wodBusy}
               onClick={() => void toggleWod(!settings.wod_mode)}
             >
-              {wodBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : settings.wod_mode ? "Unsubscribe" : "Subscribe"}
+              {wodBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : settings.wod_mode ? "Turn off" : "Turn on"}
             </Button>
           ) : (
             <Link

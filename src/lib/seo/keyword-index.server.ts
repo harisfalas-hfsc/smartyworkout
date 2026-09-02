@@ -120,7 +120,17 @@ export async function buildKeywordIndex(
   db: DB,
   extraKeywords: string[] = [],
 ): Promise<SeoKeywordIndex> {
-  const pages = collect(Object.values(PAGE_KEYWORDS).flat());
+  const { isFreeAccessMode } = await import("@/lib/free-access.server");
+  const freeAccessMode = await isFreeAccessMode();
+  const PAID_KEYWORD = /membership|subscription|9\.99|pricing|price|cancel anytime/i;
+  const pageKeywordEntries = Object.entries(PAGE_KEYWORDS).filter(
+    ([path]) => !(freeAccessMode && path === "/pricing"),
+  );
+  const pages = collect(
+    pageKeywordEntries
+      .flatMap(([, values]) => values)
+      .filter((k) => !(freeAccessMode && PAID_KEYWORD.test(k))),
+  );
   const topics = collect(
     TRAINING_TOPICS.flatMap((t) => [t.h1, t.eyebrow, t.slug, ...t.related.map((r) => r.label)]),
   );
