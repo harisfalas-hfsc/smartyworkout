@@ -73,9 +73,6 @@ export type FailureAlertInput = {
   user: { id: string; email?: string | null; name?: string | null };
 };
 
-/** Resolves every administrator's user id (admin role + ADMIN_EMAILS). */
-
-
 /** In-app notification insert; dedupe_key prevents double-posting. Never throws. */
 async function notifyInApp(
   rows: { user_id: string; kind: string; title: string; body: string; workout_id?: string | null; dedupe_key: string }[],
