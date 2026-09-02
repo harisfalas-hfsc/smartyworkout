@@ -8,14 +8,16 @@ import { CheckCircle2, ClipboardList } from "lucide-react";
 import { getMyAccessState } from "@/lib/access.functions";
 
 export const Route = createFileRoute("/_authenticated/checkout/return")({
-  loader: async () => {
+  beforeLoad: async () => {
     const { getFreeAccessMode } = await import("@/lib/free-access.functions");
+    let free = false;
     try {
-      const { freeAccessMode } = await getFreeAccessMode();
-      if (freeAccessMode) throw redirect({ to: "/" });
-    } catch (e) {
-      if (e && typeof e === "object" && "isRedirect" in e) throw e;
+      free = (await getFreeAccessMode()).freeAccessMode;
+    } catch {
+      free = false;
     }
+    // Free Access Mode: never render or index any paid screen.
+    if (free) throw redirect({ to: "/", replace: true });
   },
 
   validateSearch: (search: Record<string, unknown>): { session_id?: string } => ({

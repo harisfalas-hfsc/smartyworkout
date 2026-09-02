@@ -7,14 +7,16 @@ import { PageHeader } from "@/components/PageHeader";
 import { MEMBERSHIP_PRICE_ID } from "@/lib/stripe";
 
 export const Route = createFileRoute("/_authenticated/checkout")({
-  loader: async () => {
+  beforeLoad: async () => {
     const { getFreeAccessMode } = await import("@/lib/free-access.functions");
+    let free = false;
     try {
-      const { freeAccessMode } = await getFreeAccessMode();
-      if (freeAccessMode) throw redirect({ to: "/" });
-    } catch (e) {
-      if (e && typeof e === "object" && "isRedirect" in e) throw e;
+      free = (await getFreeAccessMode()).freeAccessMode;
+    } catch {
+      free = false;
     }
+    // Free Access Mode: never render or index any paid screen.
+    if (free) throw redirect({ to: "/", replace: true });
   },
 
   head: () => ({
