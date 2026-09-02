@@ -11,6 +11,7 @@ export const HEALTH_CHECKS: { key: string; label: string }[] = [
   { key: "jobs", label: "Scheduled jobs" },
   { key: "pages", label: "Public pages reachable" },
   { key: "sharing", label: "Shared workout links" },
+  { key: "blogimages", label: "Blog cover images" },
   { key: "memberdata", label: "Logbook / progress / player data" },
   { key: "support", label: "Support inbox" },
   { key: "errors", label: "Errors in the last 24 hours" },
