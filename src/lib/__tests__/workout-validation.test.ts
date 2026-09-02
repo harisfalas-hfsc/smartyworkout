@@ -100,10 +100,7 @@ describe("retry policy", () => {
 });
 
 describe("generation alert recipients", () => {
-  it("uses the two fixed administrator inboxes without configuration", () => {
-    expect(adminRecipients()).toEqual([
-      "smartyworkout@outlook.com",
-      "harisfalas@gmail.com",
-    ]);
+  it("alerts only the system inbox — never personal admin addresses", () => {
+    expect(adminRecipients()).toEqual(["smartyworkout@outlook.com"]);
   });
 });
