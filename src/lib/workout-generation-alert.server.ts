@@ -73,6 +73,39 @@ export type FailureAlertInput = {
   user: { id: string; email?: string | null; name?: string | null };
 };
 
+/** Resolves every administrator's user id (admin role + ADMIN_EMAILS). */
+async function adminUserIds(): Promise<string[]> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { ADMIN_EMAILS } = await import("@/lib/admin.server");
+  const ids = new Set<string>();
+  const { data: byEmail } = await supabaseAdmin
+    .from("profiles")
+    .select("id")
+    .in("email", ADMIN_EMAILS);
+  for (const p of (byEmail as { id: string }[] | null) ?? []) ids.add(p.id);
+  const { data: byRole } = await supabaseAdmin
+    .from("user_roles")
+    .select("user_id")
+    .eq("role", "admin");
+  for (const r of (byRole as { user_id: string }[] | null) ?? []) ids.add(r.user_id);
+  return Array.from(ids);
+}
+
+/** In-app notification insert; dedupe_key prevents double-posting. Never throws. */
+async function notifyInApp(
+  rows: { user_id: string; kind: string; title: string; body: string; workout_id?: string | null; dedupe_key: string }[],
+): Promise<void> {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("notifications").upsert(rows as never, {
+      onConflict: "user_id,dedupe_key",
+      ignoreDuplicates: true,
+    });
+  } catch (e) {
+    console.error("[generation-alert] in-app notification failed:", e);
+  }
+}
+
 /** Sends admin + backup + (optionally) member emails. Never throws. */
 export async function sendGenerationFailureAlerts(input: FailureAlertInput): Promise<DeliveryRecord> {
   const adminData = {
@@ -107,6 +140,28 @@ export async function sendGenerationFailureAlerts(input: FailureAlertInput): Pro
       ),
     );
   }
+
+  // Mirror in the in-app inbox: admins always, the member when they were emailed.
+  const adminRows = (await adminUserIds()).map((id) => ({
+    user_id: id,
+    kind: "admin",
+    title: `${input.urgent ? "Urgent: " : ""}Workout generation failed`,
+    body: `${input.user.name ?? "A member"} (${input.user.email ?? "no email"}) — ${STAGE_LABEL[input.stage] ?? input.stage}: ${input.reason}`.slice(0, 300),
+    dedupe_key: `gen-fail:${input.sessionId}:${input.attempt}-${id}`,
+  }));
+  const memberRows =
+    input.notifyCustomer && input.user.id
+      ? [
+          {
+            user_id: input.user.id,
+            kind: "workout",
+            title: "Sorry — we hit a problem building your workout",
+            body: "We're already working on it and will let you know the moment it's ready. You don't need to do anything.",
+            dedupe_key: `gen-delay:${input.sessionId}`,
+          },
+        ]
+      : [];
+  await notifyInApp([...adminRows, ...memberRows]);
 
   return summarise(results);
 }
@@ -156,6 +211,27 @@ export async function sendGenerationRecoveryAlerts(input: RecoveryAlertInput): P
       ),
     );
   }
+
+  // Mirror in the in-app inbox: member "workout ready" + admin confirmation.
+  const adminRows = (await adminUserIds()).map((id) => ({
+    user_id: id,
+    kind: "admin",
+    title: "Failed workout recovered",
+    body: `${input.user.name ?? "A member"}'s ${input.workoutName} succeeded after ${input.attempts} attempt${input.attempts === 1 ? "" : "s"}.`,
+    workout_id: input.workoutId,
+    dedupe_key: `gen-recovered:${input.sessionId}-${id}`,
+  }));
+  await notifyInApp([
+    {
+      user_id: input.user.id,
+      kind: "workout",
+      title: "Your workout is ready",
+      body: `${input.workoutName} — tap to open it.`,
+      workout_id: input.workoutId,
+      dedupe_key: `recovered:${input.sessionId}`,
+    },
+    ...adminRows,
+  ]);
 
   return summarise(results);
 }
