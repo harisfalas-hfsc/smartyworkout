@@ -141,6 +141,28 @@ export async function sendGenerationFailureAlerts(input: FailureAlertInput): Pro
     );
   }
 
+  // Mirror in the in-app inbox: admins always, the member when they were emailed.
+  const adminRows = (await adminUserIds()).map((id) => ({
+    user_id: id,
+    kind: "admin",
+    title: `${input.urgent ? "Urgent: " : ""}Workout generation failed`,
+    body: `${input.user.name ?? "A member"} (${input.user.email ?? "no email"}) — ${STAGE_LABEL[input.stage] ?? input.stage}: ${input.reason}`.slice(0, 300),
+    dedupe_key: `gen-fail:${input.sessionId}:${input.attempt}-${id}`,
+  }));
+  const memberRows =
+    input.notifyCustomer && input.user.id
+      ? [
+          {
+            user_id: input.user.id,
+            kind: "workout",
+            title: "Sorry — we hit a problem building your workout",
+            body: "We're already working on it and will let you know the moment it's ready. You don't need to do anything.",
+            dedupe_key: `gen-delay:${input.sessionId}`,
+          },
+        ]
+      : [];
+  await notifyInApp([...adminRows, ...memberRows]);
+
   return summarise(results);
 }
 
