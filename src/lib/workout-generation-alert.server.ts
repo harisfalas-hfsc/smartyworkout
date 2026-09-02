@@ -88,7 +88,7 @@ async function notifyInApp(
   }
 }
 
-/** Sends admin + backup + (optionally) member emails. Never throws. */
+/** Sends the system-inbox alert + (optionally) the member email. Never throws. */
 export async function sendGenerationFailureAlerts(input: FailureAlertInput): Promise<DeliveryRecord> {
   const adminData = {
     urgent: Boolean(input.urgent),
@@ -151,7 +151,7 @@ export type RecoveryAlertInput = {
   user: { id: string; email?: string | null; name?: string | null };
 };
 
-/** "Your workout is ready" to the member and both admin addresses. Never throws. */
+/** "Your workout is ready" to the member and the system inbox. Never throws. */
 export async function sendGenerationRecoveryAlerts(input: RecoveryAlertInput): Promise<DeliveryRecord> {
   const results = await Promise.all(
     adminRecipients().map((to) =>
