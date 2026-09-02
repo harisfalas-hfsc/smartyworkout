@@ -8,14 +8,16 @@ import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
 
 export const Route = createFileRoute("/pricing")({
-  loader: async () => {
+  beforeLoad: async () => {
     const { getFreeAccessMode } = await import("@/lib/free-access.functions");
+    let free = false;
     try {
-      const { freeAccessMode } = await getFreeAccessMode();
-      if (freeAccessMode) throw redirect({ to: "/" });
-    } catch (e) {
-      if (e && typeof e === "object" && "isRedirect" in e) throw e;
+      free = (await getFreeAccessMode()).freeAccessMode;
+    } catch {
+      free = false;
     }
+    // Free Access Mode: the page must never render or be indexed.
+    if (free) throw redirect({ to: "/", replace: true });
   },
 
   head: () => ({
