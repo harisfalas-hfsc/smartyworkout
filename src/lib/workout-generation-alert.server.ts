@@ -212,6 +212,27 @@ export async function sendGenerationRecoveryAlerts(input: RecoveryAlertInput): P
     );
   }
 
+  // Mirror in the in-app inbox: member "workout ready" + admin confirmation.
+  const adminRows = (await adminUserIds()).map((id) => ({
+    user_id: id,
+    kind: "admin",
+    title: "Failed workout recovered",
+    body: `${input.user.name ?? "A member"}'s ${input.workoutName} succeeded after ${input.attempts} attempt${input.attempts === 1 ? "" : "s"}.`,
+    workout_id: input.workoutId,
+    dedupe_key: `gen-recovered:${input.sessionId}-${id}`,
+  }));
+  await notifyInApp([
+    {
+      user_id: input.user.id,
+      kind: "workout",
+      title: "Your workout is ready",
+      body: `${input.workoutName} — tap to open it.`,
+      workout_id: input.workoutId,
+      dedupe_key: `recovered:${input.sessionId}`,
+    },
+    ...adminRows,
+  ]);
+
   return summarise(results);
 }
 
