@@ -21,10 +21,10 @@ export const Route = createFileRoute("/_authenticated/checkout")({
 
   head: () => ({
     meta: [
-      { title: "Checkout — Smarty Workout membership" },
+      { title: "Smarty Workout" },
       {
         name: "description",
-        content: "Activate your Smarty Workout membership — €9.99 per month, cancel anytime.",
+        content: "Smarty Workout account page.",
       },
       { name: "robots", content: "noindex" },
     ],
