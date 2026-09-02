@@ -73,6 +73,39 @@ export type FailureAlertInput = {
   user: { id: string; email?: string | null; name?: string | null };
 };
 
+/** Resolves every administrator's user id (admin role + ADMIN_EMAILS). */
+async function adminUserIds(): Promise<string[]> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { ADMIN_EMAILS } = await import("@/lib/admin.server");
+  const ids = new Set<string>();
+  const { data: byEmail } = await supabaseAdmin
+    .from("profiles")
+    .select("id")
+    .in("email", ADMIN_EMAILS);
+  for (const p of (byEmail as { id: string }[] | null) ?? []) ids.add(p.id);
+  const { data: byRole } = await supabaseAdmin
+    .from("user_roles")
+    .select("user_id")
+    .eq("role", "admin");
+  for (const r of (byRole as { user_id: string }[] | null) ?? []) ids.add(r.user_id);
+  return Array.from(ids);
+}
+
+/** In-app notification insert; dedupe_key prevents double-posting. Never throws. */
+async function notifyInApp(
+  rows: { user_id: string; kind: string; title: string; body: string; workout_id?: string | null; dedupe_key: string }[],
+): Promise<void> {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("notifications").upsert(rows as never, {
+      onConflict: "user_id,dedupe_key",
+      ignoreDuplicates: true,
+    });
+  } catch (e) {
+    console.error("[generation-alert] in-app notification failed:", e);
+  }
+}
+
 /** Sends admin + backup + (optionally) member emails. Never throws. */
 export async function sendGenerationFailureAlerts(input: FailureAlertInput): Promise<DeliveryRecord> {
   const adminData = {
