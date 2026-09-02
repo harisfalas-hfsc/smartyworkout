@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, Search, Crown, Shield, Plus, Minus, RefreshCw, ClipboardList, ArrowLeft } from "lucide-react";
+import { Loader2, Search, Crown, Shield, Plus, Minus, RefreshCw, ClipboardList, ArrowLeft, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +20,7 @@ import {
   type AdminUserRow,
 } from "@/lib/admin.functions";
 import { AdminWorkoutsTab } from "@/components/admin/AdminWorkoutsTab";
+import { AdminMemberDetail } from "@/components/admin/AdminMemberDetail";
 import { formatDate } from "@/lib/date-format";
 
 type Props = { onlySubscribers?: boolean };
@@ -39,6 +40,7 @@ export function AdminUsersTab({ onlySubscribers = false }: Props) {
   const [grantFor, setGrantFor] = useState<AdminUserRow | null>(null);
   const [months, setMonths] = useState(1);
   const [logbookFor, setLogbookFor] = useState<AdminUserRow | null>(null);
+  const [detailFor, setDetailFor] = useState<AdminUserRow | null>(null);
 
   async function reload() {
     setLoading(true);
@@ -61,6 +63,10 @@ export function AdminUsersTab({ onlySubscribers = false }: Props) {
     setBusy(false);
     setMessage(r?.error ?? ok);
     await reload();
+  }
+
+  if (detailFor) {
+    return <AdminMemberDetail userId={detailFor.id} onBack={() => setDetailFor(null)} />;
   }
 
   if (logbookFor) {
@@ -143,6 +149,9 @@ export function AdminUsersTab({ onlySubscribers = false }: Props) {
               </div>
 
               <div className="mt-3 flex flex-wrap gap-2">
+                <Button size="sm" variant="outline" onClick={() => setDetailFor(u)}>
+                  <User className="mr-1 h-4 w-4" /> Member profile
+                </Button>
                 <Button size="sm" variant="outline" onClick={() => setLogbookFor(u)}>
                   <ClipboardList className="mr-1 h-4 w-4" /> Workouts ({u.workouts})
                 </Button>
