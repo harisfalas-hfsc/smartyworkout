@@ -1,11 +1,11 @@
 /**
- * Three-recipient alerting for workout generation.
+ * Alerting for workout generation.
  *
  * A real failure always reaches:
- *   1. the system inbox (smartyworkout@outlook.com)
- *   2. the administrator's personal address (ALERT_BACKUP_EMAIL) so a junk
- *      rule in Outlook can never hide a failure
- *   3. the member — a branded, non-technical apology, sent ONCE per session
+ *   1. the system inbox (smartyworkout@outlook.com) — the ONLY admin address.
+ *      Admin alerts never go to anyone's personal email or in-app inbox, so
+ *      an administrator's own account sees exactly what any customer sees.
+ *   2. the member — a branded, non-technical apology, sent ONCE per session.
  *
  * The happy path sends nothing at all.
  */
@@ -16,7 +16,7 @@ export const SYSTEM_INBOX = "smartyworkout@outlook.com";
 export const SUPPORT_REPLY_TO = "smartyworkout@outlook.com";
 
 export function adminRecipients(): string[] {
-  return [SYSTEM_INBOX, "harisfalas@gmail.com"];
+  return [SYSTEM_INBOX];
 }
 
 export function siteOrigin(): string {
@@ -73,24 +73,6 @@ export type FailureAlertInput = {
   user: { id: string; email?: string | null; name?: string | null };
 };
 
-/** Resolves every administrator's user id (admin role + ADMIN_EMAILS). */
-async function adminUserIds(): Promise<string[]> {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { ADMIN_EMAILS } = await import("@/lib/admin.server");
-  const ids = new Set<string>();
-  const { data: byEmail } = await supabaseAdmin
-    .from("profiles")
-    .select("id")
-    .in("email", ADMIN_EMAILS);
-  for (const p of (byEmail as { id: string }[] | null) ?? []) ids.add(p.id);
-  const { data: byRole } = await supabaseAdmin
-    .from("user_roles")
-    .select("user_id")
-    .eq("role", "admin");
-  for (const r of (byRole as { user_id: string }[] | null) ?? []) ids.add(r.user_id);
-  return Array.from(ids);
-}
-
 /** In-app notification insert; dedupe_key prevents double-posting. Never throws. */
 async function notifyInApp(
   rows: { user_id: string; kind: string; title: string; body: string; workout_id?: string | null; dedupe_key: string }[],
@@ -106,7 +88,7 @@ async function notifyInApp(
   }
 }
 
-/** Sends admin + backup + (optionally) member emails. Never throws. */
+/** Sends the system-inbox alert + (optionally) the member email. Never throws. */
 export async function sendGenerationFailureAlerts(input: FailureAlertInput): Promise<DeliveryRecord> {
   const adminData = {
     urgent: Boolean(input.urgent),
@@ -141,14 +123,8 @@ export async function sendGenerationFailureAlerts(input: FailureAlertInput): Pro
     );
   }
 
-  // Mirror in the in-app inbox: admins always, the member when they were emailed.
-  const adminRows = (await adminUserIds()).map((id) => ({
-    user_id: id,
-    kind: "admin",
-    title: `${input.urgent ? "Urgent: " : ""}Workout generation failed`,
-    body: `${input.user.name ?? "A member"} (${input.user.email ?? "no email"}) — ${STAGE_LABEL[input.stage] ?? input.stage}: ${input.reason}`.slice(0, 300),
-    dedupe_key: `gen-fail:${input.sessionId}:${input.attempt}-${id}`,
-  }));
+  // Mirror in the member's in-app inbox only. Admin alerts stay in the system
+  // inbox email — never in a personal inbox — so admins see what customers see.
   const memberRows =
     input.notifyCustomer && input.user.id
       ? [
@@ -161,7 +137,7 @@ export async function sendGenerationFailureAlerts(input: FailureAlertInput): Pro
           },
         ]
       : [];
-  await notifyInApp([...adminRows, ...memberRows]);
+  await notifyInApp(memberRows);
 
   return summarise(results);
 }
@@ -175,7 +151,7 @@ export type RecoveryAlertInput = {
   user: { id: string; email?: string | null; name?: string | null };
 };
 
-/** "Your workout is ready" to the member and both admin addresses. Never throws. */
+/** "Your workout is ready" to the member and the system inbox. Never throws. */
 export async function sendGenerationRecoveryAlerts(input: RecoveryAlertInput): Promise<DeliveryRecord> {
   const results = await Promise.all(
     adminRecipients().map((to) =>
@@ -212,15 +188,7 @@ export async function sendGenerationRecoveryAlerts(input: RecoveryAlertInput): P
     );
   }
 
-  // Mirror in the in-app inbox: member "workout ready" + admin confirmation.
-  const adminRows = (await adminUserIds()).map((id) => ({
-    user_id: id,
-    kind: "admin",
-    title: "Failed workout recovered",
-    body: `${input.user.name ?? "A member"}'s ${input.workoutName} succeeded after ${input.attempts} attempt${input.attempts === 1 ? "" : "s"}.`,
-    workout_id: input.workoutId,
-    dedupe_key: `gen-recovered:${input.sessionId}-${id}`,
-  }));
+  // Mirror in the member's in-app inbox only; admins get the system-inbox email.
   await notifyInApp([
     {
       user_id: input.user.id,
@@ -230,7 +198,6 @@ export async function sendGenerationRecoveryAlerts(input: RecoveryAlertInput): P
       workout_id: input.workoutId,
       dedupe_key: `recovered:${input.sessionId}`,
     },
-    ...adminRows,
   ]);
 
   return summarise(results);
