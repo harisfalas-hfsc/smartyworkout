@@ -20,10 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { generateWorkout } from "@/lib/coach.functions";
 import { isOnline } from "@/lib/connectivity";
-import {
-  getExercisePreferences,
-  setUseLibraryPreferences as saveUseLibraryPreferences,
-} from "@/lib/preferences.functions";
+import { setUseLibraryPreferences as saveUseLibraryPreferences } from "@/lib/preferences.functions";
 import { Link } from "@tanstack/react-router";
 import { ParqWaiverDialog } from "@/components/ParqWaiverDialog";
 import { hasParqAck, setParqAck } from "@/lib/parq-ack";
