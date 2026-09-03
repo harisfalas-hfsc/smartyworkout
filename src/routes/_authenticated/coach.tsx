@@ -210,6 +210,17 @@ function CoachPage() {
     setEquipment((prev) => (prev.includes(id) ? prev.filter((e) => e !== id) : [...prev, id]));
   }
 
+  const canGenerate = Boolean(
+    goal &&
+      mood &&
+      minutes &&
+      location &&
+      equipment.length > 0 &&
+      level &&
+      useLibraryPreferences !== null &&
+      (!showFocus || focus),
+  );
+
   async function generate(surprise = false, levelOverride?: string) {
     if (busy || wodMode) return;
     const request = {
@@ -217,12 +228,12 @@ function CoachPage() {
       ...(surprise || !showFocus ? {} : { focus }),
 
       mood,
-      minutes,
+      minutes: minutes ?? undefined,
       location,
       equipment: equipment.length ? equipment : ["bodyweight"],
       equipmentOther: equipment.includes("other") ? otherEquipment.trim() : "",
       note: note.trim(),
-      useLibraryPreferences,
+      useLibraryPreferences: useLibraryPreferences ?? false,
 
       level: surprise ? "auto" : (levelOverride ?? level),
       surprise,
