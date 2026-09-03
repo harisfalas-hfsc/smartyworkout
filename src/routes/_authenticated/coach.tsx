@@ -467,7 +467,9 @@ function CoachPage() {
           <div className="mt-3">
             <CoachRecommendationCard
               selectedStars={
-                level === "auto" ? 2 : levelToStars(level as "beginner" | "intermediate" | "advanced")
+                level === "auto" || !level
+                  ? 2
+                  : levelToStars(level as "beginner" | "intermediate" | "advanced")
               }
               onApplyStars={(stars) => setLevel(starsToLevel(stars))}
             />
