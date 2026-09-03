@@ -584,7 +584,7 @@ function CoachPage() {
         <Button
           size="lg"
           className="h-16 w-full rounded-2xl text-base font-extrabold shadow-lg"
-          disabled={busy || wodMode}
+          disabled={busy || wodMode || !canGenerate}
           onClick={() => requestGenerate(false)}
         >
           {busy ? (
@@ -594,6 +594,11 @@ function CoachPage() {
           )}
           {busy ? "Smarty Coach is thinking…" : "Create my workout"}
         </Button>
+        {!canGenerate && !busy && !wodMode ? (
+          <p className="mt-2 text-center text-xs text-muted-foreground">
+            Select goal, mood, difficulty, time, location and equipment to build your workout.
+          </p>
+        ) : null}
       </div>
 
       <AlertDialog open={confirmHard} onOpenChange={setConfirmHard}>
