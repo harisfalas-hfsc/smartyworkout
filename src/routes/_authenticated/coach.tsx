@@ -175,9 +175,6 @@ function CoachPage() {
         setPremium(access.premium);
       })
       .catch(() => setProfileReady(null));
-    void getExercisePreferences()
-      .then((p) => setUseLibraryPreferences(p.useLibraryPreferences))
-      .catch(() => undefined);
   }, []);
 
 
