@@ -138,22 +138,22 @@ function Grid({ children }: { children: React.ReactNode }) {
 function CoachPage() {
   const navigate = useNavigate();
   const run = useServerFn(generateWorkout);
-  const [goal, setGoal] = useState<string>("strength");
-  const [focus, setFocus] = useState<string>("FULL BODY");
+  const [goal, setGoal] = useState<string>("");
+  const [focus, setFocus] = useState<string>("");
   const showFocus = FOCUS_GOALS.includes(goal);
 
-  const [mood, setMood] = useState<string>("normal");
-  const [minutes, setMinutes] = useState<number>(30);
-  const [location, setLocation] = useState<string>("home");
-  const [equipment, setEquipment] = useState<string[]>(["bodyweight"]);
+  const [mood, setMood] = useState<string>("");
+  const [minutes, setMinutes] = useState<number | null>(null);
+  const [location, setLocation] = useState<string>("");
+  const [equipment, setEquipment] = useState<string[]>([]);
   const [otherEquipment, setOtherEquipment] = useState("");
   const [note, setNote] = useState("");
-  const [useLibraryPreferences, setUseLibraryPreferences] = useState(true);
+  const [useLibraryPreferences, setUseLibraryPreferences] = useState<boolean | null>(null);
 
   const [busy, setBusy] = useState(false);
   const [generationDialogOpen, setGenerationDialogOpen] = useState(false);
   const [name, setName] = useState<string>("");
-  const [level, setLevel] = useState<string>("auto");
+  const [level, setLevel] = useState<string>("");
   const [confirmHard, setConfirmHard] = useState(false);
   const [resuming, setResuming] = useState(false);
   const [wodMode, setWodMode] = useState(false);
