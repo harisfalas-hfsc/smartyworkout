@@ -189,21 +189,15 @@ function CoachPage() {
       if (!auth.user) return;
       const { data } = await supabase
         .from("profiles")
-        .select("display_name,preferred_environment,preferred_equipment,typical_duration_min,wod_mode")
+        .select("display_name,wod_mode")
         .eq("id", auth.user.id)
         .maybeSingle();
       const p = data as {
         display_name?: string | null;
-        preferred_environment?: string | null;
-        preferred_equipment?: string[] | null;
-        typical_duration_min?: number | null;
         wod_mode?: boolean | null;
       } | null;
       if (!p) return;
       setName(p.display_name ?? "");
-      if (p.preferred_environment) setLocation(p.preferred_environment);
-      if (p.preferred_equipment?.length) setEquipment(p.preferred_equipment);
-      if (p.typical_duration_min) setMinutes(p.typical_duration_min);
       setWodMode(Boolean(p.wod_mode));
     })();
   }, []);
