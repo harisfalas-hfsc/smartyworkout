@@ -266,6 +266,10 @@ function CoachPage() {
   }
 
   function requestGenerate(surprise: boolean) {
+    if (!canGenerate) {
+      toast.error("Please answer all required questions first.");
+      return;
+    }
     if (premium === false) {
       setMembershipOpen(true);
       return;
