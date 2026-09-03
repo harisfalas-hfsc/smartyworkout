@@ -20,10 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { generateWorkout } from "@/lib/coach.functions";
 import { isOnline } from "@/lib/connectivity";
-import {
-  getExercisePreferences,
-  setUseLibraryPreferences as saveUseLibraryPreferences,
-} from "@/lib/preferences.functions";
+import { setUseLibraryPreferences as saveUseLibraryPreferences } from "@/lib/preferences.functions";
 import { Link } from "@tanstack/react-router";
 import { ParqWaiverDialog } from "@/components/ParqWaiverDialog";
 import { hasParqAck, setParqAck } from "@/lib/parq-ack";
@@ -138,22 +135,22 @@ function Grid({ children }: { children: React.ReactNode }) {
 function CoachPage() {
   const navigate = useNavigate();
   const run = useServerFn(generateWorkout);
-  const [goal, setGoal] = useState<string>("strength");
-  const [focus, setFocus] = useState<string>("FULL BODY");
+  const [goal, setGoal] = useState<string>("");
+  const [focus, setFocus] = useState<string>("");
   const showFocus = FOCUS_GOALS.includes(goal);
 
-  const [mood, setMood] = useState<string>("normal");
-  const [minutes, setMinutes] = useState<number>(30);
-  const [location, setLocation] = useState<string>("home");
-  const [equipment, setEquipment] = useState<string[]>(["bodyweight"]);
+  const [mood, setMood] = useState<string>("");
+  const [minutes, setMinutes] = useState<number | null>(null);
+  const [location, setLocation] = useState<string>("");
+  const [equipment, setEquipment] = useState<string[]>([]);
   const [otherEquipment, setOtherEquipment] = useState("");
   const [note, setNote] = useState("");
-  const [useLibraryPreferences, setUseLibraryPreferences] = useState(true);
+  const [useLibraryPreferences, setUseLibraryPreferences] = useState<boolean | null>(null);
 
   const [busy, setBusy] = useState(false);
   const [generationDialogOpen, setGenerationDialogOpen] = useState(false);
   const [name, setName] = useState<string>("");
-  const [level, setLevel] = useState<string>("auto");
+  const [level, setLevel] = useState<string>("");
   const [confirmHard, setConfirmHard] = useState(false);
   const [resuming, setResuming] = useState(false);
   const [wodMode, setWodMode] = useState(false);
@@ -175,9 +172,6 @@ function CoachPage() {
         setPremium(access.premium);
       })
       .catch(() => setProfileReady(null));
-    void getExercisePreferences()
-      .then((p) => setUseLibraryPreferences(p.useLibraryPreferences))
-      .catch(() => undefined);
   }, []);
 
 
@@ -189,21 +183,15 @@ function CoachPage() {
       if (!auth.user) return;
       const { data } = await supabase
         .from("profiles")
-        .select("display_name,preferred_environment,preferred_equipment,typical_duration_min,wod_mode")
+        .select("display_name,wod_mode")
         .eq("id", auth.user.id)
         .maybeSingle();
       const p = data as {
         display_name?: string | null;
-        preferred_environment?: string | null;
-        preferred_equipment?: string[] | null;
-        typical_duration_min?: number | null;
         wod_mode?: boolean | null;
       } | null;
       if (!p) return;
       setName(p.display_name ?? "");
-      if (p.preferred_environment) setLocation(p.preferred_environment);
-      if (p.preferred_equipment?.length) setEquipment(p.preferred_equipment);
-      if (p.typical_duration_min) setMinutes(p.typical_duration_min);
       setWodMode(Boolean(p.wod_mode));
     })();
   }, []);
@@ -216,6 +204,17 @@ function CoachPage() {
     setEquipment((prev) => (prev.includes(id) ? prev.filter((e) => e !== id) : [...prev, id]));
   }
 
+  const canGenerate = Boolean(
+    goal &&
+      mood &&
+      minutes &&
+      location &&
+      equipment.length > 0 &&
+      level &&
+      useLibraryPreferences !== null &&
+      (!showFocus || focus),
+  );
+
   async function generate(surprise = false, levelOverride?: string) {
     if (busy || wodMode) return;
     const request = {
@@ -223,12 +222,12 @@ function CoachPage() {
       ...(surprise || !showFocus ? {} : { focus }),
 
       mood,
-      minutes,
+      minutes: minutes ?? undefined,
       location,
       equipment: equipment.length ? equipment : ["bodyweight"],
       equipmentOther: equipment.includes("other") ? otherEquipment.trim() : "",
       note: note.trim(),
-      useLibraryPreferences,
+      useLibraryPreferences: useLibraryPreferences ?? false,
 
       level: surprise ? "auto" : (levelOverride ?? level),
       surprise,
@@ -261,6 +260,10 @@ function CoachPage() {
   }
 
   function requestGenerate(surprise: boolean) {
+    if (!canGenerate) {
+      toast.error("Please answer all required questions first.");
+      return;
+    }
     if (premium === false) {
       setMembershipOpen(true);
       return;
@@ -378,7 +381,7 @@ function CoachPage() {
         <Button
           size="lg"
           className="mt-3 h-14 w-full rounded-2xl text-base font-extrabold"
-          disabled={busy || wodMode}
+          disabled={busy || wodMode || !canGenerate}
           onClick={() => requestGenerate(true)}
         >
           {busy ? (
@@ -462,7 +465,9 @@ function CoachPage() {
           <div className="mt-3">
             <CoachRecommendationCard
               selectedStars={
-                level === "auto" ? 2 : levelToStars(level as "beginner" | "intermediate" | "advanced")
+                level === "auto" || !level
+                  ? 2
+                  : levelToStars(level as "beginner" | "intermediate" | "advanced")
               }
               onApplyStars={(stars) => setLevel(starsToLevel(stars))}
             />
@@ -534,13 +539,13 @@ function CoachPage() {
           hint="Your liked exercises get priority, your disliked ones are left out."
         >
           <Grid>
-            <Chip active={useLibraryPreferences} onClick={() => {
+            <Chip active={useLibraryPreferences === true} onClick={() => {
                 setUseLibraryPreferences(true);
                 void saveUseLibraryPreferences({ data: { enabled: true } }).catch(() => undefined);
               }}>
               Yes
             </Chip>
-            <Chip active={!useLibraryPreferences} onClick={() => {
+            <Chip active={useLibraryPreferences === false} onClick={() => {
                 setUseLibraryPreferences(false);
                 void saveUseLibraryPreferences({ data: { enabled: false } }).catch(() => undefined);
               }}>
@@ -577,7 +582,7 @@ function CoachPage() {
         <Button
           size="lg"
           className="h-16 w-full rounded-2xl text-base font-extrabold shadow-lg"
-          disabled={busy || wodMode}
+          disabled={busy || wodMode || !canGenerate}
           onClick={() => requestGenerate(false)}
         >
           {busy ? (
@@ -587,6 +592,11 @@ function CoachPage() {
           )}
           {busy ? "Smarty Coach is thinking…" : "Create my workout"}
         </Button>
+        {!canGenerate && !busy && !wodMode ? (
+          <p className="mt-2 text-center text-xs text-muted-foreground">
+            Select goal, mood, difficulty, time, location and equipment to build your workout.
+          </p>
+        ) : null}
       </div>
 
       <AlertDialog open={confirmHard} onOpenChange={setConfirmHard}>
