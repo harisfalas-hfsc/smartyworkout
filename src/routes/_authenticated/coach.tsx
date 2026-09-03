@@ -383,7 +383,7 @@ function CoachPage() {
         <Button
           size="lg"
           className="mt-3 h-14 w-full rounded-2xl text-base font-extrabold"
-          disabled={busy || wodMode}
+          disabled={busy || wodMode || !canGenerate}
           onClick={() => requestGenerate(true)}
         >
           {busy ? (
