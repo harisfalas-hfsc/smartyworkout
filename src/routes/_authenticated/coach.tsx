@@ -539,13 +539,13 @@ function CoachPage() {
           hint="Your liked exercises get priority, your disliked ones are left out."
         >
           <Grid>
-            <Chip active={useLibraryPreferences} onClick={() => {
+            <Chip active={useLibraryPreferences === true} onClick={() => {
                 setUseLibraryPreferences(true);
                 void saveUseLibraryPreferences({ data: { enabled: true } }).catch(() => undefined);
               }}>
               Yes
             </Chip>
-            <Chip active={!useLibraryPreferences} onClick={() => {
+            <Chip active={useLibraryPreferences === false} onClick={() => {
                 setUseLibraryPreferences(false);
                 void saveUseLibraryPreferences({ data: { enabled: false } }).catch(() => undefined);
               }}>
