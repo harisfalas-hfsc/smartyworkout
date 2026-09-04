@@ -120,8 +120,19 @@ export async function getAccessStateForUser(
     : null;
   const { isFreeAccessMode } = await import("@/lib/free-access.server");
   const freeAccessMode = await isFreeAccessMode();
+  // Admins always have full access so community and member features stay testable.
+  let isAdmin = false;
+  try {
+    const { data } = await (db as unknown as {
+      rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown }>;
+    }).rpc("is_app_admin", { _user_id: userId });
+    isAdmin = data === true;
+  } catch {
+    isAdmin = false;
+  }
   const premium =
     freeAccessMode ||
+    isAdmin ||
     Boolean(subscription && (!periodEnd || Number.isNaN(periodEnd) || periodEnd > Date.now()));
 
   const { getWorkoutRules } = await import("@/lib/settings.server");
