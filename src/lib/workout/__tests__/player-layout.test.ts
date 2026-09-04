@@ -11,7 +11,7 @@ describe("workout player layout", () => {
     expect(player).toContain('CarouselItem key={i} className="h-full pl-0"');
     // every slide type renders the exact same fixed-size media frame
     expect(player).toContain("h-[clamp(9rem,26dvh,15rem)]");
-    expect(player).toContain("grid-rows-[clamp(9rem,26dvh,15rem)_5rem]");
+    expect(player).toContain("grid-rows-[clamp(9rem,26dvh,15rem)_8rem]");
     expect(player).toContain('className="block h-full w-full rounded-none bg-neutral-50 object-contain"');
     expect(player.match(/<SlideShell/g)).toHaveLength(3);
 
@@ -21,7 +21,7 @@ describe("workout player layout", () => {
     const player = readFileSync("src/components/workout/WorkoutPlayerDialog.tsx", "utf8");
 
     expect(player).toContain("grid-rows-[auto_4px_auto_minmax(0,1fr)_auto]");
-    expect(player).toContain("h-[calc(clamp(9rem,26dvh,15rem)+5rem+0.75rem)]");
+    expect(player).toContain("h-[calc(clamp(9rem,26dvh,15rem)+8rem+0.75rem)]");
     // primary action bar sits outside the scrollable controls so it is always visible
     expect(player).toContain('<div className="space-y-2 border-t border-neutral-800 px-4 py-3 sm:px-6">');
     expect(player.match(/<SlideNavigation/g)).toHaveLength(3);

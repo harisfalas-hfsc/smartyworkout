@@ -455,7 +455,7 @@ export function WorkoutPlayerDialog({
           <div className="h-1 bg-primary transition-all" style={{ width: `${progress}%` }} />
         </div>
 
-        <div className="relative h-[calc(clamp(9rem,26dvh,15rem)+5rem+0.75rem)] overflow-hidden pt-3">
+        <div className="relative h-[calc(clamp(9rem,26dvh,15rem)+8rem+0.75rem)] overflow-hidden pt-3">
           <Carousel setApi={setApi} className="h-full overflow-hidden">
             <CarouselContent className="ml-0 h-full min-h-0">
               {slides.map((s, i) => (
@@ -722,9 +722,9 @@ const MEDIA_FRAME_CLASS =
 
 function SlideShell({ media, info }: { media: React.ReactNode; info: React.ReactNode }) {
   return (
-    <div className="grid h-full min-h-0 w-full grid-rows-[clamp(9rem,26dvh,15rem)_5rem] content-start overflow-hidden text-center">
+    <div className="grid h-full min-h-0 w-full grid-rows-[clamp(9rem,26dvh,15rem)_8rem] content-start overflow-hidden text-center">
       <div className={MEDIA_FRAME_CLASS}>{media}</div>
-      <div className="flex h-20 w-full min-w-0 flex-col justify-center overflow-hidden border-b border-neutral-800 px-4 py-1 sm:px-6">{info}</div>
+      <div className="flex h-32 w-full min-w-0 flex-col justify-center overflow-hidden border-b border-neutral-800 px-4 py-1 sm:px-6">{info}</div>
     </div>
   );
 }
