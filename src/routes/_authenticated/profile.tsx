@@ -206,7 +206,14 @@ function ProfilePage() {
         ),
       ) as Partial<Profile>;
 
-      const row = { ...EMPTY, ...clean };
+      // Readiness (PAR-Q) is a fresh check on every visit: the saved answers
+      // are never pre-filled. Equipment and preferences stay as saved.
+      const row = {
+        ...EMPTY,
+        ...clean,
+        readiness_answers: {},
+        readiness_warning_acknowledged_at: null,
+      };
       setWasOnboarded(Boolean(row.onboarded));
       setP(row);
 

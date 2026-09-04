@@ -347,14 +347,49 @@ export async function recalcAttempt(
   ]);
 
   const sets = (setRows ?? []) as SetLogRow[];
-  const result = (resultRow ?? null) as WorkoutResultRow | null;
-  if (!result) return { updated: false, note: null as string | null };
+  let result = (resultRow ?? null) as WorkoutResultRow | null;
+
+  // Logging through the recap / "Edit performance" screen must still produce a
+  // real session record, otherwise training load and the graphs stay empty.
+  if (!result) {
+    if (!sets.length) return { updated: false, note: null as string | null };
+    const { data: workout } = await supabase
+      .from("workouts")
+      .select("format,category,completed_at,created_at")
+      .eq("id", workoutId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    const w = (workout ?? {}) as Record<string, unknown>;
+    const performedAt =
+      sets.map((s) => s.completed_at).filter(Boolean).sort().slice(-1)[0] ??
+      (w["completed_at"] as string | null) ??
+      new Date().toISOString();
+    const { error: insertError } = await supabase.from("workout_results").insert({
+      user_id: userId,
+      workout_id: workoutId,
+      attempt,
+      performed_at: performedAt,
+      format: (w["format"] as string | null) ?? null,
+      category: (w["category"] as string | null) ?? null,
+      data_points: 0,
+    });
+    if (insertError) throw new Error(insertError.message);
+    const { data: created } = await supabase
+      .from("workout_results")
+      .select(RESULT_COLUMNS)
+      .eq("user_id", userId)
+      .eq("workout_id", workoutId)
+      .eq("attempt", attempt)
+      .maybeSingle();
+    result = (created ?? null) as WorkoutResultRow | null;
+    if (!result) return { updated: false, note: null as string | null };
+  }
 
   const analysis = note({ sets, result, history: [] });
   const dataPoints =
     sets.length +
     [result.duration_seconds, result.rounds, result.intervals_done, result.rpe].filter(
-      (v) => v !== null,
+      (v) => v !== null && v !== undefined,
     ).length;
 
   const { error } = await supabase
