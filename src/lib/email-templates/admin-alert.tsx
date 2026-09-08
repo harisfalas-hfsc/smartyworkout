@@ -26,18 +26,19 @@ const Email = ({ alertType, title, details, link }: Props) => (
       <Container style={container}>
         <Text style={brand}>SMARTY WORKOUT — ADMIN</Text>
         <Heading style={heading}>{title || 'New admin item'}</Heading>
-        <Text style={label}>Type</Text>
-        <Text style={text}>{alertType || 'notification'}</Text>
-        <Text style={label}>Details</Text>
-        <Text style={quote}>{details || '(no details)'}</Text>
+        <Text style={label}>What this is about</Text>
+        <Text style={text}>{alertType || 'Your app'}</Text>
+        <Text style={label}>What happened</Text>
+        <Text style={quote}>{details || 'No further details.'}</Text>
         {link ? (
           <>
-            <Text style={label}>Open</Text>
+            <Text style={label}>Where to look</Text>
             <Text style={text}>{link}</Text>
           </>
         ) : null}
         <Hr style={hr} />
-        <Text style={footer}>Sign in and open the Admin panel to review and action this item.</Text>
+        <Text style={footer}>This is an automatic message from your own Smarty Workout app, sent only to you as the owner. Members never see it.</Text>
+
       </Container>
     </Body>
   </Html>
