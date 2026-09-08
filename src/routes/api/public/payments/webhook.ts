@@ -90,12 +90,20 @@ async function upsertSubscription(subscription: any, env: StripeEnv, eventCreate
       { onConflict: "provider_subscription_id" },
     );
 
+  const who = await memberLabel(userId);
+  const until = periodEnd
+    ? new Date(periodEnd * 1000).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : null;
+  const statusSentence = friendlyStatus(subscription.status, until, subscription.cancel_at_period_end);
+
   await adminAlert({
     kind: "Membership",
-    title: `Membership ${subscription.status}`,
-    details: `Subscription ${subscription.id} for user ${userId} is now "${subscription.status}"${
-      subscription.cancel_at_period_end ? " (set to cancel at period end)" : ""
-    }.`,
+    title: membershipTitle(subscription.status, subscription.cancel_at_period_end),
+    details: `${who} — ${statusSentence}\n\nMembership: Smarty Workout monthly (€9.99)`,
     dedupeKey: billingDedupeKey({
       kind: "sub",
       objectId: subscription.id,
@@ -103,6 +111,76 @@ async function upsertSubscription(subscription: any, env: StripeEnv, eventCreate
     }),
   });
 }
+
+/** "Jane Doe (jane@mail.com)" — never a raw id in an email a human reads. */
+async function memberLabel(userId: string): Promise<string> {
+  let name = "";
+  let email = "";
+  try {
+    const { data } = await getSupabase()
+      .from("profiles")
+      .select("display_name")
+      .eq("id", userId)
+      .maybeSingle();
+    name = (data as { display_name?: string } | null)?.display_name?.trim() ?? "";
+  } catch {
+    /* fall through */
+  }
+  try {
+    const { data } = await getSupabase().auth.admin.getUserById(userId);
+    email = data?.user?.email ?? "";
+  } catch {
+    /* fall through */
+  }
+  if (name && email) return `${name} (${email})`;
+  return name || email || "A member";
+}
+
+function membershipTitle(status: string, cancelAtPeriodEnd: boolean): string {
+  if (cancelAtPeriodEnd) return "A member turned off auto-renewal";
+  switch (status) {
+    case "active":
+      return "A membership is active and paid";
+    case "trialing":
+      return "A member started a free trial";
+    case "past_due":
+      return "A membership payment is overdue";
+    case "unpaid":
+      return "A membership is unpaid and paused";
+    case "incomplete":
+    case "incomplete_expired":
+      return "A membership sign-up wasn't completed";
+    case "canceled":
+      return "A membership was cancelled";
+    default:
+      return "A membership changed";
+  }
+}
+
+function friendlyStatus(status: string, until: string | null, cancelAtPeriodEnd: boolean): string {
+  const ends = until ? ` The paid period runs until ${until}.` : "";
+  if (cancelAtPeriodEnd) {
+    return `Their membership will not renew.${ends} They keep full access until then, and nothing in their profile or logbook is lost.`;
+  }
+  switch (status) {
+    case "active":
+      return `Their membership is active and paid.${ends} No action is needed from you.`;
+    case "trialing":
+      return `They are on a free trial and have full access.${ends}`;
+    case "past_due":
+      return `Their last payment did not go through, so the membership is overdue. The card is retried automatically for a few days.${ends}`;
+    case "unpaid":
+      return "All payment attempts failed, so their membership is paused until they update their card.";
+    case "incomplete":
+    case "incomplete_expired":
+      return "They started signing up but the payment was never completed, so they have no paid access.";
+    case "canceled":
+      return "Their membership is cancelled and paid access has stopped.";
+    default:
+      return `Their membership status changed to "${status}".${ends}`;
+  }
+}
+
 
 /** Admin-side alert: emails the support mailbox. Never breaks the webhook. */
 async function adminAlert(input: {
