@@ -219,12 +219,14 @@ async function markCanceled(subscription: any, env: StripeEnv, eventCreatedAt: n
     .eq("provider_subscription_id", subscription.id)
     .eq("environment", env);
 
+  const who = subscription.metadata?.userId ? await memberLabel(subscription.metadata.userId) : "A member";
   await adminAlert({
     kind: "Membership",
-    title: "Membership canceled",
-    details: `Subscription ${subscription.id} was canceled.`,
+    title: "A membership was cancelled",
+    details: `${who} — their membership has ended and paid access has stopped. Their account, profile, logbook and progress all stay in place, so they can come back any time.`,
     dedupeKey: billingDedupeKey({ kind: "sub-canceled", objectId: subscription.id }),
   });
+
 }
 
 
@@ -275,9 +277,12 @@ async function handleInvoicePaid(invoice: any, env: StripeEnv) {
   await adminAlert({
     kind: "Payment",
     title: `Payment received — ${amount}`,
-    details: `Invoice ${invoice.id} paid by user ${userId}.${nextDate ? ` Next period ends ${nextDate}.` : ""}`,
+    details: `${await memberLabel(userId)} paid ${amount} for their monthly Smarty Workout membership.${
+      nextDate ? ` Their access is now paid until ${nextDate}.` : ""
+    } The money is on its way to your payout account. No action is needed from you.`,
     dedupeKey: billingDedupeKey({ kind: "admin-invoice-paid", objectId: invoice.id }),
   });
+
 }
 
 async function handleInvoiceFailed(invoice: any, env: StripeEnv) {
@@ -305,10 +310,15 @@ async function handleInvoiceFailed(invoice: any, env: StripeEnv) {
 
   await adminAlert({
     kind: "Payment",
-    title: `Payment failed — ${amount}`,
-    details: `Invoice ${invoice.id} failed for user ${userId} (attempt ${attempt}).`,
+    title: `A member's payment failed — ${amount}`,
+    details: `${await memberLabel(userId)} — their card was declined for ${amount} (try number ${attempt}). ${
+      nextAttempt
+        ? `We will try the same card again automatically on ${nextAttempt}, and they have already been told how to update it. Their access stays on in the meantime.`
+        : "This was the last automatic try, so their membership pauses until they update their card. They have already been told."
+    }`,
     dedupeKey: billingDedupeKey({ kind: "admin-invoice-failed", objectId: invoice.id, state: attempt }),
   });
+
 }
 
 async function handleWebhook(req: Request, env: StripeEnv) {
