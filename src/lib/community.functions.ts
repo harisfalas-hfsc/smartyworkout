@@ -127,13 +127,18 @@ export const reportContent = createServerFn({ method: "POST" })
     } as never);
     if (error) throw new Error(error.message);
     const { notifyAdmins } = await import("@/lib/admin-alert.server");
+    const thing = data.targetType === "workout" ? "a shared workout" : "a comment";
     await notifyAdmins({
       kind: "Community report",
-      title: `New ${data.targetType} report`,
-      details: `Reported ${data.targetType} ${data.targetId}\nReason: ${data.reason?.slice(0, 500) || "(none given)"}`,
+      title: `A member reported ${thing}`,
+      details:
+        `A member flagged ${thing} in the community as inappropriate, and it is waiting for you to review.\n\n` +
+        `Their reason: ${data.reason?.slice(0, 500) || "they did not give one"}\n\n` +
+        `Open the Admin panel, go to Reports, and you can read it and remove it or leave it up.`,
       link: "https://smartyworkout.com/admin",
       dedupeKey: `report-${data.targetType}-${data.targetId}-${context.userId}`,
     });
+
     return { ok: true as const };
   });
 
