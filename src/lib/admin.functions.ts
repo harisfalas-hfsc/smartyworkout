@@ -1193,3 +1193,231 @@ export const adminGetMemberDetail = createServerFn({ method: "POST" })
       }
     },
   );
+
+/* ---------------------------------------------------------------------------
+ * Member billing — real member payments, memberships, failed attempts,
+ * cancellations. Combines the membership records stored in our own database
+ * with the payment history from the payment provider.
+ * ------------------------------------------------------------------------ */
+
+export type AdminBillingMember = {
+  userId: string | null;
+  name: string;
+  email: string | null;
+  status: string;
+  cancelAtPeriodEnd: boolean;
+  startedAt: string | null;
+  renewsOn: string | null;
+  plan: string | null;
+  provider: string;
+  totalPaid: number;
+  currency: string;
+  lastPaymentAt: string | null;
+  failedAttempts: number;
+};
+
+export type AdminBillingEvent = {
+  id: string;
+  kind: "payment" | "failed" | "refund" | "cancellation";
+  at: string;
+  name: string;
+  email: string | null;
+  amount: number | null;
+  currency: string;
+  note: string;
+};
+
+export type AdminBillingActivity = {
+  environment: "live" | "sandbox";
+  currency: string;
+  members: AdminBillingMember[];
+  events: AdminBillingEvent[];
+  totals: {
+    activeMembers: number;
+    canceledMembers: number;
+    paidLast30: number;
+    failedLast30: number;
+  };
+  providerError: string | null;
+};
+
+export const adminGetBillingActivity = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { environment?: "live" | "sandbox" }) => data)
+  .handler(
+    async ({
+      context,
+      data,
+    }): Promise<{ activity: AdminBillingActivity } | { error: string }> => {
+      try {
+        await assertAdmin(context as any);
+        const environment = data.environment ?? "live";
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+        const { data: subs, error: sErr } = await supabaseAdmin
+          .from("subscriptions")
+          .select(
+            "user_id, provider, provider_customer_id, status, price_id, current_period_end, current_period_start, cancel_at_period_end, created_at, updated_at, environment",
+          )
+          .order("created_at", { ascending: false });
+        if (sErr) return { error: sErr.message };
+
+        const rows = (subs ?? []).filter(
+          (s: any) => s.provider === "admin_grant" || (s.environment ?? "sandbox") === environment,
+        );
+
+        const userIds = [...new Set(rows.map((s: any) => s.user_id).filter(Boolean))] as string[];
+        const nameByUser = new Map<string, { name: string; email: string | null }>();
+        if (userIds.length) {
+          const { data: profiles } = await supabaseAdmin
+            .from("profiles")
+            .select("id, display_name, email")
+            .in("id", userIds);
+          for (const p of (profiles ?? []) as any[]) {
+            nameByUser.set(p.id, {
+              name: p.display_name || p.email || "Member",
+              email: p.email ?? null,
+            });
+          }
+        }
+
+        const memberByCustomer = new Map<string, string>();
+        for (const s of rows as any[]) {
+          if (s.provider_customer_id) memberByCustomer.set(s.provider_customer_id, s.user_id);
+        }
+
+        const paidByUser = new Map<string, { total: number; last: string | null }>();
+        const failedByUser = new Map<string, number>();
+        const events: AdminBillingEvent[] = [];
+        let currency = "EUR";
+        let paidLast30 = 0;
+        let failedLast30 = 0;
+        let providerError: string | null = null;
+        const since30 = Date.now() - 30 * 86_400_000;
+
+        try {
+          const { createStripeClient, getStripeErrorMessage } = await import("@/lib/stripe.server");
+          try {
+            const stripe = createStripeClient(environment);
+            const charges = await stripe.charges.list({ limit: 100 });
+            for (const c of charges.data) {
+              const customerId = typeof c.customer === "string" ? c.customer : c.customer?.id;
+              const userId = customerId ? memberByCustomer.get(customerId) ?? null : null;
+              const profile = userId ? nameByUser.get(userId) : undefined;
+              const email = profile?.email ?? c.billing_details?.email ?? c.receipt_email ?? null;
+              const name = profile?.name ?? email ?? "Unknown member";
+              const at = new Date(c.created * 1000).toISOString();
+              const cur = (c.currency ?? "eur").toUpperCase();
+              currency = cur;
+              const gross = c.amount / 100;
+              const refunded = (c.amount_refunded ?? 0) / 100;
+
+              if (c.status === "succeeded") {
+                const net = gross - refunded;
+                if (userId) {
+                  const prev = paidByUser.get(userId) ?? { total: 0, last: null };
+                  paidByUser.set(userId, {
+                    total: prev.total + net,
+                    last: !prev.last || prev.last < at ? at : prev.last,
+                  });
+                }
+                if (c.created * 1000 >= since30) paidLast30 += net;
+                events.push({
+                  id: c.id,
+                  kind: refunded > 0 ? "refund" : "payment",
+                  at,
+                  name,
+                  email,
+                  amount: refunded > 0 ? -refunded : net,
+                  currency: cur,
+                  note:
+                    refunded > 0
+                      ? `Money was refunded to this member (${refunded.toFixed(2)} ${cur}).`
+                      : "Membership payment received successfully.",
+                });
+              } else if (c.status === "failed") {
+                if (userId) failedByUser.set(userId, (failedByUser.get(userId) ?? 0) + 1);
+                if (c.created * 1000 >= since30) failedLast30 += 1;
+                events.push({
+                  id: c.id,
+                  kind: "failed",
+                  at,
+                  name,
+                  email,
+                  amount: gross,
+                  currency: cur,
+                  note:
+                    c.failure_message ??
+                    "The card was declined, so this payment attempt did not go through.",
+                });
+              }
+            }
+          } catch (stripeError) {
+            providerError = getStripeErrorMessage(stripeError);
+          }
+        } catch {
+          providerError = "Payment provider is not connected.";
+        }
+
+        const members: AdminBillingMember[] = rows.map((s: any) => {
+          const profile = s.user_id ? nameByUser.get(s.user_id) : undefined;
+          const paid = s.user_id ? paidByUser.get(s.user_id) : undefined;
+          return {
+            userId: s.user_id ?? null,
+            name: profile?.name ?? "Member",
+            email: profile?.email ?? null,
+            status: s.status,
+            cancelAtPeriodEnd: Boolean(s.cancel_at_period_end),
+            startedAt: s.created_at ?? null,
+            renewsOn: s.current_period_end ?? null,
+            plan: s.price_id ?? null,
+            provider: s.provider === "admin_grant" ? "Given by you (no charge)" : "Card payment",
+            totalPaid: Number((paid?.total ?? 0).toFixed(2)),
+            currency,
+            lastPaymentAt: paid?.last ?? null,
+            failedAttempts: s.user_id ? failedByUser.get(s.user_id) ?? 0 : 0,
+          };
+        });
+
+        for (const m of members) {
+          if (m.status === "canceled" || m.cancelAtPeriodEnd) {
+            events.push({
+              id: `cancel-${m.userId ?? m.email ?? m.name}-${m.renewsOn ?? ""}`,
+              kind: "cancellation",
+              at: m.renewsOn ?? m.startedAt ?? new Date().toISOString(),
+              name: m.name,
+              email: m.email,
+              amount: null,
+              currency: m.currency,
+              note:
+                m.status === "canceled"
+                  ? "This membership has ended."
+                  : "This member asked to stop renewing; access continues until the date shown.",
+            });
+          }
+        }
+
+        events.sort((a, b) => (a.at < b.at ? 1 : -1));
+
+        return {
+          activity: {
+            environment,
+            currency,
+            members,
+            events: events.slice(0, 100),
+            totals: {
+              activeMembers: members.filter(
+                (m) => m.status === "active" || m.status === "trialing" || m.status === "past_due",
+              ).length,
+              canceledMembers: members.filter((m) => m.status === "canceled").length,
+              paidLast30: Number(paidLast30.toFixed(2)),
+              failedLast30,
+            },
+            providerError,
+          },
+        };
+      } catch (e) {
+        return { error: e instanceof Error ? e.message : "Failed to load member billing" };
+      }
+    },
+  );
