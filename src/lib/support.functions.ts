@@ -311,12 +311,13 @@ export const adminReplyToThread = createServerFn({ method: "POST" })
           last_message_at: new Date().toISOString(),
         } as never)
         .eq("id", data.threadId);
+      const brand = await getBrand();
       const userId = (thread as any).user_id as string | null;
       if (userId) {
         await supabaseAdmin.from("notifications").insert({
           user_id: userId,
           kind: "support",
-          title: "Smarty Workout replied to your message",
+          title: `${brand.displayName} replied to your message`,
           body: body.slice(0, 240),
         } as never);
       }
@@ -329,6 +330,7 @@ export const adminReplyToThread = createServerFn({ method: "POST" })
           email: toEmail,
           subject: clean((thread as any).subject, 200),
           message: body,
+          brandId: brand.id,
         });
       }
 
