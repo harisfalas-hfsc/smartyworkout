@@ -1,5 +1,9 @@
 import { classifySupportMessage, escalationMessage } from "@/lib/support-autoreply";
-import type { BrandConfig, BrandId } from "@/lib/brand";
+import { BRANDS, type BrandConfig, type BrandId } from "@/lib/brand";
+
+function brandFor(id?: BrandId): BrandConfig | undefined {
+  return id ? BRANDS[id] : undefined;
+}
 
 function replyFooter(brand?: BrandConfig) {
   return (
