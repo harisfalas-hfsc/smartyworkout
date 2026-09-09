@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { getBrand } from "@/lib/brand.functions";
 
 export type SupportMessage = {
   id: string;
