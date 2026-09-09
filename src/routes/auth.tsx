@@ -16,13 +16,20 @@ export const Route = createFileRoute("/auth")({
     const mode = s.mode === "signup" || s.mode === "forgot" || s.mode === "signin" ? s.mode : undefined;
     return { ...(n ? { next: n } : {}), ...(mode ? { mode } : {}) };
   },
-  head: () => ({
-    meta: [
-      { title: "Sign in — SmartyWorkout" },
-      { name: "description", content: "Sign in to SmartyWorkout to build your personalized training plan." },
-      { name: "robots", content: "noindex" },
-    ],
-  }),
+  loader: async () => {
+    const brand = await getBrand();
+    return { brand };
+  },
+  head: ({ loaderData }) => {
+    const brand = loaderData?.brand;
+    return {
+      meta: [
+        { title: `Sign in — ${brand?.name ?? "SmartyWorkout"}` },
+        { name: "description", content: `Sign in to ${brand?.displayName ?? "SmartyWorkout"} to build your personalized training plan.` },
+        { name: "robots", content: "noindex" },
+      ],
+    };
+  },
   component: Auth,
 });
 
