@@ -39,6 +39,7 @@ import { AdminMessagesTab } from "@/components/admin/AdminMessagesTab";
 import { AdminAwardsTab } from "@/components/admin/AdminAwardsTab";
 import { AdminReportsTab } from "@/components/admin/AdminReportsTab";
 import { AdminPaymentsTab } from "@/components/admin/AdminPaymentsTab";
+import { AdminMemberBillingTab } from "@/components/admin/AdminMemberBillingTab";
 import { AdminCronTab } from "@/components/admin/AdminCronTab";
 import { AdminGenerationFailuresTab } from "@/components/admin/AdminGenerationFailuresTab";
 
@@ -68,6 +69,7 @@ type SectionKey =
   | "awards"
   | "reports"
   | "payments"
+  | "member-billing"
   | "cron"
   | "generation";
 
@@ -79,6 +81,12 @@ const SECTIONS: { key: SectionKey; label: string; description: string; Icon: Luc
     Icon: Lock,
   },
   { key: "revenue", label: "Revenue", description: "Payments and monthly totals", Icon: TrendingUp },
+  {
+    key: "member-billing",
+    label: "Member billing",
+    description: "Who paid, who was declined, who cancelled",
+    Icon: CreditCard,
+  },
   {
     key: "workouts",
     label: "Workouts",
@@ -215,6 +223,7 @@ function AdminPage() {
           </Button>
           {section === "payments" && <AdminPaymentsTab />}
           {section === "revenue" && <AdminRevenueTab />}
+          {section === "member-billing" && <AdminMemberBillingTab />}
           {section === "customers" && <AdminUsersTab />}
           {section === "subscribers" && <AdminUsersTab onlySubscribers />}
           {section === "rules" && <AdminRulesTab />}
