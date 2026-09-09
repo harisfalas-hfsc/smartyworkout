@@ -123,14 +123,14 @@ const ITEMS: { q: string; a: string }[] = [
 ];
 
 /** Drops every paid-membership question while Free Access Mode is ON. */
-function visibleItems(freeAccessMode: boolean) {
+function visibleItems(freeAccessMode: boolean, items = ITEMS) {
   return freeAccessMode
-    ? ITEMS.filter(
+    ? items.filter(
         (it) =>
           !/cost|subscription|subscribed|Unsubscribe/i.test(it.q) &&
           !/€|subscription|subscribed|Unsubscribe|cancel anytime/i.test(it.a),
       )
-    : ITEMS;
+    : items;
 }
 
 function brandedItems(brand: BrandConfig) {
