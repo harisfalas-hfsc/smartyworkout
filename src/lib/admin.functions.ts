@@ -1426,14 +1426,17 @@ export const adminGetBillingActivity = createServerFn({ method: "POST" })
           }
         }
 
-        events.sort((a, b) => (a.at < b.at ? 1 : -1));
+        const inRange = rangeStartMs
+          ? events.filter((e) => new Date(e.at).getTime() >= rangeStartMs)
+          : events;
+        inRange.sort((a, b) => (a.at < b.at ? 1 : -1));
 
         return {
           activity: {
             environment,
             currency,
             members,
-            events: events.slice(0, 100),
+            events: inRange.slice(0, 500),
             totals: {
               activeMembers: members.filter(
                 (m) => m.status === "active" || m.status === "trialing" || m.status === "past_due",
@@ -1442,6 +1445,10 @@ export const adminGetBillingActivity = createServerFn({ method: "POST" })
               paidLast30: Number(paidLast30.toFixed(2)),
               failedLast30,
             },
+            rangeFrom,
+            paidInRange: Number(paidInRange.toFixed(2)),
+            failedInRange,
+            truncated: inRange.length > 500,
             providerError,
           },
         };
