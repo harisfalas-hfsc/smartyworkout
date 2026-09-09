@@ -1,11 +1,11 @@
 {
-  "short_name": "SmartyGym",
-  "name": "SmartyGym",
-  "description": "Your online gym and personal coach — get a complete programmed session wherever you train.",
+  "short_name": "Smarty Gym",
+  "name": "Smarty Gym",
+  "description": "Your Smart Gym — Functional, science-based workouts anywhere, anytime",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#0F172A",
+  "theme_color": "#29B6D2",
   "orientation": "portrait",
   "icons": [
     { "src": "/brands/smartygym/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },

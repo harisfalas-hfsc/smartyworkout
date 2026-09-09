@@ -1,4 +1,5 @@
 import { type ReactNode } from "react";
+import { useBrand } from "@/lib/brand-context";
 
 export function LegalLayout({
   title,
@@ -11,6 +12,7 @@ export function LegalLayout({
   lastUpdated: string;
   children: ReactNode;
 }) {
+  const brand = useBrand();
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">
       <div className="flex items-center gap-3">
@@ -41,7 +43,7 @@ export function LegalLayout({
         }}
       >
         <strong className="text-foreground">Last updated:</strong> {lastUpdated} ·{" "}
-        <strong className="text-foreground">Operator:</strong> SmartyWorkout (smartyworkout.com), part of the{" "}
+        <strong className="text-foreground">Operator:</strong> {brand.name} ({brand.domain}), part of the{" "}
         <a
           href="https://smartywellness.com"
           target="_blank"
@@ -70,8 +72,8 @@ export function LegalLayout({
         </a>
         ) ·{" "}
         <strong className="text-foreground">Contact:</strong>{" "}
-        <a href="mailto:smartyworkout@outlook.com" className="text-primary font-semibold hover:underline">
-          smartyworkout@outlook.com
+        <a href={`mailto:${brand.systemEmail}`} className="text-primary font-semibold hover:underline">
+          {brand.systemEmail}
         </a>
       </div>
 
