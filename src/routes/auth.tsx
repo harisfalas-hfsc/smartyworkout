@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { isOnline } from "@/lib/connectivity";
-
+import { useBrand } from "@/lib/brand-context";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (s: Record<string, unknown>): { next?: string; mode?: "signin" | "signup" | "forgot" } => {
@@ -25,10 +25,13 @@ export const Route = createFileRoute("/auth")({
   component: Auth,
 });
 
+
 function Auth() {
   const navigate = useNavigate();
+  const brand = useBrand();
   const { next, mode: routeMode } = Route.useSearch();
   const [mode, setMode] = useState<"signin" | "signup" | "forgot">(routeMode ?? "signin");
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [age, setAge] = useState<number | "">("");
@@ -93,9 +96,10 @@ function Auth() {
       (typeof meta.full_name === "string" ? meta.full_name.trim() : "") ||
       (typeof meta.name === "string" ? meta.name.trim() : "") ||
       authUser.email?.split("@")[0] ||
-      "SmartyWorkout user";
+      `${brand.name} user`;
 
     await supabase
+
       .from("profiles")
       .upsert({ id: authUser.id, display_name: displayName }, { onConflict: "id" });
   }
