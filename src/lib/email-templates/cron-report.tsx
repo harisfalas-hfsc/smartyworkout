@@ -10,8 +10,10 @@ import {
   Text,
 } from '@react-email/components'
 import type { TemplateEntry } from './registry'
+import type { BrandConfig } from '@/lib/brand'
 
 interface Props {
+  brand?: BrandConfig
   jobLabel?: string
   status?: string
   trigger?: string
@@ -45,6 +47,7 @@ const fmt = (iso?: string) => {
 }
 
 const Email = ({
+  brand: activeBrand,
   jobLabel,
   status,
   trigger,
@@ -65,7 +68,7 @@ const Email = ({
     <Preview>{`${jobLabel || 'Scheduled job'} — ${status || 'finished'}`}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Text style={brand}>SMARTY WORKOUT — SCHEDULED JOB</Text>
+        <Text style={brand}>{activeBrand?.senderName ?? 'SMARTY WORKOUT'} — SCHEDULED JOB</Text>
         <Heading style={heading}>{jobLabel || 'Scheduled job'}</Heading>
 
         <Text style={label}>Result</Text>

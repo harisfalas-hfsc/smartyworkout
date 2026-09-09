@@ -1,9 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 import { TRAINING_TOPIC_SLUGS } from "@/lib/seo/training-topics";
-
-
-const BASE_URL = "https://smartyworkout.com";
+import { getRequest } from "@tanstack/react-start/server";
+import { resolveBrand } from "@/lib/brand";
 
 interface SitemapEntry {
   path: string;
@@ -57,6 +56,7 @@ export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
+        const brand = resolveBrand(getRequest()?.headers.get("host"));
         const { isFreeAccessMode } = await import("@/lib/free-access.server");
         const freeAccessMode = await isFreeAccessMode();
         const base = freeAccessMode
@@ -88,7 +88,7 @@ export const Route = createFileRoute("/sitemap.xml")({
         const urls = entries.map((e) =>
           [
             "  <url>",
-            `    <loc>${BASE_URL}${e.path}</loc>`,
+            `    <loc>${brand.siteUrl}${e.path}</loc>`,
             e.lastmod ? `    <lastmod>${e.lastmod}</lastmod>` : null,
             e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
             e.priority ? `    <priority>${e.priority}</priority>` : null,
