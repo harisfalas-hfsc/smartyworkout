@@ -133,11 +133,13 @@ export function AdminMemberBillingTab() {
 
           <section className="space-y-3 rounded-2xl border bg-card p-4">
             <h3 className="text-sm font-semibold">Members and their memberships</h3>
-            {data.members.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No memberships yet.</p>
+            {data.members.filter((m) => matches(m.name, m.email)).length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                {q ? "No member matches your search." : "No memberships yet."}
+              </p>
             ) : (
               <div className="space-y-2">
-                {data.members.map((m, i) => (
+                {data.members.filter((m) => matches(m.name, m.email)).map((m, i) => (
                   <div key={`${m.userId ?? m.email ?? "member"}-${i}`} className="rounded-xl border p-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="min-w-0">
@@ -167,11 +169,13 @@ export function AdminMemberBillingTab() {
 
           <section className="space-y-3 rounded-2xl border bg-card p-4">
             <h3 className="text-sm font-semibold">Everything that happened</h3>
-            {data.events.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nothing has happened yet.</p>
+            {data.events.filter((e) => matches(e.name, e.email, e.note)).length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                {q ? "Nothing matches your search in this period." : "Nothing happened in this period."}
+              </p>
             ) : (
               <ul className="space-y-2">
-                {data.events.map((e) => (
+                {data.events.filter((e) => matches(e.name, e.email, e.note)).map((e) => (
                   <li key={`${e.kind}-${e.id}`} className="flex gap-3 rounded-xl border p-3">
                     <span
                       className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl ${
