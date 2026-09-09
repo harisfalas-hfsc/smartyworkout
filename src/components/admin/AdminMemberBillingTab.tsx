@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, RefreshCw, CreditCard, XCircle, Ban, Undo2 } from "lucide-react";
+import { Loader2, RefreshCw, CreditCard, XCircle, Ban, Undo2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { adminGetBillingActivity, type AdminBillingActivity } from "@/lib/admin.functions";
 import { formatDate } from "@/lib/date-format";
