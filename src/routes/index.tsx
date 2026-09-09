@@ -4,59 +4,49 @@ import heroTraining from "@/assets/hero-training.jpg";
 import { PageHeader } from "@/components/PageHeader";
 import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
 import { useBrand } from "@/lib/brand-context";
+import { getBrand } from "@/lib/brand.functions";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      {
-        title: "SmartyWorkout — Your personal workout, anytime, anywhere",
-      },
-      {
-        name: "description",
-        content:
-          "Personalized workout generator by sports scientist Haris Falas (CSCS): answer a smart questionnaire and get a tailor-made strength, hypertrophy, conditioning or mobility session built around your body, goals and equipment.",
-      },
-      {
-        property: "og:title",
-        content: "SmartyWorkout — Your personal workout, anytime, anywhere",
-      },
-      {
-        property: "og:description",
-        content:
-          "Personalized workouts built around your body, goals and equipment, programmed on the sports science of Haris Falas. Two workouts every day with Smarty Coach.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { property: "og:url", content: "https://smartyworkout.com/" },
-      {
-        property: "og:image",
-        content: "https://smartyworkout.com/og-social.jpg",
-      },
-      {
-        name: "twitter:image",
-        content: "https://smartyworkout.com/og-social.jpg",
-      },
-    ],
-    links: [{ rel: "canonical", href: "https://smartyworkout.com/" }],
-    scripts: [
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "WebPage",
-          "@id": "https://smartyworkout.com/#webpage",
-          url: "https://smartyworkout.com/",
-          name: "SmartyWorkout — Your personal workout, anytime, anywhere",
-          description:
-            "Answer a smart questionnaire and get a full tailor-made workout built around your body, goals, equipment and constraints.",
-          inLanguage: "en",
-          isPartOf: { "@id": "https://smartyworkout.com/#website" },
-          about: { "@id": "https://smartyworkout.com/#software" },
-          primaryImageOfPage: "https://smartyworkout.com/og-social.jpg",
-        }),
-      },
-    ],
-  }),
+  loader: async () => {
+    const brand = await getBrand();
+    return { brand };
+  },
+  head: ({ loaderData }) => {
+    const brand = loaderData?.brand;
+    const origin = brand?.origin ?? "https://smartyworkout.com";
+    const ogImage = `${origin}${brand?.ogImage ?? "/og-social.jpg"}`;
+    return {
+      meta: [
+        { title: brand?.metaTitle ?? "SmartyWorkout — Your personal workout, anytime, anywhere" },
+        { name: "description", content: brand?.metaDescription ?? "Personalized workout generator by sports scientist Haris Falas." },
+        { property: "og:title", content: brand?.metaTitle ?? "SmartyWorkout" },
+        { property: "og:description", content: brand?.metaDescription ?? "" },
+        { property: "og:type", content: "website" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { property: "og:url", content: `${origin}/` },
+        { property: "og:image", content: ogImage },
+        { name: "twitter:image", content: ogImage },
+      ],
+      links: [{ rel: "canonical", href: `${origin}/` }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "@id": `${origin}/#webpage`,
+            url: `${origin}/`,
+            name: brand?.metaTitle ?? "SmartyWorkout",
+            description: brand?.metaDescription ?? "",
+            inLanguage: "en",
+            isPartOf: { "@id": `${origin}/#website` },
+            about: { "@id": `${origin}/#software` },
+            primaryImageOfPage: ogImage,
+          }),
+        },
+      ],
+    };
+  },
 
   component: Home,
 });
