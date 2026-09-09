@@ -1302,13 +1302,32 @@ export const adminGetBillingActivity = createServerFn({ method: "POST" })
         let failedLast30 = 0;
         let providerError: string | null = null;
         const since30 = Date.now() - 30 * 86_400_000;
+        const days = data.days ?? null;
+        const rangeStartMs = days && days > 0 ? Date.now() - days * 86_400_000 : null;
+        const rangeFrom = rangeStartMs ? new Date(rangeStartMs).toISOString() : null;
+        let paidInRange = 0;
+        let failedInRange = 0;
 
         try {
           const { createStripeClient, getStripeErrorMessage } = await import("@/lib/stripe.server");
           try {
             const stripe = createStripeClient(environment);
-            const charges = await stripe.charges.list({ limit: 100 });
-            for (const c of charges.data) {
+            const chargeList: any[] = [];
+            let startingAfter: string | undefined;
+            // Walk through the provider history page by page so old months are
+            // included too, not only the most recent 100 charges.
+            for (let page = 0; page < 20; page += 1) {
+              const batch = await stripe.charges.list({
+                limit: 100,
+                ...(startingAfter && { starting_after: startingAfter }),
+                ...(rangeStartMs && { created: { gte: Math.floor(rangeStartMs / 1000) } }),
+              });
+              chargeList.push(...batch.data);
+              const last = batch.data[batch.data.length - 1];
+              if (!batch.has_more || !last) break;
+              startingAfter = last.id;
+            }
+            for (const c of chargeList) {
               const customerId = typeof c.customer === "string" ? c.customer : c.customer?.id;
               const userId = customerId ? memberByCustomer.get(customerId) ?? null : null;
               const profile = userId ? nameByUser.get(userId) : undefined;
