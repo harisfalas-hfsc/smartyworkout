@@ -177,7 +177,7 @@ function FounderNotePage() {
               : "Let me tell you what I built and why I believe it is worth your €9.99."}
           </p>
           <P>
-            <Brand>Smarty Workout</Brand> is a powerful AI fitness coach — but it
+            <Brand>{brand.displayName}</Brand> is a powerful fitness coach — but it
             is not just another chatbot. It has been trained by me, Haris Falas,
             a sports scientist, so it thinks the way I think about programme
             design, progression, safety, and real human movement. It does not
@@ -214,7 +214,7 @@ function FounderNotePage() {
                     It uses <strong>two pools of information</strong>. Your saved
                     Training Profile plus what you tell it right before
                     generating a workout — mood, focus, duration, equipment.
-                    Most apps use one or the other; <Brand>Smarty Workout</Brand>{" "}
+                    Most apps use one or the other; <Brand>{brand.displayName}</Brand>{" "}
                     merges both.
                   </>
                 ),
@@ -271,7 +271,7 @@ function FounderNotePage() {
             It is not the same workout for everyone, but it is the same
             programme. That means you can train with your friends, compare the
             day, and still each get a personal workout.{" "}
-            <Brand>Smarty Workout</Brand> removes the decision fatigue: you wake
+            <Brand>{brand.displayName}</Brand> removes the decision fatigue: you wake
             up, open the app, and train.
           </P>
           <List
@@ -323,7 +323,7 @@ function FounderNotePage() {
                   <>
                     A personal trainer normally costs €30–€100 per session. A
                     generic app gives you cookie-cutter plans.{" "}
-                    <Brand>Smarty Workout</Brand> gives you a daily personal
+                    <Brand>{brand.displayName}</Brand> gives you a daily personal
                     programme plus unlimited manual generation.
                   </>
                 ),
@@ -531,7 +531,7 @@ function FounderNotePage() {
                 icon: <Bot size={18} />,
                 text: (
                   <>
-                    <Brand>Smarty Workout</Brand> does all of that. It is a
+                    <Brand>{brand.displayName}</Brand> does all of that. It is a
                     trained agent, not a chatbot.
                   </>
                 ),
@@ -554,7 +554,7 @@ function FounderNotePage() {
             {freeAccessMode
               ? "Start anywhere. Create a profile, browse the exercise library, play with the tools. When you are ready, switch on the Workout of the Day. That is the moment "
               : "If you want to try it, start with the free parts. Create a profile, browse the exercise library, play with the tools. When you are ready, subscribe to the Workout of the Day. That is the moment "}
-            <Brand>Smarty Workout</Brand> becomes a real coach in your pocket.
+            <Brand>{brand.displayName}</Brand> becomes a real coach in your pocket.
           </P>
 
           <div className="border-t-2 border-primary/30 pt-5 text-center">
