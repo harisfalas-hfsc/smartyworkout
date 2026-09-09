@@ -66,6 +66,7 @@ export const submitContactMessage = createServerFn({ method: "POST" })
     await supabaseAdmin
       .from("support_messages")
       .insert({ thread_id: (thread as any).id, sender: "user", body: message } as never);
+    const brand = await getBrand();
     const { sendContactEmails } = await import("@/lib/support-email.server");
     await sendContactEmails({
       threadId: (thread as any).id as string,
@@ -73,6 +74,7 @@ export const submitContactMessage = createServerFn({ method: "POST" })
       email,
       subject,
       message,
+      brandId: brand.id,
     });
     const { autoRespondToSupportMessage } = await import("@/lib/support-autoreply.server");
     const auto = await autoRespondToSupportMessage({
@@ -81,6 +83,7 @@ export const submitContactMessage = createServerFn({ method: "POST" })
       email,
       subject,
       message,
+      brandId: brand.id,
     });
     return { ok: true as const, answered: auto.answered };
   });
