@@ -111,6 +111,7 @@ export const submitMemberMessage = createServerFn({ method: "POST" })
     await context.supabase
       .from("support_messages")
       .insert({ thread_id: (thread as any).id, sender: "user", body: message, author_id: context.userId } as never);
+    const brand = await getBrand();
     if (email) {
       const { sendContactEmails } = await import("@/lib/support-email.server");
       await sendContactEmails({
@@ -119,6 +120,7 @@ export const submitMemberMessage = createServerFn({ method: "POST" })
         email,
         subject,
         message,
+        brandId: brand.id,
       });
     }
     const { autoRespondToSupportMessage } = await import("@/lib/support-autoreply.server");
@@ -129,6 +131,7 @@ export const submitMemberMessage = createServerFn({ method: "POST" })
       email,
       subject,
       message,
+      brandId: brand.id,
     });
     return { ok: true as const, threadId: (thread as any).id as string, answered: auto.answered };
 
