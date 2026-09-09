@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { isOnline } from "@/lib/connectivity";
-
+import { useBrand } from "@/lib/brand-context";
+import { getBrand } from "@/lib/brand.functions";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (s: Record<string, unknown>): { next?: string; mode?: "signin" | "signup" | "forgot" } => {
@@ -15,20 +16,30 @@ export const Route = createFileRoute("/auth")({
     const mode = s.mode === "signup" || s.mode === "forgot" || s.mode === "signin" ? s.mode : undefined;
     return { ...(n ? { next: n } : {}), ...(mode ? { mode } : {}) };
   },
-  head: () => ({
-    meta: [
-      { title: "Sign in — SmartyWorkout" },
-      { name: "description", content: "Sign in to SmartyWorkout to build your personalized training plan." },
-      { name: "robots", content: "noindex" },
-    ],
-  }),
+  loader: async () => {
+    const brand = await getBrand();
+    return { brand };
+  },
+  head: ({ loaderData }) => {
+    const brand = loaderData?.brand;
+    return {
+      meta: [
+        { title: `Sign in — ${brand?.name ?? "SmartyWorkout"}` },
+        { name: "description", content: `Sign in to ${brand?.displayName ?? "SmartyWorkout"} to build your personalized training plan.` },
+        { name: "robots", content: "noindex" },
+      ],
+    };
+  },
   component: Auth,
 });
 
+
 function Auth() {
   const navigate = useNavigate();
+  const brand = useBrand();
   const { next, mode: routeMode } = Route.useSearch();
   const [mode, setMode] = useState<"signin" | "signup" | "forgot">(routeMode ?? "signin");
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [age, setAge] = useState<number | "">("");
@@ -93,9 +104,10 @@ function Auth() {
       (typeof meta.full_name === "string" ? meta.full_name.trim() : "") ||
       (typeof meta.name === "string" ? meta.name.trim() : "") ||
       authUser.email?.split("@")[0] ||
-      "SmartyWorkout user";
+      `${brand.name} user`;
 
     await supabase
+
       .from("profiles")
       .upsert({ id: authUser.id, display_name: displayName }, { onConflict: "id" });
   }
