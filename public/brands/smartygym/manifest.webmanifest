@@ -1,0 +1,17 @@
+{
+  "short_name": "SmartyGym",
+  "name": "SmartyGym",
+  "description": "Your online gym and personal coach — get a complete programmed session wherever you train.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/brands/smartygym/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/brands/smartygym/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "categories": ["fitness", "health", "sports"],
+  "lang": "en",
+  "dir": "ltr"
+}
