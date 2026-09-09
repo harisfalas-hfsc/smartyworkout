@@ -13,7 +13,7 @@ export const Route = createFileRoute("/")({
   },
   head: ({ loaderData }) => {
     const brand = loaderData?.brand;
-    const origin = brand?.origin ?? "https://smartyworkout.com";
+    const origin = brand?.siteUrl ?? "https://smartyworkout.com";
     const ogImage = `${origin}${brand?.ogImage ?? "/og-social.jpg"}`;
     return {
       meta: [
