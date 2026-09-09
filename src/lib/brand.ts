@@ -251,6 +251,7 @@ export const BRANDS: Record<BrandId, BrandConfig> = {
     },
     subline: "One membership. Two personalized workouts every day.",
     freeSubline: "Free for every member. Two personalized workouts every day.",
+    metaTitle: "SmartyGym — Your online gym and personal coach",
     metaDescription:
       "SmartyGym is your online gym and personal coach. Tell your coach how you feel, your goal and your equipment, and get a complete programmed session wherever you train.",
     keywords: GYM_KEYWORDS,
