@@ -1366,6 +1366,7 @@ export const adminGetBillingActivity = createServerFn({ method: "POST" })
               } else if (c.status === "failed") {
                 if (userId) failedByUser.set(userId, (failedByUser.get(userId) ?? 0) + 1);
                 if (c.created * 1000 >= since30) failedLast30 += 1;
+                failedInRange += 1;
                 events.push({
                   id: c.id,
                   kind: "failed",
