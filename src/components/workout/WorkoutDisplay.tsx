@@ -30,6 +30,7 @@ import { extractSoftTissue, parseWorkoutSteps } from "@/lib/workout/parse-steps"
 import { uniqueTokenIds } from "@/lib/workout/tokens";
 import { difficultyLabel, MAX_STARS, normalizeStars } from "@/lib/workout/spec";
 import { setWorkoutMeta } from "@/lib/coach.functions";
+import { useBrand } from "@/lib/brand-context";
 
 export type WorkoutRow = {
   id: string;
