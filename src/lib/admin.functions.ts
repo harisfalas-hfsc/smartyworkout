@@ -1238,6 +1238,14 @@ export type AdminBillingActivity = {
     paidLast30: number;
     failedLast30: number;
   };
+  /** Oldest date included in this view (null = everything ever recorded). */
+  rangeFrom: string | null;
+  /** Money received inside the selected period. */
+  paidInRange: number;
+  /** Declined attempts inside the selected period. */
+  failedInRange: number;
+  /** True when more events exist than were returned. */
+  truncated: boolean;
   providerError: string | null;
 };
 
