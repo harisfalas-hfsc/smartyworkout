@@ -19,6 +19,7 @@ import {
   ArrowLeft,
   AlertTriangle,
   Lock,
+  CreditCard,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
