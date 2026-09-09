@@ -324,7 +324,7 @@ function HowItWorks() {
           Every session becomes data that improves the next one.
         </h2>
         <p className="mx-auto mt-2 max-w-2xl text-center text-sm leading-6 text-muted-foreground">
-          The workout is only half of it. Smarty Workout records what you actually did, how it felt,
+          The workout is only half of it. {brand.displayName} records what you actually did, how it felt,
           and how it compares with the last time you did the same session — then feeds all of it
           back to Smarty Coach.
         </p>
