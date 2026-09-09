@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/PageHeader";
 import { SmartyCard, SmartyRow } from "@/components/SmartyCard";
+import { getBrand } from "@/lib/brand.functions";
+import { useBrand } from "@/lib/brand-context";
 import {
   Brain,
   Compass,
@@ -23,15 +25,20 @@ import {
 
 
 export const Route = createFileRoute("/about")({
-  head: () => ({
+  loader: async () => ({ brand: await getBrand() }),
+  head: ({ loaderData }) => {
+    const brand = loaderData?.brand;
+    const name = brand?.displayName ?? "Smarty Workout";
+    const siteUrl = brand?.siteUrl ?? "https://smartyworkout.com";
+    return ({
     meta: [
-      { title: "About Smarty Workout — Your Fitness Coach" },
+      { title: `About ${name} — Your Fitness Coach` },
       {
         name: "description",
         content:
-          "Smarty Workout is not another workout app. Smarty Coach is a fitness coach built on the sports science of Haris Falas (BSc Sport Science, NSCA CSCS): strength, hypertrophy, conditioning and mobility programming with periodization and progressive overload.",
+          `${name} is not another workout app. Smarty Coach is a fitness coach built on the sports science of Haris Falas (BSc Sport Science, NSCA CSCS): strength, hypertrophy, conditioning and mobility programming with periodization and progressive overload.`,
       },
-      { property: "og:title", content: "About Smarty Workout — Your Fitness Coach" },
+      { property: "og:title", content: `About ${name} — Your Fitness Coach` },
       {
         property: "og:description",
         content:
@@ -40,9 +47,9 @@ export const Route = createFileRoute("/about")({
 
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { property: "og:url", content: "https://smartyworkout.com/about" },
+      { property: "og:url", content: `${siteUrl}/about` },
     ],
-    links: [{ rel: "canonical", href: "https://smartyworkout.com/about" }],
+    links: [{ rel: "canonical", href: `${siteUrl}/about` }],
     scripts: [
       {
         type: "application/ld+json",
@@ -51,31 +58,33 @@ export const Route = createFileRoute("/about")({
           "@graph": [
             {
               "@type": "AboutPage",
-              url: "https://smartyworkout.com/about",
-              name: "About Smarty Workout — Your Fitness Coach",
+              url: `${siteUrl}/about`,
+              name: `About ${name} — Your Fitness Coach`,
               description:
-                "Smarty Workout is not another workout app. Smarty Coach is a fitness coach built around the sports science of Haris Falas.",
+                `${name} is not another workout app. Smarty Coach is a fitness coach built around the sports science of Haris Falas.`,
               inLanguage: "en",
-              isPartOf: { "@id": "https://smartyworkout.com/#website" },
-              mainEntity: { "@id": "https://smartyworkout.com/#organization" },
+              isPartOf: { "@id": `${siteUrl}/#website` },
+              mainEntity: { "@id": `${siteUrl}/#organization` },
             },
             {
               "@type": "BreadcrumbList",
               itemListElement: [
-                { "@type": "ListItem", position: 1, name: "Home", item: "https://smartyworkout.com/" },
-                { "@type": "ListItem", position: 2, name: "About", item: "https://smartyworkout.com/about" },
+                { "@type": "ListItem", position: 1, name: "Home", item: `${siteUrl}/` },
+                { "@type": "ListItem", position: 2, name: "About", item: `${siteUrl}/about` },
               ],
             },
           ],
         }),
       },
     ],
-  }),
+    });
+  },
 
   component: AboutPage,
 });
 
 function AboutPage() {
+  const brand = useBrand();
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">
       <PageHeader
@@ -116,7 +125,7 @@ function AboutPage() {
           }
           description={
             <>
-              Smarty Workout is a fitness coach built on real Strength & Conditioning science. Every
+               {brand.displayName} is a fitness coach built on real Strength & Conditioning science. Every
               session is structured around{" "}
               <span className="font-semibold text-foreground">proven training principles</span> — not
               a lucky shuffle of exercises. That is the difference between a generic generator and a
@@ -281,7 +290,7 @@ function AboutPage() {
             <span className="text-primary">tracked, measured & remembered</span>
           </>
         }
-        description="Smarty Workout does not stop when the session ends. What you actually did, how it felt, and how it compares with last time all feed back into your next workout."
+        description={`${brand.displayName} does not stop when the session ends. What you actually did, how it felt, and how it compares with last time all feed back into your next workout.`}
         className="mx-auto mt-6 max-w-xl lg:max-w-6xl"
       >
         <div className="grid gap-3 sm:grid-cols-2">
