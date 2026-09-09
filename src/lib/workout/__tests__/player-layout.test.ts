@@ -27,4 +27,11 @@ describe("workout player layout", () => {
     expect(player.match(/<SlideNavigation/g)).toHaveLength(3);
     expect(player).toContain('aria-label="Close player"');
   });
+
+  it("adds the branded frame on desktop without changing the mobile frame", () => {
+    const player = readFileSync("src/components/workout/WorkoutPlayerDialog.tsx", "utf8");
+
+    expect(player).toContain("md:border-2 md:border-primary/40 md:[box-shadow:var(--shadow-player-frame)]");
+    expect(player.match(/border-primary md:block/g)).toHaveLength(4);
+  });
 });

@@ -92,6 +92,7 @@
   --gradient-brand-soft: linear-gradient(135deg, oklch(0.96 0.03 220), oklch(0.97 0.02 210));
   --shadow-soft: 0 4px 20px rgb(0 0 0 / 0.08);
   --shadow-primary: 0 4px 20px rgb(56 189 248 / 0.3);
+  --shadow-player-frame: 0 0 60px -15px color-mix(in oklab, var(--primary) 30%, transparent);
 }
 
 .dark {

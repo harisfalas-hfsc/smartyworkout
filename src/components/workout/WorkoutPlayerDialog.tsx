@@ -423,9 +423,14 @@ export function WorkoutPlayerDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="grid h-[100dvh] max-h-[100dvh] max-w-none grid-rows-[auto_4px_auto_minmax(0,1fr)_auto] sm:h-[90dvh] gap-0 overflow-hidden border-0 bg-neutral-950 p-0 text-neutral-50 [&>div.sticky]:hidden sm:max-w-2xl sm:rounded-3xl"
+        className="grid h-[100dvh] max-h-[100dvh] max-w-none grid-rows-[auto_4px_auto_minmax(0,1fr)_auto] sm:h-[90dvh] gap-0 overflow-hidden border-0 bg-neutral-950 p-0 text-neutral-50 [&>div.sticky]:hidden sm:max-w-2xl sm:rounded-3xl md:border-2 md:border-primary/40 md:[box-shadow:var(--shadow-player-frame)]"
       >
         <DialogTitle className="sr-only">{workoutName} player</DialogTitle>
+
+        <div className="pointer-events-none absolute left-3 top-3 hidden h-5 w-5 border-l-4 border-t-4 border-primary md:block" />
+        <div className="pointer-events-none absolute right-3 top-3 hidden h-5 w-5 border-r-4 border-t-4 border-primary md:block" />
+        <div className="pointer-events-none absolute bottom-3 left-3 hidden h-5 w-5 border-b-4 border-l-4 border-primary md:block" />
+        <div className="pointer-events-none absolute bottom-3 right-3 hidden h-5 w-5 border-b-4 border-r-4 border-primary md:block" />
 
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:px-6">
           <div className="min-w-0">
