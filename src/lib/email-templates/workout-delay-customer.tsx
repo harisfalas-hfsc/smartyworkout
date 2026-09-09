@@ -1,18 +1,20 @@
 import React from 'react'
 import { Body, Container, Head, Heading, Hr, Html, Preview, Text } from '@react-email/components'
 import type { TemplateEntry } from './registry'
+import type { BrandConfig } from '@/lib/brand'
 
 interface Props {
   name?: string
+  brand?: BrandConfig
 }
 
-const Email = ({ name }: Props) => (
+const Email = ({ name, brand }: Props) => (
   <Html lang="en" dir="ltr">
     <Head />
     <Preview>Your workout is on its way — nothing for you to do</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Text style={brand}>SMARTY WORKOUT</Text>
+        <Text style={brandStyle}>{brand?.senderName ?? 'SMARTY WORKOUT'}</Text>
         <Heading style={heading}>Your workout is on its way</Heading>
         <Text style={text}>{name ? `Hi ${name},` : 'Hi,'}</Text>
         <Text style={text}>
@@ -24,7 +26,7 @@ const Email = ({ name }: Props) => (
         </Text>
         <Hr style={hr} />
         <Text style={footer}>Haris Falas — BSc Sports Science, EXOS Specialist, CSCS</Text>
-        <Text style={footer}>Smarty Workout</Text>
+        <Text style={footer}>{brand?.displayName ?? 'Smarty Workout'}</Text>
       </Container>
     </Body>
   </Html>
@@ -32,14 +34,15 @@ const Email = ({ name }: Props) => (
 
 export const template = {
   component: Email,
-  subject: 'Your workout is on its way',
+  subject: (data: Record<string, any>) =>
+    `Your workout is on its way — ${String(data['brand']?.displayName ?? 'Smarty Workout')}`,
   displayName: 'Workout delay (member)',
   previewData: { name: 'Alex' },
 } satisfies TemplateEntry
 
 const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, Helvetica, sans-serif' }
 const container = { padding: '28px 24px', maxWidth: '560px' }
-const brand = { fontSize: '12px', letterSpacing: '2px', color: '#2563eb', fontWeight: 700 as const }
+const brandStyle = { fontSize: '12px', letterSpacing: '2px', color: '#2563eb', fontWeight: 700 as const }
 const heading = { fontSize: '22px', color: '#0b1220', margin: '8px 0 12px' }
 const text = { fontSize: '15px', lineHeight: '24px', color: '#1f2937' }
 const hr = { borderColor: '#e5e7eb', margin: '20px 0' }
