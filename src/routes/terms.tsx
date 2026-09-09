@@ -2,30 +2,39 @@ import { createFileRoute } from "@tanstack/react-router";
 import { FileText } from "lucide-react";
 import { LegalLayout } from "@/components/LegalLayout";
 import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
+import { getBrand } from "@/lib/brand.functions";
+import { useBrand } from "@/lib/brand-context";
 
 export const Route = createFileRoute("/terms")({
-  head: () => ({
+  loader: async () => ({ brand: await getBrand() }),
+  head: ({ loaderData }) => {
+    const brand = loaderData?.brand;
+    const name = brand?.displayName ?? "Smarty Workout";
+    const siteUrl = brand?.siteUrl ?? "https://smartyworkout.com";
+    return ({
     meta: [
-      { title: "Terms & Conditions | SmartyWorkout" },
+      { title: `Terms & Conditions | ${name}` },
       {
         name: "description",
         content:
-          "Terms and conditions for using SmartyWorkout — an AI-generated personalized training planning app, part of the Smarty family.",
+          `Terms and conditions for using ${name} — a personalized training planning app, part of the Smarty family.`,
       },
-      { property: "og:title", content: "Terms & Conditions — SmartyWorkout" },
+      { property: "og:title", content: `Terms & Conditions — ${name}` },
       {
         property: "og:description",
-        content: "Legal terms for using the SmartyWorkout AI training planning app.",
+        content: `Legal terms for using the ${name} training planning app.`,
       },
-      { property: "og:url", content: "https://smartyworkout.com/terms" },
+      { property: "og:url", content: `${siteUrl}/terms` },
     ],
-    links: [{ rel: "canonical", href: "https://smartyworkout.com/terms" }],
-  }),
+    links: [{ rel: "canonical", href: `${siteUrl}/terms` }],
+    });
+  },
   component: Terms,
 });
 
 function Terms() {
   const { freeAccessMode } = useFreeAccessMode();
+  const brand = useBrand();
   return (
     <LegalLayout title="Terms & Conditions" icon={<FileText className="h-5 w-5" />} lastUpdated="July 2026">
       <p>

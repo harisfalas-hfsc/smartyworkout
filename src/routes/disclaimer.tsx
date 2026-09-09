@@ -1,29 +1,38 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AlertTriangle } from "lucide-react";
 import { LegalLayout } from "@/components/LegalLayout";
+import { getBrand } from "@/lib/brand.functions";
+import { useBrand } from "@/lib/brand-context";
 
 export const Route = createFileRoute("/disclaimer")({
-  head: () => ({
+  loader: async () => ({ brand: await getBrand() }),
+  head: ({ loaderData }) => {
+    const brand = loaderData?.brand;
+    const name = brand?.displayName ?? "Smarty Workout";
+    const siteUrl = brand?.siteUrl ?? "https://smartyworkout.com";
+    return ({
     meta: [
-      { title: "Disclaimer & Release of Liability | SmartyWorkout" },
+      { title: `Disclaimer & Release of Liability | ${name}` },
       {
         name: "description",
         content:
-          "SmartyWorkout disclaimer and release of liability for our AI-generated personalized workouts.",
+          `${name} disclaimer and release of liability for our personalized workouts.`,
       },
-      { property: "og:title", content: "Disclaimer — SmartyWorkout" },
+      { property: "og:title", content: `Disclaimer — ${name}` },
       {
         property: "og:description",
-        content: "Important safety, health, and liability information for SmartyWorkout users.",
+        content: `Important safety, health, and liability information for ${name} users.`,
       },
-      { property: "og:url", content: "https://smartyworkout.com/disclaimer" },
+      { property: "og:url", content: `${siteUrl}/disclaimer` },
     ],
-    links: [{ rel: "canonical", href: "https://smartyworkout.com/disclaimer" }],
-  }),
+    links: [{ rel: "canonical", href: `${siteUrl}/disclaimer` }],
+    });
+  },
   component: Disclaimer,
 });
 
 function Disclaimer() {
+  const brand = useBrand();
   return (
     <LegalLayout
       title="Disclaimer & Release of Liability"
