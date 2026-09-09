@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, RefreshCw, CreditCard, XCircle, Ban, Undo2 } from "lucide-react";
+import { Loader2, RefreshCw, CreditCard, XCircle, Ban, Undo2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { adminGetBillingActivity, type AdminBillingActivity } from "@/lib/admin.functions";
 import { formatDate } from "@/lib/date-format";
@@ -20,17 +21,26 @@ function statusLabel(status: string, cancelAtPeriodEnd: boolean) {
   return status;
 }
 
+const PERIODS: { label: string; days: number | null }[] = [
+  { label: "Last 30 days", days: 30 },
+  { label: "Last 3 months", days: 90 },
+  { label: "Last 12 months", days: 365 },
+  { label: "Everything", days: null },
+];
+
 export function AdminMemberBillingTab() {
   const getActivity = useServerFn(adminGetBillingActivity);
   const [env, setEnv] = useState<"live" | "sandbox">("live");
+  const [days, setDays] = useState<number | null>(365);
+  const [search, setSearch] = useState("");
   const [data, setData] = useState<AdminBillingActivity | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  async function load(environment: "live" | "sandbox") {
+  async function load(environment: "live" | "sandbox", period: number | null) {
     setLoading(true);
     setError(null);
-    const r = await getActivity({ data: { environment } });
+    const r = await getActivity({ data: { environment, days: period } });
     if ("error" in r) {
       setError(r.error);
       setData(null);
@@ -39,9 +49,13 @@ export function AdminMemberBillingTab() {
   }
 
   useEffect(() => {
-    void load(env);
+    void load(env, days);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [env]);
+  }, [env, days]);
+
+  const q = search.trim().toLowerCase();
+  const matches = (name: string, email: string | null, extra = "") =>
+    !q || `${name} ${email ?? ""} ${extra}`.toLowerCase().includes(q);
 
   return (
     <div className="space-y-4">
@@ -52,10 +66,34 @@ export function AdminMemberBillingTab() {
         <Button size="sm" variant={env === "sandbox" ? "default" : "outline"} onClick={() => setEnv("sandbox")}>
           Test mode
         </Button>
-        <Button size="sm" variant="ghost" onClick={() => void load(env)} disabled={loading}>
+        <Button size="sm" variant="ghost" onClick={() => void load(env, days)} disabled={loading}>
           <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} /> Refresh
         </Button>
       </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        {PERIODS.map((p) => (
+          <Button
+            key={p.label}
+            size="sm"
+            variant={days === p.days ? "secondary" : "outline"}
+            onClick={() => setDays(p.days)}
+          >
+            {p.label}
+          </Button>
+        ))}
+      </div>
+
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by member name or email"
+          className="pl-9"
+        />
+      </div>
+
 
       {loading ? (
         <div className="flex justify-center py-10">
@@ -74,26 +112,34 @@ export function AdminMemberBillingTab() {
             </p>
           ) : null}
 
+          <p className="text-xs text-muted-foreground">
+            Showing {data.rangeFrom ? `everything since ${formatDate(data.rangeFrom)}` : "the full history from day one"}
+            {data.truncated ? " · only the 500 most recent entries are listed, choose a shorter period to see the rest" : ""}
+          </p>
+
           <div className="grid grid-cols-2 gap-3">
             <SummaryCard label="Paying members right now" value={String(data.totals.activeMembers)} />
             <SummaryCard label="Memberships that ended" value={String(data.totals.canceledMembers)} />
             <SummaryCard
-              label="Money received · last 30 days"
-              value={money(data.totals.paidLast30, data.currency)}
+              label="Money received · this period"
+              value={money(data.paidInRange, data.currency)}
             />
             <SummaryCard
-              label="Declined payments · last 30 days"
-              value={String(data.totals.failedLast30)}
+              label="Declined payments · this period"
+              value={String(data.failedInRange)}
             />
           </div>
 
+
           <section className="space-y-3 rounded-2xl border bg-card p-4">
             <h3 className="text-sm font-semibold">Members and their memberships</h3>
-            {data.members.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No memberships yet.</p>
+            {data.members.filter((m) => matches(m.name, m.email)).length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                {q ? "No member matches your search." : "No memberships yet."}
+              </p>
             ) : (
               <div className="space-y-2">
-                {data.members.map((m, i) => (
+                {data.members.filter((m) => matches(m.name, m.email)).map((m, i) => (
                   <div key={`${m.userId ?? m.email ?? "member"}-${i}`} className="rounded-xl border p-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="min-w-0">
@@ -123,11 +169,13 @@ export function AdminMemberBillingTab() {
 
           <section className="space-y-3 rounded-2xl border bg-card p-4">
             <h3 className="text-sm font-semibold">Everything that happened</h3>
-            {data.events.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nothing has happened yet.</p>
+            {data.events.filter((e) => matches(e.name, e.email, e.note)).length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                {q ? "Nothing matches your search in this period." : "Nothing happened in this period."}
+              </p>
             ) : (
               <ul className="space-y-2">
-                {data.events.map((e) => (
+                {data.events.filter((e) => matches(e.name, e.email, e.note)).map((e) => (
                   <li key={`${e.kind}-${e.id}`} className="flex gap-3 rounded-xl border p-3">
                     <span
                       className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl ${

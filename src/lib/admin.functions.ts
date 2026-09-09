@@ -1238,12 +1238,20 @@ export type AdminBillingActivity = {
     paidLast30: number;
     failedLast30: number;
   };
+  /** Oldest date included in this view (null = everything ever recorded). */
+  rangeFrom: string | null;
+  /** Money received inside the selected period. */
+  paidInRange: number;
+  /** Declined attempts inside the selected period. */
+  failedInRange: number;
+  /** True when more events exist than were returned. */
+  truncated: boolean;
   providerError: string | null;
 };
 
 export const adminGetBillingActivity = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { environment?: "live" | "sandbox" }) => data)
+  .inputValidator((data: { environment?: "live" | "sandbox"; days?: number | null }) => data)
   .handler(
     async ({
       context,
@@ -1294,13 +1302,32 @@ export const adminGetBillingActivity = createServerFn({ method: "POST" })
         let failedLast30 = 0;
         let providerError: string | null = null;
         const since30 = Date.now() - 30 * 86_400_000;
+        const days = data.days ?? null;
+        const rangeStartMs = days && days > 0 ? Date.now() - days * 86_400_000 : null;
+        const rangeFrom = rangeStartMs ? new Date(rangeStartMs).toISOString() : null;
+        let paidInRange = 0;
+        let failedInRange = 0;
 
         try {
           const { createStripeClient, getStripeErrorMessage } = await import("@/lib/stripe.server");
           try {
             const stripe = createStripeClient(environment);
-            const charges = await stripe.charges.list({ limit: 100 });
-            for (const c of charges.data) {
+            const chargeList: any[] = [];
+            let startingAfter: string | undefined;
+            // Walk through the provider history page by page so old months are
+            // included too, not only the most recent 100 charges.
+            for (let page = 0; page < 20; page += 1) {
+              const batch = await stripe.charges.list({
+                limit: 100,
+                ...(startingAfter && { starting_after: startingAfter }),
+                ...(rangeStartMs && { created: { gte: Math.floor(rangeStartMs / 1000) } }),
+              });
+              chargeList.push(...batch.data);
+              const last = batch.data[batch.data.length - 1];
+              if (!batch.has_more || !last) break;
+              startingAfter = last.id;
+            }
+            for (const c of chargeList) {
               const customerId = typeof c.customer === "string" ? c.customer : c.customer?.id;
               const userId = customerId ? memberByCustomer.get(customerId) ?? null : null;
               const profile = userId ? nameByUser.get(userId) : undefined;
@@ -1322,6 +1349,7 @@ export const adminGetBillingActivity = createServerFn({ method: "POST" })
                   });
                 }
                 if (c.created * 1000 >= since30) paidLast30 += net;
+                paidInRange += net;
                 events.push({
                   id: c.id,
                   kind: refunded > 0 ? "refund" : "payment",
@@ -1338,6 +1366,7 @@ export const adminGetBillingActivity = createServerFn({ method: "POST" })
               } else if (c.status === "failed") {
                 if (userId) failedByUser.set(userId, (failedByUser.get(userId) ?? 0) + 1);
                 if (c.created * 1000 >= since30) failedLast30 += 1;
+                failedInRange += 1;
                 events.push({
                   id: c.id,
                   kind: "failed",
@@ -1397,14 +1426,17 @@ export const adminGetBillingActivity = createServerFn({ method: "POST" })
           }
         }
 
-        events.sort((a, b) => (a.at < b.at ? 1 : -1));
+        const inRange = rangeStartMs
+          ? events.filter((e) => new Date(e.at).getTime() >= rangeStartMs)
+          : events;
+        inRange.sort((a, b) => (a.at < b.at ? 1 : -1));
 
         return {
           activity: {
             environment,
             currency,
             members,
-            events: events.slice(0, 100),
+            events: inRange.slice(0, 500),
             totals: {
               activeMembers: members.filter(
                 (m) => m.status === "active" || m.status === "trialing" || m.status === "past_due",
@@ -1413,6 +1445,10 @@ export const adminGetBillingActivity = createServerFn({ method: "POST" })
               paidLast30: Number(paidLast30.toFixed(2)),
               failedLast30,
             },
+            rangeFrom,
+            paidInRange: Number(paidInRange.toFixed(2)),
+            failedInRange,
+            truncated: inRange.length > 500,
             providerError,
           },
         };
