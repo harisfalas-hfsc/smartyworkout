@@ -1,8 +1,12 @@
 import { classifySupportMessage, escalationMessage } from "@/lib/support-autoreply";
+import type { BrandConfig, BrandId } from "@/lib/brand";
 
-const REPLY_FOOTER =
-  "If you need anything else about this question, reply in this conversation.\n\n" +
-  "Yours in good health,\nThe Smarty Workout team";
+function replyFooter(brand?: BrandConfig) {
+  return (
+    "If you need anything else about this question, reply in this conversation.\n\n" +
+    `Yours in good health,\nThe ${brand?.displayName ?? "Smarty Workout"} team`
+  );
+}
 
 /**
  * Instant, credit-free support answering.
@@ -20,10 +24,13 @@ export async function autoRespondToSupportMessage(input: {
   email: string;
   subject: string;
   message: string;
+  brandId?: BrandId;
 }): Promise<{ answered: boolean; escalated: boolean }> {
-  const { threadId, name, email, subject, message } = input;
+  const { threadId, userId, name, email, subject, message, brandId } = input;
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { getBrand } = await import("@/lib/brand.functions");
+    const brand = brandId ? await getBrand({ send: { brandId } } as any).catch(() => undefined) : undefined;
 
     // How many times has this member written in this thread already?
     const { count: inboundCount } = await supabaseAdmin
@@ -35,7 +42,7 @@ export async function autoRespondToSupportMessage(input: {
     const answer = classifySupportMessage(subject, message);
     const tooManyRounds = (inboundCount ?? 1) >= 3;
     const escalated = !answer || tooManyRounds;
-    const body = escalated ? escalationMessage() : `${answer?.body ?? ""}\n\n${REPLY_FOOTER}`;
+    const body = escalated ? escalationMessage() : `${answer?.body ?? ""}\n\n${replyFooter(brand)}`;
     const label = answer?.label ?? "Needs a human";
 
     const { data: inserted } = await supabaseAdmin
@@ -55,12 +62,11 @@ export async function autoRespondToSupportMessage(input: {
       } as never)
       .eq("id", threadId);
 
-    const userId = input.userId ?? null;
     if (userId) {
       await supabaseAdmin.from("notifications").insert({
         user_id: userId,
         kind: "support",
-        title: escalated ? "Your message is with Haris" : "Smarty Workout answered your message",
+        title: escalated ? "Your message is with Haris" : `${brand?.displayName ?? "Smarty Workout"} answered your message`,
         body: body.slice(0, 240),
         dedupe_key: `support-auto-${insertedId}`,
       } as never);
@@ -73,6 +79,7 @@ export async function autoRespondToSupportMessage(input: {
         await sendTemplateEmail("support-reply", email, {
           templateData: { name, subject, message: body },
           idempotencyKey: `support-auto-${insertedId}`,
+          brandId,
         });
       } catch (e) {
         console.error("[support-auto] member email failed:", e);
@@ -95,6 +102,7 @@ export async function autoRespondToSupportMessage(input: {
           `\n\nReply in the conversation\n${body}`,
         link: "/admin",
         dedupeKey: `support-auto-${insertedId}`,
+        brandId,
       });
     } catch (e) {
       console.error("[support-auto] admin alert failed:", e);
