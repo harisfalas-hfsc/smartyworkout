@@ -191,6 +191,7 @@ export const replyToThread = createServerFn({ method: "POST" })
         last_message_at: new Date().toISOString(),
       } as never)
       .eq("id", data.threadId);
+    const brand = await getBrand();
     const { notifyAdminsOfInboundMessage } = await import("@/lib/support-notify.server");
     await notifyAdminsOfInboundMessage({
       threadId: data.threadId,
@@ -200,6 +201,7 @@ export const replyToThread = createServerFn({ method: "POST" })
       subject: clean((thread as any).subject, 200) || "Support request",
       message: body,
       isReply: true,
+      brandId: brand.id,
     });
     const { autoRespondToSupportMessage } = await import("@/lib/support-autoreply.server");
     await autoRespondToSupportMessage({
@@ -209,6 +211,7 @@ export const replyToThread = createServerFn({ method: "POST" })
       email: clean((thread as any).email, 200),
       subject: clean((thread as any).subject, 200) || "Support request",
       message: body,
+      brandId: brand.id,
     });
     return { ok: true as const };
   });
