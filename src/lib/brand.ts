@@ -205,6 +205,7 @@ export const BRANDS: Record<BrandId, BrandConfig> = {
     },
     subline: "One membership. Two personalized workouts every day.",
     freeSubline: "Two personalized workouts every day.",
+    metaTitle: "SmartyWorkout — Your personal workout, anytime, anywhere",
     metaDescription:
       "Personalized workouts built from your goals, experience, equipment and limitations, guided by Smarty Coach and sports scientist Haris Falas.",
     keywords: WORKOUT_KEYWORDS,
