@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import harisPhoto from "@/assets/haris-falas-coach.png";
 import { PageHeader } from "@/components/PageHeader";
+import { getBrand } from "@/lib/brand.functions";
+import { useBrand } from "@/lib/brand-context";
 import {
   User,
   Dumbbell,
@@ -36,24 +38,27 @@ import {
 
 } from "lucide-react";
 
-const URL = "https://smartyworkout.com/founder-note";
-const TITLE = "A Note From The Founder | Smarty Workout";
-const DESCRIPTION =
-  "Why Smarty Workout exists and how the trained coach builds every workout from a real 1,384-movement library.";
-
 export const Route = createFileRoute("/founder-note")({
-  head: () => ({
+  loader: async () => ({ brand: await getBrand() }),
+  head: ({ loaderData }) => {
+    const brand = loaderData?.brand;
+    const name = brand?.displayName ?? "Smarty Workout";
+    const url = `${brand?.siteUrl ?? "https://smartyworkout.com"}/founder-note`;
+    const title = `A Note From The Founder | ${name}`;
+    const description = `Why ${name} exists and how the trained coach builds every workout from a real 1,384-movement library.`;
+    return ({
     meta: [
-      { title: TITLE },
-      { name: "description", content: DESCRIPTION },
-      { property: "og:title", content: TITLE },
-      { property: "og:description", content: DESCRIPTION },
+      { title },
+      { name: "description", content: description },
+      { property: "og:title", content: title },
+      { property: "og:description", content: description },
       { property: "og:type", content: "article" },
-      { property: "og:url", content: URL },
+      { property: "og:url", content: url },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: URL }],
-  }),
+    links: [{ rel: "canonical", href: url }],
+    });
+  },
   component: FounderNotePage,
 });
 
@@ -130,13 +135,14 @@ function List({
 
 function FounderNotePage() {
   const { freeAccessMode } = useFreeAccessMode();
+  const brand = useBrand();
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">
       <div className="text-center">
         <div className="mx-auto mb-6 h-28 w-28 overflow-hidden rounded-full border-4 border-primary sm:h-36 sm:w-36">
           <img
             src={harisPhoto}
-            alt="Haris Falas — founder of Smarty Workout"
+            alt={`Haris Falas — founder of ${brand.displayName}`}
             className="h-full w-full object-cover object-center"
             width={320}
             height={320}
