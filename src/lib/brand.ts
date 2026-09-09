@@ -67,6 +67,8 @@ export interface BrandConfig {
   subline: string;
   /** Membership subline in free-access mode. */
   freeSubline: string;
+  /** Default page title for the root route. */
+  metaTitle: string;
   /** Default meta description for the root route. */
   metaDescription: string;
   /** Default meta keywords. */
