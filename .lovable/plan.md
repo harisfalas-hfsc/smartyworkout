@@ -64,6 +64,14 @@ If you ever need fully separate members, content or admin, that is the "two proj
 - smartyworkout.com keeps the current name, logo, colors, homepage copy, emails, sender address, Search Console setup and all existing URLs.
 - The only change to the SmartyWorkout experience is internal: strings are read from a config instead of being hard-coded. Visitors see no difference.
 
+### What happens before smartygym.com is connected
+- The rebrand code is added to the project but it does nothing visible on smartyworkout.com. The app keeps working exactly as today.
+- There is no SmartyGym site, no extra domain, and no risk of visitors landing on a half-finished brand.
+- The brand switch only activates when a request arrives on a host that matches smartygym.com (or www.smartygym.com). Until you connect that domain in Project Settings → Domains, no such request reaches the project, so nothing changes.
+- You can still preview the SmartyGym look during development with a manual override (e.g. a query param or local preview toggle), but normal users will not see it.
+- Connecting the domain and publishing are the two steps that actually make the second brand public.
+
+
 ## Outstanding items carried over
 
 - After publishing, re-verify smartygym.com in Search Console and resubmit its sitemap.
