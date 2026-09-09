@@ -8,6 +8,7 @@ import { Eye, EyeOff } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { isOnline } from "@/lib/connectivity";
 import { useBrand } from "@/lib/brand-context";
+import { getBrand } from "@/lib/brand.functions";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (s: Record<string, unknown>): { next?: string; mode?: "signin" | "signup" | "forgot" } => {
