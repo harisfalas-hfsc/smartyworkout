@@ -4,7 +4,6 @@ import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { getMyAccessState } from "@/lib/access.functions";
 import { Button } from "@/components/ui/button";
-import { useBrand } from "@/lib/brand-context";
 import {
   Dialog,
   DialogContent,
@@ -72,7 +71,6 @@ export function CommunityGateDialog({
   signedIn: boolean;
 }) {
   const { freeAccessMode } = useFreeAccessMode();
-  const brand = useBrand();
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="rounded-3xl">
@@ -81,7 +79,7 @@ export function CommunityGateDialog({
           <DialogDescription>
             {freeAccessMode
               ? "Sign in to open shared workouts, like, comment and take your place in the rankings."
-              : `Smarty Community is part of the ${brand.displayName} membership. Join or renew to open shared workouts, like, comment and take your place in the rankings.`}
+              : "Smarty Community is part of the Smarty Workout membership. Join or renew to open shared workouts, like, comment and take your place in the rankings."}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-2">

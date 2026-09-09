@@ -30,7 +30,6 @@ import { extractSoftTissue, parseWorkoutSteps } from "@/lib/workout/parse-steps"
 import { uniqueTokenIds } from "@/lib/workout/tokens";
 import { difficultyLabel, MAX_STARS, normalizeStars } from "@/lib/workout/spec";
 import { setWorkoutMeta } from "@/lib/coach.functions";
-import { useBrand } from "@/lib/brand-context";
 
 export type WorkoutRow = {
   id: string;
@@ -84,7 +83,6 @@ export function WorkoutDisplay({
   previewMode?: boolean;
   children?: React.ReactNode;
 }) {
-  const brand = useBrand();
   const html = workout.main_workout ?? "";
   const ids = useMemo(() => uniqueTokenIds(html), [html]);
   const steps = useMemo(() => parseWorkoutSteps(html), [html]);
@@ -142,7 +140,7 @@ export function WorkoutDisplay({
     workout.duration_label ?? `${workout.duration_min} min`,
     workout.location,
   ].filter(Boolean);
-  const shareTitle = `${workout.name} — ${brand.displayName}`;
+  const shareTitle = `${workout.name} — Smarty Workout`;
   const shareText = `${workout.name} · ${shareBits.join(" · ")}`;
 
   async function copyShareLink() {

@@ -1,35 +1,37 @@
-import { useEffect, useState } from "react";
-import { Link, useRouter } from "@tanstack/react-router";
+import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
+import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import {
+  LogOut,
   Menu,
   X,
   Home,
-  Sparkles,
-  CalendarCheck,
-  BookOpen,
-  Users,
-  ClipboardList,
+  Wrench,
+  Crown,
   Info,
   Mail,
-  User,
-  Crown,
   HelpCircle,
-  Dumbbell,
-  Wrench,
   Shield,
-  LogOut,
-  UserCircle,
-  Sun,
-  Moon,
-  ChevronLeft,
-  LogIn,
   FileText,
   AlertTriangle,
+  ClipboardList,
+  Sparkles,
+  BookOpen,
+  ChevronLeft,
+  User,
+  UserCircle,
+  Dumbbell,
+  CalendarCheck,
+  Users,
+  Sun,
+  Moon,
+  TrendingUp,
+  LogIn,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/lib/theme";
-import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
+import { signOutAndClearDevice } from "@/lib/sign-out";
+import { adminCheckAccess } from "@/lib/admin.functions";
 import { NotificationBell } from "@/components/NotificationBell";
 import {
   DropdownMenu,
@@ -38,21 +40,50 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useBrand } from "@/lib/brand-context";
-import { adminCheckAccess } from "@/lib/admin.functions";
 
 
 export function Navigation() {
-  const { user, loading } = useAuth();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { user, displayName, loading } = useAuth();
   const { theme, toggleTheme } = useTheme();
-
+  const navigate = useNavigate();
   const router = useRouter();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [navCount, setNavCount] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
-  const brand = useBrand();
+
+  useEffect(() => {
+    const unsub = router.subscribe("onResolved", () => {
+      setNavCount((n) => n + 1);
+    });
+    return unsub;
+  }, [router]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [menuOpen]);
+
+  const canGoBack = navCount > 0 && pathname !== "/";
+
+  async function handleSignOut() {
+    await signOutAndClearDevice(user?.id, user?.email);
+    navigate({ to: "/", replace: true });
+  }
+
+  const accountName = displayName || user?.email || "Account";
+  const initial = accountName.slice(0, 1).toUpperCase();
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     let active = true;
+    if (!user) {
+      setIsAdmin(false);
+      return;
+    }
     void adminCheckAccess()
       .then((r) => {
         if (active) setIsAdmin(Boolean(r?.isAdmin));
@@ -63,40 +94,29 @@ export function Navigation() {
     return () => {
       active = false;
     };
-  }, []);
-
-  const accountName = user?.user_metadata?.name || user?.user_metadata?.full_name || user?.email?.split("@")[0] || "";
-  const initial = (accountName || "?").charAt(0).toUpperCase();
-
-  const handleSignOut = async () => {
-
-    await supabase.auth.signOut();
-    await router.navigate({ to: "/" });
-  };
-
-  // Split the short name so the first part keeps the primary color and the
-  // second part keeps the accent color (SMARTY + WORKOUT / GYM).
-  const firstPart = brand.shortName.slice(0, 6).toUpperCase();
-  const secondPart = brand.shortName.slice(6).toUpperCase();
+  }, [user?.id]);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/90 backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-        <div className="flex items-center gap-2">
+    <header
+      className="sticky top-0 z-40 w-full bg-background"
+      style={{ paddingTop: "env(safe-area-inset-top)" }}
+    >
+      <div className="flex h-11 items-center justify-between gap-2 px-3">
+        <div className="flex min-w-0 items-center gap-2">
           <button
             type="button"
             onClick={() => setMenuOpen(true)}
             aria-label="Open menu"
-            className="grid h-9 w-9 place-items-center rounded-full bg-secondary text-foreground"
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-primary hover:bg-primary/10"
           >
             <Menu className="h-5 w-5" />
           </button>
-          {router.state.location.pathname !== "/" && (
+          {canGoBack && (
             <button
               type="button"
               onClick={() => router.history.back()}
               aria-label="Go back"
-              className="grid h-9 w-9 place-items-center rounded-full bg-secondary text-foreground"
+              className="hidden sm:inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-primary text-primary hover:bg-primary/10"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -109,19 +129,14 @@ export function Navigation() {
               void router.invalidate();
               window.scrollTo({ top: 0, behavior: "auto" });
             }}
-            aria-label={`${brand.name} home and refresh`}
+            aria-label="SmartyWorkout home and refresh"
             className="bg-transparent p-0 text-lg font-extrabold leading-none tracking-tight no-underline hover:no-underline"
             style={{ textDecoration: "none" }}
           >
-            {brand.id === "smartygym" ? (
-              <img src={brand.logo} alt="SmartyGym" className="h-8 w-auto max-w-[148px] object-contain" />
-            ) : (
-              <>
-                <span className="text-primary">{firstPart}</span>
-                <span className="text-green-500">{secondPart}</span>
-              </>
-            )}
+            <span className="text-primary">SMARTY</span><span className="text-green-500">WORKOUT</span>
           </button>
+
+
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
@@ -151,12 +166,15 @@ export function Navigation() {
                   <Link to="/profile"><UserCircle className="h-4 w-4 mr-2" /> Training profile</Link>
                 </DropdownMenuItem>
                 {isAdmin && (
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin">
-                      <Shield className="h-4 w-4 mr-2" /> Admin
-                    </Link>
-                  </DropdownMenuItem>
+                  <>
+                        <DropdownMenuItem asChild>
+                      <Link to="/admin">
+                        <Shield className="h-4 w-4 mr-2" /> Admin
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
                 )}
+
                 <DropdownMenuItem onSelect={() => toggleTheme()}>
                   {theme === "dark" ? (
                     <><Sun className="h-4 w-4 mr-2" /> Light mode</>
@@ -192,6 +210,7 @@ export function Navigation() {
                     <><Moon className="h-4 w-4 mr-2" /> Dark mode</>
                   )}
                 </DropdownMenuItem>
+
               </DropdownMenuContent>
             </DropdownMenu>
           )}
@@ -205,9 +224,6 @@ export function Navigation() {
 
 function NavDrawer({ onClose, isAuthed, isAdmin }: { onClose: () => void; isAuthed: boolean; isAdmin: boolean }) {
   const { freeAccessMode } = useFreeAccessMode();
-  const brand = useBrand();
-  const coachLabel = brand.coachName.charAt(0).toUpperCase() + brand.coachName.slice(1);
-
   const sections: {
     heading: string;
     items: { to: string; label: string; Icon: typeof Home }[];
@@ -217,33 +233,35 @@ function NavDrawer({ onClose, isAuthed, isAdmin }: { onClose: () => void; isAuth
           {
             heading: "App",
             items: [
-              { to: "/coach", label: coachLabel, Icon: Sparkles },
+              { to: "/coach", label: "Smarty Coach", Icon: Sparkles },
               { to: "/wod", label: "Workout of the Day", Icon: CalendarCheck },
               { to: "/logbook", label: "Logbook", Icon: BookOpen },
-              { to: "/community", label: brand.communityName, Icon: Users },
+              { to: "/community", label: "Smarty Community", Icon: Users },
               { to: "/progress", label: "Progress", Icon: ClipboardList },
               { to: "/profile", label: "Training profile", Icon: Info },
               { to: "/inbox", label: "Inbox & messages", Icon: Mail },
               { to: "/account", label: "My account", Icon: User },
+
               ...(isAdmin ? [{ to: "/admin", label: "Admin", Icon: Shield }] : []),
             ],
           },
         ]
       : []),
     {
-      heading: brand.name,
+      heading: "SmartyWorkout",
       items: [
         { to: "/", label: "Home", Icon: Home },
         { to: "/about", label: "About", Icon: Info },
         { to: "/how-it-works", label: "How It Works", Icon: BookOpen },
         ...(isAuthed ? [] : [{ to: "/wod", label: "Workout of the Day", Icon: CalendarCheck }]),
-        ...(isAuthed ? [] : [{ to: "/community", label: brand.communityName, Icon: Users }]),
+        ...(isAuthed ? [] : [{ to: "/community", label: "Smarty Community", Icon: Users }]),
         { to: "/exercise-library", label: "Exercise Library", Icon: Dumbbell },
         { to: "/tools", label: "Tools", Icon: Wrench },
         { to: "/blog", label: "Blog", Icon: BookOpen },
         ...(freeAccessMode ? [] : [{ to: "/pricing", label: "Pricing", Icon: Crown }]),
         { to: "/faq", label: "Frequently Asked Questions", Icon: HelpCircle },
         { to: "/contact", label: "Contact", Icon: Mail },
+
       ],
     },
     {
@@ -260,9 +278,6 @@ function NavDrawer({ onClose, isAuthed, isAdmin }: { onClose: () => void; isAuth
     },
   ];
 
-  const firstPart = brand.shortName.slice(0, 6).toUpperCase();
-  const secondPart = brand.shortName.slice(6).toUpperCase();
-
   return (
     <div className="fixed inset-0 z-[90]" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
@@ -272,9 +287,9 @@ function NavDrawer({ onClose, isAuthed, isAdmin }: { onClose: () => void; isAuth
       >
         <div className="flex h-12 items-center justify-between px-4">
           <div className="text-base font-extrabold">
-            <span className="text-primary">{firstPart}</span>
-            <span className="text-green-500">{secondPart}</span>
+            <span className="text-primary">SMARTY</span><span className="text-green-500">WORKOUT</span>
           </div>
+
           <button
             onClick={onClose}
             aria-label="Close menu"

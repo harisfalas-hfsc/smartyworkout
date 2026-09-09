@@ -4,8 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import harisPhoto from "@/assets/haris-falas-coach.png";
 import { PageHeader } from "@/components/PageHeader";
-import { getBrand } from "@/lib/brand.functions";
-import { useBrand } from "@/lib/brand-context";
 import {
   User,
   Dumbbell,
@@ -38,27 +36,24 @@ import {
 
 } from "lucide-react";
 
+const URL = "https://smartyworkout.com/founder-note";
+const TITLE = "A Note From The Founder | Smarty Workout";
+const DESCRIPTION =
+  "Why Smarty Workout exists and how the trained coach builds every workout from a real 1,384-movement library.";
+
 export const Route = createFileRoute("/founder-note")({
-  loader: async () => ({ brand: await getBrand() }),
-  head: ({ loaderData }) => {
-    const brand = loaderData?.brand;
-    const name = brand?.displayName ?? "Smarty Workout";
-    const url = `${brand?.siteUrl ?? "https://smartyworkout.com"}/founder-note`;
-    const title = `A Note From The Founder | ${name}`;
-    const description = `Why ${name} exists and how the trained coach builds every workout from a real 1,384-movement library.`;
-    return ({
+  head: () => ({
     meta: [
-      { title },
-      { name: "description", content: description },
-      { property: "og:title", content: title },
-      { property: "og:description", content: description },
+      { title: TITLE },
+      { name: "description", content: DESCRIPTION },
+      { property: "og:title", content: TITLE },
+      { property: "og:description", content: DESCRIPTION },
       { property: "og:type", content: "article" },
-      { property: "og:url", content: url },
+      { property: "og:url", content: URL },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: url }],
-    });
-  },
+    links: [{ rel: "canonical", href: URL }],
+  }),
   component: FounderNotePage,
 });
 
@@ -135,14 +130,13 @@ function List({
 
 function FounderNotePage() {
   const { freeAccessMode } = useFreeAccessMode();
-  const brand = useBrand();
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">
       <div className="text-center">
         <div className="mx-auto mb-6 h-28 w-28 overflow-hidden rounded-full border-4 border-primary sm:h-36 sm:w-36">
           <img
             src={harisPhoto}
-            alt={`Haris Falas — founder of ${brand.displayName}`}
+            alt="Haris Falas — founder of Smarty Workout"
             className="h-full w-full object-cover object-center"
             width={320}
             height={320}
@@ -177,7 +171,7 @@ function FounderNotePage() {
               : "Let me tell you what I built and why I believe it is worth your €9.99."}
           </p>
           <P>
-            <Brand>{brand.displayName}</Brand> is a powerful fitness coach — but it
+            <Brand>Smarty Workout</Brand> is a powerful AI fitness coach — but it
             is not just another chatbot. It has been trained by me, Haris Falas,
             a sports scientist, so it thinks the way I think about programme
             design, progression, safety, and real human movement. It does not
@@ -214,7 +208,7 @@ function FounderNotePage() {
                     It uses <strong>two pools of information</strong>. Your saved
                     Training Profile plus what you tell it right before
                     generating a workout — mood, focus, duration, equipment.
-                    Most apps use one or the other; <Brand>{brand.displayName}</Brand>{" "}
+                    Most apps use one or the other; <Brand>Smarty Workout</Brand>{" "}
                     merges both.
                   </>
                 ),
@@ -271,7 +265,7 @@ function FounderNotePage() {
             It is not the same workout for everyone, but it is the same
             programme. That means you can train with your friends, compare the
             day, and still each get a personal workout.{" "}
-            <Brand>{brand.displayName}</Brand> removes the decision fatigue: you wake
+            <Brand>Smarty Workout</Brand> removes the decision fatigue: you wake
             up, open the app, and train.
           </P>
           <List
@@ -323,7 +317,7 @@ function FounderNotePage() {
                   <>
                     A personal trainer normally costs €30–€100 per session. A
                     generic app gives you cookie-cutter plans.{" "}
-                    <Brand>{brand.displayName}</Brand> gives you a daily personal
+                    <Brand>Smarty Workout</Brand> gives you a daily personal
                     programme plus unlimited manual generation.
                   </>
                 ),
@@ -531,7 +525,7 @@ function FounderNotePage() {
                 icon: <Bot size={18} />,
                 text: (
                   <>
-                    <Brand>{brand.displayName}</Brand> does all of that. It is a
+                    <Brand>Smarty Workout</Brand> does all of that. It is a
                     trained agent, not a chatbot.
                   </>
                 ),
@@ -554,7 +548,7 @@ function FounderNotePage() {
             {freeAccessMode
               ? "Start anywhere. Create a profile, browse the exercise library, play with the tools. When you are ready, switch on the Workout of the Day. That is the moment "
               : "If you want to try it, start with the free parts. Create a profile, browse the exercise library, play with the tools. When you are ready, subscribe to the Workout of the Day. That is the moment "}
-            <Brand>{brand.displayName}</Brand> becomes a real coach in your pocket.
+            <Brand>Smarty Workout</Brand> becomes a real coach in your pocket.
           </P>
 
           <div className="border-t-2 border-primary/30 pt-5 text-center">

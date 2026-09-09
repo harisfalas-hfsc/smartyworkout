@@ -2,45 +2,36 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Shield } from "lucide-react";
 import { LegalLayout } from "@/components/LegalLayout";
 import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
-import { getBrand } from "@/lib/brand.functions";
-import { useBrand } from "@/lib/brand-context";
 
 export const Route = createFileRoute("/privacy")({
-  loader: async () => ({ brand: await getBrand() }),
-  head: ({ loaderData }) => {
-    const brand = loaderData?.brand;
-    const name = brand?.displayName ?? "Smarty Workout";
-    const siteUrl = brand?.siteUrl ?? "https://smartyworkout.com";
-    return ({
+  head: () => ({
     meta: [
-      { title: `Privacy Policy | ${name}` },
+      { title: "Privacy Policy | SmartyWorkout" },
       {
         name: "description",
         content:
-          `How ${name} collects, uses, and protects your personal data — our GDPR-compliant privacy policy.`,
+          "How SmartyWorkout collects, uses, and protects your personal data — GDPR-compliant privacy policy for our AI-generated personalized workouts.",
       },
-      { property: "og:title", content: `Privacy Policy — ${name}` },
+      { property: "og:title", content: "Privacy Policy — SmartyWorkout" },
       {
         property: "og:description",
-        content: `How ${name} protects your personal data and training profile information.`,
+        content: "How SmartyWorkout protects your personal data and training profile information.",
       },
-      { property: "og:url", content: `${siteUrl}/privacy` },
+      { property: "og:url", content: "https://smartyworkout.com/privacy" },
     ],
-    links: [{ rel: "canonical", href: `${siteUrl}/privacy` }],
-    });
-  },
+    links: [{ rel: "canonical", href: "https://smartyworkout.com/privacy" }],
+  }),
   component: Privacy,
 });
 
 function Privacy() {
   const { freeAccessMode } = useFreeAccessMode();
-  const brand = useBrand();
   return (
     <LegalLayout title="Privacy Policy" icon={<Shield className="h-5 w-5" />} lastUpdated="July 2026">
       <p>
-        At <strong>{brand.displayName}</strong> ({brand.domain}) we value your privacy and are
-        committed to protecting your personal data. This Privacy Policy explains how {brand.displayName}
-        {" "}collects, uses, stores, and protects your information when you use our
+        At <strong>Smarty Workout</strong> (smartyworkout.com) we value your privacy and are
+        committed to protecting your personal data. This Privacy Policy explains how Smarty
+        Workout collects, uses, stores, and protects your information when you use our
         AI-generated personalized training service. Our practices comply with the General Data
         Protection Regulation (GDPR) (EU) 2016/679, the ePrivacy Directive 2002/58/EC, and
         applicable data protection laws worldwide.
@@ -81,7 +72,7 @@ function Privacy() {
           <li>Process your monthly membership payment and manage your subscription.</li>
         )}
         <li>Send transactional emails (account{freeAccessMode ? "" : ", billing"}, security) and, with consent, product updates.</li>
-        <li>Improve {brand.displayName} through anonymized, aggregated analytics.</li>
+        <li>Improve Smarty Workout through anonymized, aggregated analytics.</li>
         <li>Ensure legal compliance and platform security.</li>
       </ul>
       <p>
@@ -154,7 +145,7 @@ function Privacy() {
       </ul>
       <div className="note">
         To exercise these rights, use the controls in your profile settings or email{" "}
-        <a href={`mailto:${brand.systemEmail}`}>{brand.systemEmail}</a>. We respond within 30 days.
+        <a href="mailto:smartyworkout@outlook.com">smartyworkout@outlook.com</a>. We respond within 30 days.
       </div>
 
       <h2>7. Security Measures</h2>
@@ -167,7 +158,7 @@ function Privacy() {
       </ul>
 
       <h2>8. Cookies &amp; Local Storage</h2>
-      <p>{brand.displayName} uses cookies and local storage for the following purposes:</p>
+      <p>Smarty Workout uses cookies and local storage for the following purposes:</p>
       <ul>
         <li><strong>Essential:</strong> authentication tokens, session security, fraud prevention.</li>
         <li><strong>Functional:</strong> UI preferences, workout progress.</li>
@@ -175,8 +166,8 @@ function Privacy() {
 
       <h2>9. Children</h2>
       <p>
-        {brand.displayName} is intended for users aged 18 and over. Users between 13 and 18 may only use
-        {" "}{brand.displayName} with parental or guardian supervision and consent. We do not knowingly
+        Smarty Workout is intended for users aged 18 and over. Users between 13 and 18 may only use
+        Smarty Workout with parental or guardian supervision and consent. We do not knowingly
         collect data from children under 13.
       </p>
 
@@ -195,8 +186,8 @@ function Privacy() {
 
       <h2>12. Contact</h2>
       <p>
-        Data Controller: <strong>{brand.displayName}</strong> ({brand.domain}). Contact{" "}
-        <a href={`mailto:${brand.systemEmail}`}>{brand.systemEmail}</a>.
+        Data Controller: <strong>Smarty Workout</strong> (smartyworkout.com). Contact{" "}
+        <a href="mailto:smartyworkout@outlook.com">smartyworkout@outlook.com</a>.
       </p>
     </LegalLayout>
   );

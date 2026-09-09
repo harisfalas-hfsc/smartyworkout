@@ -17,56 +17,50 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { getBrand } from "@/lib/brand.functions";
-import { useBrand } from "@/lib/brand-context";
+
+const SUPPORT_EMAIL = "smartyworkout@outlook.com";
 
 export const Route = createFileRoute("/contact")({
-  loader: async () => ({ brand: await getBrand() }),
-  head: ({ loaderData }) => {
-    const brand = loaderData?.brand;
-    const siteUrl = brand?.siteUrl ?? "https://smartyworkout.com";
-    const name = brand?.name ?? "SmartyWorkout";
-    const description = `Get in touch with the ${name} team. Questions, feedback, partnership, support — we reply within 24–48 hours.`;
-    return ({
-      meta: [
-      { title: `Contact ${name} — We answer in 24–48 hours` },
+  head: () => ({
+    meta: [
+      { title: "Contact SmartyWorkout — We answer in 24–48 hours" },
       {
         name: "description",
-        content: description,
+        content:
+          "Get in touch with the SmartyWorkout team. Questions, feedback, partnership, support — we reply within 24–48 hours.",
       },
-      { property: "og:title", content: `Contact ${name}` },
+      { property: "og:title", content: "Contact SmartyWorkout" },
       {
         property: "og:description",
         content: "Questions, feedback, or support? We reply within 24–48 hours.",
       },
-      { property: "og:url", content: `${siteUrl}/contact` },
+      { property: "og:url", content: "https://smartyworkout.com/contact" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: `${siteUrl}/contact` }],
+    links: [{ rel: "canonical", href: "https://smartyworkout.com/contact" }],
     scripts: [
       {
         type: "application/ld+json",
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "ContactPage",
-          url: `${siteUrl}/contact`,
-          name: `Contact ${name}`,
-          description,
+          url: "https://smartyworkout.com/contact",
+          name: "Contact SmartyWorkout",
+          description:
+            "Get in touch with the SmartyWorkout team. Questions, feedback, partnership, support — we reply within 24–48 hours.",
           inLanguage: "en",
-          isPartOf: { "@id": `${siteUrl}/#website` },
-          mainEntity: { "@id": `${siteUrl}/#organization` },
+          isPartOf: { "@id": "https://smartyworkout.com/#website" },
+          mainEntity: { "@id": "https://smartyworkout.com/#organization" },
         }),
       },
     ],
-    });
-  },
+  }),
 
   component: Contact,
 });
 
 function Contact() {
-  const brand = useBrand();
   const submitPublic = useServerFn(submitContactMessage);
   const submitMember = useServerFn(submitMemberMessage);
   const [sending, setSending] = useState(false);
@@ -107,7 +101,7 @@ function Contact() {
       setSent(true);
       form.reset();
     } catch {
-      setError(`We couldn't send your message. Please email ${brand.systemEmail} directly.`);
+      setError(`We couldn't send your message. Please email ${SUPPORT_EMAIL} directly.`);
     } finally {
       setSending(false);
     }
@@ -239,7 +233,7 @@ function Contact() {
             Prefer your own email app? Write to us and we'll answer from there.
           </p>
           <Button asChild variant="secondary" className="w-full">
-            <a href={`mailto:${brand.systemEmail}`}>{brand.systemEmail}</a>
+            <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
           </Button>
         </CardContent>
       </Card>

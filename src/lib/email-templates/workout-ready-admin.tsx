@@ -1,10 +1,8 @@
 import React from 'react'
 import { Body, Container, Head, Heading, Hr, Html, Preview, Text } from '@react-email/components'
 import type { TemplateEntry } from './registry'
-import type { BrandConfig } from '@/lib/brand'
 
 interface Props {
-  brand?: BrandConfig
   userName?: string
   userEmail?: string
   userId?: string
@@ -15,13 +13,13 @@ interface Props {
   attempts?: number
 }
 
-const Email = ({ brand: activeBrand, userName, userEmail, userId, sessionId, stage, workoutName, workoutId, attempts }: Props) => (
+const Email = ({ userName, userEmail, userId, sessionId, stage, workoutName, workoutId, attempts }: Props) => (
   <Html lang="en" dir="ltr">
     <Head />
     <Preview>A previously failed workout has been delivered</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Text style={brand}>{activeBrand?.senderName ?? 'SMARTY WORKOUT'} — RECOVERED</Text>
+        <Text style={brand}>SMARTY WORKOUT — RECOVERED</Text>
         <Heading style={heading}>Workout delivered after a failure</Heading>
         <Text style={label}>Member</Text>
         <Text style={text}>{`${userName || 'Unknown'} <${userEmail || 'no email'}>`}</Text>
@@ -45,7 +43,7 @@ const Email = ({ brand: activeBrand, userName, userEmail, userId, sessionId, sta
 export const template = {
   component: Email,
   subject: (data: Record<string, any>) =>
-    `[${String(data['brand']?.name ?? 'SmartyWorkout')}] Recovered — workout delivered to ${String(data['userEmail'] || 'member')}`,
+    `[SmartyWorkout] Recovered — workout delivered to ${String(data['userEmail'] || 'member')}`,
   displayName: 'Workout ready (admin)',
   previewData: {
     userName: 'Alex Doe',

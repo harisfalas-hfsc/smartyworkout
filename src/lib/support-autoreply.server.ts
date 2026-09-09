@@ -1,16 +1,8 @@
 import { classifySupportMessage, escalationMessage } from "@/lib/support-autoreply";
-import { BRANDS, type BrandConfig, type BrandId } from "@/lib/brand";
 
-function brandFor(id?: BrandId): BrandConfig | undefined {
-  return id ? BRANDS[id] : undefined;
-}
-
-function replyFooter(brand?: BrandConfig) {
-  return (
-    "If you need anything else about this question, reply in this conversation.\n\n" +
-    `Yours in good health,\nThe ${brand?.displayName ?? "Smarty Workout"} team`
-  );
-}
+const REPLY_FOOTER =
+  "If you need anything else about this question, reply in this conversation.\n\n" +
+  "Yours in good health,\nThe Smarty Workout team";
 
 /**
  * Instant, credit-free support answering.
@@ -28,10 +20,8 @@ export async function autoRespondToSupportMessage(input: {
   email: string;
   subject: string;
   message: string;
-  brandId?: BrandId;
 }): Promise<{ answered: boolean; escalated: boolean }> {
-  const { threadId, userId, name, email, subject, message, brandId } = input;
-  const brand = brandFor(brandId);
+  const { threadId, name, email, subject, message } = input;
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -45,7 +35,7 @@ export async function autoRespondToSupportMessage(input: {
     const answer = classifySupportMessage(subject, message);
     const tooManyRounds = (inboundCount ?? 1) >= 3;
     const escalated = !answer || tooManyRounds;
-    const body = escalated ? escalationMessage() : `${answer?.body ?? ""}\n\n${replyFooter(brand)}`;
+    const body = escalated ? escalationMessage() : `${answer?.body ?? ""}\n\n${REPLY_FOOTER}`;
     const label = answer?.label ?? "Needs a human";
 
     const { data: inserted } = await supabaseAdmin
@@ -65,11 +55,12 @@ export async function autoRespondToSupportMessage(input: {
       } as never)
       .eq("id", threadId);
 
+    const userId = input.userId ?? null;
     if (userId) {
       await supabaseAdmin.from("notifications").insert({
         user_id: userId,
         kind: "support",
-        title: escalated ? "Your message is with Haris" : `${brand?.displayName ?? "Smarty Workout"} answered your message`,
+        title: escalated ? "Your message is with Haris" : "Smarty Workout answered your message",
         body: body.slice(0, 240),
         dedupe_key: `support-auto-${insertedId}`,
       } as never);
@@ -82,7 +73,6 @@ export async function autoRespondToSupportMessage(input: {
         await sendTemplateEmail("support-reply", email, {
           templateData: { name, subject, message: body },
           idempotencyKey: `support-auto-${insertedId}`,
-          brandId,
         });
       } catch (e) {
         console.error("[support-auto] member email failed:", e);
@@ -105,7 +95,6 @@ export async function autoRespondToSupportMessage(input: {
           `\n\nReply in the conversation\n${body}`,
         link: "/admin",
         dedupeKey: `support-auto-${insertedId}`,
-        brandId,
       });
     } catch (e) {
       console.error("[support-auto] admin alert failed:", e);

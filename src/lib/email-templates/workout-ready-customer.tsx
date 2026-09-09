@@ -1,22 +1,20 @@
 import React from 'react'
 import { Body, Button, Container, Head, Heading, Hr, Html, Preview, Text } from '@react-email/components'
 import type { TemplateEntry } from './registry'
-import type { BrandConfig } from '@/lib/brand'
 
 interface Props {
   name?: string
   workoutName?: string
   workoutUrl?: string
-  brand?: BrandConfig
 }
 
-const Email = ({ name, workoutName, workoutUrl, brand }: Props) => (
+const Email = ({ name, workoutName, workoutUrl }: Props) => (
   <Html lang="en" dir="ltr">
     <Head />
     <Preview>Your workout is ready</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Text style={brandStyle}>{brand?.senderName ?? 'SMARTY WORKOUT'}</Text>
+        <Text style={brand}>SMARTY WORKOUT</Text>
         <Heading style={heading}>Your workout is ready</Heading>
         <Text style={text}>{name ? `Hi ${name},` : 'Hi,'}</Text>
         <Text style={text}>
@@ -30,7 +28,7 @@ const Email = ({ name, workoutName, workoutUrl, brand }: Props) => (
         ) : null}
         <Hr style={hr} />
         <Text style={footer}>Haris Falas — BSc Sports Science, EXOS Specialist, CSCS</Text>
-        <Text style={footer}>{brand?.displayName ?? 'Smarty Workout'}</Text>
+        <Text style={footer}>Smarty Workout</Text>
       </Container>
     </Body>
   </Html>
@@ -38,8 +36,7 @@ const Email = ({ name, workoutName, workoutUrl, brand }: Props) => (
 
 export const template = {
   component: Email,
-  subject: (data: Record<string, any>) =>
-    `Your workout is ready — ${String(data['brand']?.displayName ?? 'Smarty Workout')}`,
+  subject: 'Your workout is ready',
   displayName: 'Workout ready (member)',
   previewData: {
     name: 'Alex',
@@ -50,7 +47,7 @@ export const template = {
 
 const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, Helvetica, sans-serif' }
 const container = { padding: '28px 24px', maxWidth: '560px' }
-const brandStyle = { fontSize: '12px', letterSpacing: '2px', color: '#2563eb', fontWeight: 700 as const }
+const brand = { fontSize: '12px', letterSpacing: '2px', color: '#2563eb', fontWeight: 700 as const }
 const heading = { fontSize: '22px', color: '#0b1220', margin: '8px 0 12px' }
 const text = { fontSize: '15px', lineHeight: '24px', color: '#1f2937' }
 const button = {

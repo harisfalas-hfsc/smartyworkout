@@ -20,7 +20,6 @@ import {
 } from "@/lib/daily.functions";
 import { loadRemote } from "@/lib/remote-data";
 import { useAuth } from "@/hooks/useAuth";
-import { useBrand } from "@/lib/brand-context";
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const ZONES = [
@@ -40,7 +39,6 @@ function hourLabel(h: number) {
 }
 
 export function DailyCoachingSettings({ premium = false }: { premium?: boolean }) {
-  const brand = useBrand();
   const { user } = useAuth();
   const load = useServerFn(getDailyHub);
   const save = useServerFn(saveDailySettings);
@@ -158,7 +156,7 @@ export function DailyCoachingSettings({ premium = false }: { premium?: boolean }
                 ? settings.wod_mode
                   ? "Daily plan is on. Two workouts land in your account every morning."
                   : "Turn it on to get two workouts (bodyweight and equipment) every morning."
-                : `Members only. Join ${brand.displayName} to receive the daily programme.`}
+                : "Members only. Join Smarty Workout to receive the daily programme."}
             </p>
           </div>
           {premium ? (

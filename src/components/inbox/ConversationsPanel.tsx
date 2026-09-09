@@ -34,7 +34,6 @@ import { loadRemote } from "@/lib/remote-data";
 import { announceInboxChanged } from "@/lib/inbox-sync";
 import { useOnlineStatus } from "@/lib/connectivity";
 import { formatDateTime } from "@/lib/date-format";
-import { useBrand } from "@/lib/brand-context";
 
 function when(iso: string) {
   return formatDateTime(iso);
@@ -47,7 +46,6 @@ export function ConversationsPanel({
   onUnread?: (n: number) => void;
   defaultComposing?: boolean;
 }) {
-  const brand = useBrand();
   const load = useServerFn(listMyThreads);
   const reply = useServerFn(replyToThread);
   const start = useServerFn(submitMemberMessage);
@@ -365,7 +363,7 @@ export function ConversationsPanel({
                           <p
                             className={`mb-1 text-xs font-bold ${m.sender === "admin" ? "text-primary" : "text-foreground"}`}
                           >
-                            {m.sender === "admin" ? `${brand.displayName} reply` : "Your message"}
+                            {m.sender === "admin" ? "Smarty Workout reply" : "Your message"}
                           </p>
                           <p className="whitespace-pre-wrap">{m.body}</p>
                           <p className="mt-1 text-[10px] text-muted-foreground">

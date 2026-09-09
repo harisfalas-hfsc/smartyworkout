@@ -11,22 +11,20 @@ import {
   Text,
 } from '@react-email/components'
 import type { TemplateEntry } from './registry'
-import type { BrandConfig } from '@/lib/brand'
 
 interface Props {
   name?: string
   subject?: string
   message?: string
-  brand?: BrandConfig
 }
 
-const Email = ({ name, subject, message, brand }: Props) => (
+const Email = ({ name, subject, message }: Props) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>We received your message — {brand?.displayName ?? 'Smarty Workout'} support</Preview>
+    <Preview>We received your message — Smarty Workout support</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Text style={brandStyle}>{brand?.senderName ?? 'SMARTY WORKOUT'}</Text>
+        <Text style={brand}>SMARTY WORKOUT</Text>
         <Heading style={heading}>We got your message</Heading>
         <Text style={text}>
           {name ? `Hi ${name},` : 'Hi there,'} thanks for reaching out. Our team replies within
@@ -56,8 +54,7 @@ const Email = ({ name, subject, message, brand }: Props) => (
 
 export const template = {
   component: Email,
-  subject: (data: Record<string, any>) =>
-    `We received your message — ${String(data['brand']?.displayName ?? 'Smarty Workout')}`,
+  subject: 'We received your message — Smarty Workout',
   displayName: 'Contact confirmation',
   previewData: {
     name: 'Alex',
@@ -68,7 +65,7 @@ export const template = {
 
 const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, Helvetica, sans-serif' }
 const container = { padding: '28px 24px', maxWidth: '560px' }
-const brandStyle = { fontSize: '12px', letterSpacing: '2px', color: '#2563eb', fontWeight: 700 as const }
+const brand = { fontSize: '12px', letterSpacing: '2px', color: '#2563eb', fontWeight: 700 as const }
 const heading = { fontSize: '22px', color: '#0b1220', margin: '8px 0 12px' }
 const text = { fontSize: '15px', lineHeight: '24px', color: '#1f2937' }
 const label = { fontSize: '12px', textTransform: 'uppercase' as const, color: '#6b7280', margin: '16px 0 4px' }

@@ -30,34 +30,27 @@ import { MembershipRequiredDialog } from "@/components/MembershipRequiredDialog"
 import { useAuth } from "@/hooks/useAuth";
 import { PageHeader } from "@/components/PageHeader";
 import { WodContextNote } from "@/components/performance/WodContextNote";
-import { getBrand } from "@/lib/brand.functions";
 
 
 export const Route = createFileRoute("/wod")({
-  loader: async () => ({ brand: await getBrand() }),
-  head: ({ loaderData }) => {
-    const brand = loaderData?.brand;
-    const name = brand?.displayName ?? "Smarty Workout";
-    const siteUrl = brand?.siteUrl ?? "https://smartyworkout.com";
-    const pageUrl = `${siteUrl}/wod`;
-    return ({
+  head: () => ({
     meta: [
-      { title: `Workout of the Day — ${name}` },
+      { title: "Workout of the Day — Smarty Workout" },
       {
         name: "description",
         content:
           "Two Workouts of the Day — one bodyweight, one with equipment — built automatically for your profile every night at midnight.",
       },
-      { property: "og:title", content: `Workout of the Day — ${name}` },
+      { property: "og:title", content: "Workout of the Day — Smarty Workout" },
       {
         property: "og:description",
         content: "A balanced daily workout programme adapted to your profile by Smarty Coach.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: pageUrl },
+      { property: "og:url", content: "https://smartyworkout.com/wod" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: pageUrl }],
+    links: [{ rel: "canonical", href: "https://smartyworkout.com/wod" }],
     scripts: [
       {
         type: "application/ld+json",
@@ -66,23 +59,23 @@ export const Route = createFileRoute("/wod")({
           "@graph": [
             {
               "@type": "WebPage",
-              url: pageUrl,
-              name: `Workout of the Day — ${name}`,
+              url: "https://smartyworkout.com/wod",
+              name: "Workout of the Day — Smarty Workout",
               description:
                 "Two Workouts of the Day — one bodyweight, one with equipment — built automatically for your profile every night at midnight.",
               inLanguage: "en",
-              isPartOf: { "@id": `${siteUrl}/#website` },
-              about: { "@id": `${siteUrl}/#software` },
+              isPartOf: { "@id": "https://smartyworkout.com/#website" },
+              about: { "@id": "https://smartyworkout.com/#software" },
             },
             {
               "@type": "BreadcrumbList",
               itemListElement: [
-                { "@type": "ListItem", position: 1, name: "Home", item: `${siteUrl}/` },
+                { "@type": "ListItem", position: 1, name: "Home", item: "https://smartyworkout.com/" },
                 {
                   "@type": "ListItem",
                   position: 2,
                   name: "Workout of the Day",
-                  item: pageUrl,
+                  item: "https://smartyworkout.com/wod",
                 },
               ],
             },
@@ -90,8 +83,7 @@ export const Route = createFileRoute("/wod")({
         }),
       },
     ],
-    });
-  },
+  }),
 
   component: WodPage,
 });

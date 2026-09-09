@@ -2,9 +2,17 @@ import * as React from 'react'
 import { render } from '@react-email/render'
 import { EmailAPIError, sendLovableEmail } from '@lovable.dev/email-js'
 import { TEMPLATES } from './registry'
-import { BRANDS, type BrandId } from '@/lib/brand'
 
 // Server-only: reads LOVABLE_API_KEY. Never import from client components.
+
+// Configuration baked in at scaffold time
+const SITE_NAME = "Smarty Workout"
+// SENDER_DOMAIN is the verified sender subdomain FQDN (e.g., "notify.example.com").
+// It MUST match the subdomain delegated to Lovable's nameservers. NEVER use the root domain.
+const SENDER_DOMAIN = "notify.smartyworkout.com"
+// FROM_DOMAIN is the domain shown in the From: header (e.g., "example.com").
+// Can be the root domain when display_from_root is enabled — this is cosmetic only.
+const FROM_DOMAIN = "notify.smartyworkout.com"
 
 export type SendTemplateEmailResult =
   | { sent: true }
@@ -15,8 +23,6 @@ export interface SendTemplateEmailOptions {
   /** Dedupes retries of the same logical send; defaults to a random UUID (no dedupe). */
   idempotencyKey?: string
   replyTo?: string
-  /** Brand to use for sender name, domain and system email address. */
-  brandId?: BrandId
 }
 
 /**
@@ -43,20 +49,14 @@ export async function sendTemplateEmail(
     )
   }
 
-  const brand = options.brandId ? (BRANDS[options.brandId] ?? BRANDS.smartyworkout) : BRANDS.smartyworkout
-
   // Template-level `to` takes precedence — notification templates always
-  // send to their fixed address. When the fixed address is the legacy system
-  // inbox, switch it to the active brand's system email.
-  let recipient = template.to || to
-  if (recipient === 'smartyworkout@outlook.com') {
-    recipient = brand.systemEmail
-  }
+  // send to their fixed address.
+  const recipient = template.to || to
   if (!recipient) {
     throw new Error('Recipient is required (the template defines no fixed recipient)')
   }
 
-  const templateData = { ...(options.templateData ?? {}), brand }
+  const templateData = options.templateData ?? {}
   const element = React.createElement(template.component, templateData)
   const html = await render(element)
   const text = await render(element, { plainText: true })
@@ -69,8 +69,8 @@ export async function sendTemplateEmail(
     await sendLovableEmail(
       {
         to: recipient,
-        from: `${brand.senderName} <noreply@${brand.fromDomain}>`,
-        sender_domain: brand.senderDomain,
+        from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
+        sender_domain: SENDER_DOMAIN,
         subject,
         html,
         text,

@@ -2,63 +2,54 @@ import { createFileRoute } from "@tanstack/react-router";
 import { FileText } from "lucide-react";
 import { LegalLayout } from "@/components/LegalLayout";
 import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
-import { getBrand } from "@/lib/brand.functions";
-import { useBrand } from "@/lib/brand-context";
 
 export const Route = createFileRoute("/terms")({
-  loader: async () => ({ brand: await getBrand() }),
-  head: ({ loaderData }) => {
-    const brand = loaderData?.brand;
-    const name = brand?.displayName ?? "Smarty Workout";
-    const siteUrl = brand?.siteUrl ?? "https://smartyworkout.com";
-    return ({
+  head: () => ({
     meta: [
-      { title: `Terms & Conditions | ${name}` },
+      { title: "Terms & Conditions | SmartyWorkout" },
       {
         name: "description",
         content:
-          `Terms and conditions for using ${name} — a personalized training planning app, part of the Smarty family.`,
+          "Terms and conditions for using SmartyWorkout — an AI-generated personalized training planning app, part of the Smarty family.",
       },
-      { property: "og:title", content: `Terms & Conditions — ${name}` },
+      { property: "og:title", content: "Terms & Conditions — SmartyWorkout" },
       {
         property: "og:description",
-        content: `Legal terms for using the ${name} training planning app.`,
+        content: "Legal terms for using the SmartyWorkout AI training planning app.",
       },
-      { property: "og:url", content: `${siteUrl}/terms` },
+      { property: "og:url", content: "https://smartyworkout.com/terms" },
     ],
-    links: [{ rel: "canonical", href: `${siteUrl}/terms` }],
-    });
-  },
+    links: [{ rel: "canonical", href: "https://smartyworkout.com/terms" }],
+  }),
   component: Terms,
 });
 
 function Terms() {
   const { freeAccessMode } = useFreeAccessMode();
-  const brand = useBrand();
   return (
     <LegalLayout title="Terms & Conditions" icon={<FileText className="h-5 w-5" />} lastUpdated="July 2026">
       <p>
-        Welcome to <strong>{brand.displayName}</strong> ({brand.domain}). By accessing or using our
+        Welcome to <strong>Smarty Workout</strong> (smartyworkout.com). By accessing or using our
         AI-generated personalized training service, you agree to comply with and be bound by the
-        following Terms &amp; Conditions. Please read them carefully before using {brand.displayName}.
+        following Terms &amp; Conditions. Please read them carefully before using Smarty Workout.
       </p>
 
       <h2>1. Acceptance of Terms</h2>
       <p>
-        By accessing or using {brand.displayName}, you confirm that you have read, understood, and agree
+        By accessing or using Smarty Workout, you confirm that you have read, understood, and agree
         to these Terms &amp; Conditions. If you do not agree, please do not use our website or app.
       </p>
 
       <h2>2. Eligibility</h2>
       <p>
-        You must be at least 18 years old to use {brand.displayName}. Users between 13 and 18 may only
-        use {brand.displayName} with the supervision and explicit consent of a parent or legal guardian.
+        You must be at least 18 years old to use Smarty Workout. Users between 13 and 18 may only
+        use Smarty Workout with the supervision and explicit consent of a parent or legal guardian.
       </p>
 
-      <h2>3. What {brand.displayName} Is</h2>
+      <h2>3. What Smarty Workout Is</h2>
       <p>
-        {brand.displayName} is a web app that generates personalized training sessions using AI.
-        Specifically, {brand.displayName} provides:
+        Smarty Workout is a web app that generates personalized training sessions using AI.
+        Specifically, Smarty Workout provides:
       </p>
       <ul>
         <li>Up to two AI-generated workouts per day, tailored to your goals, equipment, and fitness level.</li>
@@ -68,7 +59,7 @@ function Terms() {
         <li>Access to your workout history from your account at any time.</li>
       </ul>
       <p>
-        {brand.displayName} is intended for <strong>personal educational and fitness purposes only</strong>{" "}
+        Smarty Workout is intended for <strong>personal educational and fitness purposes only</strong>{" "}
         and is <strong>not a substitute for medical or professional training advice</strong>,
         diagnosis, or treatment.
       </p>
@@ -86,7 +77,7 @@ function Terms() {
           <h2>5. Access to the Service</h2>
           <ul>
             <li>
-              All {brand.displayName} features — daily workouts, the full exercise library, the training
+              All Smarty Workout features — daily workouts, the full exercise library, the training
               tools and your logbook — are available to every registered user at no cost.
             </li>
             <li>
@@ -100,7 +91,7 @@ function Terms() {
           <h2>5. Membership &amp; Pricing</h2>
           <ul>
             <li>
-              {brand.displayName} offers a single paid membership priced at <strong>€9.99 per month</strong>,
+              Smarty Workout offers a single paid membership priced at <strong>€9.99 per month</strong>,
               which gives you access to up to 2 generated workouts per day, the full exercise
               library, our training tools, and your workout logbook.
             </li>
@@ -180,19 +171,19 @@ function Terms() {
       <h2>10. Acceptable Use</h2>
       <p>You agree NOT to:</p>
       <ul>
-        <li>Reverse engineer, decompile, or attempt to extract the source code of {brand.displayName}.</li>
-        <li>Use {brand.displayName} for any unlawful, harmful, or fraudulent purpose.</li>
+        <li>Reverse engineer, decompile, or attempt to extract the source code of Smarty Workout.</li>
+        <li>Use Smarty Workout for any unlawful, harmful, or fraudulent purpose.</li>
         <li>Upload malicious content or attempt to interfere with the service.</li>
         <li>Resell, sublicense, or share access to your account or generated workouts.</li>
-        <li>Use {brand.displayName} to provide medical or training advice to other people.</li>
+        <li>Use Smarty Workout to provide medical or training advice to other people.</li>
       </ul>
 
       <h2>11. Intellectual Property</h2>
       <p>
-        All content, branding, methodology, source code, and copy in {brand.displayName} are the
-        intellectual property of <strong>{brand.displayName}</strong> and are protected by copyright,
+        All content, branding, methodology, source code, and copy in Smarty Workout are the
+        intellectual property of <strong>Smarty Workout</strong> and are protected by copyright,
         trademark, and other intellectual property laws. You receive a limited, personal,
-        non-transferable, non-exclusive license to use {brand.displayName} for personal, non-commercial
+        non-transferable, non-exclusive license to use Smarty Workout for personal, non-commercial
         purposes only.
       </p>
 
@@ -209,9 +200,9 @@ function Terms() {
 
       <h2>13. Limitation of Liability</h2>
       <p>
-        To the fullest extent permitted by law, {brand.displayName} shall not be liable for any
+        To the fullest extent permitted by law, Smarty Workout shall not be liable for any
         indirect, incidental, consequential, special, punitive, or exemplary damages arising from
-        your use of {brand.displayName}, including but not limited to injury, loss of data, lost
+        your use of Smarty Workout, including but not limited to injury, loss of data, lost
         profits, or business interruption. Nothing in these Terms excludes liability that cannot be
         excluded under applicable consumer protection law.
       </p>
@@ -219,7 +210,7 @@ function Terms() {
       <h2>14. Changes to These Terms</h2>
       <p>
         We may update these Terms from time to time. We will notify users of material changes via
-        the app or email. Continued use of {brand.displayName} after changes take effect constitutes
+        the app or email. Continued use of Smarty Workout after changes take effect constitutes
         acceptance of the updated Terms.
       </p>
 
@@ -232,8 +223,8 @@ function Terms() {
 
       <h2>16. Contact</h2>
       <p>
-        For questions about these Terms, contact <strong>{brand.displayName}</strong> at{" "}
-        <a href={`mailto:${brand.systemEmail}`}>{brand.systemEmail}</a>.
+        For questions about these Terms, contact <strong>Smarty Workout</strong> at{" "}
+        <a href="mailto:smartyworkout@outlook.com">smartyworkout@outlook.com</a>.
       </p>
     </LegalLayout>
   );

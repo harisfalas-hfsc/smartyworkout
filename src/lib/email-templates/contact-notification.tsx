@@ -10,23 +10,21 @@ import {
   Text,
 } from '@react-email/components'
 import type { TemplateEntry } from './registry'
-import type { BrandConfig } from '@/lib/brand'
 
 interface Props {
   name?: string
   email?: string
   subject?: string
   message?: string
-  brand?: BrandConfig
 }
 
-const Email = ({ name, email, subject, message, brand }: Props) => (
+const Email = ({ name, email, subject, message }: Props) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>New contact message on {brand?.displayName ?? 'Smarty Workout'}</Preview>
+    <Preview>New contact message on Smarty Workout</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Text style={brandStyle}>{brand?.senderName ?? 'SMARTY WORKOUT'} — SUPPORT</Text>
+        <Text style={brand}>SMARTY WORKOUT — SUPPORT</Text>
         <Heading style={heading}>New contact message</Heading>
         <Text style={label}>From</Text>
         <Text style={text}>
@@ -59,7 +57,7 @@ export const template = {
 
 const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, Helvetica, sans-serif' }
 const container = { padding: '28px 24px', maxWidth: '560px' }
-const brandStyle = { fontSize: '12px', letterSpacing: '2px', color: '#2563eb', fontWeight: 700 as const }
+const brand = { fontSize: '12px', letterSpacing: '2px', color: '#2563eb', fontWeight: 700 as const }
 const heading = { fontSize: '22px', color: '#0b1220', margin: '8px 0 12px' }
 const text = { fontSize: '15px', lineHeight: '24px', color: '#1f2937' }
 const label = { fontSize: '12px', textTransform: 'uppercase' as const, color: '#6b7280', margin: '16px 0 4px' }

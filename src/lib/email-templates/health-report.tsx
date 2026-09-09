@@ -1,7 +1,6 @@
 import React from 'react'
 import { Body, Container, Head, Heading, Hr, Html, Preview, Text } from '@react-email/components'
 import type { TemplateEntry } from './registry'
-import type { BrandConfig } from '@/lib/brand'
 
 interface Item {
   number?: number
@@ -11,7 +10,6 @@ interface Item {
 }
 
 interface Props {
-  brand?: BrandConfig
   startedAt?: string
   finishedAt?: string
   durationSec?: number
@@ -47,7 +45,6 @@ const badgeColor = (status?: string) =>
   status === 'pass' ? '#059669' : status === 'warn' ? '#d97706' : '#dc2626'
 
 const Email = ({
-  brand: activeBrand,
   startedAt,
   finishedAt,
   durationSec,
@@ -61,7 +58,7 @@ const Email = ({
     <Preview>{`System health — ${summary || 'nightly report'}`}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Text style={brand}>{activeBrand?.senderName ?? 'SMARTY WORKOUT'} — SYSTEM HEALTH</Text>
+        <Text style={brand}>SMARTY WORKOUT — SYSTEM HEALTH</Text>
         <Heading style={heading}>
           {failed > 0 ? 'Problems found' : 'All systems healthy'}
         </Heading>

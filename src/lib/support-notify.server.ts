@@ -1,5 +1,3 @@
-import type { BrandId } from "@/lib/brand";
-
 /**
  * Fan-out for every inbound support message:
  *  - email notification to the fixed system mailbox (reply-to = the member)
@@ -15,9 +13,8 @@ export async function notifyAdminsOfInboundMessage(input: {
   subject: string;
   message: string;
   isReply?: boolean;
-  brandId?: BrandId;
 }) {
-  const { threadId, messageId, name, email, subject, message, brandId } = input;
+  const { threadId, messageId, name, email, subject, message } = input;
 
   try {
     const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
@@ -25,7 +22,6 @@ export async function notifyAdminsOfInboundMessage(input: {
       templateData: { name, email, subject, message },
       idempotencyKey: `contact-notification-${messageId ?? threadId}`,
       replyTo: email,
-      brandId,
     });
   } catch (e) {
     console.error("[support-notify] admin email failed:", e);

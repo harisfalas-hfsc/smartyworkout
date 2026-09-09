@@ -3,19 +3,12 @@ import { Clock, Dumbbell, Lock, MapPin, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getWorkoutShareCard } from "@/lib/share.functions";
 import { difficultyLabel, MAX_STARS, normalizeStars } from "@/lib/workout/spec";
-import { getBrand } from "@/lib/brand.functions";
-import { useBrand } from "@/lib/brand-context";
 
 export const Route = createFileRoute("/w/$workoutId")({
-  loader: async ({ params }) => ({
-    workout: await getWorkoutShareCard({ data: { workoutId: params.workoutId } }),
-    brand: await getBrand(),
-  }),
+  loader: ({ params }) => getWorkoutShareCard({ data: { workoutId: params.workoutId } }),
   head: ({ loaderData }) => {
-    const w = loaderData?.workout ?? null;
-    const brand = loaderData?.brand;
-    const name = brand?.displayName ?? "Smarty Workout";
-    const title = w ? `${w.name} — ${name}` : `Workout — ${name}`;
+    const w = loaderData ?? null;
+    const title = w ? `${w.name} — Smarty Workout` : "Workout — Smarty Workout";
     const bits = w
       ? [
           w.category,
@@ -25,8 +18,8 @@ export const Route = createFileRoute("/w/$workoutId")({
         ].filter(Boolean)
       : [];
     const description = w
-      ? `${bits.join(" · ")} — open it on ${name}.`
-      : `A workout on ${name}.`;
+      ? `${bits.join(" · ")} — open it on Smarty Workout.`
+      : "A workout on Smarty Workout.";
     return {
       meta: [
         { title },
@@ -45,8 +38,7 @@ export const Route = createFileRoute("/w/$workoutId")({
 });
 
 function SharePreviewPage() {
-  const { workout: w } = Route.useLoaderData();
-  const brand = useBrand();
+  const w = Route.useLoaderData();
   
 
   if (!w)
@@ -54,7 +46,7 @@ function SharePreviewPage() {
       <div className="mx-auto max-w-xl px-4 py-16 text-center lg:max-w-6xl">
         <p className="text-muted-foreground">This workout is no longer available.</p>
         <Button asChild className="mt-4 h-12 rounded-2xl">
-          <Link to="/">Go to {brand.displayName}</Link>
+          <Link to="/">Go to Smarty Workout</Link>
         </Button>
       </div>
     );
@@ -107,7 +99,7 @@ function SharePreviewPage() {
               <Link to="/auth">Sign in to open it</Link>
             </Button>
             <Button asChild variant="secondary" className="h-12 rounded-2xl">
-              <Link to="/how-it-works">How {brand.displayName} works</Link>
+              <Link to="/how-it-works">How Smarty Workout works</Link>
             </Button>
           </div>
         </div>

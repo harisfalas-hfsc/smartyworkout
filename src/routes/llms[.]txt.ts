@@ -1,8 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 import { LLMS_STATIC } from "@/lib/seo/llms-static";
-import { getRequest } from "@tanstack/react-start/server";
-import { resolveBrand } from "@/lib/brand";
 
 /**
  * /llms.txt — served dynamically so the automatic SEO update (Admin → Cron jobs)
@@ -41,7 +39,6 @@ export const Route = createFileRoute("/llms.txt")({
   server: {
     handlers: {
       GET: async () => {
-        const brand = resolveBrand(getRequest()?.headers.get("host"));
         let extra = "";
         try {
           const { readKeywordIndex } = await import("@/lib/seo/keyword-index.server");
@@ -67,11 +64,7 @@ export const Route = createFileRoute("/llms.txt")({
           extra = "";
         }
 
-        let base = LLMS_STATIC
-          .replaceAll("https://smartyworkout.com", brand.siteUrl)
-          .replaceAll("smartyworkout@outlook.com", brand.systemEmail)
-          .replaceAll("SmartyWorkout", brand.displayName)
-          .replaceAll("Smarty Workout", brand.displayName);
+        let base = LLMS_STATIC;
         try {
           const { isFreeAccessMode } = await import("@/lib/free-access.server");
           if (await isFreeAccessMode()) {

@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { getBrand } from "@/lib/brand.functions";
 
 export type SupportMessage = {
   id: string;
@@ -66,7 +65,6 @@ export const submitContactMessage = createServerFn({ method: "POST" })
     await supabaseAdmin
       .from("support_messages")
       .insert({ thread_id: (thread as any).id, sender: "user", body: message } as never);
-    const brand = await getBrand();
     const { sendContactEmails } = await import("@/lib/support-email.server");
     await sendContactEmails({
       threadId: (thread as any).id as string,
@@ -74,7 +72,6 @@ export const submitContactMessage = createServerFn({ method: "POST" })
       email,
       subject,
       message,
-      brandId: brand.id,
     });
     const { autoRespondToSupportMessage } = await import("@/lib/support-autoreply.server");
     const auto = await autoRespondToSupportMessage({
@@ -83,7 +80,6 @@ export const submitContactMessage = createServerFn({ method: "POST" })
       email,
       subject,
       message,
-      brandId: brand.id,
     });
     return { ok: true as const, answered: auto.answered };
   });
@@ -111,7 +107,6 @@ export const submitMemberMessage = createServerFn({ method: "POST" })
     await context.supabase
       .from("support_messages")
       .insert({ thread_id: (thread as any).id, sender: "user", body: message, author_id: context.userId } as never);
-    const brand = await getBrand();
     if (email) {
       const { sendContactEmails } = await import("@/lib/support-email.server");
       await sendContactEmails({
@@ -120,7 +115,6 @@ export const submitMemberMessage = createServerFn({ method: "POST" })
         email,
         subject,
         message,
-        brandId: brand.id,
       });
     }
     const { autoRespondToSupportMessage } = await import("@/lib/support-autoreply.server");
@@ -131,7 +125,6 @@ export const submitMemberMessage = createServerFn({ method: "POST" })
       email,
       subject,
       message,
-      brandId: brand.id,
     });
     return { ok: true as const, threadId: (thread as any).id as string, answered: auto.answered };
 
@@ -191,7 +184,6 @@ export const replyToThread = createServerFn({ method: "POST" })
         last_message_at: new Date().toISOString(),
       } as never)
       .eq("id", data.threadId);
-    const brand = await getBrand();
     const { notifyAdminsOfInboundMessage } = await import("@/lib/support-notify.server");
     await notifyAdminsOfInboundMessage({
       threadId: data.threadId,
@@ -201,7 +193,6 @@ export const replyToThread = createServerFn({ method: "POST" })
       subject: clean((thread as any).subject, 200) || "Support request",
       message: body,
       isReply: true,
-      brandId: brand.id,
     });
     const { autoRespondToSupportMessage } = await import("@/lib/support-autoreply.server");
     await autoRespondToSupportMessage({
@@ -211,7 +202,6 @@ export const replyToThread = createServerFn({ method: "POST" })
       email: clean((thread as any).email, 200),
       subject: clean((thread as any).subject, 200) || "Support request",
       message: body,
-      brandId: brand.id,
     });
     return { ok: true as const };
   });
@@ -311,13 +301,12 @@ export const adminReplyToThread = createServerFn({ method: "POST" })
           last_message_at: new Date().toISOString(),
         } as never)
         .eq("id", data.threadId);
-      const brand = await getBrand();
       const userId = (thread as any).user_id as string | null;
       if (userId) {
         await supabaseAdmin.from("notifications").insert({
           user_id: userId,
           kind: "support",
-          title: `${brand.displayName} replied to your message`,
+          title: "Smarty Workout replied to your message",
           body: body.slice(0, 240),
         } as never);
       }
@@ -330,7 +319,6 @@ export const adminReplyToThread = createServerFn({ method: "POST" })
           email: toEmail,
           subject: clean((thread as any).subject, 200),
           message: body,
-          brandId: brand.id,
         });
       }
 
