@@ -9,11 +9,9 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { PageHeader } from "@/components/PageHeader";
-
-const URL = "https://smartyworkout.com/faq";
-const TITLE = "SmartyWorkout FAQ — Smarty Coach, workouts & training";
-const DESCRIPTION =
-  "Short answers about SmartyWorkout: how Smarty Coach builds your workout, what is included, equipment, injuries and privacy.";
+import { getBrand } from "@/lib/brand.functions";
+import { useBrand } from "@/lib/brand-context";
+import type { BrandConfig } from "@/lib/brand";
 
 const ITEMS: { q: string; a: string }[] = [
   {
@@ -125,23 +123,32 @@ const ITEMS: { q: string; a: string }[] = [
 ];
 
 /** Drops every paid-membership question while Free Access Mode is ON. */
-function visibleItems(freeAccessMode: boolean) {
+function visibleItems(freeAccessMode: boolean, items = ITEMS) {
   return freeAccessMode
-    ? ITEMS.filter(
+    ? items.filter(
         (it) =>
           !/cost|subscription|subscribed|Unsubscribe/i.test(it.q) &&
           !/€|subscription|subscribed|Unsubscribe|cancel anytime/i.test(it.a),
       )
-    : ITEMS;
+    : items;
 }
 
-const jsonLd = (freeAccessMode: boolean) => ({
+function brandedItems(brand: BrandConfig) {
+  return ITEMS.map((item) => ({
+    q: item.q.replaceAll("SmartyWorkout", brand.displayName),
+    a: item.a
+      .replaceAll("SmartyWorkout", brand.displayName)
+      .replaceAll("Smarty Workout", brand.displayName),
+  }));
+}
+
+const jsonLd = (freeAccessMode: boolean, brand: BrandConfig) => ({
   "@context": "https://schema.org",
   "@graph": [
     {
       "@type": "FAQPage",
-      "@id": `${URL}#faq`,
-      mainEntity: visibleItems(freeAccessMode).map((it) => ({
+      "@id": `${brand.siteUrl}/faq#faq`,
+      mainEntity: visibleItems(freeAccessMode, brandedItems(brand)).map((it) => ({
         "@type": "Question",
         name: it.q,
         acceptedAnswer: { "@type": "Answer", text: it.a },
@@ -150,8 +157,8 @@ const jsonLd = (freeAccessMode: boolean) => ({
     {
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Home", item: "https://smartyworkout.com/" },
-        { "@type": "ListItem", position: 2, name: "FAQ", item: URL },
+        { "@type": "ListItem", position: 1, name: "Home", item: `${brand.siteUrl}/` },
+        { "@type": "ListItem", position: 2, name: "FAQ", item: `${brand.siteUrl}/faq` },
       ],
     },
   ],
@@ -161,37 +168,45 @@ export const Route = createFileRoute("/faq")({
   loader: async () => {
     try {
       const { getFreeAccessMode } = await import("@/lib/free-access.functions");
-      return await getFreeAccessMode();
+      return { ...(await getFreeAccessMode()), brand: await getBrand() };
     } catch {
-      return { freeAccessMode: false };
+      return { freeAccessMode: false, brand: await getBrand() };
     }
   },
-  head: ({ loaderData }) => ({
+  head: ({ loaderData }) => {
+    const brand = loaderData?.brand;
+    if (!brand) return {};
+    const title = `${brand.displayName} FAQ — Smarty Coach, workouts & training`;
+    const description = `Short answers about ${brand.displayName}: how Smarty Coach builds your workout, what is included, equipment, injuries and privacy.`;
+    const url = `${brand.siteUrl}/faq`;
+    return ({
     meta: [
-      { title: TITLE },
-      { name: "description", content: DESCRIPTION },
-      { property: "og:title", content: TITLE },
-      { property: "og:description", content: DESCRIPTION },
-      { property: "og:url", content: URL },
+      { title },
+      { name: "description", content: description },
+      { property: "og:title", content: title },
+      { property: "og:description", content: description },
+      { property: "og:url", content: url },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: TITLE },
-      { name: "twitter:description", content: DESCRIPTION },
+      { name: "twitter:title", content: title },
+      { name: "twitter:description", content: description },
     ],
-    links: [{ rel: "canonical", href: URL }],
+    links: [{ rel: "canonical", href: url }],
     scripts: [
       {
         type: "application/ld+json",
-        children: JSON.stringify(jsonLd(loaderData?.freeAccessMode ?? false)),
+        children: JSON.stringify(jsonLd(loaderData?.freeAccessMode ?? false, brand)),
       },
     ],
-  }),
+    });
+  },
   component: FAQ,
 });
 
 function FAQ() {
   const { freeAccessMode } = useFreeAccessMode();
-  const items = visibleItems(freeAccessMode);
+  const brand = useBrand();
+  const items = visibleItems(freeAccessMode, brandedItems(brand));
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">
       <PageHeader

@@ -2,23 +2,30 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/PageHeader";
+import { getBrand } from "@/lib/brand.functions";
+import { useBrand } from "@/lib/brand-context";
 
 export const Route = createFileRoute("/how-it-works")({
-  head: () => ({
+  loader: async () => ({ brand: await getBrand() }),
+  head: ({ loaderData }) => {
+    const brand = loaderData?.brand;
+    const name = brand?.displayName ?? "Smarty Workout";
+    const siteUrl = brand?.siteUrl ?? "https://smartyworkout.com";
+    return ({
     meta: [
-      { title: "How Smarty Workout works — answer, analyze, train" },
+      { title: `How ${name} works — answer, analyze, train` },
       {
         name: "description",
         content:
           "You answer. Smarty Coach thinks. You train. Four simple steps from your goal to a personalized workout.",
       },
-      { property: "og:title", content: "How Smarty Workout works" },
+      { property: "og:title", content: `How ${name} works` },
       { property: "og:description", content: "You answer. Smarty Coach thinks. You train." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { property: "og:url", content: "https://smartyworkout.com/how-it-works" },
+      { property: "og:url", content: `${siteUrl}/how-it-works` },
     ],
-    links: [{ rel: "canonical", href: "https://smartyworkout.com/how-it-works" }],
+    links: [{ rel: "canonical", href: `${siteUrl}/how-it-works` }],
     scripts: [
       {
         type: "application/ld+json",
@@ -27,7 +34,7 @@ export const Route = createFileRoute("/how-it-works")({
           "@graph": [
             {
               "@type": "HowTo",
-              name: "How to get a personalized workout with SmartyWorkout",
+              name: `How to get a personalized workout with ${name}`,
               description:
                 "Four steps from your goal to a complete personalized workout built by Smarty Coach.",
               totalTime: "PT2M",
@@ -65,13 +72,13 @@ export const Route = createFileRoute("/how-it-works")({
                   "@type": "ListItem",
                   position: 1,
                   name: "Home",
-                  item: "https://smartyworkout.com/",
+                  item: `${siteUrl}/`,
                 },
                 {
                   "@type": "ListItem",
                   position: 2,
                   name: "How it works",
-                  item: "https://smartyworkout.com/how-it-works",
+                  item: `${siteUrl}/how-it-works`,
                 },
               ],
             },
@@ -79,7 +86,8 @@ export const Route = createFileRoute("/how-it-works")({
         }),
       },
     ],
-  }),
+    });
+  },
 
   component: HowItWorks,
 });
@@ -180,6 +188,7 @@ const TRACKING_STEPS = [
 
 
 function HowItWorks() {
+  const brand = useBrand();
   const { freeAccessMode } = useFreeAccessMode();
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12 lg:max-w-6xl lg:px-8 lg:py-16">
@@ -315,7 +324,7 @@ function HowItWorks() {
           Every session becomes data that improves the next one.
         </h2>
         <p className="mx-auto mt-2 max-w-2xl text-center text-sm leading-6 text-muted-foreground">
-          The workout is only half of it. Smarty Workout records what you actually did, how it felt,
+          The workout is only half of it. {brand.displayName} records what you actually did, how it felt,
           and how it compares with the last time you did the same session — then feeds all of it
           back to Smarty Coach.
         </p>

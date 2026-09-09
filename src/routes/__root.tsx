@@ -143,18 +143,18 @@ function jsonLdGraph(brand: BrandConfig, freeAccessMode: boolean) {
           ],
           sameAs: [
             `${siteUrl}/haris-falas`,
-            "https://www.instagram.com/smartyworkout",
-            "https://smartygym.com",
+            brand.instagramUrl,
             "https://smartymove.com",
             "https://smartydiet.com",
           ],
         },
 
         sameAs: [
-          "https://smartygym.com",
           "https://smartymove.com",
           "https://smartydiet.com",
-          "https://www.instagram.com/smartyworkout",
+          brand.instagramUrl,
+          brand.facebookUrl,
+          brand.tiktokUrl,
         ],
         contactPoint: [
           {

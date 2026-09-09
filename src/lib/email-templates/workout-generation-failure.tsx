@@ -1,8 +1,10 @@
 import React from 'react'
 import { Body, Container, Head, Heading, Hr, Html, Preview, Text } from '@react-email/components'
 import type { TemplateEntry } from './registry'
+import type { BrandConfig } from '@/lib/brand'
 
 interface Props {
+  brand?: BrandConfig
   urgent?: boolean
   userName?: string
   userEmail?: string
@@ -19,6 +21,7 @@ interface Props {
 }
 
 const Email = ({
+  brand: activeBrand,
   urgent,
   userName,
   userEmail,
@@ -38,7 +41,7 @@ const Email = ({
     <Preview>{urgent ? 'A member is still waiting for a workout' : 'A workout generation failed'}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Text style={brand}>SMARTY WORKOUT — {urgent ? 'URGENT' : 'ALERT'}</Text>
+        <Text style={brand}>{activeBrand?.senderName ?? 'SMARTY WORKOUT'} — {urgent ? 'URGENT' : 'ALERT'}</Text>
         <Heading style={heading}>
           {urgent ? 'A member is still without their workout' : 'Workout generation failed'}
         </Heading>
@@ -76,8 +79,8 @@ export const template = {
   component: Email,
   subject: (data: Record<string, any>) =>
     data['urgent']
-      ? `[SmartyWorkout URGENT] Workout still not delivered — ${String(data['userEmail'] || 'member')}`
-      : `[SmartyWorkout ALERT] Workout generation failed — ${String(data['userEmail'] || 'member')}`,
+      ? `[${String(data['brand']?.name ?? 'SmartyWorkout')} URGENT] Workout still not delivered — ${String(data['userEmail'] || 'member')}`
+      : `[${String(data['brand']?.name ?? 'SmartyWorkout')} ALERT] Workout generation failed — ${String(data['userEmail'] || 'member')}`,
   displayName: 'Workout generation failure (admin)',
   previewData: {
     userName: 'Alex Doe',

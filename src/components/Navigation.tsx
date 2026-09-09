@@ -113,8 +113,14 @@ export function Navigation() {
             className="bg-transparent p-0 text-lg font-extrabold leading-none tracking-tight no-underline hover:no-underline"
             style={{ textDecoration: "none" }}
           >
-            <span className="text-primary">{firstPart}</span>
-            <span className="text-green-500">{secondPart}</span>
+            {brand.id === "smartygym" ? (
+              <img src={brand.logo} alt="SmartyGym" className="h-8 w-auto max-w-[148px] object-contain" />
+            ) : (
+              <>
+                <span className="text-primary">{firstPart}</span>
+                <span className="text-green-500">{secondPart}</span>
+              </>
+            )}
           </button>
         </div>
 
