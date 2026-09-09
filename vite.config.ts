@@ -25,6 +25,9 @@ export default defineConfig({
     define: {
       __APP_BUILD_ID__: JSON.stringify(APP_BUILD_ID),
     },
+    server: {
+      allowedHosts: ["smartyworkout.com", "www.smartyworkout.com", "smartygym.com", "www.smartygym.com"],
+    },
   },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
