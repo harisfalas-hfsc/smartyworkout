@@ -112,18 +112,24 @@ export function AdminMemberBillingTab() {
             </p>
           ) : null}
 
+          <p className="text-xs text-muted-foreground">
+            Showing {data.rangeFrom ? `everything since ${formatDate(data.rangeFrom)}` : "the full history from day one"}
+            {data.truncated ? " · only the 500 most recent entries are listed, choose a shorter period to see the rest" : ""}
+          </p>
+
           <div className="grid grid-cols-2 gap-3">
             <SummaryCard label="Paying members right now" value={String(data.totals.activeMembers)} />
             <SummaryCard label="Memberships that ended" value={String(data.totals.canceledMembers)} />
             <SummaryCard
-              label="Money received · last 30 days"
-              value={money(data.totals.paidLast30, data.currency)}
+              label="Money received · this period"
+              value={money(data.paidInRange, data.currency)}
             />
             <SummaryCard
-              label="Declined payments · last 30 days"
-              value={String(data.totals.failedLast30)}
+              label="Declined payments · this period"
+              value={String(data.failedInRange)}
             />
           </div>
+
 
           <section className="space-y-3 rounded-2xl border bg-card p-4">
             <h3 className="text-sm font-semibold">Members and their memberships</h3>
