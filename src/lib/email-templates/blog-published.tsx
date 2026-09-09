@@ -11,8 +11,10 @@ import {
   Text,
 } from '@react-email/components'
 import type { TemplateEntry } from './registry'
+import type { BrandConfig } from '@/lib/brand'
 
 interface Props {
+  brand?: BrandConfig
   title?: string
   excerpt?: string
   url?: string
@@ -41,6 +43,7 @@ const fmt = (iso?: string) => {
 }
 
 const Email = ({
+  brand: activeBrand,
   title,
   excerpt,
   url,
@@ -55,7 +58,7 @@ const Email = ({
     <Preview>{`New article published — ${title || 'Fitness article'}`}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Text style={brand}>SMARTY WORKOUT — BLOG</Text>
+        <Text style={brand}>{activeBrand?.senderName ?? 'SMARTY WORKOUT'} — BLOG</Text>
         <Heading style={heading}>New article published</Heading>
 
         <Text style={label}>Title</Text>

@@ -1,8 +1,10 @@
 import React from 'react'
 import { Body, Container, Head, Heading, Hr, Html, Preview, Text } from '@react-email/components'
 import type { TemplateEntry } from './registry'
+import type { BrandConfig } from '@/lib/brand'
 
 interface Props {
+  brand?: BrandConfig
   message?: string
   source?: string
   route?: string | null
@@ -33,6 +35,7 @@ const fmt = (iso?: string) => {
 }
 
 const Email = ({
+  brand: activeBrand,
   message,
   source,
   route,
@@ -49,7 +52,7 @@ const Email = ({
     <Preview>{`Problem: ${message || 'unknown error'}`}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Text style={brand}>SMARTY WORKOUT — PROBLEM DETECTED</Text>
+        <Text style={brand}>{activeBrand?.senderName ?? 'SMARTY WORKOUT'} — PROBLEM DETECTED</Text>
         <Heading style={heading}>{message || 'Unknown error'}</Heading>
 
         <Text style={label}>What happened</Text>
