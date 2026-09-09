@@ -31,10 +31,9 @@ export async function autoRespondToSupportMessage(input: {
   brandId?: BrandId;
 }): Promise<{ answered: boolean; escalated: boolean }> {
   const { threadId, userId, name, email, subject, message, brandId } = input;
+  const brand = brandFor(brandId);
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { getBrand } = await import("@/lib/brand.functions");
-    const brand = brandId ? await getBrand({ send: { brandId } } as any).catch(() => undefined) : undefined;
 
     // How many times has this member written in this thread already?
     const { count: inboundCount } = await supabaseAdmin
