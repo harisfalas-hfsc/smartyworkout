@@ -1349,6 +1349,7 @@ export const adminGetBillingActivity = createServerFn({ method: "POST" })
                   });
                 }
                 if (c.created * 1000 >= since30) paidLast30 += net;
+                paidInRange += net;
                 events.push({
                   id: c.id,
                   kind: refunded > 0 ? "refund" : "payment",
