@@ -1251,7 +1251,7 @@ export type AdminBillingActivity = {
 
 export const adminGetBillingActivity = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { environment?: "live" | "sandbox" }) => data)
+  .inputValidator((data: { environment?: "live" | "sandbox"; days?: number | null }) => data)
   .handler(
     async ({
       context,
