@@ -219,7 +219,7 @@ export const BRANDS: Record<BrandId, BrandConfig> = {
   smartygym: {
     id: "smartygym",
     name: "SmartyGym",
-    displayName: "SmartyGym",
+    displayName: "Smarty Gym",
     shortName: "SmartyGym",
     senderName: "SMARTYGYM",
     domain: "smartygym.com",
@@ -238,7 +238,7 @@ export const BRANDS: Record<BrandId, BrandConfig> = {
     pwaShortName: "SmartyGym",
     pwaName: "SmartyGym",
     coachName: "your coach",
-    communityName: "SmartyGym Community",
+    communityName: "Smarty Gym Community",
     headline: "YOUR GYM RE-IMAGINED\nANYWHERE, ANYTIME",
 
     description:
