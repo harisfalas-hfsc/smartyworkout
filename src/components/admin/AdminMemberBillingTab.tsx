@@ -20,17 +20,26 @@ function statusLabel(status: string, cancelAtPeriodEnd: boolean) {
   return status;
 }
 
+const PERIODS: { label: string; days: number | null }[] = [
+  { label: "Last 30 days", days: 30 },
+  { label: "Last 3 months", days: 90 },
+  { label: "Last 12 months", days: 365 },
+  { label: "Everything", days: null },
+];
+
 export function AdminMemberBillingTab() {
   const getActivity = useServerFn(adminGetBillingActivity);
   const [env, setEnv] = useState<"live" | "sandbox">("live");
+  const [days, setDays] = useState<number | null>(365);
+  const [search, setSearch] = useState("");
   const [data, setData] = useState<AdminBillingActivity | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  async function load(environment: "live" | "sandbox") {
+  async function load(environment: "live" | "sandbox", period: number | null) {
     setLoading(true);
     setError(null);
-    const r = await getActivity({ data: { environment } });
+    const r = await getActivity({ data: { environment, days: period } });
     if ("error" in r) {
       setError(r.error);
       setData(null);
@@ -39,9 +48,13 @@ export function AdminMemberBillingTab() {
   }
 
   useEffect(() => {
-    void load(env);
+    void load(env, days);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [env]);
+  }, [env, days]);
+
+  const q = search.trim().toLowerCase();
+  const matches = (name: string, email: string | null, extra = "") =>
+    !q || `${name} ${email ?? ""} ${extra}`.toLowerCase().includes(q);
 
   return (
     <div className="space-y-4">
@@ -52,10 +65,34 @@ export function AdminMemberBillingTab() {
         <Button size="sm" variant={env === "sandbox" ? "default" : "outline"} onClick={() => setEnv("sandbox")}>
           Test mode
         </Button>
-        <Button size="sm" variant="ghost" onClick={() => void load(env)} disabled={loading}>
+        <Button size="sm" variant="ghost" onClick={() => void load(env, days)} disabled={loading}>
           <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} /> Refresh
         </Button>
       </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        {PERIODS.map((p) => (
+          <Button
+            key={p.label}
+            size="sm"
+            variant={days === p.days ? "secondary" : "outline"}
+            onClick={() => setDays(p.days)}
+          >
+            {p.label}
+          </Button>
+        ))}
+      </div>
+
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by member name or email"
+          className="pl-9"
+        />
+      </div>
+
 
       {loading ? (
         <div className="flex justify-center py-10">
