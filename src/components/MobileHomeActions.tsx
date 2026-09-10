@@ -257,7 +257,10 @@ export function MobileHomeActions({ showPricing }: { showPricing: boolean }) {
                     height={640}
                     loading="lazy"
                     decoding="async"
-                    className="absolute inset-0 h-full w-full object-cover object-[center_top]"
+                    className={cn(
+                      "absolute inset-0 h-full w-full object-cover",
+                      card.imagePosition ?? "object-[center_top]",
+                    )}
                   />
                 </div>
                 <div className="flex flex-1 flex-col justify-center p-2 text-center">
