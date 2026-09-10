@@ -29,6 +29,7 @@ const FITNESS_TIPS = [
 export function GeneratingDialog({ open, onLeave }: { open: boolean; onLeave?: () => void }) {
   const [tipIndex, setTipIndex] = useState(0);
   const [handOff, setHandOff] = useState(false);
+  const [waitRound, setWaitRound] = useState(0);
 
   useEffect(() => {
     if (!open) return;
@@ -44,11 +45,12 @@ export function GeneratingDialog({ open, onLeave }: { open: boolean; onLeave?: (
   useEffect(() => {
     if (!open) {
       setHandOff(false);
+      setWaitRound(0);
       return;
     }
     const id = setTimeout(() => setHandOff(true), 90000);
     return () => clearTimeout(id);
-  }, [open]);
+  }, [open, waitRound]);
 
   return (
     <Dialog open={open}>
@@ -85,7 +87,10 @@ export function GeneratingDialog({ open, onLeave }: { open: boolean; onLeave?: (
               <Button type="button" variant="outline" className="h-11 rounded-xl" onClick={onLeave}>
                 Leave it with us
               </Button>
-              <Button type="button" className="h-11 rounded-xl" onClick={() => setHandOff(false)}>
+              <Button type="button" className="h-11 rounded-xl" onClick={() => {
+                  setHandOff(false);
+                  setWaitRound((n) => n + 1);
+                }}>
                 Keep waiting
               </Button>
             </div>

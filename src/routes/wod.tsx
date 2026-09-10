@@ -23,6 +23,16 @@ import {
   setWodSubscription,
 } from "@/lib/daily.functions";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ParqWaiverDialog } from "@/components/ParqWaiverDialog";
 import { hasParqAck, setParqAck } from "@/lib/parq-ack";
 import { GeneratingDialog } from "@/components/workout/GeneratingDialog";
@@ -168,6 +178,8 @@ function WodPage() {
   const [busy, setBusy] = useState(false);
   const [building, setBuilding] = useState(false);
   const [parqOpen, setParqOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState<null | "subscribe" | "unsubscribe">(null);
+  const [buildHidden, setBuildHidden] = useState(false);
   const [membershipOpen, setMembershipOpen] = useState(false);
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(1);
@@ -224,7 +236,8 @@ function WodPage() {
       setParqOpen(true);
       return;
     }
-    await toggleSub(!subscribed);
+    // Never subscribe or unsubscribe silently — always confirm first.
+    setConfirmOpen(subscribed ? "unsubscribe" : "subscribe");
   }
 
   async function toggleSub(subscribe: boolean) {
@@ -242,7 +255,8 @@ function WodPage() {
         toast.success("Daily plan turned off. You can create your own workouts again.");
         return;
       }
-      toast.success("You're in. Building today's two workouts now…");
+      toast.success("You're subscribed. Building today's workouts now…");
+      setBuildHidden(false);
       setBuilding(true);
       void gen({})
         .then(async () => {
@@ -349,7 +363,61 @@ function WodPage() {
         </div>
       </section>
 
-      <GeneratingDialog open={building} />
+      <GeneratingDialog open={building && !buildHidden} onLeave={() => setBuildHidden(true)} />
+
+      <AlertDialog
+        open={confirmOpen !== null}
+        onOpenChange={(open) => {
+          if (!open) setConfirmOpen(null);
+        }}
+      >
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmOpen === "unsubscribe"
+                ? "Unsubscribe from Workout of the Day?"
+                : "Subscribe to Workout of the Day?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              {confirmOpen === "unsubscribe" ? (
+                <div className="space-y-2 text-left">
+                  <p>Your daily workouts stop being created from tomorrow.</p>
+                  <p>
+                    Everything you already have stays in your logbook, and you can create your own
+                    workouts with Smarty Coach again.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2 text-left">
+                  <p>
+                    Each day Smarty Coach builds your workouts automatically: two on training days —
+                    one with equipment and one bodyweight only — and a single gentle session on
+                    recovery days.
+                  </p>
+                  <p>
+                    Those are the workouts you train with each day, so creating your own workouts
+                    with Smarty Coach pauses while you are subscribed.
+                  </p>
+                  <p>You can unsubscribe here at any time.</p>
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                const subscribe = confirmOpen === "subscribe";
+                setConfirmOpen(null);
+                void toggleSub(subscribe);
+              }}
+            >
+              {confirmOpen === "unsubscribe" ? "Yes, unsubscribe" : "Yes, subscribe"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <MembershipRequiredDialog
         open={membershipOpen}
         onOpenChange={setMembershipOpen}
@@ -360,11 +428,11 @@ function WodPage() {
       <ParqWaiverDialog
         open={parqOpen}
         flags={access?.readinessFlags ?? []}
-        confirmLabel="I confirm — follow the daily plan"
+        confirmLabel="I confirm — continue"
         onConfirm={() => {
           setParqAck();
           setParqOpen(false);
-          void toggleSub(true);
+          setConfirmOpen("subscribe");
         }}
         onCancel={() => setParqOpen(false)}
       />
@@ -393,8 +461,8 @@ function WodPage() {
               : busy
                 ? "Please wait…"
                 : subscribed
-                  ? "Stop the daily plan"
-                  : "Follow the daily plan"}
+                  ? "Unsubscribe from Workout of the Day"
+                  : "Subscribe to Workout of the Day"}
           </span>
         </Button>
 
@@ -430,8 +498,8 @@ function WodPage() {
               : !access.premium
                 ? "Workout of the Day cannot be activated without a verified premium membership."
             : subscribed
-            ? "Your two daily workouts arrive automatically. You can still open every workout you already have, but manual generation stays paused until you stop the daily plan."
-            : "Turn the daily plan on and today's two workouts are built right away, then every night automatically. Manual generation is paused while it is on because Smarty Coach already creates your daily pair."}
+            ? "You are subscribed: your daily workouts are the workouts you train with each day — two on training days (equipment and bodyweight) and one on recovery days. Creating your own workouts stays paused until you unsubscribe."
+            : "Subscribe and today's workouts are built right away, then every day automatically — two on training days (one with equipment, one bodyweight) and one gentle session on recovery days. While subscribed, those are your workouts for the day, so creating your own is paused."}
         </p>
 
       </section>
