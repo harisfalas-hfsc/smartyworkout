@@ -428,7 +428,7 @@ function WodPage() {
       <ParqWaiverDialog
         open={parqOpen}
         flags={access?.readinessFlags ?? []}
-        confirmLabel="I confirm — follow the daily plan"
+        confirmLabel="I confirm — continue"
         onConfirm={() => {
           setParqAck();
           setParqOpen(false);
@@ -498,8 +498,8 @@ function WodPage() {
               : !access.premium
                 ? "Workout of the Day cannot be activated without a verified premium membership."
             : subscribed
-            ? "Your two daily workouts arrive automatically. You can still open every workout you already have, but manual generation stays paused until you stop the daily plan."
-            : "Turn the daily plan on and today's two workouts are built right away, then every night automatically. Manual generation is paused while it is on because Smarty Coach already creates your daily pair."}
+            ? "You are subscribed: your daily workouts are the workouts you train with each day — two on training days (equipment and bodyweight) and one on recovery days. Creating your own workouts stays paused until you unsubscribe."
+            : "Subscribe and today's workouts are built right away, then every day automatically — two on training days (one with equipment, one bodyweight) and one gentle session on recovery days. While subscribed, those are your workouts for the day, so creating your own is paused."}
         </p>
 
       </section>
