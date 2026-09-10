@@ -81,6 +81,7 @@ export function MobileHomeActions({ showPricing }: { showPricing: boolean }) {
       to: "/tools",
       image: toolsCardImage,
       icon: Wrench,
+      imagePosition: "object-[center_40%]",
     },
     {
       title: "Exercise Library",
@@ -88,6 +89,7 @@ export function MobileHomeActions({ showPricing }: { showPricing: boolean }) {
       to: "/exercise-library",
       image: exerciseLibraryImage,
       icon: BookOpen,
+      imagePosition: "object-[center_top]",
     },
     {
       title: "Blog",
@@ -95,6 +97,7 @@ export function MobileHomeActions({ showPricing }: { showPricing: boolean }) {
       to: "/blog",
       image: blogCardImage,
       icon: Newspaper,
+      imagePosition: "object-[center_65%]",
     },
   ];
 
