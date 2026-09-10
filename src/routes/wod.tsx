@@ -168,6 +168,8 @@ function WodPage() {
   const [busy, setBusy] = useState(false);
   const [building, setBuilding] = useState(false);
   const [parqOpen, setParqOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState<null | "subscribe" | "unsubscribe">(null);
+  const [buildHidden, setBuildHidden] = useState(false);
   const [membershipOpen, setMembershipOpen] = useState(false);
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(1);
