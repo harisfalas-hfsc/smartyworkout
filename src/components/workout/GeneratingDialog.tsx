@@ -87,7 +87,10 @@ export function GeneratingDialog({ open, onLeave }: { open: boolean; onLeave?: (
               <Button type="button" variant="outline" className="h-11 rounded-xl" onClick={onLeave}>
                 Leave it with us
               </Button>
-              <Button type="button" className="h-11 rounded-xl" onClick={() => setHandOff(false)}>
+              <Button type="button" className="h-11 rounded-xl" onClick={() => {
+                  setHandOff(false);
+                  setWaitRound((n) => n + 1);
+                }}>
                 Keep waiting
               </Button>
             </div>
