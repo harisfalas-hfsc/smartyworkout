@@ -432,7 +432,7 @@ function WodPage() {
         onConfirm={() => {
           setParqAck();
           setParqOpen(false);
-          void toggleSub(true);
+          setConfirmOpen("subscribe");
         }}
         onCancel={() => setParqOpen(false)}
       />
@@ -461,8 +461,8 @@ function WodPage() {
               : busy
                 ? "Please wait…"
                 : subscribed
-                  ? "Stop the daily plan"
-                  : "Follow the daily plan"}
+                  ? "Unsubscribe from Workout of the Day"
+                  : "Subscribe to Workout of the Day"}
           </span>
         </Button>
 
