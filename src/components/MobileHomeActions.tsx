@@ -37,6 +37,7 @@ type BelowCard = {
   to: "/tools" | "/exercise-library" | "/blog";
   image: string;
   icon: LucideIcon;
+  imagePosition?: string;
 };
 
 export function MobileHomeActions({ showPricing }: { showPricing: boolean }) {
