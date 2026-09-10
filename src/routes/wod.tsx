@@ -226,7 +226,8 @@ function WodPage() {
       setParqOpen(true);
       return;
     }
-    await toggleSub(!subscribed);
+    // Never subscribe or unsubscribe silently — always confirm first.
+    setConfirmOpen(subscribed ? "unsubscribe" : "subscribe");
   }
 
   async function toggleSub(subscribe: boolean) {
