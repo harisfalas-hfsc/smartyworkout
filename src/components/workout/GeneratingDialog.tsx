@@ -29,6 +29,7 @@ const FITNESS_TIPS = [
 export function GeneratingDialog({ open, onLeave }: { open: boolean; onLeave?: () => void }) {
   const [tipIndex, setTipIndex] = useState(0);
   const [handOff, setHandOff] = useState(false);
+  const [waitRound, setWaitRound] = useState(0);
 
   useEffect(() => {
     if (!open) return;
