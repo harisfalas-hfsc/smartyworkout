@@ -238,7 +238,6 @@ function NavDrawer({ onClose, isAuthed, isAdmin }: { onClose: () => void; isAuth
               { to: "/logbook", label: "Logbook", Icon: BookOpen },
               { to: "/community", label: "Smarty Community", Icon: Users },
               { to: "/progress", label: "Progress", Icon: ClipboardList },
-              { to: "/profile", label: "Training profile", Icon: Info },
               { to: "/inbox", label: "Inbox & messages", Icon: Mail },
               { to: "/account", label: "My account", Icon: User },
 

@@ -9,6 +9,7 @@ import {
   Dumbbell,
   NotebookPen,
   Newspaper,
+  Users,
   Wrench,
   type LucideIcon,
 } from "lucide-react";
@@ -18,6 +19,7 @@ import wodImage from "@/assets/hero-wod-card.jpg";
 import founderPhoto from "@/assets/haris-falas-coach.png";
 import toolsCardImage from "@/assets/tools-card.jpg";
 import blogCardImage from "@/assets/blog-card.jpg";
+import communityCardImage from "@/assets/community-card.jpg";
 import exerciseLibraryImage from "@/assets/exercise-library-card.jpg";
 import { Button } from "@/components/ui/button";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
