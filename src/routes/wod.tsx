@@ -245,7 +245,8 @@ function WodPage() {
         toast.success("Daily plan turned off. You can create your own workouts again.");
         return;
       }
-      toast.success("You're in. Building today's two workouts now…");
+      toast.success("You're subscribed. Building today's workouts now…");
+      setBuildHidden(false);
       setBuilding(true);
       void gen({})
         .then(async () => {
