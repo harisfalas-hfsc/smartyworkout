@@ -308,8 +308,35 @@ export function MobileHomeActions({ showPricing }: { showPricing: boolean }) {
       </div>
 
       <Link
-        to="/founder-note"
+        to="/community"
         className="mt-6 flex h-[68px] items-center gap-3 overflow-hidden rounded-xl border-2 border-primary/60 bg-card p-1.5 transition-all duration-300 hover:border-primary hover:shadow-xl"
+      >
+        <div className="relative h-[52px] w-[58px] shrink-0 overflow-hidden rounded-lg bg-primary/10">
+          <img
+            src={communityCardImage}
+            alt="Smarty Community"
+            width={144}
+            height={144}
+            loading="lazy"
+            decoding="async"
+            className="absolute inset-0 h-full w-full object-cover object-[center_top]"
+          />
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col justify-center">
+          <span className="text-[9px] font-bold uppercase tracking-wide text-primary">COMMUNITY</span>
+          <h3 className="text-[13px] font-extrabold leading-tight text-foreground">
+            Smarty Community
+          </h3>
+          <p className="line-clamp-1 text-[10px] leading-snug text-muted-foreground">
+            Share workouts, comment and join the rankings
+          </p>
+        </div>
+        <Users className="mr-2 h-5 w-5 shrink-0 text-primary" />
+      </Link>
+
+      <Link
+        to="/founder-note"
+        className="mt-4 flex h-[68px] items-center gap-3 overflow-hidden rounded-xl border-2 border-primary/60 bg-card p-1.5 transition-all duration-300 hover:border-primary hover:shadow-xl"
       >
         <div className="relative h-[52px] w-[58px] shrink-0 overflow-hidden rounded-lg bg-primary/10">
           <img
