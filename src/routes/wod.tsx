@@ -353,7 +353,61 @@ function WodPage() {
         </div>
       </section>
 
-      <GeneratingDialog open={building} />
+      <GeneratingDialog open={building && !buildHidden} onLeave={() => setBuildHidden(true)} />
+
+      <AlertDialog
+        open={confirmOpen !== null}
+        onOpenChange={(open) => {
+          if (!open) setConfirmOpen(null);
+        }}
+      >
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmOpen === "unsubscribe"
+                ? "Unsubscribe from Workout of the Day?"
+                : "Subscribe to Workout of the Day?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              {confirmOpen === "unsubscribe" ? (
+                <div className="space-y-2 text-left">
+                  <p>Your daily workouts stop being created from tomorrow.</p>
+                  <p>
+                    Everything you already have stays in your logbook, and you can create your own
+                    workouts with Smarty Coach again.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2 text-left">
+                  <p>
+                    Each day Smarty Coach builds your workouts automatically: two on training days —
+                    one with equipment and one bodyweight only — and a single gentle session on
+                    recovery days.
+                  </p>
+                  <p>
+                    Those are the workouts you train with each day, so creating your own workouts
+                    with Smarty Coach pauses while you are subscribed.
+                  </p>
+                  <p>You can unsubscribe here at any time.</p>
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                const subscribe = confirmOpen === "subscribe";
+                setConfirmOpen(null);
+                void toggleSub(subscribe);
+              }}
+            >
+              {confirmOpen === "unsubscribe" ? "Yes, unsubscribe" : "Yes, subscribe"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <MembershipRequiredDialog
         open={membershipOpen}
         onOpenChange={setMembershipOpen}
