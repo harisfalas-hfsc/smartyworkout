@@ -3,6 +3,7 @@ import { CalendarCheck, Dumbbell, PenLine } from "lucide-react";
 import heroTraining from "@/assets/hero-training.jpg";
 import { PageHeader } from "@/components/PageHeader";
 import { useFreeAccessMode } from "@/hooks/useFreeAccessMode";
+import { MobileHomeActions } from "@/components/MobileHomeActions";
 
 
 
@@ -81,44 +82,7 @@ function Home() {
           subtitle="Answer a smart questionnaire. Get a full tailor-made workout built around your body, goals, equipment and constraints."
         />
 
-        <div className="mx-auto flex max-w-xs flex-col gap-3">
-          <Link
-            to="/coach"
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary text-[15px] font-extrabold text-primary-foreground"
-          >
-            <Dumbbell className="h-4 w-4 shrink-0" />
-            Create your workout
-          </Link>
-          <Link
-            to="/wod"
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full border-2 border-primary text-[15px] font-extrabold text-primary"
-          >
-            <CalendarCheck className="h-4 w-4 shrink-0" />
-            Follow Workout of the Day
-          </Link>
-          {!freeAccessMode && (
-            <Link
-              to="/pricing"
-              className="flex h-12 w-full items-center justify-center rounded-full border-2 border-primary text-[15px] font-extrabold text-primary"
-            >
-              See pricing
-            </Link>
-          )}
-        </div>
-        <p className="mt-4 text-center text-[13px] text-muted-foreground">
-          {freeAccessMode
-            ? "Two personalized workouts every day."
-            : "One membership. Two personalized workouts every day."}
-        </p>
-        <div className="mt-4 flex justify-center">
-          <Link
-            to="/founder-note"
-            className="inline-flex items-center gap-2 rounded-full border-2 border-primary px-5 py-2.5 text-[13px] font-bold text-primary"
-          >
-            <PenLine className="h-4 w-4" />
-            A note from the founder
-          </Link>
-        </div>
+        <MobileHomeActions showPricing={!freeAccessMode} />
       </section>
 
 
