@@ -45,11 +45,12 @@ export function GeneratingDialog({ open, onLeave }: { open: boolean; onLeave?: (
   useEffect(() => {
     if (!open) {
       setHandOff(false);
+      setWaitRound(0);
       return;
     }
     const id = setTimeout(() => setHandOff(true), 90000);
     return () => clearTimeout(id);
-  }, [open]);
+  }, [open, waitRound]);
 
   return (
     <Dialog open={open}>
