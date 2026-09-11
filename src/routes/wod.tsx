@@ -449,8 +449,13 @@ function WodPage() {
         ) : null}
 
         <Button
-          variant={subscribed ? "secondary" : "default"}
-          className="h-12 w-full rounded-lg text-[15px] font-extrabold lg:w-80"
+          variant="default"
+          className={cn(
+            "h-12 w-full rounded-full text-[15px] font-extrabold lg:w-80",
+            subscribed
+              ? "border-2 border-primary bg-transparent text-primary hover:bg-primary/10"
+              : "bg-primary text-primary-foreground hover:opacity-95",
+          )}
           disabled={busy || building}
           onClick={() => void handleSubscribeClick()}
         >
@@ -461,8 +466,8 @@ function WodPage() {
               : busy
                 ? "Please wait…"
                 : subscribed
-                  ? "Unsubscribe from Workout of the Day"
-                  : "Subscribe to Workout of the Day"}
+                  ? "Unsubscribe"
+                  : "Subscribe"}
           </span>
         </Button>
 
