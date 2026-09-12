@@ -65,6 +65,22 @@ export const EQUIPMENT = [
   { id: "other", label: "Other" },
 ] as const;
 
+/**
+ * SIX-STAR DIFFICULTY PICKER for Smarty Gym (old).
+ * 1-2 Beginner, 3-4 Intermediate, 5-6 Advanced. The second star of each band
+ * is only slightly harder: more volume / less rest, never harder exercises.
+ */
+export const LEVELS_6 = [
+  { id: "auto", label: "Let Smarty decide", stars: 0, hint: "Uses your profile + today's mood" },
+  { id: "1", label: "Beginner - easier", stars: 1, hint: "Simple patterns, generous rest" },
+  { id: "2", label: "Beginner - solid", stars: 2, hint: "Same movements, a little more work" },
+  { id: "3", label: "Intermediate - easier", stars: 3, hint: "Standard variations, moderate rest" },
+  { id: "4", label: "Intermediate - solid", stars: 4, hint: "More volume, tighter rest" },
+  { id: "5", label: "Advanced - easier", stars: 5, hint: "High demand, familiar movements" },
+  { id: "6", label: "Advanced - solid", stars: 6, hint: "Highest volume and density" },
+] as const;
+
+/** Legacy three-level set — kept only for reference. */
 export const LEVELS = [
   { id: "auto", label: "Let Smarty decide", hint: "Uses your profile + today's mood" },
   { id: "beginner", label: "Beginner", hint: "Simple movements, longer rest" },

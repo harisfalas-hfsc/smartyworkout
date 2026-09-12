@@ -27,7 +27,6 @@ import { GeneratingDialog } from "@/components/workout/GeneratingDialog";
 import { PendingGenerationCard } from "@/components/workout/PendingGenerationCard";
 import { MembershipRequiredDialog } from "@/components/MembershipRequiredDialog";
 import { CoachRecommendationCard } from "@/components/coach/CoachRecommendationCard";
-import { levelToStars, starsToLevel } from "@/lib/workout/spec";
 
 
 import {
@@ -531,7 +530,7 @@ function CoachPage() {
 
 
         <QuestionCard
-          step={showFocus ? 9 : 8}
+          step={showFocus ? 8 : 7}
           icon={MessageSquare}
           title="Anything else?"
           hint="Optional — Smarty Coach reads this too."
