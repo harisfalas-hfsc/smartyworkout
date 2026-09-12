@@ -325,7 +325,8 @@ export function resolveDifficulty(
   requestedStars: number,
   mood: string | null | undefined,
 ): DifficultyResolution {
-  const requested = Math.max(1, Math.min(3, Math.round(requestedStars || 1)));
+  // SIX-STAR SCALE: 1-2 beginner, 3-4 intermediate, 5-6 advanced.
+  const requested = Math.max(1, Math.min(6, Math.round(requestedStars || 1)));
   // §27 — mood changes DOSE (volume, complexity, rest, impact) through the
   // mood directive. It never changes the difficulty tier the pool is filtered
   // with, so "tired" can no longer swap the athlete into an easier library.
@@ -367,12 +368,17 @@ function locationDirective(location: string | null | undefined): string {
 }
 
 function intensityDirective(stars: number, category: Category): string {
-  const base =
-    stars <= 1
-      ? "One star: teach the pattern. Simple bilateral movements, longer rest, clearly submaximal effort, no failure."
-      : stars === 2
-        ? "Two stars: solid volume, moderate complexity, work close to but not at technical breakdown."
-        : "Three stars: greater training demand — more volume, appropriate loading, shorter rest and more challenging but FAMILIAR variations of common movements. Advanced never means gymnastics, levers, handstands, pistol squats, Turkish get-ups, Olympic lifting or technically complicated exercises. Still 1-2 reps in reserve on every set.";
+  const step =
+    stars % 2 === 1
+      ? " This is the EASIER of the two stars in this level: volume at the low end, rest at the generous end."
+      : " This is the HARDER of the two stars in this level: volume at the high end, rest at the tighter end, but NEVER exercises from a higher level.";
+  const band =
+    stars <= 2
+      ? "Beginner band (1-2 stars): teach the pattern. Simple bilateral movements, longer rest, clearly submaximal effort, no failure."
+      : stars <= 4
+        ? "Intermediate band (3-4 stars): solid volume, moderate complexity, work close to but not at technical breakdown."
+        : "Advanced band (5-6 stars): greater training demand — more volume, appropriate loading, shorter rest and more challenging but FAMILIAR variations of common movements. Advanced never means gymnastics, levers, handstands, pistol squats, Turkish get-ups, Olympic lifting or technically complicated exercises. Still 1-2 reps in reserve on every set.";
+  const base = band + step;
   const guard =
     category === "RECOVERY" || category === "MOBILITY & STABILITY"
       ? " Intensity here means quality of control, never fatigue."

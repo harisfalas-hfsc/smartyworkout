@@ -57,7 +57,7 @@ const BODYWEIGHT_ONLY = new Set(["bodyweight"]);
 const LEVEL_STARS: Record<string, number> = {
   beginner: 1,
   intermediate: 2,
-  advanced: 3,
+  advanced: 5,
 };
 
 /** REQUESTED difficulty only — mood never enters here. */
