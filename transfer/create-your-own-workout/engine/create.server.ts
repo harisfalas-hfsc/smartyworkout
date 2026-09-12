@@ -64,6 +64,9 @@ function requestedStarsFor(
   profile: { experience?: string | null; fitness_level?: string | null } | null,
   requested?: string,
 ) {
+  // Six-star scale: the questionnaire sends "1".."6", or "auto"/undefined.
+  const explicit = Number(requested);
+  if (Number.isFinite(explicit) && explicit >= 1 && explicit <= 6) return Math.round(explicit);
   const level = (profile?.fitness_level ?? profile?.experience ?? "").toLowerCase();
   const key =
     requested && LEVEL_STARS[requested]
