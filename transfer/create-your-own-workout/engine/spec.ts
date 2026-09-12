@@ -59,27 +59,41 @@ export { LEGAL_FORMATS as CATEGORY_FORMATS } from "./doctrine";
 
 export type DifficultyLevel = "all" | "beginner" | "intermediate" | "advanced";
 
-/** One star per level. Legacy 1-6 values are folded into the 3-star scale. */
-export const MAX_STARS = 3;
+/**
+ * SMARTY GYM (OLD) SCALE — SIX STARS, THREE LEVELS, TWO STEPS PER LEVEL.
+ *   1-2 = Beginner      (1 slightly easier than 2)
+ *   3-4 = Intermediate  (3 slightly easier than 4)
+ *   5-6 = Advanced      (5 slightly easier than 6)
+ * The band decides the LEVEL doctrine (exercise legality, rest, complexity).
+ * The step inside the band only shifts volume / density / rest slightly — it
+ * NEVER unlocks a harder exercise class than its level allows.
+ */
+export const MAX_STARS = 6;
 
 export function normalizeStars(stars: number): number {
   if (!stars || stars <= 0) return 0;
-  const n = stars > MAX_STARS ? Math.ceil(stars / 2) : Math.round(stars);
-  return Math.max(1, Math.min(MAX_STARS, n));
+  return Math.max(1, Math.min(MAX_STARS, Math.round(stars)));
 }
 
 export function starsToLevel(stars: number): DifficultyLevel {
   const n = normalizeStars(stars);
   if (n === 0) return "all";
-  if (n === 1) return "beginner";
-  if (n === 2) return "intermediate";
+  if (n <= 2) return "beginner";
+  if (n <= 4) return "intermediate";
   return "advanced";
+}
+
+/** "lower" = first star of the band, "upper" = second star of the band. */
+export function starsToStep(stars: number): "lower" | "upper" | null {
+  const n = normalizeStars(stars);
+  if (n === 0) return null;
+  return n % 2 === 1 ? "lower" : "upper";
 }
 
 export function levelToStars(level: DifficultyLevel): number {
   if (level === "beginner") return 1;
-  if (level === "intermediate") return 2;
-  if (level === "advanced") return 3;
+  if (level === "intermediate") return 3;
+  if (level === "advanced") return 5;
   return 0;
 }
 
@@ -89,15 +103,29 @@ export function difficultyLabel(stars: number): string {
   return level.charAt(0).toUpperCase() + level.slice(1);
 }
 
-/** Three stars, three levels — one star is exactly one level, no half steps. */
+/** Six stars, three levels, two steps per level — no other gradations exist. */
 export function intensityNote(stars: number): string {
   const level = starsToLevel(stars);
+  const step = starsToStep(stars);
   if (level === "all") return "Mixed intensity.";
+  const stepNote =
+    step === "lower"
+      ? " This is the EASIER step of the band: keep volume at the low end of the level and rest at the generous end."
+      : " This is the HARDER step of the band: keep volume at the high end of the level and rest at the tighter end. Do NOT introduce exercises from a higher level.";
   if (level === "beginner")
-    return "Beginner: moderate volume, generous rest, the simplest safe variations. Never step up into intermediate work.";
+    return (
+      "Beginner: moderate volume, generous rest, the simplest safe variations. Never step up into intermediate work." +
+      stepNote
+    );
   if (level === "intermediate")
-    return "Intermediate: solid volume, moderate rest, standard variations. Never step down to beginner or up to advanced.";
-  return "Advanced: greater training demand — higher volume, appropriate loading, shorter rest and more challenging but familiar variations. Advanced never means gymnastic, technical or complicated exercises.";
+    return (
+      "Intermediate: solid volume, moderate rest, standard variations. Never step down to beginner or up to advanced." +
+      stepNote
+    );
+  return (
+    "Advanced: greater training demand — higher volume, appropriate loading, shorter rest and more challenging but familiar variations. Advanced never means gymnastic, technical or complicated exercises." +
+    stepNote
+  );
 }
 
 
