@@ -20,7 +20,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { generateWorkout } from "@/lib/coach.functions";
 import { isOnline } from "@/lib/connectivity";
-import { setUseLibraryPreferences as saveUseLibraryPreferences } from "@/lib/preferences.functions";
 import { Link } from "@tanstack/react-router";
 import { ParqWaiverDialog } from "@/components/ParqWaiverDialog";
 import { hasParqAck, setParqAck } from "@/lib/parq-ack";
@@ -37,7 +36,7 @@ import {
   BODY_FOCUS,
   FOCUS_GOALS,
 
-  LEVELS,
+  LEVELS_6,
   LOCATIONS,
   LOW_ENERGY_MOODS,
   MOODS,
@@ -145,7 +144,6 @@ function CoachPage() {
   const [equipment, setEquipment] = useState<string[]>([]);
   const [otherEquipment, setOtherEquipment] = useState("");
   const [note, setNote] = useState("");
-  const [useLibraryPreferences, setUseLibraryPreferences] = useState<boolean | null>(null);
 
   const [busy, setBusy] = useState(false);
   const [generationDialogOpen, setGenerationDialogOpen] = useState(false);
@@ -211,7 +209,6 @@ function CoachPage() {
       location &&
       equipment.length > 0 &&
       level &&
-      useLibraryPreferences !== null &&
       (!showFocus || focus),
   );
 
@@ -227,7 +224,6 @@ function CoachPage() {
       equipment: equipment.length ? equipment : ["bodyweight"],
       equipmentOther: equipment.includes("other") ? otherEquipment.trim() : "",
       note: note.trim(),
-      useLibraryPreferences: useLibraryPreferences ?? false,
 
       level: surprise ? "auto" : (levelOverride ?? level),
       surprise,
@@ -442,7 +438,7 @@ function CoachPage() {
           hint="Auto blends your profile level with today's mood. Pick a level to override it."
         >
           <div className="grid gap-2.5 sm:grid-cols-2">
-            {LEVELS.map((l) => (
+            {LEVELS_6.map((l) => (
               <button
                 key={l.id}
                 type="button"
@@ -453,7 +449,10 @@ function CoachPage() {
                     : "border-border bg-background hover:border-primary/50"
                 }`}
               >
-                <span className="block text-sm font-semibold">{l.label}</span>
+                <span className="block text-sm font-semibold">
+                  {l.stars ? "\u2605".repeat(l.stars) + "\u2606".repeat(6 - l.stars) + "  " : ""}
+                  {l.label}
+                </span>
                 <span
                   className={`block text-xs ${level === l.id ? "text-primary-foreground/80" : "text-muted-foreground"}`}
                 >
@@ -465,11 +464,9 @@ function CoachPage() {
           <div className="mt-3">
             <CoachRecommendationCard
               selectedStars={
-                level === "auto" || !level
-                  ? 2
-                  : levelToStars(level as "beginner" | "intermediate" | "advanced")
+                level === "auto" || !level ? 3 : (LEVELS_6.find((l) => l.id === level)?.stars ?? 3)
               }
-              onApplyStars={(stars) => setLevel(starsToLevel(stars))}
+              onApplyStars={(stars) => setLevel(String(stars))}
             />
           </div>
         </QuestionCard>
@@ -532,34 +529,6 @@ function CoachPage() {
           ) : null}
         </QuestionCard>
 
-        <QuestionCard
-          step={showFocus ? 8 : 7}
-          icon={Heart}
-          title="Use my library preferences?"
-          hint="Your liked exercises get priority, your disliked ones are left out."
-        >
-          <Grid>
-            <Chip active={useLibraryPreferences === true} onClick={() => {
-                setUseLibraryPreferences(true);
-                void saveUseLibraryPreferences({ data: { enabled: true } }).catch(() => undefined);
-              }}>
-              Yes
-            </Chip>
-            <Chip active={useLibraryPreferences === false} onClick={() => {
-                setUseLibraryPreferences(false);
-                void saveUseLibraryPreferences({ data: { enabled: false } }).catch(() => undefined);
-              }}>
-              No
-            </Chip>
-          </Grid>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Mark exercises in the{" "}
-            <Link to="/exercise-library" className="font-semibold text-primary">
-              Exercise Library
-            </Link>
-            .
-          </p>
-        </QuestionCard>
 
         <QuestionCard
           step={showFocus ? 9 : 8}
