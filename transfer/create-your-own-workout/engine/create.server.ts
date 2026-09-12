@@ -56,7 +56,7 @@ const BODYWEIGHT_ONLY = new Set(["bodyweight"]);
 /** Three stars, three levels: 1 beginner, 2 intermediate, 3 advanced. */
 const LEVEL_STARS: Record<string, number> = {
   beginner: 1,
-  intermediate: 2,
+  intermediate: 3,
   advanced: 5,
 };
 
