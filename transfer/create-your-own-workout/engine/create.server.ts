@@ -53,7 +53,7 @@ export const GOAL_TO_CATEGORY: Record<string, Category> = {
 
 const BODYWEIGHT_ONLY = new Set(["bodyweight"]);
 
-/** Three stars, three levels: 1 beginner, 2 intermediate, 3 advanced. */
+/** Six stars: 1-2 beginner, 3-4 intermediate, 5-6 advanced (lower star of each band). */
 const LEVEL_STARS: Record<string, number> = {
   beginner: 1,
   intermediate: 3,
@@ -186,24 +186,11 @@ export async function createWorkoutForUser(
   }
   const performanceLines = [...bestByExercise.values()].slice(0, 12);
 
-  const useLibraryPrefs =
-    data.useLibraryPreferences ?? (prof?.["use_library_preferences"] as boolean | null) ?? true;
-  const favoriteIds = useLibraryPrefs
-    ? ((prof?.["favorite_exercise_ids"] as string[] | null) ?? []).slice(0, 25)
-    : [];
-  const dislikedIds = useLibraryPrefs
-    ? ((prof?.["disliked_exercise_ids"] as string[] | null) ?? []).slice(0, 40)
-    : [];
-  const pickedIds = [...favoriteIds, ...dislikedIds];
-  const libraryNames = new Map<string, string>();
-  if (pickedIds.length) {
-    const { data: picked } = await db.from("exercises").select("id,name").in("id", pickedIds);
-    for (const row of (picked as Array<{ id: string; name: string }> | null) ?? [])
-      libraryNames.set(row.id, row.name);
-  }
-  const favoriteLibrary = favoriteIds.map((id) => libraryNames.get(id)).filter(Boolean) as string[];
-  const dislikedLibrary = dislikedIds.map((id) => libraryNames.get(id)).filter(Boolean) as string[];
-
+  // LIBRARY PREFERENCES ARE INTENTIONALLY REMOVED IN THIS PORT.
+  // Smarty Gym (old) has no per-exercise like/dislike feature, so favourites
+  // and dislikes come only from the questionnaire / profile text fields.
+  const favoriteLibrary: string[] = [];
+  const dislikedLibrary: string[] = [];
 
   let surpriseStars: number | null = null;
   if (data.surprise) {
