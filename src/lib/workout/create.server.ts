@@ -47,7 +47,6 @@ export const GOAL_TO_CATEGORY: Record<string, Category> = {
   challenge: "CHALLENGE",
   mobility: "MOBILITY & STABILITY",
   pilates: "PILATES",
-  micro: "MICRO-WORKOUTS",
   recovery: "RECOVERY",
 };
 
@@ -223,8 +222,6 @@ export async function createWorkoutForUser(
       equipmentMode = "BODYWEIGHT";
     }
   }
-
-  if (!data.wod && minutes <= 5) category = "MICRO-WORKOUTS";
 
   const requestedLevel = String(data.level ?? "auto");
   let requestedStars = requestedStarsFor(

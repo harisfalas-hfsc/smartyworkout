@@ -9,7 +9,6 @@ export const GOALS = [
   { id: "challenge", label: "Challenge" },
   { id: "mobility", label: "Mobility & Stability" },
   { id: "pilates", label: "Pilates" },
-  { id: "micro", label: "Micro Workout" },
 ] as const;
 
 /** Goals that ask the athlete which part of the body the session trains. */
@@ -43,7 +42,7 @@ export const MOODS = [
   { id: "push", label: "I want to push myself" },
 ] as const;
 
-export const TIMES = [5, 10, 15, 20, 30, 40, 45, 50, 60];
+export const TIMES = [10, 15, 20, 30, 40, 45, 50, 60];
 
 export const LOCATIONS = [
   { id: "home", label: "Home" },
