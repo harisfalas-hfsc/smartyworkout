@@ -38,7 +38,13 @@ export function PendingGenerationCard() {
     };
   }, [readPending]);
 
-  if (!generation || !["building", "failed"].includes(generation.status)) return null;
+  if (
+    !generation ||
+    !["building", "failed"].includes(generation.status) ||
+    (generation.status === "failed" && generation.attempt_count >= 5)
+  ) {
+    return null;
+  }
 
   return (
     <section className="mb-5 rounded-2xl border-2 border-primary bg-primary/5 p-4" aria-live="polite">
@@ -55,7 +61,7 @@ export function PendingGenerationCard() {
           <p className="mt-1 text-sm text-muted-foreground">
             {generation.status === "building"
               ? "Smarty Coach is building it now. You can safely leave this page."
-              : `A temporary problem interrupted it. Automatic recovery is scheduled${generation.attempt_count ? ` (attempt ${generation.attempt_count} of 5)` : ""}.`}
+              : `A temporary problem interrupted it. Another attempt is scheduled${generation.attempt_count ? ` (${generation.attempt_count} of 5 completed)` : ""}.`}
           </p>
           <Button asChild variant="link" className="mt-1 h-auto p-0 font-bold">
             <Link to="/logbook" search={{ filter: "all", view: "list" }}>Check my Logbook</Link>
