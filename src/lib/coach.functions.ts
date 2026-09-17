@@ -46,6 +46,10 @@ export const getPendingGeneration = createServerFn({ method: "GET" })
       .from("workout_generation_requests")
       .select("id,status,stage,attempt_count,created_at,workout_id")
       .eq("user_id", context.userId)
+      // The Coach/Logbook notice is only for a workout the member explicitly
+      // requested here. WOD generation has its own page and must never leave a
+      // stale failure notice across the rest of the customer experience.
+      .in("stage", ["initial", "refinement"])
       .in("status", ["failed", "building"])
       .is("workout_id", null)
       .order("created_at", { ascending: false })
@@ -54,7 +58,11 @@ export const getPendingGeneration = createServerFn({ method: "GET" })
     const row = (data ?? null) as
       | { id: string; status: string; stage: string; attempt_count: number; created_at: string }
       | null;
-    if (!row) return { pending: null };
+    // Five attempts is terminal. Never tell a customer that automatic recovery
+    // is still scheduled when no retry remains, and never obstruct a fresh try.
+    if (!row || (row.status === "failed" && row.attempt_count >= 5)) {
+      return { pending: null };
+    }
     return { pending: row };
   });
 

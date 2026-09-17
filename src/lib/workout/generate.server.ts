@@ -365,7 +365,7 @@ export async function generateWorkoutContent(
   ]);
   if (packSplit.structural.length) {
     throw new Error(
-      `Smarty Coach could not build a compliant workout (${lastError}). Please try again.`,
+      `Smarty Coach could not build a compliant workout. Model result: ${lastError}. Deterministic fallback: ${packSplit.structural.slice(0, 6).join(" ")}`,
     );
   }
 
