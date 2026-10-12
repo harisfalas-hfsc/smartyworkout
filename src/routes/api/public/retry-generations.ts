@@ -21,6 +21,12 @@ async function authorised(request: Request): Promise<boolean> {
 
 async function run(request: Request) {
   if (!(await authorised(request))) return new Response("Unauthorized", { status: 401 });
+  {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { getCronConfig } = await import("@/lib/cron/jobs.server");
+    const cfg = await getCronConfig(supabaseAdmin as never, "generation-recovery");
+    if (!cfg.enabled) return Response.json({ ok: true, skipped: "switched off in admin" });
+  }
   const { retryPendingGenerations } = await import("@/lib/workout-generation.server");
   try {
     const result = await retryPendingGenerations(5);

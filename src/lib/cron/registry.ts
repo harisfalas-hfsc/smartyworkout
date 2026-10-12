@@ -14,6 +14,7 @@ export type CronJobKey =
   | "seo-refresh"
   | "health-check"
   | "error-alerts"
+  | "generation-recovery"
   | "generate-weekly-blog-article";
 
 export type CronTiming = "per-member" | "fixed" | "weekly" | "continuous";
@@ -197,6 +198,23 @@ export const CRON_JOBS: CronJobDefinition[] = [
     timeEditable: false,
     contentEditable: false,
     settings: ["recipient", "severity", "groupWindow"],
+    defaults: { enabled: true, hour: 0, minute: 0 },
+  },
+  {
+    key: "generation-recovery",
+    label: "Workout generation recovery",
+    description:
+      "Retries member workouts that failed to generate (every 5 minutes) and cleans up abandoned generation requests (once a day at 06:30). When switched off, nothing is retried; when switched back on, waiting requests are picked up again on the next run.",
+    timing: "continuous",
+    timingNote: "Runs automatically every 5 minutes, plus a daily cleanup. The switch below turns both on or off.",
+    sends: [
+      {
+        title: "Your workout is ready",
+        body: "Members whose generation failed receive their workout once a retry succeeds.",
+      },
+    ],
+    timeEditable: false,
+    contentEditable: false,
     defaults: { enabled: true, hour: 0, minute: 0 },
   },
   {
